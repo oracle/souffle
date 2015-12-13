@@ -1,0 +1,12 @@
+.type set 
+
+.decl X(node1:set, node2:set) output
+.decl Y(node1:set, node2:set) output
+.decl Z(node1:set, node2:set) output
+
+Y(a,b) :- X(a,b).
+Y(a,c) :- X(a,b), Y(b,c).
+Z(a,b) :- !X(a,b), Y(a,b).
+
+X("a","b").
+X("b","d").

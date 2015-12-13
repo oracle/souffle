@@ -1,0 +1,13 @@
+Error: Mismatching arity of relation A in file fact_arity.dl at line 7
+A("1").
+^-------
+Error: Mismatching arity of relation A in file fact_arity.dl at line 8
+    A("2","3").
+----^-----------
+Error: Mismatching arity of relation B in file fact_arity.dl at line 11
+    B("3","4").
+----^-----------
+Error: Mismatching arity of relation B in file fact_arity.dl at line 12
+        B("3","4","3").
+--------^---------------
+4 errors generated, evaluation aborted

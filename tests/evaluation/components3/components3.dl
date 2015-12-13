@@ -1,0 +1,17 @@
+.comp A {
+    .decl edge(x:number, y:number) output
+    edge(1,2).
+    edge(2,3).
+}
+
+.comp B {
+    .init a = A
+}
+
+.comp C:B {
+    .decl path(x:number, y:number) output
+    path(x,y) :- a.edge(x,y).
+    path(x,y) :- a.edge(x,z), path(z,y).
+}
+
+.init c = C

@@ -1,0 +1,31 @@
+//
+// Check semantics of binary relations 
+//
+
+.number_type N
+
+.decl A (x:N, y:N) output
+.decl B (x:N, y:N) output
+.decl C (x:N, y:N) output
+.decl D (x:N, y:N) output
+.decl E (x:N, y:N) output
+.decl F (x:N, y:N) output
+.decl S (x:N, y:N) output
+.decl N (x:N) output
+
+N(0). 
+N(1). 
+N(2). 
+N(3). 
+N(4). 
+N(5). 
+
+S(x,y) :- N(x), N(y). 
+
+A(a,c) :- S(a,c), a > c.
+B(a,c) :- S(a,c), a < c.
+C(a,c) :- S(a,c), a = c.
+D(a,c) :- S(a,c), a != c.
+E(a,c) :- S(a,c), a <= c.
+F(a,c) :- S(a,c), a >= c.
+

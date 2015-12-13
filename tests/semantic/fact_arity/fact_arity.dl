@@ -1,0 +1,12 @@
+// Check mismatching arity in facts
+.type N
+
+.decl A (x:N, y:N, z:N)
+.decl B (x:N)
+
+A("1").
+    A("2","3").
+        A("2","3","1").
+B("3").
+    B("3","4").
+        B("3","4","3").

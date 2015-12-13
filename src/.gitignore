@@ -1,0 +1,11 @@
+.deps
+
+souffle
+souffle-compile
+souffle-config
+
+parser.hh
+parser.cc
+scanner.cc
+
+test-suite.log

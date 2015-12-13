@@ -1,0 +1,8 @@
+// Check errors inside included files
+// are reported at correct location
+.type Node
+
+.decl reachable   (node1:Node, node2:Node) input
+        blah %
+.decl same_clique (node1:Node, node2:Node) input
+.decl edge        (node1:Node, node2:Node) input

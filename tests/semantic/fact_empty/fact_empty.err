@@ -1,0 +1,4 @@
+Error: syntax error, unexpected ) in file fact_empty.dl at line 12
+edge( ).
+------^--
+1 errors generated, evaluation aborted

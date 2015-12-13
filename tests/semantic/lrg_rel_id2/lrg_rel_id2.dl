@@ -1,0 +1,19 @@
+//
+// Copyright (c) 2015 Oracle and/or its affiliates.
+//
+// All rights reserved.
+//
+
+
+.decl ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(n1: number, n2: number) 
+ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(1,2).
+ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(2,3).
+
+.decl AnotherReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(n1: number, n2: number) printsize
+
+
+AnotherReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(n, m) :-
+  ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(n, _),
+  ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(m, _),
+   n < m.
+   

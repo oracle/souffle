@@ -1,0 +1,7 @@
+Error: Redefinition of relation X in file comp_relation.dl at line 7
+.decl X(a:number,b:number) output 
+^----------------------------------
+Previous definition in file comp_relation.dl at line 2
+.decl X(a:number,b:number) output 
+^----------------------------------
+1 errors generated, evaluation aborted

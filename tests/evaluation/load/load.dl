@@ -1,0 +1,5 @@
+.type X
+.decl A(x:X, y:X, z:X) input output
+.decl B(x:X, y:X, z:X) input output
+.decl C(x:X, y:X, z:X) input output
+

@@ -1,0 +1,36 @@
+// Andersen's points-to analysis
+
+// Define the domain of variables
+.type var
+
+// Take addresses of other variables, i.e., y = &x;
+.decl AddressOf(y:var, x:var) input
+
+// Assign Statements, i.e.,  y = x;
+.decl Assign(y:var, x:var) input
+
+// Load Statements, i.e., y = *x; 
+.decl Load(y:var, x:var) input
+
+// Store Statements, i.e., *y = x;
+.decl Store(y:var, x:var) input
+
+// PointsTo Relation, i.e., whether y may point to x
+.decl PointsTo(y:var, x:var) output
+
+PointsTo(y, x) :-
+ AddressOf(y, x).
+
+PointsTo(y, x) :-
+ Assign(y, z),
+ PointsTo(z, x).
+
+PointsTo(y, w) :-
+ Load(y, x),
+ PointsTo(x, z),
+ PointsTo(z, w).
+
+PointsTo(z, w) :-
+ Store(y, x),
+ PointsTo(y, z),
+ PointsTo(x, w).

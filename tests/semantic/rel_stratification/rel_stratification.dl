@@ -1,0 +1,17 @@
+
+.type name
+
+.decl a(n:name) output
+.decl b(n:name) output
+.decl c(n:name) output
+
+a("A").
+a("B").
+
+// this is not allowed (no stable solution)
+b(X) :- a(X), !c(X).
+c(X) :- a(X), !b(X).
+
+
+// and also this
+a(X) :- a(X), !a(X).

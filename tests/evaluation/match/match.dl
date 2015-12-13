@@ -1,0 +1,13 @@
+//// Test-case for string matching
+
+.type String
+
+.decl inputData   (t:String) 
+.decl outputData  (t:String) output
+
+outputData(x) :- inputData(x), match("a.*",x). 
+
+inputData("aaaa").
+inputData("abba").
+inputData("bcab").
+inputData("bdab").

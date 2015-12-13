@@ -1,0 +1,14 @@
+// Type declarations 
+.type S 
+
+// Set output flag depending on stage 
+.decl A (x:S, y:S) output
+
+// Transitive Closure 
+A(x,z) :- A(x,y), A(y,z).
+
+// Facts
+A("a","b"). 
+A("b","c"). 
+A("c","d"). 
+A("d","e"). 

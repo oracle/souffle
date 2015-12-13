@@ -1,0 +1,7 @@
+
+.decl edge ( a:number, b:number ) input
+.decl path ( a:number, b:number ) printsize
+
+path(X,Y) :- edge(X,Y).
+path(X,Y) :- path(X,Z), path(Z,Y).
+

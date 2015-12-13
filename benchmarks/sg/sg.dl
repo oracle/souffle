@@ -1,0 +1,11 @@
+
+.decl up ( a:number, b:number) input
+.decl flat ( a:number, b:number) input
+.decl down ( a:number, b:number) input
+
+
+.decl sg( a:number, b:number ) printsize
+
+sg(X,Y) :- flat(X,Y).
+sg(X,Y) :- up(X,Z), sg(Z,W), down(W,Y).
+

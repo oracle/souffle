@@ -1,0 +1,4 @@
+Error: only ascii characters in string literals in file string_nascii.dl at line 5
+Fact("даталог").   # Non-ascii characters are not allowed
+-----^-----------------------------------------------------------
+1 errors generated, evaluation aborted

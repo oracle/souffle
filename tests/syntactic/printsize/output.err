@@ -1,0 +1,3 @@
+output qualifier already set in file output.dl at line 1
+.decl A(x:number) output output
+-------------------------^------

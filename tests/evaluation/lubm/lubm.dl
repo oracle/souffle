@@ -1,0 +1,107 @@
+// The Lehigh University Benchmark (LUBM) 
+// http://swat.cse.lehigh.edu/projects/lubm/
+// ported by Anthony Potter
+//
+// Unary relations
+.decl University (a:symbol) output input
+.decl Person (a:symbol) output
+.decl Employee (a:symbol) output
+.decl Faculty (a:symbol) output
+.decl Professor (a:symbol) output
+.decl Course (a:symbol) output input
+.decl AssociateProfessor (a:symbol) input
+.decl AssistantProfessor (a:symbol) input
+.decl Organization (a:symbol) output
+.decl Chair (a:symbol) output
+.decl Work (a:symbol) output
+.decl Lecturer (a:symbol) output input
+.decl Student (a:symbol) output
+.decl GraduateStudent (a:symbol) input
+.decl ResearchAssistant (a:symbol) input
+.decl GraduateCourse (a:symbol) input
+.decl UndergraduateStudent (a:symbol) input
+.decl ResearchGroup (a:symbol) output input
+.decl Publication (a:symbol) output input
+.decl TeachingAssistant (a:symbol) output input
+.decl FullProfessor (a:symbol) input
+.decl Department (a:symbol) input
+
+// Binary relations
+.decl hasAlumnus (a:symbol, b:symbol) output
+.decl degreeFrom (a:symbol, b:symbol) output
+.decl member (a:symbol, b:symbol) output
+.decl teachingAssistantOf (a:symbol, b:symbol) input
+.decl headOf (a:symbol, b:symbol) input
+.decl teacherOf (a:symbol, b:symbol) input
+.decl publicationAuthor (a:symbol, b:symbol) input
+.decl doctoralDegreeFrom (a:symbol, b:symbol) input
+.decl undergraduateDegreeFrom (a:symbol, b:symbol) input
+.decl mastersDegreeFrom (a:symbol, b:symbol) input
+.decl subOrganizationOf (a:symbol, b:symbol) output input
+.decl takesCourse (a:symbol, b:symbol) input
+.decl worksFor (a:symbol, b:symbol) output input
+.decl memberOf (a:symbol, b:symbol) output input
+.decl advisor (a:symbol, b:symbol) input
+.decl emailAddress (a:symbol, b:symbol) input
+.decl telephone (a:symbol, b:symbol) input
+.decl name (a:symbol, b:symbol) input
+.decl researchInterest (a:symbol, b:symbol) input
+
+// Ontology
+University(Y) :- mastersDegreeFrom(_,Y) .
+degreeFrom(X,Y) :- hasAlumnus(Y,X) .
+hasAlumnus(X,Y) :- degreeFrom(Y,X) .
+Employee(X) :- Faculty(X) .
+Faculty(X) :- Professor(X) .
+Professor(X) :- AssociateProfessor(X) .
+Person(Y) :- member(_,Y) .
+Professor(X) :- AssistantProfessor(X) .
+Professor(X) :- Chair(X) .
+worksFor(X,Y) :- headOf(X,Y) .
+Person(X) :- degreeFrom(X,_) .
+University(Y) :- degreeFrom(_,Y) .
+Person(Y) :- hasAlumnus(_,Y) .
+TeachingAssistant(X) :- Person(X), teachingAssistantOf(X,Y), Course(Y) .
+Chair(X) :- Person(X), headOf(X,Y), Department(Y) .
+memberOf(X,Y) :- member(Y,X) .
+member(X,Y) :- memberOf(Y,X) .
+Course(Y) :- teacherOf(_,Y) .
+University(X) :- hasAlumnus(X,_) .
+Person(X) :- telephone(X,_) .
+Organization(Y) :- subOrganizationOf(_,Y) .
+memberOf(X,Y) :- worksFor(X,Y) .
+Person(X) :- Employee(X) .
+Person(X) :- advisor(X,_) .
+Organization(X) :- member(X,_) .
+Organization(X) :- Department(X) .
+Faculty(X) :- Lecturer(X) .
+Person(Y) :- publicationAuthor(_,Y) .
+Professor(Y) :- advisor(_,Y) .
+Work(X) :- Course(X) .
+Professor(X) :- FullProfessor(X) .
+degreeFrom(X,Y) :- doctoralDegreeFrom(X,Y) .
+TeachingAssistant(X) :- teachingAssistantOf(X,_) .
+Person(X) :- undergraduateDegreeFrom(X,_) .
+Organization(X) :- University(X) .
+Person(X) :- doctoralDegreeFrom(X,_) .
+University(Y) :- doctoralDegreeFrom(_,Y) .
+Course(Y) :- teachingAssistantOf(_,Y) .
+University(Y) :- undergraduateDegreeFrom(_,Y) .
+degreeFrom(X,Y) :- mastersDegreeFrom(X,Y) .
+Person(X) :- GraduateStudent(X) .
+Person(X) :- ResearchAssistant(X) .
+Student(X) :- UndergraduateStudent(X) .
+degreeFrom(X,Y) :- undergraduateDegreeFrom(X,Y) .
+Publication(X) :- publicationAuthor(X,_) .
+Person(X) :- mastersDegreeFrom(X,_) .
+Organization(X) :- ResearchGroup(X) .
+Faculty(X) :- teacherOf(X,_) .
+Person(X) :- Chair(X) .
+Employee(X) :- Person(X), worksFor(X,Y), Organization(Y) .
+Course(X) :- GraduateCourse(X) .
+Student(X) :- Person(X), takesCourse(X,Y), Course(Y) .
+Person(X) :- TeachingAssistant(X) .
+Organization(X) :- subOrganizationOf(X,_) .
+Person(X) :- Student(X) .
+Person(X) :- emailAddress(X,_) .
+subOrganizationOf(X,Z) :- subOrganizationOf(X,Y), subOrganizationOf(Y,Z) .

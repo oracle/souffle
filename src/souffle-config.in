@@ -1,0 +1,33 @@
+#!/bin/bash
+#
+# Copyright (c) 2015, Oracle and/or its affiliates.
+#
+# All rights reserved.
+#
+
+CXX=@CXX@
+CXXFLAGS="@CXXFLAGS@"
+LIBS="@LIBS@"
+
+function usage() {
+cat <<EOT
+Usage: $0 [-hl]
+  -h          Show usage
+  -l          Libraries required for linking
+EOT
+}
+
+while getopts "hl" opt; do
+    case $opt in
+        h) usage; exit 0 ;;
+        l) echo $LIBS; exit 0 ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            usage >&2
+            exit 1
+            ;;
+    esac
+done
+
+usage >&2
+exit 1

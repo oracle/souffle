@@ -1,0 +1,12 @@
+.type Node
+
+.decl X(node1:Node, node2:Node) output
+.decl Y(node1:Node, node2:Node) output
+
+Y(a,b) :- X(a,b).
+Y(a,c) :- Y(a,b), Y(b,c).
+
+X("a","b").
+X("b","d").
+X("a","c").
+X("c","e").

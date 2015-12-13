@@ -1,0 +1,20 @@
+.type T
+
+.decl A (a:T, b:T)
+.decl B (a:T, b:T)
+.decl C (a:T, b:T)
+
+// Both, x and z are grounded
+A(x,z) :- B(x,y), C(y,z).
+
+// Ungrounded -- negation is not an atom
+A(x,z) :- B(x,y), !C(y,z).
+
+// x in the head and constraint is not grounded
+A(x,z) :- B(z,y), z > x.
+
+// l in negation is not grounded
+A(x,z) :- B(x,y), C(y,z), !C(y,l).
+
+// l in constraint is not grounded
+A(x,z) :- B(x,y), C(y,z), y > l.

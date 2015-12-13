@@ -1,0 +1,10 @@
+.number_type N
+.type list = [ x : number , y : list ]
+
+.decl p ( x : list )
+
+p([1,[2,nil]]).
+p([2,[3,nil]]).
+
+.decl r ( x : number ) output
+r(a+b) :- p ([a,[b,nil]]).

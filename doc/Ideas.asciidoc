@@ -1,0 +1,155 @@
+# Research & Development
+
+In the following we have put together a list of topics 
+that (if implemented) might improve the performance of
+Souffle, and the productivity of Datalog programmers.
+
+## Evaluation Strategies Based on Learning
+
+Current evaluation strategies for Datalog can be characterized either
+by top-down (i.e., from the goal to the facts), or bottom-up (i.e.,
+from the facts to the goal) evaluation, which are exhaustive
+strategies. To improve the performance of Datalog evaluation, recent
+methods related to learning in verification could be investigated. For
+example, a refinement process could perform the evaluation of a
+Datalog program: Initially, a coarse grain abstraction of the Datalog
+program is constructed and executed. The abstraction has two possible
+outcomes. Either it has computed the result of the initial input
+program or it found out that the abstraction is insufficient and a
+further refinement step is necessary, i.e., it learns from the
+previous iterations. In the best case, a result of the initial program
+can be computed with few refinement steps and hence outperforms the
+exhaustive strategies. In the worst case the refinement produces the
+original input Datalog program. The quality of the refinement step
+depends on finding good abstraction.
+
+Initial research has been carried out by:
+
+*Xin Zhang, Ravi Mangal, Radu Grigore, Mayur Naik, and Hongseok Yang. 2014. On abstraction refinement for program analyses in Datalog. In Proceedings of the 35th ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI '14).*
+
+However, their refinement process relies on MAXSAT to produce
+abstractions and is most likely not viable for large-scale program
+analysis. Better methods are required for scalable evaluation
+strategies. Other evaluation strategies could rely on interpolation
+and Horn logic encodings of input data. Other challenges include the
+incremental evaluations of Datalog, i.e., a Datalog program has a
+stream of changing EDBs and how the results of the previous evaluation
+can be efficiently utilized.
+
+## Efficient Data-Structures for Datalog Relations
+
+Our current data-structures for relations (except for binary relations
+for which we developed the Brie data-structure) store tuples in an
+explicit format. For large relations this is expensive due to modern
+cache hierarchies. The question is whether there are new
+data-structures that compress the tuples of a relation but still
+permit fast parallel access. In literature, BDD have been used for
+compressing relations effectively, however, they have been shown as
+impractical for real-world applications due to the fact that efficient
+variable orderings are difficult to find. The question is whether
+auto-index selection can be used for BDD-like data-structures to
+obtain the compression performance of BDDs but the user does not need
+to pay the price of finding suitable variable orderings. This question
+was raised in the last DOOP workshop that was co-located at PLDI'15 in
+discussion with Yannis Smaragdakis.
+
+## Extending the Expressiveness of Datalog
+
+Datalog can express efficiently algorithms in the computational class
+P.  Although Souffle has extensions to overcome this limitation,
+expressing programs outside P, is not as natural as writing "plain"
+Datalog programs. This research direction improves expressiveness of
+Datalog without loosing performance.
+
+Initial research has been conducted in this area for greedy algorithms
+(e.g., stable logic models etc.) that provides a choice operator and
+maximal choice operators:
+
+Sergio Greco and Carlo Zaniolo. 2001. Greedy algorithms in
+Datalog. Theory Pract. Log. Program. 1, 4 (July 2001), 381-407.
+
+However, this work is limited to greedy algorithms and does not
+outline how to implement choice in the Souffle. More research needs to
+be conducted to permit back-tracking style evaluations for exponential
+algorithms and retain the advantages of Datalog evaluations.
+
+## Infinite Lattices for Static Program Analysis
+
+Datalog permits finite subset lattices only that cover a large set of
+static program analysis however it excludes static program analysis
+with infinite domains including symbolic linear domains. The research
+question arises whether Souffle could be extended with user-defined
+lattices that are not finite subset lattices.
+
+An example would be polyhedral analysis that spawns polytopes by a set
+of affine constraints. Current Datalog evaluation techniques have no
+straight-forward means to integrate such domains in its evaluation
+strategy. Hence, the research questions arises whether semi-naive
+evaluation can be extended for other lattices and which lattice
+properties are required to integrate them in Souffle.
+
+This research requires knowledge in logic, programming languages, and
+mathematics.  At least 5 person years would be required; in academic
+terms at least one PhD (as her/his thesis topic) and one professor
+would be required to have a successful result.
+
+## Deduce complexity classes of Datalog 
+
+The complexity of a Datalog program may be deduced automatically using the 
+work and also improving the execution model:
+
+*Y. A. Liu, S. D. Stoller. From datalog rules to efficient programs with time and space
+guarantees. ACM Trans. Program. Lang. Syst. 31(6), 2009.* 
+
+
+## Software Engineering / Component Models for Datalog
+
+Souffle has implemented a very basic component model that is comparable with a C macro expansion mechanism with qualification and generic parameters. Programmers have to do the transfer of
+data between components by hand and no notion of reflection, encapsulation, etc. are provided
+to the programmer. The research question is whether programming idioms/pattern arise and that these idioms/pattern lead to a better syntax/semantic for components.
+
+## Integrated Development Environments/Programming Productivity
+
+At the moment Souffle development is very basic following a simple editor/compile/run cycle for practical implementation work. To overcome issues of editor/compile/run cycle development, the questions arises whether modern integrated development environments can provide program understanding and refactoring tools for Datalog programs. Especially, integrating debug facilities in the IDE would support the programmer and would increase the productivity. For this work, the Souffle compiler would require open interfaces such that an IDE can interface with the Souffle compiler directly. Proof tree visualization and program reasoning component would need to be developed for this task.
+
+## Equivalence Relations 
+
+Implement equivalence relation using union/find data-structure as an underlying data-structure. For example, 
+i.e., 
+
+```
+.decl A(x:number,y:number) equivalence 
+```
+
+would implicitly add the rules 
+
+```
+A(x,x) :- A(x,_).
+A(x,x) :- A(_,x).
+A(x,z) :- A(x,y), A(y,x). 
+A(x,y) :- A(y,x). 
+```
+
+without using recursion since the data-structure implicitly computes the equivalence class. This extension  is useful for Steensgaard's points-to analysis and Shapiro & Horwitz'97 style points-to analyses.
+Extensions for the Semi-Naive evaluation are required to traverse the delta (not a naive delta set / compressed delta set is required).
+
+## Magic Set Transformation
+
+At the moment magic set transformations for accelerating fixed-point calculations are done by the Datalog programmer by hand. An automated transformation would increase the productivity of programmers. The magic set transformation has to be guided by profile information to focus on the performance bottle-necks. Magic-set transformations are known to make some programmers slower - hence a cost metric hast to be computed. 
+
+## Syntax sugar for easier development
+
+### Semicolon operator ala Prolog
+
+Semicolon can be used in body of a rule instead of comma. `Atom0,Atom1;Atom2` would be split into two rules `Atom0,Atom1` and `Atom0,Atom2`. Note: Prolog supports braces in order to allow different semantics, i.e. to allow also interpretation as: `Atom0,Atom1` and `Atom2`, which seems as less useful variant.
+
+### Inline rules
+
+Sometimes one would like to encapsulate some reoccurring piece of code as a new relation. However, relations are tied to how the resulting program will be executed, so such refactoring of common code may have unwanted effects on the performance. Instead what we could have is rules that get expanded like C macros, but with type checking and nicer syntax. Possible syntax:
+
+```
+.decl MyRule(a: String) inline :-
+   R(a), !K(a), R2(a, a).
+```
+
+Note: `inline` implies that the "relation" can only have one rule, otherwise the semantics of "expanding" would be unclear.

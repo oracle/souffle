@@ -1,0 +1,6 @@
+.type Int
+
+.decl Fact(x:Int)
+
+Fact("даталог").   # Non-ascii characters are not allowed
+

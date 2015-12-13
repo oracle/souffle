@@ -1,0 +1,18 @@
+
+
+.number_type N
+.type P = [ a : N , b : N ]
+
+
+.decl a(x:P)
+.decl b(x:N,y:N) output
+
+a([1,2]).
+a([2,3]).
+
+
+b(x,y) :- a([x,y]).
+b(x,z) :- a([x,y]), b(y,z).
+
+
+

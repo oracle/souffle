@@ -1,0 +1,29 @@
+.type Node
+
+.decl RSG (node1:Node, node2:Node) output
+.decl FLAT(node1:Node, node2:Node) output
+.decl UP  (node1:Node, node2:Node) output
+.decl DOWN(node1:Node, node2:Node) output
+
+RSG(x,y) :- FLAT(x,y).
+RSG(x,y) :- UP(x, a), RSG(b, a), DOWN(b, y).
+
+UP("a","e").
+UP("a","f").
+UP("f","m").
+UP("g","n").
+UP("h","n").
+UP("i","o").
+UP("j","o").
+
+FLAT("g","f").
+FLAT("m","n").
+FLAT("m","o").
+FLAT("p","m").
+
+DOWN("l","f").
+DOWN("m","f").
+DOWN("g","b").
+DOWN("h","c").
+DOWN("i","d").
+DOWN("p","k").

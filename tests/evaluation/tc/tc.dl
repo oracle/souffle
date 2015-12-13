@@ -1,0 +1,29 @@
+//// Reproduced from [FD92]
+//// Adopted from DES
+
+.type Node
+
+.decl tcl  (node1:Node, node2:Node) output
+.decl tcr  (node1:Node, node2:Node) output
+.decl base (node1:Node, node2:Node) output
+.decl tc (node1:Node, node2:Node) output
+
+// Left-Recursive Transitive Closure
+tcl(X, Y) :- base(X,Y).
+tcl(X,Y) :- tcl(X,Z), base(Z,Y).
+
+// Right-recursive Transitive Closure
+tcr(X,Y) :- base(X,Y).
+tcr(X,Y) :- base(X, Z),tcr(Z,Y).
+
+// Double-recursive Transitive Closure
+tc(X,Y) :- base(X,Y).
+tc(X,Y) :- tc(X,Z),tc(Z,Y).
+
+// base relation
+base("a","b").
+base("b","c").
+base("c","d").
+base("d","e").
+base("e","f").
+base("f","g").

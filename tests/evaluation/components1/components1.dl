@@ -1,0 +1,15 @@
+.decl X(x:number) 
+X(1).
+
+.comp B  {
+    A(x) :- X(x).
+}
+
+.comp A { 
+   .decl A(x:number) output
+   .init b = B  
+}
+
+
+.init a = A
+

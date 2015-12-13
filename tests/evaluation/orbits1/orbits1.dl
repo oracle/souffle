@@ -1,0 +1,27 @@
+// Orbits of cosmological objects
+// Rafael Caballero-Rold\'an, 2007
+// Adopted from DES
+
+.type D 
+
+.decl star    (x:D) output
+.decl orbits  (x:D,y:D) output
+.decl planet  (x:D) output
+.decl intermediate (x:D,y:D) output
+
+star("sun").
+orbits("earth", "sun").
+orbits("moon", "earth").
+
+orbits(X,Y) :-  
+  orbits(X,Z),  
+  orbits(Z,Y).
+
+planet(X) :-                
+  orbits(X,Y),              
+  star(Y),                  
+  !intermediate(X,Y).
+
+intermediate(X,Y) :-    
+  orbits(X,Y),          
+  orbits(_,Y).

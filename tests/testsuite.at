@@ -1,0 +1,173 @@
+# Copyright (c) 2013-15, Oracle and/or its affiliates.
+#
+# All rights reserved.
+
+AT_INIT([Souffle])
+AT_COPYRIGHT([Copyright (c) 2013-15, Oracle and/or its affiliates.])
+
+AT_COLOR_TESTS
+
+dnl test failure with message
+dnl $1 -- message to output
+m4_define([FAIL],[AT_CHECK([echo "$1" >> testsuite.log ; exit 99])])
+
+dnl Check if a file exists
+dnl $1 -- file name to test
+m4_define([FILE_EXISTS],[
+ AS_IF([test -f "$1"],[],[FAIL("$1 does not exist")])
+])
+
+dnl Check whether the contents of two files are identical 
+dnl $1 -- first file
+dnl $2 -- second file
+m4_define([SAME_FILES],[
+ FILE_EXISTS([$1])
+ FILE_EXISTS([$2])
+ AT_CHECK([diff "$1" "$2"],[],[],[])
+])
+
+dnl Group test for all flag configurations 
+dnl $1 -- directory of testcase
+dnl $2 -- test category 
+dnl $3 -- command to execute testcase
+m4_define([TEST_GROUP],[
+ m4_foreach([FLAGS],[CONFS],[
+  AT_SETUP([$1 FLAGS])
+  $2
+  AT_CLEANUP([])
+ ])
+])
+
+dnl Execute a positive test case for a given flag configuration 
+dnl $1 -- test case
+dnl $2 -- category
+dnl $3 -- facts directory relative to the test directory
+dnl $4 -- directory with expected output 
+dnl       (relative to the test dir, but starting with '/'), or empty string
+m4_define([TEST_EVAL],[
+ m4_define([TESTNAME],[$1])
+ m4_define([CATEGORY],[$2])
+ m4_define([TESTDIR],["$TESTS"/CATEGORY/TESTNAME])
+ m4_define([PROGRAM],[TESTDIR/TESTNAME.dl])
+ m4_define([FACTS],[TESTDIR/$3])
+ m4_define([EXPECTEDDIR], [TESTDIR$4])
+ # invoke souffle 
+ AT_CHECK(["$SOUFFLE" FLAGS -D. -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
+ # sort the expected and the generated CSV files
+ # and compare whether both files are the same. 
+ for i in *.csv
+ do
+  sort "$i" > "$i.sorted.generated"
+  sort EXPECTEDDIR/"$i" > "$i.sorted.expected"
+  SAME_FILES(["$i.sorted.generated"],["$i.sorted.expected"])
+ done
+ # validate whether the number of generated CSV files 
+ # is equal to the number of expected CSV files.
+ ls *.csv|wc -l >"num.generated"
+ ls EXPECTEDDIR/*.csv|wc -l >"num.expected"
+ # validate stdout and stderr
+ SAME_FILES([TESTNAME.out],[EXPECTEDDIR/TESTNAME.out])
+ SAME_FILES([TESTNAME.err],[EXPECTEDDIR/TESTNAME.err])
+ SAME_FILES([num.generated],[num.expected])
+])
+
+dnl Execute a negative test case for a given flag configuration 
+dnl $1 -- test case
+dnl $2 -- category
+m4_define([TEST_EVAL_ERROR],[
+ m4_define([TESTNAME],[$1])
+ m4_define([CATEGORY],[$2])
+ m4_define([TESTDIR],["$TESTS"/CATEGORY/TESTNAME])
+ m4_define([PROGRAM],[TESTDIR/TESTNAME.dl])
+ m4_define([FACTS],[TESTDIR/facts])
+ AT_CHECK(["$SOUFFLE" FLAGS -D. -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [1])
+ SAME_FILES([TESTNAME.out],[TESTDIR/TESTNAME.out])
+ SAME_FILES([TESTNAME.err],[TESTDIR/TESTNAME.err])
+])
+
+dnl Execute a positive interface test case 
+dnl $1 -- test case
+dnl $2 -- category
+m4_define([TEST_EVAL_INTERFACE],[
+ m4_define([TESTNAME],[$1])
+ m4_define([CATEGORY],[$2])
+ m4_define([TESTDIR],["$TESTS"/CATEGORY/TESTNAME])
+ m4_define([PROGRAM],[TESTDIR/TESTNAME.dl])
+ m4_define([FACTS],[TESTDIR/facts])
+ # invoke souffle 
+ AT_CHECK(["$SOUFFLE" -D- -o $1 -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
+ # remove executable and re-build it from scratch
+ AT_CHECK([rm $1 2>>TESTNAME.err],[0])
+ AT_CHECK(["$CXX" "-I$SOUFFLE_INC" $CXXFLAGS -D__EMBEDDED_SOUFFLE__ -o $1 TESTDIR/driver.cpp $1.cpp $LIBS 2>>TESTNAME.err],[0])
+ AT_CHECK([./$1 FACTS 1>TESTNAME.out 2>>TESTNAME.err], [0])
+ SAME_FILES([TESTNAME.out],[TESTDIR/TESTNAME.out])
+])
+
+dnl Positive testcase for Souffle 
+dnl $1 -- test name
+dnl $2 -- category
+m4_define([POSITIVE_TEST],[
+    TEST_GROUP([$1],[
+        TEST_EVAL([$1],[$2], facts)
+    ])
+])
+
+dnl Positive testcase for Souffle 
+dnl $1 -- test name
+dnl $2 -- category
+dnl $3 -- facts directories
+m4_define([POSITIVE_MULTI_TEST],[
+ m4_foreach([POSITIVE_MULTI_TEST_DIR],[$3],[
+   TEST_GROUP([$1 POSITIVE_MULTI_TEST_DIR],[
+     TEST_EVAL([$1],[$2], POSITIVE_MULTI_TEST_DIR, /POSITIVE_MULTI_TEST_DIR)
+   ])
+ ])
+])
+
+dnl Positive interface testcase for Souffle 
+dnl $1 -- test name
+dnl $2 -- category
+m4_define([POSITIVE_INTERFACE_TEST],[
+  AT_SETUP([$1])
+  TEST_EVAL_INTERFACE([$1],[$2])
+  AT_CLEANUP([])
+])
+
+dnl Negative testcase for Souffle 
+dnl $1 -- test name
+dnl $2 -- category
+m4_define([NEGATIVE_TEST],[
+    TEST_GROUP([$1],[
+        TEST_EVAL_ERROR([$1],[$2])
+    ])
+])
+
+##########################################################################
+
+dnl Defines all possible Souffle flag configurations for testing
+m4_define([CONFS], [[], dnl interpreter
+ [-c],                  dnl compilation 
+ [-c -d],               dnl compilation (debug)
+ [-j8],                 dnl interpreter / parallel execution
+ [-c -j8],              dnl compilation & parallel execution 
+ [--auto-schedule -o testprog],  dnl auto-scheduling & compilation
+ [-c -j8],              dnl compilation & parallel execution 
+ [-p profile.log],      dnl interpreter & profiling
+ [-c -p profile.log]    dnl compiler & profiling
+])
+
+dnl Syntactic Tests 
+AT_BANNER([Syntactic])
+m4_include([syntactic.at])
+
+dnl Semantic Tests 
+AT_BANNER([Semantic])
+m4_include([semantic.at])
+
+dnl Evaluation 
+AT_BANNER([Evaluation])
+m4_include([evaluation.at])
+
+dnl Interface
+AT_BANNER([Interface])
+m4_include([interface.at])

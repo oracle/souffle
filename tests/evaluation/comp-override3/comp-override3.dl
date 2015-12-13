@@ -1,0 +1,30 @@
+.comp A {
+    .decl Rel(x:number) overridable output
+    Rel(1).
+}
+
+.comp B {
+    .decl Rel(x:number) output
+    Rel(2).
+}
+
+.comp C : A {
+    Rel(3).
+}
+
+.comp D : B {
+    Rel(4).
+}
+
+.comp E : C {
+    .init d = D
+    Rel(5).
+}
+
+.comp F : E {
+    .override Rel
+    Rel(6).
+}
+
+.init e = E
+.init f = F

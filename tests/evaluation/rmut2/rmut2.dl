@@ -1,0 +1,26 @@
+.type Node
+
+.decl X (node1:Node) output
+.decl A (node1:Node) output
+.decl B (node1:Node) output
+.decl C (node1:Node) output
+.decl D (node1:Node) output
+
+X("a").
+X("b").
+X("c").
+
+A("1"). 
+B("2"). 
+C("3"). 
+D("4"). 
+
+A(x) :- X(x).
+B(x) :- X(x), A(x).
+C(x) :- X(x), A(x), B(x).
+D(x) :- X(x), A(x), B(x), C(x).
+
+A(x) :- X(x), A(x), B(x), C(x), D(x).
+B(x) :- X(x), A(x), B(x), C(x), D(x).
+C(x) :- X(x), A(x), B(x), C(x), D(x).
+D(x) :- X(x), A(x), B(x), C(x), D(x).

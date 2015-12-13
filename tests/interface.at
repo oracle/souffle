@@ -1,0 +1,7 @@
+# Copyright (c) 2013, Oracle and/or its affiliates.
+#
+# All rights reserved.
+
+POSITIVE_INTERFACE_TEST([load_print],[interface])
+POSITIVE_INTERFACE_TEST([insert_print],[interface])
+POSITIVE_INTERFACE_TEST([insert_for],[interface])

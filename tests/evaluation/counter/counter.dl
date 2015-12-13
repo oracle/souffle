@@ -1,0 +1,16 @@
+// Check semantics of binary relations 
+
+.decl A (n:number)
+.decl B (a:number, b:number)
+.decl C (a:number, b:number) output
+
+// create a list from 0 to 1000
+A(0).
+A(i+1) :- A(i), i<1000.			// this is sequential
+
+// use list to fill another in parallel
+B($,i) :- A(i).				// this may be parallel
+
+// make sure the $ was consistently used
+C(i,j) :- B(c,i), B(c,j), i!=j.
+

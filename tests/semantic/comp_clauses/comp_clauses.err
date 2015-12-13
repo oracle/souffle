@@ -1,0 +1,7 @@
+Error: Non-string operand for string function in file comp_clauses.dl at line 10
+q(cat(x,x)) :- q(x).                // this one should
+------^------------------------------------------------
+Error: Non-string operand for string function in file comp_clauses.dl at line 10
+q(cat(x,x)) :- q(x).                // this one should
+--------^----------------------------------------------
+2 errors generated, evaluation aborted

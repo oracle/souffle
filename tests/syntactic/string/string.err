@@ -1,0 +1,4 @@
+Error: no tabs/newlines in string literals in file string.dl at line 6
+Fact("baz	"). // but tabs, newlines and
+-----^----------------------------------
+1 errors generated, evaluation aborted

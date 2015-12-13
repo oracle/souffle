@@ -1,0 +1,6 @@
+SOUFFLE=@abs_top_builddir@/src/souffle
+TESTS=@abs_top_srcdir@/tests
+SOUFFLE_INC=@abs_top_builddir@/include
+CXX=@CXX@
+CXXFLAGS="@CXXFLAGS@"
+LIBS="@LIBS@"

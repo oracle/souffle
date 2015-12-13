@@ -1,0 +1,7 @@
+.type Int
+
+.decl Fact(x:Int)
+
+Fact("baz ").   // white space are ok,
+Fact("baz	"). // but tabs, newlines and
+                // unprintable characters are not

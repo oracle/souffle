@@ -1,0 +1,4 @@
+Error: syntax error, unexpected ), expecting identifier in file rel_empty.dl at line 5
+.decl R()
+--------^-
+1 errors generated, evaluation aborted

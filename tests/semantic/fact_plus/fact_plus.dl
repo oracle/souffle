@@ -1,0 +1,9 @@
+.type Node
+
+.decl F (node1:number, node2:Node) input
+
+// ok 
+F(1+2,"AA").
+
+// not ok [variable]
+F(1+a,"AA").

@@ -1,0 +1,17 @@
+.type Set
+
+.decl X(node1:Set, node2:Set) output
+.decl Y(node1:Set, node2:Set) output
+.decl Z(node1:Set, node2:Set) output
+
+// Negation
+Y(a,b) :- X(a,b).
+Y(a,c) :- X(a,b), Y(b,c).
+
+//// As X contains ("a","b")
+//// generate empty set
+Z(a,b) :- !X("a","b"), Y(a,b).
+
+X("a","b").
+X("b","c").
+X("c","d").

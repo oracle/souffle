@@ -1,0 +1,26 @@
+// tests the proper handling of aliases
+
+.number_type N
+
+
+.decl n ( a : N )
+
+n(1).
+n(2).
+n(3).
+n(4).
+n(5).
+
+.decl p ( a : N , b : N ) output
+p(x,y) :- n(x), x = y.
+
+
+.decl a ( a : N, b : N )
+
+a(1,2).
+a(2,2).
+a(3,2).
+
+.decl r ( a : N ) output
+r(z) :- a(x,y), r = [x,y], s = r, s = [v,w], w=z, z=v.
+

@@ -1,0 +1,18 @@
+// Adopted from DES
+// Paths in a Graph
+//
+// Datalog Formulation
+
+.type Node
+
+.decl path   (node1:Node, node2:Node) output
+.decl edge   (node1:Node, node2:Node) output
+
+edge("a","b").
+edge("a","c").
+edge("b","a").
+edge("b","d").
+
+path(X,Y) :- path(X,Z), edge(Z,Y).
+path(X,Y) :- edge(X,Y).
+
