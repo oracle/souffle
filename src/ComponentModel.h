@@ -110,7 +110,7 @@ class ComponentInstantiationTransformer : public AstTransformer {
 private:
     virtual bool transform(AstTranslationUnit &translationUnit);
 
-    static const unsigned int MAX_INSTANTIATION_DEPTH = 10000;
+    static const unsigned int MAX_INSTANTIATION_DEPTH = 1000;
 
     /**
      * Recursively computes the set of relations (and included clauses) introduced
