@@ -82,12 +82,13 @@
 \n                               { yycolumn = 1; }
 "#".*$                           { // processing line directive from cpp
                                    char fname[yyleng+1];
-                                   int lineno, flag;
-                                   sscanf(yytext,"# %d \"%s %d",&lineno,fname,&flag);
-                                   assert(strlen(fname) > 0 && "failed conversion");
-                                   fname[strlen(fname)-1]='\0';
-                                   yycolumn = 1; yylineno = lineno-1;
-                                   yyfilename = SLOOKUP(fname);
+                                   int lineno;
+                                   if(sscanf(yytext,"# %d \"%s",&lineno,fname)>=2) {
+                                       assert(strlen(fname) > 0 && "failed conversion");
+                                       fname[strlen(fname)-1]='\0';
+                                       yycolumn = 1; yylineno = lineno-1;
+                                       yyfilename = SLOOKUP(fname);
+                                   }
                                  }
 ".decl"                          { return yy::parser::make_DECL(yylloc); }
 ".type"                          { return yy::parser::make_TYPE(yylloc); }

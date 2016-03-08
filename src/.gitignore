@@ -4,6 +4,7 @@ souffle
 souffle-compile
 souffle-config
 
+stack.hh
 parser.hh
 parser.cc
 scanner.cc
