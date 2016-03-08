@@ -110,7 +110,7 @@ namespace {
                 case BinaryOp::SUB: return visit(op.getLHS()) - visit(op.getRHS());
                 case BinaryOp::MUL: return visit(op.getLHS()) * visit(op.getRHS());
                 case BinaryOp::DIV: return visit(op.getLHS()) / visit(op.getRHS());
-                case BinaryOp::EXP: return std::pow(visit(op.getLHS()), visit(op.getRHS()));
+                case BinaryOp::EXP: return pow(visit(op.getLHS()), visit(op.getRHS()));
                 case BinaryOp::MOD: return visit(op.getLHS()) % visit(op.getRHS());
 
                 // strings
@@ -940,7 +940,6 @@ namespace {
     class Printer : public RamVisitor<void, std::ostream&> {
 
         const RamExecutorConfig& config;
-        const IndexMap& indices;
 
         std::function<void(std::ostream&,const RamNode*)> rec;
 
@@ -958,7 +957,7 @@ namespace {
     public:
 
         Printer(const RamExecutorConfig& config, const IndexMap& indices)
-            : config(config), indices(indices) {
+            : config(config) {
             rec = [&](std::ostream& out, const RamNode* node) {
               this->visit(*node, out);
             };
