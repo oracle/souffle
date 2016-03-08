@@ -25,11 +25,6 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 // IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
- and/or its affiliates.
-//
-// All rights reserved.
-//
-
 // 
 // This code computes the dominance relation of a rooted directed graph
 // given via its edge set. 
