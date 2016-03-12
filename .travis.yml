@@ -2,7 +2,7 @@ sudo: required
 dist: trusty
 language: cpp
 install:
-  - sudo apt-get install build-essential g++ automake autoconf bison flex openjdk-7-jdk
+  - sudo apt-get -y install build-essential g++ automake autoconf bison flex openjdk-7-jdk
 compiler:
 - gcc
 os:
