@@ -61,19 +61,6 @@ AS_IF([test -z "$FLEX"], [AC_MSG_ERROR([flex not found.])])
 AC_CHECK_PROG(BISON, bison, bison)
 AS_IF([test -z "$BISON"], [AC_MSG_ERROR([bison not found.])])
 
-dnl Build doxygen documentation
-DX_DOXYGEN_FEATURE(ON)
-DX_DOT_FEATURE(ON)
-DX_HTML_FEATURE(ON)
-DX_CHM_FEATURE(OFF)
-DX_CHI_FEATURE(OFF)
-DX_MAN_FEATURE(OFF)
-DX_RTF_FEATURE(OFF)
-DX_XML_FEATURE(OFF)
-DX_PDF_FEATURE(OFF)
-DX_PS_FEATURE(OFF)
-DX_INIT_DOXYGEN([$PACKAGE_NAME],[doxygen.cfg],[doc])
-
 dnl Enable pthread library
 AC_CHECK_LIB(pthread, pthread_create,,
           [AC_MSG_ERROR([required library pthread missing])])
