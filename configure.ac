@@ -53,7 +53,11 @@ AX_PROG_JAVAC
 AX_PROG_JAVA
 AX_PROG_JAR
 
-# Check fol flex
+# Check for flex
+AC_CHECK_PROG(SOUFFLECPP, cpp, cpp)
+AS_IF([test -z "$SOUFFLECPP"], [AC_MSG_ERROR([cpp not found.])])
+
+# Check for flex
 AC_CHECK_PROG(FLEX, flex, flex)
 AS_IF([test -z "$FLEX"], [AC_MSG_ERROR([flex not found.])])
 

@@ -40,6 +40,7 @@
 #include <iterator>
 #include <type_traits>
 #include <mutex>
+#include <libgen.h>
 
 #include "Util.h"
 #include "IterUtils.h"
