@@ -1,6 +1,6 @@
 language: cpp
 install:
-  - sudo apt-get install build-essential g++ automake autoconf bison flex doxygen openjdk-7-jdk
+  - sudo apt-get install build-essential g++ automake autoconf bison flex openjdk-7-jdk
 compiler:
 - gcc
 os:
