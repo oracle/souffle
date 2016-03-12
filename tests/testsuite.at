@@ -169,11 +169,9 @@ m4_define([NEGATIVE_TEST],[
 dnl Defines all possible Souffle flag configurations for testing
 m4_define([CONFS], [[], dnl interpreter
  [-c],                  dnl compilation 
- [-c -d],               dnl compilation (debug)
  [-j8],                 dnl interpreter / parallel execution
  [-c -j8],              dnl compilation & parallel execution 
  [--auto-schedule -o testprog],  dnl auto-scheduling & compilation
- [-c -j8],              dnl compilation & parallel execution 
  [-p profile.log],      dnl interpreter & profiling
  [-c -p profile.log]    dnl compiler & profiling
 ])

@@ -53,26 +53,17 @@ AX_PROG_JAVAC
 AX_PROG_JAVA
 AX_PROG_JAR
 
-# Check fol flex
+# Check for flex
+AC_CHECK_PROG(SOUFFLECPP, cpp, cpp)
+AS_IF([test -z "$SOUFFLECPP"], [AC_MSG_ERROR([cpp not found.])])
+
+# Check for flex
 AC_CHECK_PROG(FLEX, flex, flex)
 AS_IF([test -z "$FLEX"], [AC_MSG_ERROR([flex not found.])])
 
 # Check for bison
 AC_CHECK_PROG(BISON, bison, bison)
 AS_IF([test -z "$BISON"], [AC_MSG_ERROR([bison not found.])])
-
-dnl Build doxygen documentation
-DX_DOXYGEN_FEATURE(ON)
-DX_DOT_FEATURE(ON)
-DX_HTML_FEATURE(ON)
-DX_CHM_FEATURE(OFF)
-DX_CHI_FEATURE(OFF)
-DX_MAN_FEATURE(OFF)
-DX_RTF_FEATURE(OFF)
-DX_XML_FEATURE(OFF)
-DX_PDF_FEATURE(OFF)
-DX_PS_FEATURE(OFF)
-DX_INIT_DOXYGEN([$PACKAGE_NAME],[doxygen.cfg],[doc])
 
 dnl Enable pthread library
 AC_CHECK_LIB(pthread, pthread_create,,

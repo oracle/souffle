@@ -1,0 +1,13 @@
+sudo: required
+dist: trusty
+language: cpp
+install:
+  - sudo apt-get -y install build-essential g++ automake autoconf bison flex openjdk-7-jdk
+compiler:
+- gcc
+os:
+- linux
+script: 
+- sh ./bootstrap
+- ./configure
+- make check 

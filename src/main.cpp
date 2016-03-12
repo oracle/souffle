@@ -313,7 +313,8 @@ int main(int argc, char **argv)
     }
 
     /* Create the pipe to establish a communication between cpp and souffle */
-    std::string cmd = "cpp -nostdinc " + includeOpt + " " + filenames;
+    std::string cmd = SOUFFLECPP;
+    cmd  += " -nostdinc " + includeOpt + " " + filenames;
     FILE* in = popen(cmd.c_str(), "r"); 
 
     /* Time taking for parsing */
