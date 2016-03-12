@@ -6,6 +6,7 @@ compiler:
 os:
 - linux
 script: 
+- cd souffle
 - sh ./bootstrap
 - ./configure
 - make check 
