@@ -47,7 +47,7 @@ Follow the steps below to compile and install Soufflé on a UNIX system:
 
 5.  Test the executable with `make check` to check whether the compilation of Soufflé succeeded.
 
-6.  Run '`make install`'
+6.  Run `make install`
 
     This command will create the directories and install files in `${DESTDIR}${prefix}`
 
