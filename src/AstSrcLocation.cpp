@@ -40,6 +40,7 @@
 #include <sstream>
 #include <unistd.h>
 #include <iostream>
+#include <libgen.h>
 
 #include "AstSrcLocation.h"
 
