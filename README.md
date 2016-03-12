@@ -41,7 +41,7 @@ Follow the steps below to compile and install Soufflé on a UNIX system:
     For a G++ installation on MAC OS X you need to specify the following flags before invoking `./configure`:
      `export CXX=/usr/local/bin/g++-5`                
      `export CXXFLAGS=-fopenmp`                
-     `export CPP=/usr/local/bin/cpp-5`                
+     `export SOUFFLECPP=/usr/local/bin/cpp-5`                
 
 4.  Run `make` to build the executable of Soufflé
 
