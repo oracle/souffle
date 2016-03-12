@@ -91,7 +91,7 @@ soufflepublicdir = $(includedir)/souffle
 soufflepublic_HEADERS = CompiledRamOptions.h CompiledRamRelation.h CompiledRamTuple.h CompiledRamRecord.h CompiledSouffle.h \
 				  SouffleInterface.h ParallelUtils.h RamTypes.h BTree.h Trie.h Table.h Util.h IterUtils.h SymbolTable.h RamLogger.h 
 
-souffle_CPPFLAGS = -DBUILDDIR='"@abs_top_builddir@/src/"' -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\"" -DCPP="\"${CPP}\""
+souffle_CPPFLAGS = -DBUILDDIR='"@abs_top_builddir@/src/"' -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\"" -DSOUFFLECPP="\"${SOUFFLECPP}\""
 
 # files to clean 
 CLEANFILES = $(BUILT_SOURCES)  parser.cc scanner.cc parser.hh stack.hh
