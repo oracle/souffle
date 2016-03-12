@@ -719,7 +719,7 @@ TEST(Trie, IteratorStress_1D) {
 
     std::set<tuple> data;
     while(data.size() < N) {
-        tuple cur = tuple({(RamDomain)(rand(N*10))});
+        tuple cur = tuple({{(RamDomain)(rand(N*10))}});
         if (data.insert(cur).second) {
             EXPECT_FALSE(set.contains(cur));
             set.insert(cur);
@@ -840,16 +840,16 @@ TEST(Trie, RangeQuery) {
     EXPECT_EQ(1000, set.size());
 
     // Range [*,*,*]
-    EXPECT_EQ(1000,card(set.getBoundaries<0>(tuple({3,4,5}))));
+    EXPECT_EQ(1000,card(set.getBoundaries<0>(tuple({{3,4,5}}))));
 
     // Range [3,*,*]
-    EXPECT_EQ( 100,card(set.getBoundaries<1>(tuple({3,4,5}))));
+    EXPECT_EQ( 100,card(set.getBoundaries<1>(tuple({{3,4,5}}))));
 
     // Range [3,4,*]
-    EXPECT_EQ(  10,card(set.getBoundaries<2>(tuple({3,4,5}))));
+    EXPECT_EQ(  10,card(set.getBoundaries<2>(tuple({{3,4,5}}))));
 
     // Range [3,4,5]
-    EXPECT_EQ(   1,card(set.getBoundaries<3>(tuple({3,4,5}))));
+    EXPECT_EQ(   1,card(set.getBoundaries<3>(tuple({{3,4,5}}))));
 
 }
 
@@ -872,19 +872,19 @@ TEST(Trie, RangeQuery_1D) {
     Trie<1> set;
 
     // empty set
-    EXPECT_EQ(0, card(set.getBoundaries<0>(tuple({3}))));
-    EXPECT_EQ(0, card(set.getBoundaries<1>(tuple({3}))));
+    EXPECT_EQ(0, card(set.getBoundaries<0>(tuple({{3}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<1>(tuple({{3}}))));
 
     // add some elements
     for(int i=0; i<5; i++) {
         set.insert(i);
     }
 
-    EXPECT_EQ(5, card(set.getBoundaries<0>(tuple({3}))));
-    EXPECT_EQ(5, card(set.getBoundaries<0>(tuple({7}))));
+    EXPECT_EQ(5, card(set.getBoundaries<0>(tuple({{3}}))));
+    EXPECT_EQ(5, card(set.getBoundaries<0>(tuple({{7}}))));
 
-    EXPECT_EQ(1, card(set.getBoundaries<1>(tuple({3}))));
-    EXPECT_EQ(0, card(set.getBoundaries<1>(tuple({7}))));
+    EXPECT_EQ(1, card(set.getBoundaries<1>(tuple({{3}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<1>(tuple({{7}}))));
 
 }
 
@@ -894,9 +894,9 @@ TEST(Trie, RangeQuery_2D) {
     Trie<2> set;
 
     // empty set
-    EXPECT_EQ(0, card(set.getBoundaries<0>(tuple({3,4}))));
-    EXPECT_EQ(0, card(set.getBoundaries<1>(tuple({3,4}))));
-    EXPECT_EQ(0, card(set.getBoundaries<2>(tuple({3,4}))));
+    EXPECT_EQ(0, card(set.getBoundaries<0>(tuple({{3,4}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<1>(tuple({{3,4}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<2>(tuple({{3,4}}))));
 
     // add some elements
     for(int i=0; i<5; i++) {
@@ -905,17 +905,17 @@ TEST(Trie, RangeQuery_2D) {
         }
     }
 
-    EXPECT_EQ(25, card(set.getBoundaries<0>(tuple({3,4}))));
-    EXPECT_EQ(25, card(set.getBoundaries<0>(tuple({7,4}))));
-    EXPECT_EQ(25, card(set.getBoundaries<0>(tuple({3,7}))));
+    EXPECT_EQ(25, card(set.getBoundaries<0>(tuple({{3,4}}))));
+    EXPECT_EQ(25, card(set.getBoundaries<0>(tuple({{7,4}}))));
+    EXPECT_EQ(25, card(set.getBoundaries<0>(tuple({{3,7}}))));
 
-    EXPECT_EQ(5, card(set.getBoundaries<1>(tuple({3,4}))));
-    EXPECT_EQ(0, card(set.getBoundaries<1>(tuple({7,4}))));
-    EXPECT_EQ(5, card(set.getBoundaries<1>(tuple({3,7}))));
+    EXPECT_EQ(5, card(set.getBoundaries<1>(tuple({{3,4}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<1>(tuple({{7,4}}))));
+    EXPECT_EQ(5, card(set.getBoundaries<1>(tuple({{3,7}}))));
 
-    EXPECT_EQ(1, card(set.getBoundaries<2>(tuple({3,4}))));
-    EXPECT_EQ(0, card(set.getBoundaries<2>(tuple({7,4}))));
-    EXPECT_EQ(0, card(set.getBoundaries<2>(tuple({3,7}))));
+    EXPECT_EQ(1, card(set.getBoundaries<2>(tuple({{3,4}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<2>(tuple({{7,4}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<2>(tuple({{3,7}}))));
 
 }
 
@@ -925,10 +925,10 @@ TEST(Trie, RangeQuery_3D) {
     Trie<3> set;
 
     // empty set
-    EXPECT_EQ(0, card(set.getBoundaries<0>(tuple({3,4,2}))));
-    EXPECT_EQ(0, card(set.getBoundaries<1>(tuple({3,4,2}))));
-    EXPECT_EQ(0, card(set.getBoundaries<2>(tuple({3,4,2}))));
-    EXPECT_EQ(0, card(set.getBoundaries<3>(tuple({3,4,2}))));
+    EXPECT_EQ(0, card(set.getBoundaries<0>(tuple({{3,4,2}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<1>(tuple({{3,4,2}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<2>(tuple({{3,4,2}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<3>(tuple({{3,4,2}}))));
 
     // add some elements
     for(int i=0; i<5; i++) {
@@ -939,26 +939,26 @@ TEST(Trie, RangeQuery_3D) {
         }
     }
 
-    EXPECT_EQ(125, card(set.getBoundaries<0>(tuple({3,4,2}))));
-    EXPECT_EQ(125, card(set.getBoundaries<0>(tuple({7,4,2}))));
-    EXPECT_EQ(125, card(set.getBoundaries<0>(tuple({3,7,2}))));
-    EXPECT_EQ(125, card(set.getBoundaries<0>(tuple({3,7,8}))));
+    EXPECT_EQ(125, card(set.getBoundaries<0>(tuple({{3,4,2}}))));
+    EXPECT_EQ(125, card(set.getBoundaries<0>(tuple({{7,4,2}}))));
+    EXPECT_EQ(125, card(set.getBoundaries<0>(tuple({{3,7,2}}))));
+    EXPECT_EQ(125, card(set.getBoundaries<0>(tuple({{3,7,8}}))));
 
-    EXPECT_EQ(25, card(set.getBoundaries<1>(tuple({3,4,2}))));
-    EXPECT_EQ( 0, card(set.getBoundaries<1>(tuple({7,4,2}))));
-    EXPECT_EQ(25, card(set.getBoundaries<1>(tuple({3,7,2}))));
-    EXPECT_EQ(25, card(set.getBoundaries<1>(tuple({3,7,8}))));
+    EXPECT_EQ(25, card(set.getBoundaries<1>(tuple({{3,4,2}}))));
+    EXPECT_EQ( 0, card(set.getBoundaries<1>(tuple({{7,4,2}}))));
+    EXPECT_EQ(25, card(set.getBoundaries<1>(tuple({{3,7,2}}))));
+    EXPECT_EQ(25, card(set.getBoundaries<1>(tuple({{3,7,8}}))));
 
-    EXPECT_EQ(5, card(set.getBoundaries<2>(tuple({3,4,2}))));
-    EXPECT_EQ(0, card(set.getBoundaries<2>(tuple({7,4,2}))));
-    EXPECT_EQ(0, card(set.getBoundaries<2>(tuple({3,7,2}))));
-    EXPECT_EQ(0, card(set.getBoundaries<2>(tuple({3,7,8}))));
-    EXPECT_EQ(5, card(set.getBoundaries<2>(tuple({3,2,8}))));
+    EXPECT_EQ(5, card(set.getBoundaries<2>(tuple({{3,4,2}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<2>(tuple({{7,4,2}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<2>(tuple({{3,7,2}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<2>(tuple({{3,7,8}}))));
+    EXPECT_EQ(5, card(set.getBoundaries<2>(tuple({{3,2,8}}))));
 
-    EXPECT_EQ(1, card(set.getBoundaries<3>(tuple({3,4,2}))));
-    EXPECT_EQ(0, card(set.getBoundaries<3>(tuple({7,4,2}))));
-    EXPECT_EQ(0, card(set.getBoundaries<3>(tuple({3,7,2}))));
-    EXPECT_EQ(0, card(set.getBoundaries<3>(tuple({3,7,8}))));
+    EXPECT_EQ(1, card(set.getBoundaries<3>(tuple({{3,4,2}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<3>(tuple({{7,4,2}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<3>(tuple({{3,7,2}}))));
+    EXPECT_EQ(0, card(set.getBoundaries<3>(tuple({{3,7,8}}))));
 
 }
 
@@ -980,17 +980,17 @@ TEST(Trie, RangeQueryStress) {
     EXPECT_EQ(1000, set.size());
 
     // Range [*,*,*]
-    EXPECT_EQ(1000, card(set.getBoundaries<0>(tuple({3,4,5}))));
+    EXPECT_EQ(1000, card(set.getBoundaries<0>(tuple({{3,4,5}}))));
 
     // Range [x,*,*]
     for(RamDomain x=0; x<10; x++) {
-        EXPECT_EQ(100,card(set.getBoundaries<1>(tuple({x,4,5}))));
+        EXPECT_EQ(100,card(set.getBoundaries<1>(tuple({{x,4,5}}))));
     }
 
     // Range [x,y,*]
     for(RamDomain x=0; x<10; x++) {
         for(RamDomain y=0; y<10; y++) {
-            EXPECT_EQ(10,card(set.getBoundaries<2>(tuple({x,y,5}))));
+            EXPECT_EQ(10,card(set.getBoundaries<2>(tuple({{x,y,5}}))));
         }
     }
 
@@ -999,7 +999,7 @@ TEST(Trie, RangeQueryStress) {
     for(RamDomain x=0; x<10; x++) {
         for(RamDomain y=0; y<10; y++) {
             for(RamDomain z=0; z<10; z++) {
-                EXPECT_EQ(1,card(set.getBoundaries<3>(tuple({x,y,z}))));
+                EXPECT_EQ(1,card(set.getBoundaries<3>(tuple({{x,y,z}}))));
             }
         }
     }
@@ -1192,7 +1192,7 @@ TEST(Trie, Merge_Stress) {
             RamDomain y = rand()%(N/2);
             if(!a.contains(x,y)) {
                 b.insert(x,y);
-                ref.insert(entry_t({x,y}));
+                ref.insert(entry_t({{x,y}}));
             }
         }
 
@@ -1315,7 +1315,7 @@ TEST(Trie,Parallel) {
     Trie<2> filter;
 
     while(filter.size() < N) {
-        entry_t entry({(RamDomain)(random() % N), (RamDomain)(random() % N)});
+        entry_t entry({{(RamDomain)(random() % N), (RamDomain)(random() % N)}});
         if (filter.insert(entry)) {
             list.push_back(entry);
         }

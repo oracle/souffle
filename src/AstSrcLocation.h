@@ -41,7 +41,8 @@
 
 
 /** A class describing a range in an input file */
-struct AstSrcLocation {
+class AstSrcLocation {
+public:
 
     /** A class locating a single point in an input file */
     struct Point {

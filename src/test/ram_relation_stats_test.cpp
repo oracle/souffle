@@ -126,11 +126,11 @@ namespace test {
 
         for(int i =0 ; i < 3; i++) {
             std::cout << "Card " << i << ":\n";
-            std::cout << "\t" <<    s10.getEstimatedCardinality(i) << " - " <<  abs(s10.getEstimatedCardinality(i) - full.getEstimatedCardinality(i)) << "\n";
-            std::cout << "\t" <<   s100.getEstimatedCardinality(i) << " - " <<  abs(s100.getEstimatedCardinality(i) - full.getEstimatedCardinality(i)) << "\n";
-            std::cout << "\t" <<  s1000.getEstimatedCardinality(i) << " - " <<  abs(s1000.getEstimatedCardinality(i) - full.getEstimatedCardinality(i)) << "\n";
-            std::cout << "\t" << s10000.getEstimatedCardinality(i) << " - " <<  abs(s10000.getEstimatedCardinality(i) - full.getEstimatedCardinality(i)) << "\n";
-            std::cout << "\t" <<   full.getEstimatedCardinality(i) << " - " <<  abs(full.getEstimatedCardinality(i) - full.getEstimatedCardinality(i)) << "\n";
+            std::cout << "\t" <<    s10.getEstimatedCardinality(i) << " - " <<  (s10.getEstimatedCardinality(i) - full.getEstimatedCardinality(i)) << "\n";
+            std::cout << "\t" <<   s100.getEstimatedCardinality(i) << " - " <<  (s100.getEstimatedCardinality(i) - full.getEstimatedCardinality(i)) << "\n";
+            std::cout << "\t" <<  s1000.getEstimatedCardinality(i) << " - " <<  (s1000.getEstimatedCardinality(i) - full.getEstimatedCardinality(i)) << "\n";
+            std::cout << "\t" << s10000.getEstimatedCardinality(i) << " - " <<  (s10000.getEstimatedCardinality(i) - full.getEstimatedCardinality(i)) << "\n";
+            std::cout << "\t" <<   full.getEstimatedCardinality(i) << " - " <<  (full.getEstimatedCardinality(i) - full.getEstimatedCardinality(i)) << "\n";
 
             std::cout << "\n";
         }

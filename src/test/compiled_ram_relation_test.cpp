@@ -361,7 +361,7 @@ namespace ram {
 
         EXPECT_EQ(5*5,count);
 
-        tuple_t x = { 3 , 0 };
+        tuple_t x = {{ 3 , 0 }};
 
         // according to first index
         count = 0;
@@ -376,7 +376,7 @@ namespace ram {
 
 
         // according to the second index
-        x = { 0, 3 };
+        x = {{ 0, 3 }};
 
         count = 0;
         std::cout << "Index (1,0): \n";
@@ -391,7 +391,7 @@ namespace ram {
 
         // ----- equal range ---------
 
-        x = { 2 , 3 };
+        x = {{ 2 , 3 }};
 
         // according to the first index
         count = 0;
@@ -473,7 +473,7 @@ namespace ram {
 
         // test index 0,1
         set.clear();
-        pattern = {2,4};
+        pattern = {{2,4}};
         for(const auto& cur : rel.equalRange<0,1>(pattern)) {
             set.insert(cur);
         }
@@ -482,7 +482,7 @@ namespace ram {
 
         // test index 1,0
         set.clear();
-        pattern = {2,4};
+        pattern = {{2,4}};
         for(const auto& cur : rel.equalRange<1,0>(pattern)) {
             set.insert(cur);
         }
@@ -604,28 +604,28 @@ namespace ram {
         EXPECT_EQ(5*5*5, count);
 
         count = 0;
-        for(const auto& cur : rel.equalRange<>(tuple_type({3,2,1}))) {
+        for(const auto& cur : rel.equalRange<>(tuple_type({{3,2,1}}))) {
             consume(cur);
             count++;
         }
         EXPECT_EQ(5*5*5, count);
 
         count = 0;
-        for(const auto& cur : rel.equalRange<0>(tuple_type({3,2,1}))) {
+        for(const auto& cur : rel.equalRange<0>(tuple_type({{3,2,1}}))) {
             consume(cur);
             count++;
         }
         EXPECT_EQ(1*5*5, count);
 
         count = 0;
-        for(const auto& cur : rel.equalRange<0,1>(tuple_type({3,2,1}))) {
+        for(const auto& cur : rel.equalRange<0,1>(tuple_type({{3,2,1}}))) {
             consume(cur);
             count++;
         }
         EXPECT_EQ(1*1*5, count);
 
         count = 0;
-        for(const auto& cur : rel.equalRange<0,1,2>(tuple_type({3,2,1}))) {
+        for(const auto& cur : rel.equalRange<0,1,2>(tuple_type({{3,2,1}}))) {
             consume(cur);
             count++;
         }
@@ -654,7 +654,7 @@ namespace ram {
         }
         EXPECT_EQ(5*5*5, count);
 
-        tuple_type x = {3,3,3};
+        tuple_type x = {{3,3,3}};
 
         count = 0;
         for(const auto& cur : rel.equalRange<>(x)) {

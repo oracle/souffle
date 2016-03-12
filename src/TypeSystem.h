@@ -47,7 +47,7 @@
 #include "IterUtils.h"
 
 // forward declaration
-struct TypeEnvironment;
+class TypeEnvironment;
 
 /**
  * An abstract base class for types to be covered within a type environment.
@@ -113,7 +113,7 @@ public:
 class PrimitiveType : public Type {
 
     // only allow type environments to create instances
-    friend struct TypeEnvironment;
+    friend class TypeEnvironment;
 
     /** The base type -- may be symbol or numerical */
     const Type& baseType;
@@ -136,7 +136,7 @@ public:
 class UnionType : public Type {
 
     // only allow type environments to create instances
-    friend struct TypeEnvironment;
+    friend class TypeEnvironment;
 
     /** The contained element types */
     std::vector<const Type*> elementTypes;
@@ -160,7 +160,7 @@ public:
 struct RecordType : public Type {
 
     // only allow type environments to create instances
-    friend struct TypeEnvironment;
+    friend class TypeEnvironment;
 
     /** The type to model fields */
     struct Field {

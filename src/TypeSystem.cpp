@@ -196,7 +196,8 @@ namespace {
             if (pos != seen.end()) {
                 return pos->second;
             }
-            return seen[&type] = TypeVisitor<R>::visit(type);
+            auto& res = seen[&type];	// mark as seen
+            return res = TypeVisitor<R>::visit(type);
         }
     };
 
