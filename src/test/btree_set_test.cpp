@@ -852,6 +852,7 @@ namespace test {
 
     }
 
+#ifdef _OPENMP
 
     TEST(BTreeSet, ParallelScaling) {
 
@@ -912,5 +913,7 @@ namespace test {
         }
 
     }
+
+#endif
 
 }

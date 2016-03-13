@@ -499,7 +499,7 @@ namespace scheduler {
             return cardinality;
         }
 
-        virtual void print(std::ostream& out) {
+        virtual void print(std::ostream& out) const override {
             out << "<" << getID() << ">|" << cardinality << "|( " << getArguments() << " )";
         }
 
@@ -624,7 +624,7 @@ namespace scheduler {
             return stats.getCardinality();
         }
 
-        virtual void print(std::ostream& out) {
+        virtual void print(std::ostream& out) const override {
             out << "<" << getID() << ">|" << getCardinality() << "," << getRelationStats() << "|( " << getArguments() << " )";
         }
 

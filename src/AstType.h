@@ -191,7 +191,8 @@ protected:
  * types are unrelated to all other types (they do not have
  * any super or sub types).
  */
-struct AstRecordType : public AstType {
+class AstRecordType : public AstType {
+public:
 
     /** The type utilized to model a field */
     struct Field {

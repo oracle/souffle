@@ -940,7 +940,6 @@ namespace {
     class Printer : public RamVisitor<void, std::ostream&> {
 
         const RamExecutorConfig& config;
-        const IndexMap& indices;
 
         std::function<void(std::ostream&,const RamNode*)> rec;
 
@@ -957,8 +956,8 @@ namespace {
 
     public:
 
-        Printer(const RamExecutorConfig& config, const IndexMap& indices)
-            : config(config), indices(indices) {
+        Printer(const RamExecutorConfig& config, const IndexMap&)
+            : config(config) {
             rec = [&](std::ostream& out, const RamNode* node) {
               this->visit(*node, out);
             };

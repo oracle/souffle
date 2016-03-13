@@ -407,7 +407,7 @@ private:
         // the current offset of the first theoretical element
         index_type offset;
         // a version number for the optimistic locking
-        uint64_t version;
+        uintptr_t version;
     };
 
     /**
@@ -454,10 +454,10 @@ private:
     bool tryUpdateRootInfo(const RootInfoSnapshot& info) {
 
         // check mod counter
-        uint64_t version = info.version;
+        uintptr_t version = info.version;
 
         // update root to invalid pointer (ending with 1)
-        if (!__sync_bool_compare_and_swap(&synced.root,version,version+1)) {
+        if (!__sync_bool_compare_and_swap(&synced.root,(Node*)version,(Node*)(version+1))) {
             return false;
         }
 
@@ -483,7 +483,7 @@ private:
         // the offset of the first node
         index_type offset;
         // the version number of the first node (for the optimistic locking)
-        uint64_t version;
+        uintptr_t version;
     };
 
     /**
@@ -523,10 +523,10 @@ private:
     bool tryUpdateFirstInfo(const FirstInfoSnapshot& info) {
 
         // check mod counter
-        uint64_t version = info.version;
+        uintptr_t version = info.version;
 
         // temporary update first pointer to point to uneven value (lock-out)
-        if (!__sync_bool_compare_and_swap(&synced.first,version,version+1)) {
+        if (!__sync_bool_compare_and_swap(&synced.first,(Node*)version,(Node*)(version+1))) {
             return false;
         }
 
@@ -1814,7 +1814,8 @@ namespace detail {
      * @tparam Derived the type derived from this base class
      */
     template<unsigned Dim, typename Derived>
-    struct TrieBase {
+    class TrieBase {
+    public:
 
         /**
          * The type of the stored entries / tuples.
@@ -1828,7 +1829,7 @@ namespace detail {
          */
         template<typename ... Values>
         bool insert(Values ... values) {
-            return static_cast<Derived&>(*this).insert((entry_type){RamDomain(values)...});
+            return static_cast<Derived&>(*this).insert((entry_type){{RamDomain(values)...}});
         }
 
         /**
@@ -1836,7 +1837,7 @@ namespace detail {
          */
         template<typename ... Values>
         bool contains(Values ... values) const {
-            return static_cast<const Derived&>(*this).contains((entry_type){RamDomain(values)...});
+            return static_cast<const Derived&>(*this).contains((entry_type){{RamDomain(values)...}});
         }
 
 
@@ -2157,7 +2158,7 @@ public:
         iterator_core(const store_iter_t& iter, Tuple& entry)
             : iter(iter) {
             entry[I] = iter->first;
-            nested = iter->second->getBeginCoreIterator<I+1>(entry);
+            nested = iter->second->template getBeginCoreIterator<I+1>(entry);
         }
 
         void setIterator(const store_iter_t& iter) {
@@ -2187,7 +2188,7 @@ public:
             entry[I] = iter->first;
 
             // and restart nested
-            nested = iter->second->getBeginCoreIterator<I+1>(entry);
+            nested = iter->second->template getBeginCoreIterator<I+1>(entry);
             return true;
         }
 
@@ -2506,7 +2507,7 @@ private:
 
         // check context
         if (ctxt.lastNested && ctxt.lastQuery == tuple[I]) {
-            return ctxt.lastNested->insert_internal<I+1>(tuple, ctxt.nestedCtxt);
+            return ctxt.lastNested->template insert_internal<I+1>(tuple, ctxt.nestedCtxt);
         }
 
         // lookup nested
@@ -2539,7 +2540,7 @@ private:
         }
 
         // conduct recursive step
-        return nextPtr->insert_internal<I+1>(tuple, ctxt.nestedCtxt);
+        return nextPtr->template insert_internal<I+1>(tuple, ctxt.nestedCtxt);
     }
 
     /**
@@ -2557,7 +2558,7 @@ private:
 
         // check context
         if (ctxt.lastNested && ctxt.lastQuery == tuple[I]) {
-            return ctxt.lastNested->contains_internal<I+1>(tuple, ctxt.nestedCtxt);
+            return ctxt.lastNested->template contains_internal<I+1>(tuple, ctxt.nestedCtxt);
         }
 
         // lookup next step
@@ -2571,7 +2572,7 @@ private:
         }
 
         // conduct recursive step
-        return next && next->contains_internal<I+1>(tuple, ctxt.nestedCtxt);
+        return next && next->template contains_internal<I+1>(tuple, ctxt.nestedCtxt);
     }
 
 };
