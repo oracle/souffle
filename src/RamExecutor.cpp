@@ -38,6 +38,7 @@
 #include <regex>
 #include <unistd.h>
 #include <algorithm>
+#include <cmath>
 
 #ifdef _OPENMP
 #include <omp.h>
