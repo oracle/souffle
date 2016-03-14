@@ -1,13 +1,16 @@
 sudo: required
 dist: trusty
 language: cpp
-install:
-  - sudo apt-get -y install build-essential g++ automake autoconf bison flex openjdk-7-jdk
+before_install:
+  -  if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get -y install build-essential g++ automake autoconf bison flex openjdk-7-jdk; fi
+  -  if [ $TRAVIS_OS_NAME == macosx ]; then brew update && brew install bison; export SOUFFLECPP=/usr/local/bin/cpp-4.8; fi
 compiler:
 - gcc
+- clang
 os:
 - linux
+- osx
 script: 
 - sh ./bootstrap
 - ./configure
-- make check 
+- make check
