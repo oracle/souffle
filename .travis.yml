@@ -2,7 +2,7 @@ sudo: required
 dist: trusty
 language: cpp
 before_install:
-  -  ls /Applications/Xcode.app/Contents/Developer/usr/cpp-4.8
+  -  find /usr/local/ -name gcc-4.8
   -  find /usr/local/ -name bison
   -  if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get -y install build-essential g++ automake autoconf bison flex openjdk-7-jdk; fi
   -  if [ $TRAVIS_OS_NAME == osx ]; then brew install bison; export SOUFFLECPP=/Applications/Xcode.app/Contents/Developer/usr/cpp-4.8; fi
