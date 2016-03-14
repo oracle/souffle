@@ -22,7 +22,7 @@ Use git to obtain the source code of Soufflé.
 
 The URL of the Soufflé home page is:
 
-http://www.souffle-lang.githubio.com/
+http://souffle-lang.github.io
 
 ## Mailing list
 
