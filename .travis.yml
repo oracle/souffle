@@ -3,8 +3,7 @@ dist: trusty
 language: cpp
 before_install:
  - sudo apt-get -y install build-essential g++ automake autoconf bison flex openjdk-7-jdk
-# osx build is still not working; CXX needs to be set to the location of the newly install gcc without multilib; unfortunately
-# this takes substantial amount of time. 
+# osx build is still not working; rebuilding g++ without multilib takes too much time. 
 #  -  if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get -y install build-essential g++ automake autoconf bison flex openjdk-7-jdk; fi
 #  -  if [ $TRAVIS_OS_NAME == osx ]; then brew reinstall gcc --without-multilib; brew install bison; export CXXFLAGS=-fopenmp; export SOUFFLECPP=/usr/local/bin/cpp-4.8; export BISON=/usr/local//Cellar/bison/3.0.2/bin/bison; fi
 compiler:
