@@ -33,26 +33,26 @@ There is no mailing list to talk about Soufflé at the moment. It will be establ
 Follow the steps below to compile and install Soufflé on a UNIX system:
 
 
-1.  G++ 4.8 or greater is required to compile Soufflé. Currently, CLANG++ is not supported. 
+1.  G++ 4.8 or greater is recommended to compile Soufflé. 
 
 2.  Run `sh ./bootstrap` to generate configure files 
 
 3.  Run `./configure`
 
     For a MAC OS X computer, you require a bison version 3.0.2 or higher and a G++ compiler. 
-    We recommend to run [brew](http://brew.sh) with following commands prior to executing `./configure`, 
-    
-    `brew reinstall --without-multilib`
-    `brew install bison`
-    
-    and set the following flags before invoking `./configure`:
-
+    We recommend [brew](http://brew.sh), and run the following commands prior to executing `./configure`, 
+     `brew update`                
+     `brew install gcc --without-multilib`                
+     `brew install bison`                
      `export CXX=/usr/local/bin/g++-5`                
      `export CXXFLAGS=-fopenmp`                
      `export SOUFFLECPP=/usr/local/bin/cpp-5`
-
-    Building Soufflé with clang is possible with the latest El Captain OS X. However, Soufflé still needs the GNU C-preprocessor for processing the input, i.e., following flags are to be set:
-    
+    Note that the current CLANG installation on MAC OS X does not support OpenMP out of the box; the clang-cpp 
+    cannot be used as a pre-processor for Souffle. Set
+     `brew update`                
+     `brew install bison`      
+     `brew install gcc`      
+     `brew install clang-omp`      
      `export CXXFLAGS=-fopenmp`                
      `export SOUFFLECPP=/usr/local/bin/cpp-5`
 
