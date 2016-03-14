@@ -37,6 +37,7 @@
 #pragma once
 
 #include <vector>
+#include <cmath>
 
 #include "Util.h"
 #include "RamRelationStats.h"
