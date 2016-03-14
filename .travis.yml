@@ -13,4 +13,5 @@ os:
 script: 
 - sh ./bootstrap
 - ./configure
-- make check
+- make check 
+- cat tests/testsuite.dir/*/testsuite.log
