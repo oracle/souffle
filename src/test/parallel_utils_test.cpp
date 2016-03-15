@@ -48,7 +48,7 @@ namespace test {
 
         volatile int c =0;
 
-        #pragma omp parallel for
+        #pragma omp parallel for num_threads(4)
         for(int i=0; i<N; i++) {
             lock.lock();
             c++;
@@ -69,7 +69,7 @@ namespace test {
 
         volatile int c =0;
 
-        #pragma omp parallel for
+        #pragma omp parallel for num_threads(4)
         for(int i=0; i<N; i++) {
             if (i % K == 0) {          // 10% write probability
                 lock.start_write();
@@ -95,7 +95,7 @@ namespace test {
 
         volatile int c =0;
 
-        #pragma omp parallel for
+        #pragma omp parallel for num_threads(4)
         for(int i=0; i<N; i++) {
             if (i % K == 0) {          // 10% write probability
                 lock.start_write();
