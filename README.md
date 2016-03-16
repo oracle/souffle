@@ -6,9 +6,10 @@ Soufflé is a translator of declarative Datalog programs into the C++ language. 
 ## Features of Soufflé
 
 *   Efficient translation to parallel C++ of Datalog programs
-*   Extended semantics of Pure Datalog, e.g., permitting unbounded recursions with numbers 
+*   Extended semantics of Safe Datalog, e.g., permitting unbounded recursions with numbers 
 *   Simple component model for Datalog specifications 
 *   Recursively defined record types for tuples 
+*   Static type system for attributes
 
 ## Documentation 
 
