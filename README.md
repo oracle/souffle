@@ -13,7 +13,7 @@ Soufflé is a translator of declarative Datalog programs into the C++ language. 
 *   Recursively defined record types for tuples 
 
 ## How to get Soufflé
-
+ 
 Use git to obtain the source code of Soufflé. 
 
     $ git clone git://github.com/souffle-lang/souffle.git
@@ -37,35 +37,37 @@ Follow the steps below to compile and install Soufflé on a UNIX system:
 
 2.  Run `sh ./bootstrap` to generate configure files 
 
-3.  Run `./configure`
+3.  For Linux users, skip this point. MAC OS X does not have OpenMP nor a bison version 3.0.2 or higher installed.
+    We recommend [brew](http://brew.sh) to install the required tools to build Soufflé. Run the following commands prior to executing `./configure`:
 
-    For a MAC OS X computer, you require a bison version 3.0.2 or higher and a G++ compiler. 
-    We recommend [brew](http://brew.sh), and run the following commands prior to executing `./configure`, 
-    
      `brew update`                
-     `brew install gcc --without-multilib`                
+     `brew reinstall gcc --without-multilib`                
      `brew install bison`                
      `export CXX=/usr/local/bin/g++-5`                
      `export CXXFLAGS=-fopenmp`                
      `export SOUFFLECPP=/usr/local/bin/cpp-5`
-     
-    Note that the current CLANG installation on MAC OS X does not support OpenMP out of the box; the clang-cpp 
-    cannot be used as a pre-processor for Souffle. Set
+     `export BISON=/usr/local/opt/bison/bin/bison`
+
+    To compile Soufflé with CLANG following commands are requried priori executing `./configure`:
     
      `brew update`                
      `brew install bison`      
      `brew install gcc`      
      `brew install clang-omp`      
+     `export CXX=clang-omp++`                
      `export CXXFLAGS=-fopenmp`                
      `export SOUFFLECPP=/usr/local/bin/cpp-5`
+     `export BISON=/usr/local/opt/bison/bin/bison`
 
-4.  Run `make` to build the executable of Soufflé
+4.  Run `./configure`
 
-5.  Test the executable with `make check` to check whether the compilation of Soufflé succeeded.
+5.  Run `make` to build the executable of Soufflé
 
-6.  Run `make install`
+6.  Test the executable with `make check` to check whether the compilation of Soufflé succeeded.
 
-    This command will create the directories and install files in `${DESTDIR}${prefix}`
+7.  Run `make install`
+
+    This command will create the directories and install files in `${DESTDIR}${prefix}` for system-wide use in your system.
 
 ## License
 
