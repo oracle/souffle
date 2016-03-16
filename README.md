@@ -10,6 +10,10 @@ Soufflé is a translator of declarative Datalog programs into the C++ language. 
 *   Simple component model for Datalog specifications 
 *   Recursively defined record types for tuples 
 
+## Documentation 
+
+https://github.com/oracle/souffle/wiki
+
 ## How to get Soufflé
  
 Use git to obtain the source code of Soufflé. 
