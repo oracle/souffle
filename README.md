@@ -1,7 +1,5 @@
 
-# [Soufflé](https://souffle-lang.gitio.com)
-
-[![Build Status](https://travis-ci.org/souffle-lang/souffle.svg?branch=master)](https://travis-ci.org/souffle-lang/souffle)
+# [Soufflé]
 
 Soufflé is a translator of declarative Datalog programs into the C++ language.  Soufflé is used as a domain-specific language for static program analysis, over large code bases with millions of lines of code.  Soufflé aims at producing high-performance C++ code that can be compiled with the native compiler on the target machine.  
 
@@ -18,12 +16,6 @@ Use git to obtain the source code of Soufflé.
 
     $ git clone git://github.com/souffle-lang/souffle.git
 
-## Soufflé home page
-
-The URL of the Soufflé home page is:
-
-http://souffle-lang.github.io
-
 ## Mailing list
 
 There is no mailing list to talk about Soufflé at the moment. It will be established soon. 
@@ -37,7 +29,7 @@ Follow the steps below to compile and install Soufflé on a UNIX system:
 
 2.  Run `sh ./bootstrap` to generate configure files 
 
-3.  For Linux users, skip this point. MAC OS X does not have OpenMP nor a bison version 3.0.2 or higher installed.
+3.  For Linux users, skip this point. MAC OS X does not have OpenMP nor a bison version 3.0.2 installed.
     We recommend [brew](http://brew.sh) to install the required tools to build Soufflé. Run the following commands prior to executing `./configure`:
 
      `brew update`                
@@ -46,6 +38,7 @@ Follow the steps below to compile and install Soufflé on a UNIX system:
      `export CXX=/usr/local/bin/g++-5`                
      `export CXXFLAGS=-fopenmp`                
      `export SOUFFLECPP=/usr/local/bin/cpp-5`
+     
      `export BISON=/usr/local/opt/bison/bin/bison`
 
     To compile Soufflé with CLANG following commands are requried priori executing `./configure`:
@@ -57,6 +50,7 @@ Follow the steps below to compile and install Soufflé on a UNIX system:
      `export CXX=clang-omp++`                
      `export CXXFLAGS=-fopenmp`                
      `export SOUFFLECPP=/usr/local/bin/cpp-5`
+     
      `export BISON=/usr/local/opt/bison/bin/bison`
 
 4.  Run `./configure`
