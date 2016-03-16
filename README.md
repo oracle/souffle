@@ -29,7 +29,7 @@ There is no mailing list to talk about Soufflé at the moment. It will be establ
 Follow the steps below to compile and install Soufflé on a UNIX system:
 
 
-1.  G++ 4.8 or greater is recommended to compile Soufflé. 
+1.  G++ 4.8 or newer is recommended to compile Soufflé. 
 
 2.  Run `sh ./bootstrap` to generate configure files 
 
