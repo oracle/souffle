@@ -40,6 +40,7 @@
 #include <iterator>
 #include <type_traits>
 #include <mutex>
+#include <libgen.h>
 
 #include "Util.h"
 #include "IterUtils.h"
@@ -1204,7 +1205,7 @@ namespace index_utils {
             range<typename iter_type<Index>::type>
         >::type
         equalRange(const T& tuple, operation_context& c) const {
-            return index.equalRange<Index>(tuple, c.ctxt);
+            return index.template equalRange<Index>(tuple, c.ctxt);
         }
 
         template<typename Index>
@@ -1213,7 +1214,7 @@ namespace index_utils {
             range<typename iter_type<Index>::type>
         >::type
         equalRange(const T& tuple, operation_context& c) const {
-            return nested.equalRange<Index>(tuple, c.nested);
+            return nested.template equalRange<Index>(tuple, c.nested);
         }
 
         void clear() {
@@ -1374,20 +1375,6 @@ struct RelationBase {
         return static_cast<Derived*>(this)->insert(tuple,ctxt);
     }
 
-    // -- equal range wrapper --
-
-    template<unsigned ... Columns>
-    auto equalRange(const tuple_type& value) const
-            -> decltype(static_cast<const Derived*>(this)->template equalRange<index<Columns...>>(value)) {
-        return static_cast<const Derived*>(this)->template equalRange<index<Columns...>>(value);
-    }
-
-    template<unsigned ... Columns, typename Context>
-    auto equalRange(const tuple_type& value, Context& ctxt) const
-            -> decltype(static_cast<const Derived*>(this)->template equalRange<index<Columns...>>(value,ctxt)) {
-        return static_cast<const Derived*>(this)->template equalRange<index<Columns...>>(value,ctxt);
-    }
-
     // -- IO --
 
     /* a utility struct for load/print operations */
@@ -1471,7 +1458,7 @@ struct RelationBase {
         }
 
         // and parse it
-        if(loadCSV(in, symbolTable, format)) { 
+        if(loadCSV(in, symbolTable, format)) {
             char *bname = strdup(fn);
             std::string simplename = basename(bname);
             std::cerr << "Wrong arity of fact file " << simplename << "!\n";
@@ -1480,7 +1467,7 @@ struct RelationBase {
 
     /* Loads the tuples form the given file into this relation. */
     bool loadCSV(std::istream& in, SymbolTable& symbolTable, const SymbolMask& format) {
-        bool error = false; 
+        bool error = false;
 
         // for all the content
         while(!in.eof()) {
@@ -1501,12 +1488,12 @@ struct RelationBase {
                 std::string element;
                 if (start >=0 && start <=  end && (size_t)end <= line.length() ) {
                     element = line.substr(start,end-start);
-                    if (element == "") { 
+                    if (element == "") {
                         element = "n/a";
                     }
                 } else {
                     element = "n/a";
-                    error = true; 
+                    error = true;
                 }
                 if (format.isSymbol(col)) {
                     tuple[col] = symbolTable.lookup(element.c_str());
@@ -1514,9 +1501,9 @@ struct RelationBase {
                     tuple[col] = atoi(element.c_str());
                 }
             }
-            if ((size_t)end != line.length()) { 
+            if ((size_t)end != line.length()) {
                 error = true;
-            } 
+            }
             insert(tuple);
         }
         return error;
@@ -1635,7 +1622,6 @@ public:
     // import generic signatures from the base class
     using base::insert;
     using base::contains;
-    using base::equalRange;
 
 
     // --- most general implementation ---
@@ -1698,6 +1684,9 @@ public:
         return indices.scan(Index());
     }
 
+
+    // -- equal range wrapper --
+
     template<typename Index>
     range<typename indices_t::template iter_type<Index>::type>
     equalRange(const tuple_type& value) const {
@@ -1710,6 +1699,18 @@ public:
     equalRange(const tuple_type& value, operation_context& context) const {
         static_assert(covered<Index>::value, "Addressing uncovered index!");
         return indices.template equalRange<Index>(value,context);
+    }
+
+    template<unsigned ... Columns>
+    range<typename indices_t::template iter_type<index<Columns...>>::type>
+    equalRange(const tuple_type& value) const {
+        return equalRange<index<Columns...>>(value);
+    }
+
+    template<unsigned ... Columns, typename Context>
+    range<typename indices_t::template iter_type<index<Columns...>>::type>
+    equalRange(const tuple_type& value, Context& ctxt) const {
+        return equalRange<index<Columns...>>(value,ctxt);
     }
 
     iterator begin() const {
@@ -1791,7 +1792,6 @@ public:
     // import generic signatures from the base class
     using base::insert;
     using base::contains;
-    using base::equalRange;
 
 
     // --- most general implementation ---
@@ -1853,6 +1853,18 @@ public:
     range<typename indices_t::template iter_type<Index>::type>
     equalRange(const tuple_type& value, operation_context& context) const {
         return indices.template equalRange<Index>(value,context);
+    }
+
+    template<unsigned ... Columns>
+    auto equalRange(const tuple_type& value) const
+            -> decltype(this->template equalRange<index<Columns...>>(value)) {
+        return equalRange<index<Columns...>>(value);
+    }
+
+    template<unsigned ... Columns, typename Context>
+    auto equalRange(const tuple_type& value, Context& ctxt) const
+            -> decltype(this->template equalRange<index<Columns...>>(value,ctxt)) {
+        return equalRange<index<Columns...>>(value,ctxt);
     }
 
     auto begin() const -> decltype(indices.getIndex(primary_index()).begin()) {
@@ -1933,9 +1945,6 @@ public:
     /* The iterator utilized for iterating over elements of this relation. */
     class iterator : public std::iterator<std::forward_iterator_tag,tuple_type> {
 
-    	/* A singleton instance of the empty tuple. */
-        static const tuple_type singleton;
-
         /* A flag indicating whether this iterator points to the empty tuple or not. */
         bool begin;
 
@@ -1960,12 +1969,12 @@ public:
 
         // the deref operator as required by the iterator concept
         const tuple_type& operator*() const {
-            return singleton;
+            return getSingleton();
         }
 
         // support for the pointer operator
         const tuple_type* operator->() const {
-            return &singleton;
+            return &getSingleton();
         }
 
         // the increment operator as required by the iterator concept
@@ -1974,13 +1983,18 @@ public:
             return *this;
         }
 
+    private:
+
+    	/* A singleton instance of the empty tuple. */
+        static const tuple_type& getSingleton() {
+        	static const tuple_type singleton = tuple_type();
+        	return singleton;
+        }
+
     };
 
     /* The operation context for this relation - which is emtpy. */
     struct operation_context {};
-
-    // import generic signatures from the base class
-    using base::equalRange;
 
     /* A constructor for this relation. */
     Relation() : present(false) {};
@@ -2020,8 +2034,23 @@ public:
     }
 
     template<typename Index>
+    range<iterator> equalRange(const tuple_type& value) const {
+        return make_range(begin(), end());
+    }
+
+    template<typename Index>
     range<iterator> equalRange(const tuple_type& value, operation_context& ctxt) const {
         return make_range(begin(), end());
+    }
+
+    template<unsigned ... Columns>
+    range<iterator> equalRange(const tuple_type& value) const {
+        return equalRange<index<Columns...>>(value);
+    }
+
+    template<unsigned ... Columns, typename Context>
+    range<iterator> equalRange(const tuple_type& value, Context& ctxt) const {
+        return equalRange<index<Columns...>>(value,ctxt);
     }
 
     iterator begin() const {
@@ -2082,7 +2111,6 @@ public:
     // import generic signatures from the base class
     using base::insert;
     using base::contains;
-    using base::equalRange;
 
     typedef typename table_t::operation_hints operation_context;
 
@@ -2135,6 +2163,16 @@ public:
     template<typename I>
     range<iterator> equalRange(const tuple_type& value, operation_context& ctxt) const {
         return data.template equalRange<I>(value, ctxt);
+    }
+
+    template<unsigned ... Columns>
+    range<iterator> equalRange(const tuple_type& value) const {
+        return equalRange<index<Columns...>>(value);
+    }
+
+    template<unsigned ... Columns, typename Context>
+    range<iterator> equalRange(const tuple_type& value, Context& ctxt) const {
+        return equalRange<index<Columns...>>(value,ctxt);
     }
 
     iterator begin() const {

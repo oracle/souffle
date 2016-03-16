@@ -40,12 +40,18 @@
 #include <atomic>
 
 #ifdef _OPENMP
+    
 
     /**
      * Implementation of parallel control flow constructs utilizing OpenMP
      */
 
     #include <omp.h>
+
+    #ifdef __APPLE__
+    #include <sched.h>
+    #define pthread_yield sched_yield
+    #endif
 
     // support for a parallel region
     #define PARALLEL_START _Pragma("omp parallel") {

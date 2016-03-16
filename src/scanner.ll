@@ -55,6 +55,8 @@
     #include "ParserDriver.h"    
     #include "parser.hh"
     
+    #define register
+
     /* String Pool declarations */
     StringPool::hashentry *StringPool::hashtab[HASH_SIZE];
     
