@@ -1,5 +1,5 @@
 
-# [Soufflé]
+# Soufflé
 
 Soufflé is a translator of declarative Datalog programs into the C++ language.  Soufflé is used as a domain-specific language for static program analysis, over large code bases with millions of lines of code.  Soufflé aims at producing high-performance C++ code that can be compiled with the native compiler on the target machine.  
 
@@ -14,7 +14,7 @@ Soufflé is a translator of declarative Datalog programs into the C++ language. 
  
 Use git to obtain the source code of Soufflé. 
 
-    $ git clone git://github.com/souffle-lang/souffle.git
+    $ git clone git://github.com/oracle/souffle.git
 
 ## Mailing list
 
