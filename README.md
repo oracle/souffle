@@ -14,6 +14,10 @@ Soufflé is a translator of declarative Datalog programs into the C++ language. 
 
 https://github.com/oracle/souffle/wiki
 
+## Contributors
+
+https://github.com/oracle/souffle/wiki/Contributors
+
 ## How to get Soufflé
  
 Use git to obtain the source code of Soufflé. 
