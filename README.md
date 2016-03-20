@@ -12,6 +12,10 @@ Soufflé is a translator of declarative Datalog programs into the C++ language. 
 *   Simple component model for Datalog specifications 
 *   Recursively defined record types for tuples 
 
+This is the development repository of Soufflé. Oracle Lab's official repository can be found here:
+
+http://github.com/oracle/souffle
+
 ## How to get Soufflé
  
 Use git to obtain the source code of Soufflé. 
@@ -23,6 +27,14 @@ Use git to obtain the source code of Soufflé.
 The URL of the Soufflé home page is:
 
 http://souffle-lang.github.io
+
+## Documentation
+
+http://github.com/souffle-lang/souffle/wiki
+
+## Contributors
+
+http://github.com/souffle-lang/souffle/wiki/contributors
 
 ## Mailing list
 
@@ -42,22 +54,13 @@ Follow the steps below to compile and install Soufflé on a UNIX system:
 
      `brew update`                
      `brew reinstall gcc --without-multilib`                
-     `brew install bison`                
+     `brew install bison`  
+     `brew link bison --force`
      `export CXX=/usr/local/bin/g++-5`                
      `export CXXFLAGS=-fopenmp`                
      `export SOUFFLECPP=/usr/local/bin/cpp-5`
      `export BISON=/usr/local/opt/bison/bin/bison`
 
-    To compile Soufflé with CLANG following commands are requried priori executing `./configure`:
-    
-     `brew update`                
-     `brew install bison`      
-     `brew install gcc`      
-     `brew install clang-omp`      
-     `export CXX=clang-omp++`                
-     `export CXXFLAGS=-fopenmp`                
-     `export SOUFFLECPP=/usr/local/bin/cpp-5`
-     `export BISON=/usr/local/opt/bison/bin/bison`
 
 4.  Run `./configure`
 
