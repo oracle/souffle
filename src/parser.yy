@@ -155,8 +155,10 @@
 %type <AstRelation *>            attributes relation
 %type <AstArgument *>            arg
 %type <AstAtom *>                arg_list atom
+%type <std::vector<AstAtom*>>    head
 %type <AstLiteral *>             literal
-%type <AstClause *>              fact rule rule_def body
+%type <AstClause *>              fact body
+%type <std::vector<AstClause*>>  rule rule_def
 %type <AstExecutionOrder *>      exec_order exec_order_list
 %type <AstExecutionPlan *>       exec_plan exec_plan_list
 %type <AstRecordInit *>          recordlist 
@@ -184,7 +186,7 @@ program: unit
 unit: unit type { $$ = $1; driver.addType($2); }
     | unit relation { $$ = $1; driver.addRelation($2); }
     | unit fact { $$ = $1; driver.addClause($2); }
-    | unit rule { $$ = $1; driver.addClause($2); }
+    | unit rule { $$ = $1; for(const auto& cur : $2) driver.addClause(cur); }
     | unit component { $$ = $1; driver.addComponent($2); }
     | unit comp_init { $$ = $1; driver.addInstantiation($2); }
     | {
@@ -461,6 +463,11 @@ fact: atom DOT {
       }
     ;
 
+/* Head */
+head : atom					{ $$.push_back($1); }
+     | head COMMA atom		{ $$.swap($1); $$.push_back($3); }
+	 ;
+
 /* Body */
 body: literal {
           $$ = new AstClause();
@@ -509,10 +516,15 @@ exec_plan: PLAN exec_plan_list {
     ;
 
 /* Rule Definition */
-rule_def: atom IF body DOT  {
-          $$ = $3;
-          $3->setHead(std::unique_ptr<AstAtom>($1));
-          $$->setSrcLoc(@$);
+rule_def: head IF body DOT  {
+          for(const auto& head : $1) {
+			  AstClause* cur = $3->clone();
+			  cur->setHead(std::unique_ptr<AstAtom>(head));
+			  cur->setSrcLoc(@$);
+			  cur->setGenerated($1.size() != 1);
+			  $$.push_back(cur);
+          }
+          delete $3;
       }
 ;
 
@@ -523,11 +535,11 @@ rule: rule_def {
     |
       rule STRICT {
          $$ = $1;
-         $$->setFixedExecutionPlan();
+         for(const auto& cur : $$) cur->setFixedExecutionPlan();
       }
     | rule exec_plan {
          $$ = $1;
-         $$->setExecutionPlan(std::unique_ptr<AstExecutionPlan>($2));
+         for(const auto& cur : $$) cur->setExecutionPlan(std::unique_ptr<AstExecutionPlan>($2));
       }
     ;
     
@@ -578,7 +590,7 @@ component_head: COMPONENT comp_type {
 component_body:
       component_body relation      { $$ = $1; $$->addRelation(std::unique_ptr<AstRelation>($2)); }
     | component_body fact          { $$ = $1; $$->addClause(std::unique_ptr<AstClause>($2)); }
-    | component_body rule          { $$ = $1; $$->addClause(std::unique_ptr<AstClause>($2)); }
+    | component_body rule          { $$ = $1; for(const auto& cur : $2) $$->addClause(std::unique_ptr<AstClause>(cur)); }
     | component_body comp_override { $$ = $1; $$->addOverride($2); }
     | component_body component     { $$ = $1; $$->addComponent(std::unique_ptr<AstComponent>($2)); }
     | component_body comp_init     { $$ = $1; $$->addInstantiation(std::unique_ptr<AstComponentInit>($2)); }
