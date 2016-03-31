@@ -166,17 +166,30 @@ m4_define([NEGATIVE_TEST],[
 
 ##########################################################################
 
-dnl Defines all possible Souffle flag configurations for testing
-m4_define([CONFS], [[], dnl interpreter
- [-c],                  dnl compilation 
+dnl Defines all possible Souffle flag configurations for testing.
+dnl NOTE: This is the default configuration that can be overridden
+dnl using SOUFFLE_CONFS environment variable.
+m4_define([DEFAULT_CONFS], [[], dnl interpreter
+ [-c],                  dnl compilation
  [-j8],                 dnl interpreter / parallel execution
- [-c -j8],              dnl compilation & parallel execution 
+ [-c -j8],              dnl compilation & parallel execution
  [--auto-schedule -o testprog],  dnl auto-scheduling & compilation
  [-p profile.log],      dnl interpreter & profiling
  [-c -p profile.log]    dnl compiler & profiling
 ])
 
-dnl Syntactic Tests 
+dnl Store user-defined souffle flag configuration given by the SOUFFLE_CONFS env (if any)
+m4_define([ENV_CONFS],
+    m4_esyscmd(echo -n $SOUFFLE_CONFS))
+
+dnl Pick a flag configuration for testing giving preference to user-defined flags
+m4_ifblank(ENV_CONFS, [
+  m4_define([CONFS], [DEFAULT_CONFS])
+], [
+  m4_define([CONFS], ENV_CONFS)
+])
+
+dnl Syntactic Tests
 AT_BANNER([Syntactic])
 m4_include([syntactic.at])
 
