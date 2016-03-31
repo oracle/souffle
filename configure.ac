@@ -39,7 +39,14 @@ AM_MAINTAINER_MODE
 AC_CONFIG_HEADERS(config.h)
 
 dnl Do not set default CFLAGS and CXXFLAGS
-CXXFLAGS=" -O3 -Wall -std=c++11  $CXXFLAGS"
+CXXFLAGS=" -Wall -std=c++11  $CXXFLAGS"
+if test "$BUILD_TYPE" == "Debug" ; then 
+    # set up debug mode
+    CXXFLAGS="$CXXFLAGS -O0 -g3"
+else
+    # default is release mode
+    CXXFLAGS="$CXXFLAGS -O3"
+fi
 
 AC_ISC_POSIX
 AC_PROG_CPP
