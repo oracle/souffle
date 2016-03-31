@@ -28,6 +28,7 @@ dnl Positive test cases for evaluating Datalog programs
 
 POSITIVE_TEST([load],[evaluation])
 POSITIVE_TEST([number_constants],[evaluation])
+POSITIVE_TEST([multiple_heads],[evaluation])
 POSITIVE_TEST([arithm],[evaluation])
 POSITIVE_TEST([metro],[evaluation])
 POSITIVE_TEST([subtype],[evaluation])

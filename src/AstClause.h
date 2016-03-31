@@ -279,10 +279,13 @@ protected:
     /** The user defined execution plan -- if any */
     std::unique_ptr<AstExecutionPlan> plan;
 
+    /** Determines whether this is an internally generated clause, resulting from resolving syntactic sugar */
+    bool generated;
+
 public:
     /** Construct an empty clause with empty list of literals and
         its head set to NULL */
-    AstClause() : head(nullptr), fixedPlan(false), plan(nullptr) {  }
+    AstClause() : head(nullptr), fixedPlan(false), plan(nullptr), generated(false) {  }
 
     ~AstClause() { }
 
@@ -347,6 +350,16 @@ public:
         plan = nullptr;
     }
 
+    /** Determines whether this is a internally generated clause */
+    bool isGenerated() const {
+    	return generated;
+    }
+
+    /** Updates the generated flag */
+    void setGenerated(bool value = true) {
+    	generated = value;
+    }
+
     /** Print this clause to a given stream */
     void print(std::ostream &os) const;
 
@@ -357,7 +370,7 @@ public:
         if (getExecutionPlan()) {
             res->setExecutionPlan(std::unique_ptr<AstExecutionPlan>(plan->clone()));
         }
-        res->head = std::unique_ptr<AstAtom>(head->clone());
+        res->head = (head) ? std::unique_ptr<AstAtom>(head->clone()) : nullptr;
         for(const auto& cur : atoms) {
             res->atoms.push_back(std::unique_ptr<AstAtom>(cur->clone()));
         }
@@ -368,6 +381,7 @@ public:
             res->constraints.push_back(std::unique_ptr<AstConstraint>(cur->clone()));
         }
         res->fixedPlan = fixedPlan;
+        res->generated = generated;
         return res;
     }
 

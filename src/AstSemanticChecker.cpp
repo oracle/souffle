@@ -428,9 +428,11 @@ void AstSemanticChecker::checkClause(ErrorReport& report, const AstProgram& prog
     });
 
     // check for variables only occurring once
-    for(const auto& cur : var_count) {
-        if (cur.second == 1) {
-            report.addWarning("Variable " + cur.first + " only occurs once", var_pos[cur.first]->getSrcLoc());
+    if (!clause.isGenerated()) {
+    	for(const auto& cur : var_count) {
+			if (cur.second == 1) {
+				report.addWarning("Variable " + cur.first + " only occurs once", var_pos[cur.first]->getSrcLoc());
+			}
         }
     }
 

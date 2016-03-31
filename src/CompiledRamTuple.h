@@ -107,7 +107,7 @@ namespace ram {
         friend std::ostream& operator<<(std::ostream& out, const Tuple& tuple) {
             if (arity == 0) return out << "[]";
             out << "[";
-            for(std::size_t i =0; i<arity-1; ++i) {
+            for(std::size_t i =0; i<(std::size_t)(arity-1); ++i) {
                 out << tuple.data[i]; out << ",";
             }
             return out << tuple.data[arity-1] << "]";
