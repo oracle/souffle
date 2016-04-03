@@ -472,6 +472,26 @@ inline const std::string& toString(const std::string& str) {
     return str;
 }
 
+namespace detail {
+
+	/**
+	 * A type trait to check whether a given type is printable.
+	 * In this general case, nothing is printable.
+	 */
+	template<typename T, typename filter = void>
+	struct is_printable : public std::false_type {};
+
+	/**
+	 * A type trait to check whether a given type is printable.
+	 * This specialization makes types with an output operator printable.
+	 */
+	template<typename T>
+	struct is_printable<T,
+			typename std::conditional<false,decltype(std::declval<std::ostream&>() << std::declval<T>()),void>::type
+	> : public std::true_type {};
+}
+
+
 /**
  * A generic function converting arbitrary objects to strings by utilizing
  * their print capability.
@@ -480,13 +500,27 @@ inline const std::string& toString(const std::string& str) {
  * operations.
  */
 template<typename T>
-std::string toString(const T& value) {
+typename std::enable_if<detail::is_printable<T>::value,std::string>::type
+toString(const T& value) {
     // write value into stream and return result
     std::stringstream ss;
     ss << value;
     return ss.str();
 }
 
+/**
+ * A fallback for the to-string function in case an unprintable object is supposed
+ * to be printed.
+ */
+template<typename T>
+typename std::enable_if<!detail::is_printable<T>::value,std::string>::type
+toString(const T& value) {
+	std::stringstream ss;
+	ss << "(print for type ";
+	ss << typeid(T).name();
+	ss << " not supported)";
+	return ss.str();
+}
 
 namespace detail {
 

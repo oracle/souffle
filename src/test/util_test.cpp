@@ -91,8 +91,8 @@ TEST(Util, LambdaTraits) {
 
     auto lambda = [](int x)->bool { return true; };
 
-    EXPECT_EQ(typeid(bool), typeid(lambda_traits<decltype(lambda)>::result_type));
-    EXPECT_EQ(typeid(int), typeid(lambda_traits<decltype(lambda)>::arg0_type));
+    EXPECT_EQ(typeid(bool).name(), typeid(lambda_traits<decltype(lambda)>::result_type).name());
+    EXPECT_EQ(typeid(int).name(), typeid(lambda_traits<decltype(lambda)>::arg0_type).name());
 
 }
 
