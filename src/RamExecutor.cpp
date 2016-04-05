@@ -1916,14 +1916,21 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     os << "int main(int argc, char** argv)\n{\n";
 
     // parse arguments
-    os << "CmdOptions opt(" << getConfig().isLogging() << "," << getConfig().isDebug() << ");\n";
-    os << "opt.analysis_src = R\"(" << getConfig().getSourceFileName() << ")\";\n";
-    os << "opt.input_dir = R\"(" << getConfig().getFactFileDir() << ")\";\n";
-    os << "opt.output_dir = R\"(" << getConfig().getOutputDir() << ")\";\n";
-     
+    os << "CmdOptions opt(" ;
+    os << "R\"(" << getConfig().getSourceFileName() << ")\",\n";
+    os << "R\"(" << getConfig().getFactFileDir() << ")\",\n";
+    os << "R\"(" << getConfig().getOutputDir() << ")\",\n";
     if (getConfig().isLogging()) {
-       os << "opt.profile_fname = R\"(" << getConfig().getProfileName() << ")\";\n";
-    }
+       os << "true,\n"; 
+       os << "R\"(" << getConfig().getProfileName() << ")\",\n";
+    } else { 
+       os << "false,\n"; 
+       os << "R\"()\",\n";
+    } 
+    os << getConfig().getNumThreads() << ",\n";
+    os << ((getConfig().isDebug())?"R\"(true)\"":"R\"(false)\"");
+    os << ");\n";
+
     os << "if (!opt.parse(argc,argv)) return 1;\n";
 
     os << "#if defined(_OPENMP) \n";
@@ -1932,14 +1939,14 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
 
     os << "souffle::";
     if (getConfig().isLogging()) {
-       os << classname + " obj(opt.profile_fname);\n";
+       os << classname + " obj(opt.getProfileName());\n";
     } else {
        os << classname + " obj;\n";
     }
 
-    os << "obj.loadAll(opt.input_dir);\n";
+    os << "obj.loadAll(opt.getInputFileDir());\n";
     os << "obj.run();\n";
-    os << "if (!opt.output_dir.empty()) obj.printAll(opt.output_dir);\n";
+    os << "if (!opt.getOutputFileDir().empty()) obj.printAll(opt.getOutputFileDir());\n";
 
     os << "return 0;\n";
     os << "}\n";
