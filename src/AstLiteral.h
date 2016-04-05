@@ -268,6 +268,12 @@ public:
     /** Return binary operator */
     BinaryRelOp getOperator() const { return operation; }
 
+    /** Update the binary operator */
+    void setOperator(BinaryRelOp op) { operation = op; }
+
+    /** Negates the constraint */
+    void negate() { setOperator(::negate(operation)); }
+
     /** Output the constraint to a given stream */
     virtual void print(std::ostream &os) const {
         lhs -> print(os);

@@ -41,6 +41,7 @@ souffle_sources = \
               AstComponent.h                            \
               AstLiteral.h                              \
               AstNode.h                                 \
+              AstParserUtils.cpp    AstParserUtils.h    \
               AstProgram.cpp        AstProgram.h        \
               AstRelation.h                             \
               AstRelationIdentifier.h                   \
@@ -186,6 +187,12 @@ check_PROGRAMS += test/ast_utils_test
 test_ast_utils_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_ast_utils_test_SOURCES = test/ast_utils_test.cpp
 test_ast_utils_test_LDADD = libsouffle.a 
+
+# ast parser utils test
+check_PROGRAMS += test/ast_parser_utils_test
+test_ast_parser_utils_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
+test_ast_parser_utils_test_SOURCES = test/ast_parser_utils_test.cpp
+test_ast_parser_utils_test_LDADD = libsouffle.a 
 
 # rule scheduler test
 check_PROGRAMS += test/rule_scheduler_test

@@ -61,6 +61,7 @@
     #include "AstArgument.h"
     #include "AstNode.h"
     #include "BinaryOperator.h"
+	#include "AstParserUtils.h"
     
     #include "AstSrcLocation.h"
     class ParserDriver;
@@ -134,6 +135,7 @@
 %token RPAREN                    ")"
 %token COMMA                     ","
 %token COLON                     ":"
+%token SEMICOLON                 ";"
 %token DOT                       "."
 %token EQUALS                    "="
 %token STAR                      "*"
@@ -156,8 +158,8 @@
 %type <AstArgument *>            arg
 %type <AstAtom *>                arg_list atom
 %type <std::vector<AstAtom*>>    head
-%type <AstLiteral *>             literal
-%type <AstClause *>              fact body
+%type <RuleBody *>               literal conjunction body
+%type <AstClause *>              fact
 %type <std::vector<AstClause*>>  rule rule_def
 %type <AstExecutionOrder *>      exec_order exec_order_list
 %type <AstExecutionPlan *>       exec_plan exec_plan_list
@@ -353,8 +355,14 @@ arg: STRING {
      }
    | COUNT COLON LBRACE body RBRACE {
        auto res = new AstAggregator(AstAggregator::count);
-       for(const auto& cur : $4->getBodyLiterals()) 
+       auto bodies = $4->toClauseBodies();
+       if (bodies.size() != 1) {
+    	   std::cerr << "ERROR: currently not supporting non-conjunctive aggreation clauses!";
+    	   exit(1);
+       }
+       for(const auto& cur : bodies[0]->getBodyLiterals()) 
            res->addBodyLiteral(std::unique_ptr<AstLiteral>(cur->clone()));
+       delete bodies[0];
        delete $4;
        $$ = res;
        $$->setSrcLoc(@$);
@@ -369,8 +377,14 @@ arg: STRING {
    | MIN arg COLON LBRACE body RBRACE {
        auto res = new AstAggregator(AstAggregator::min);
        res->setTargetExpression(std::unique_ptr<AstArgument>($2));
-       for(const auto& cur : $5->getBodyLiterals()) 
-          res->addBodyLiteral(std::unique_ptr<AstLiteral>(cur->clone()));
+       auto bodies = $5->toClauseBodies();
+	   if (bodies.size() != 1) {
+		   std::cerr << "ERROR: currently not supporting non-conjunctive aggreation clauses!";
+		   exit(1);
+	   }
+       for(const auto& cur : bodies[0]->getBodyLiterals()) 
+    	   res->addBodyLiteral(std::unique_ptr<AstLiteral>(cur->clone()));
+       delete bodies[0];
        delete $5;
        $$ = res;
        $$->setSrcLoc(@$);
@@ -385,8 +399,14 @@ arg: STRING {
    | MAX arg COLON LBRACE body RBRACE {
        auto res = new AstAggregator(AstAggregator::max);
        res->setTargetExpression(std::unique_ptr<AstArgument>($2));
-       for(const auto& cur : $5->getBodyLiterals()) 
+       auto bodies = $5->toClauseBodies();
+	   if (bodies.size() != 1) {
+		   std::cerr << "ERROR: currently not supporting non-conjunctive aggreation clauses!";
+		   exit(1);
+	   }
+       for(const auto& cur : bodies[0]->getBodyLiterals()) 
           res->addBodyLiteral(std::unique_ptr<AstLiteral>(cur->clone()));
+       delete bodies[0];
        delete $5;
        $$ = res;
        $$->setSrcLoc(@$);
@@ -422,36 +442,46 @@ atom: rel_id LPAREN arg_list RPAREN {
 
 /* Literal */
 literal: arg RELOP arg {
-            $$ = new AstConstraint($2, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
-            $$->setSrcLoc(@$);
+            auto* res = new AstConstraint($2, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+            res->setSrcLoc(@$);
+            $$ = new RuleBody(std::move(RuleBody::constraint(res)));
           }
        | arg LT arg {
-           $$ = new AstConstraint(BinaryRelOp::LT, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
-           $$->setSrcLoc(@$);
+           auto* res = new AstConstraint(BinaryRelOp::LT, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+           res->setSrcLoc(@$);
+           $$ = new RuleBody(std::move(RuleBody::constraint(res)));
          }
        | arg GT arg {
-           $$ = new AstConstraint(BinaryRelOp::GT, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
-           $$->setSrcLoc(@$);
+    	   auto* res = new AstConstraint(BinaryRelOp::GT, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+           res->setSrcLoc(@$);
+           $$ = new RuleBody(std::move(RuleBody::constraint(res)));
          }
        | arg EQUALS arg {
-           $$ = new AstConstraint(BinaryRelOp::EQ, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
-           $$->setSrcLoc(@$);
+    	   auto* res = new AstConstraint(BinaryRelOp::EQ, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+           res->setSrcLoc(@$);
+           $$ = new RuleBody(std::move(RuleBody::constraint(res)));
          }
        | atom {
-            $$ = $1;
-            $$->setSrcLoc(@$);
+            $1->setSrcLoc(@$);
+            $$ = new RuleBody(std::move(RuleBody::atom($1)));
           }
        | EXCLAMATION atom {
-            $$ = new AstNegation(std::unique_ptr<AstAtom>($2));
-            $$->setSrcLoc(@$);
+		    $$ = new RuleBody(std::move(RuleBody::atom($2)));
+		    $$->negate();
           }
+       | EXCLAMATION LPAREN body RPAREN {
+			$$ = $3;
+			$$->negate();
+		  }
        | TMATCH LPAREN arg COMMA arg RPAREN {
-            $$ = new AstConstraint(BinaryRelOp::MATCH, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
-            $$->setSrcLoc(@$);
+            auto* res = new AstConstraint(BinaryRelOp::MATCH, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
+            res->setSrcLoc(@$);
+		    $$ = new RuleBody(std::move(RuleBody::constraint(res)));
           }
        | TCONTAINS LPAREN arg COMMA arg RPAREN {
-            $$ = new AstConstraint(BinaryRelOp::CONTAINS, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
-            $$->setSrcLoc(@$);
+            auto* res = new AstConstraint(BinaryRelOp::CONTAINS, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
+            res->setSrcLoc(@$);
+            $$ = new RuleBody(std::move(RuleBody::constraint(res)));
           }
        ;
 
@@ -469,16 +499,18 @@ head : atom					{ $$.push_back($1); }
 	 ;
 
 /* Body */
-body: literal {
-          $$ = new AstClause();
-          $$->addToBody(std::unique_ptr<AstLiteral>($1));
-      }
-    | body COMMA literal {
-          $$ = $1;
-          $$->addToBody(std::unique_ptr<AstLiteral>($3));
+conjunction: literal 		{ $$ = $1; }
+    | conjunction COMMA literal {
+							  $$ = $1;
+							  $$->conjunct(std::move(*$3));
       }
     ;
 
+/* Body */
+body : conjunction						{ $$ = $1; }
+     | body SEMICOLON conjunction		{ $$ = $1; $$->disjunct(std::move(*$3)); }
+    
+    
 /* execution order list */
 exec_order_list: NUMBER {
           $$ = new AstExecutionOrder();
@@ -517,13 +549,17 @@ exec_plan: PLAN exec_plan_list {
 
 /* Rule Definition */
 rule_def: head IF body DOT  {
+		  auto bodies = $3->toClauseBodies();
           for(const auto& head : $1) {
-			  AstClause* cur = $3->clone();
-			  cur->setHead(std::unique_ptr<AstAtom>(head));
-			  cur->setSrcLoc(@$);
-			  cur->setGenerated($1.size() != 1);
-			  $$.push_back(cur);
+        	  for(AstClause* body : bodies) {
+				  AstClause* cur = body->clone();
+				  cur->setHead(std::unique_ptr<AstAtom>(head));
+				  cur->setSrcLoc(@$);
+				  cur->setGenerated($1.size() != 1);
+				  $$.push_back(cur);
+        	  }
           }
+          for(AstClause* body : bodies) delete body;
           delete $3;
       }
 ;

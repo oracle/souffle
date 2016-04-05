@@ -1468,6 +1468,14 @@ namespace {
                 out << "))";
                 break;
             }
+            case BinaryRelOp::NOT_MATCH: {
+				out << "!regex_wrapper(symTable.resolve((size_t)";
+				out << print(rel.getLHS());
+				out << "),symTable.resolve((size_t)";
+				out << print(rel.getRHS());
+				out << "))";
+				break;
+			}
             case BinaryRelOp::CONTAINS: {
                 out << "(std::string(symTable.resolve((size_t)";
                 out << print(rel.getRHS());
@@ -1476,9 +1484,17 @@ namespace {
                 out << "))!=std::string::npos)";
                 break;
             }
-            default:
-                assert(0 && "unsupported operation");
-                break;
+            case BinaryRelOp::NOT_CONTAINS: {
+				out << "(std::string(symTable.resolve((size_t)";
+				out << print(rel.getRHS());
+				out << ")).find(symTable.resolve((size_t)";
+				out << print(rel.getLHS());
+				out << "))==std::string::npos)";
+				break;
+			}
+//            default:
+//                assert(0 && "unsupported operation");
+//                break;
             }
         }
 

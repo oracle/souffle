@@ -125,6 +125,7 @@
 ")"                              { return yy::parser::make_RPAREN(yylloc); }
 ","                              { return yy::parser::make_COMMA(yylloc); }
 ":"                              { return yy::parser::make_COLON(yylloc); }
+";"                              { return yy::parser::make_SEMICOLON(yylloc); }
 "."                              { return yy::parser::make_DOT(yylloc); }
 "="                              { return yy::parser::make_EQUALS(yylloc); }
 "*"                              { return yy::parser::make_STAR(yylloc); }
