@@ -25,9 +25,9 @@
 # IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # directories
-SUBDIRS = src tests prof 
+SUBDIRS = src tests prof
 
-# add doxygen support to the makefile 
+# add doxygen support to the makefile
 include $(top_srcdir)/aminclude.am
 
 # add doxygen configuration to the distribution
@@ -41,7 +41,7 @@ deb_src  = $(PACKAGE)_$(VERSION).orig.tar.gz
 
 deb:
 	rm -rf $(dpkg_dir)
-	$(MKDIR_P) -p $(dpkg_dir)
+	$(MKDIR_P) $(dpkg_dir)
 	$(MAKE) dist
 	tar -xvf $(dist_src) -C $(dpkg_dir)
 	cp -r debian $(dpkg_dir)/$(distdir)
@@ -50,6 +50,29 @@ deb:
 
 clean-local:
 	-rm -rf $(dpkg_dir)
+endif
+
+# MacOS packaging
+if PKG
+pkg:
+	@test -d $(distdir) \
+		&& { echo "$(distdir) directory exists. (Re)move it before creating a MacOS package" 2>&1 && exit 1; } \
+		|| true
+	@which pkgbuild 2>&1 >/dev/null || { echo "pkgbuild not found" 2>&1 && exit 1; }
+	$(MAKE) distdir \
+		&& pushd $(distdir) \
+		&& $(MKDIR_P) `pwd`/osx \
+		&& ./configure --prefix `pwd`/osx \
+		&& $(MAKE) -j8 install \
+		&& pkgbuild \
+			--root `pwd`/osx \
+			--identifier com.oracle.souffle \
+			--version $(VERSION) \
+			--install-location /usr/local \
+			--scripts $(abs_top_srcdir)/osx \
+			$(abs_top_builddir)/$(distdir).pkg \
+		&& popd \
+		&& rm -rf $(distdir)
 endif
 
 # Man pages
