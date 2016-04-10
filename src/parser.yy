@@ -553,12 +553,13 @@ rule_def: head IF body DOT  {
           for(const auto& head : $1) {
         	  for(AstClause* body : bodies) {
 				  AstClause* cur = body->clone();
-				  cur->setHead(std::unique_ptr<AstAtom>(head));
+				  cur->setHead(std::unique_ptr<AstAtom>(head->clone()));
 				  cur->setSrcLoc(@$);
-				  cur->setGenerated($1.size() != 1);
+				  cur->setGenerated($1.size() != 1 || bodies.size() != 1);
 				  $$.push_back(cur);
         	  }
           }
+          for(auto& head : $1) delete head;
           for(AstClause* body : bodies) delete body;
           delete $3;
       }
