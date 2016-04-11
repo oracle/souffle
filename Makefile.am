@@ -58,14 +58,13 @@ pkg:
 	@test -d $(distdir) \
 		&& { echo "$(distdir) directory exists. (Re)move it before creating a MacOS package" 2>&1 && exit 1; } \
 		|| true
-	@which pkgbuild 2>&1 >/dev/null || { echo "pkgbuild not found" 2>&1 && exit 1; }
 	$(MAKE) distdir \
 		&& pushd $(distdir) \
-		&& $(MKDIR_P) `pwd`/osx \
-		&& ./configure --prefix `pwd`/osx \
+		&& $(MKDIR_P) `pwd`/pkg \
+		&& ./configure --prefix `pwd`/pkg \
 		&& $(MAKE) -j8 install \
-		&& pkgbuild \
-			--root `pwd`/osx \
+		&& $(PKGBUILD) \
+			--root `pwd`/pkg \
 			--identifier com.oracle.souffle \
 			--version $(VERSION) \
 			--install-location /usr/local \
@@ -73,6 +72,9 @@ pkg:
 			$(abs_top_builddir)/$(distdir).pkg \
 		&& popd \
 		&& rm -rf $(distdir)
+
+clean-local:
+	-rm -f $(abs_top_builddir)/$(distdir).pkg
 endif
 
 # Man pages
