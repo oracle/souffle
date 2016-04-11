@@ -41,15 +41,34 @@
  * Binary Relational Operators
  */
 enum class BinaryRelOp {
-    EQ,      // equivalence of two values
-    NE,      // whether two values are different
-    LT,      // less-than
-    LE,      // less-than-or-equal-to
-    GT,      // greater-than
-    GE,      // greater-than-or-equal-to
-    MATCH,   // matching string
-    CONTAINS // whether a sub-string is contained in a string
+    EQ,           // equivalence of two values
+    NE,           // whether two values are different
+    LT,           // less-than
+    LE,           // less-than-or-equal-to
+    GT,           // greater-than
+    GE,           // greater-than-or-equal-to
+    MATCH,        // matching string
+    CONTAINS,     // whether a sub-string is contained in a string
+	NOT_MATCH,    // not matching string
+	NOT_CONTAINS  // whether a sub-string is not contained in a string
 };
+
+inline BinaryRelOp negate(BinaryRelOp op) {
+	switch(op) {
+	case BinaryRelOp::EQ : return BinaryRelOp::NE;
+	case BinaryRelOp::NE : return BinaryRelOp::EQ;
+	case BinaryRelOp::LT : return BinaryRelOp::GE;
+	case BinaryRelOp::LE : return BinaryRelOp::GT;
+	case BinaryRelOp::GE : return BinaryRelOp::LT;
+	case BinaryRelOp::GT : return BinaryRelOp::LE;
+	case BinaryRelOp::MATCH     : return BinaryRelOp::NOT_MATCH;
+	case BinaryRelOp::NOT_MATCH : return BinaryRelOp::MATCH;
+	case BinaryRelOp::CONTAINS     : return BinaryRelOp::NOT_CONTAINS;
+	case BinaryRelOp::NOT_CONTAINS : return BinaryRelOp::CONTAINS;
+	}
+	assert(false && "Unsupported Operator!");
+	return op;
+}
 
 /**
  * Returns the corresponding symbol for the given relational operator.
@@ -64,6 +83,8 @@ inline std::string getSymbolForBinaryRelOp(BinaryRelOp op) {
     case BinaryRelOp::GE : return ">=";
     case BinaryRelOp::MATCH : return "match";
     case BinaryRelOp::CONTAINS : return "contains";
+    case BinaryRelOp::NOT_MATCH : return "not_match";
+	case BinaryRelOp::NOT_CONTAINS : return "not_contains";
     }
     assert(false && "Unsupported Operator!");
     return "?";
@@ -81,6 +102,8 @@ inline BinaryRelOp getBinaryRelOpForSymbol(const std::string &symbol) {
     if (symbol == ">") return BinaryRelOp::GT;
     if (symbol == "match") return BinaryRelOp::MATCH;
     if (symbol == "contains") return BinaryRelOp::CONTAINS;
+    if (symbol == "not_match") return BinaryRelOp::NOT_MATCH;
+	if (symbol == "not_contains") return BinaryRelOp::NOT_CONTAINS;
     std::cout << "Unrecognised operator: " << symbol << "\n";
     assert(false && "Unsupported Operator!");
     return BinaryRelOp::EQ;
@@ -97,8 +120,10 @@ inline bool isNumericBinaryRelOp(const BinaryRelOp op) {
     case BinaryRelOp::LE:
     case BinaryRelOp::GE:
     case BinaryRelOp::GT: return true;
-    case BinaryRelOp::MATCH: return false;
-    case BinaryRelOp::CONTAINS: return false;
+    case BinaryRelOp::MATCH:
+    case BinaryRelOp::NOT_MATCH:
+    case BinaryRelOp::CONTAINS:
+    case BinaryRelOp::NOT_CONTAINS: return false;
     }
     assert(false && "Uncovered case!");
     return false;

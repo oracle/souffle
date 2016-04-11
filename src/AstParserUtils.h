@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All Rights reserved
+ * Copyright (c) 2013, Oracle and/or its affiliates. All Rights reserved
  * 
  * The Universal Permissive License (UPL), Version 1.0
  * 
@@ -28,80 +28,78 @@
 
 /************************************************************************
  *
- * @file table_test.h
+ * @file AstClause.h
  *
- * Test cases for the Table data structure.
+ * Defines class Clause that represents rules including facts, predicates, and
+ * queries in a Datalog program.
  *
  ***********************************************************************/
 
-#include "test.h"
+#pragma once
 
+#include <vector>
+#include <memory>
+
+#include "AstLiteral.h"
 #include "Util.h"
 
-using namespace std;
+class RuleBody {
 
-TEST(Util, toString) {
+	// a struct to represent literals
+	struct literal {
 
-    EXPECT_EQ("12", toString(12));
-    EXPECT_EQ("Hello", toString("Hello"));
-}
+		// whether this literal is negated or not
+		bool negated;
 
-TEST(Util, toVector) {
-    EXPECT_EQ("[1,2,3]", toString(toVector(1,2,3)));
-    EXPECT_EQ("[]", toString(toVector<int>()));
-}
+		// the atom referenced by tis literal
+		std::unique_ptr<AstLiteral> atom;
 
-TEST(Util, printVector) {
+		literal clone() const {
+			return literal({
+				negated,
+				std::unique_ptr<AstLiteral>(atom->clone())
+			});
+		}
+	};
 
-    vector<int> v;
+	using clause = std::vector<literal>;
+	std::vector<clause> dnf;
 
-    EXPECT_EQ("[]", toString(v));
-    v.push_back(12);
-    EXPECT_EQ("[12]", toString(v));
-    v.push_back(14);
-    EXPECT_EQ("[12,14]", toString(v));
-}
+public:
 
-TEST(Util, printSet) {
+	RuleBody() {}
 
-    set<int> v;
+	void negate();
 
-    EXPECT_EQ("{}", toString(v));
-    v.insert(12);
-    EXPECT_EQ("{12}", toString(v));
-    v.insert(14);
-    EXPECT_EQ("{12,14}", toString(v));
+	void conjunct(RuleBody&& other);
 
-}
+	void disjunct(RuleBody&& other);
 
+	std::vector<AstClause*> toClauseBodies() const;
 
-TEST(Util, printMap) {
+	// -- factory functions --
 
-    map<int,string> m;
+	static RuleBody getTrue();
 
-    EXPECT_EQ("{}", toString(m));
-    m[12] = "Hello";
-    EXPECT_EQ("{12->Hello}", toString(m));
-    m[14] = "World";
-    EXPECT_EQ("{12->Hello,14->World}", toString(m));
+	static RuleBody getFalse();
 
-}
+	static RuleBody atom(AstAtom* atom);
 
-TEST(Util, LambdaTraits) {
+	static RuleBody constraint(AstConstraint* constraint);
 
-    auto lambda = [](int x)->bool { return true; };
+	friend std::ostream& operator<<(std::ostream& out, const RuleBody& body);
 
-    EXPECT_EQ(typeid(bool).name(), typeid(lambda_traits<decltype(lambda)>::result_type).name());
-    EXPECT_EQ(typeid(int).name(), typeid(lambda_traits<decltype(lambda)>::arg0_type).name());
+private:
 
-}
+	static bool equal(const literal& a, const literal& b);
 
-TEST(Util, NullStream) {
+	static bool equal(const clause& a, const clause& b);
 
-    NullStream nullstream;
+	static bool isSubsetOf(const clause& a, const clause& b);
 
-    std::ostream* out;
-    out = &nullstream;
-    (*out) << "Hello World!\n";
-}
+	static void insert(clause& cl, literal&& lit);
+
+	static void insert(std::vector<clause>& cnf, clause&& cls);
+
+};
 

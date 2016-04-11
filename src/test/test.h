@@ -39,6 +39,8 @@
 #include <string>
 #include <set>
 
+#include "Util.h"
+
 /* singly linked list for linking test caes */ 
 
 static class TestCase *base = nullptr;
@@ -49,14 +51,15 @@ private:
     std::string group;     // group name of test 
     std::string test;      // test name of test 
     size_t num_checks;     // number of checks 
-    size_t num_failed;     // number of failed checks 
-    std::ofstream logfile; // logfile 
+    size_t num_failed;     // number of failed checks
+
+protected:
+    std::ostream& logstream; // logfile
 
 public:
-    TestCase(std::string g, std::string t) : group(g), test(t), num_checks(0), num_failed(0) {
+    TestCase(std::string g, std::string t) : group(g), test(t), num_checks(0), num_failed(0), logstream(std::cerr) {
         next = base; 
-        base = this; 
-        logfile.open("logfile_" __FILE__ ".txt");
+        base = this;
     } 
     virtual ~TestCase() { 
     }
@@ -64,18 +67,23 @@ public:
     /**
      * Checks condition
      * 
-     * checks whether condition holds and update counters. In case of failed check, the 
-     * failed check is logged. 
+     * checks whether condition holds and update counters.
      */ 
-    std::ostream & expect(bool condition, const std::string &txt, const std::string &loc) {
-        num_checks ++;
-        if (!condition) { 
-            num_failed++;
-            logfile << "\nFAILED ";
-            logfile << loc << " condition: " << txt << "\n";
-            logfile << "\t";
-        }
-        return logfile;
+    struct test_result {
+    	bool success;
+    	std::ostream& out;
+    	test_result(bool success, std::ostream& out) : success(success), out(out) {}
+    	~test_result() { if (!success) out << "\n\n"; }
+    	operator bool() const { return success; }
+    };
+
+    /**
+     * Checks the condition and keeps record of passed and failed checkes.
+     */
+    test_result evaluate(bool condition) {
+    	num_checks++;
+    	if (!condition) num_failed++;
+    	return test_result(condition,logstream);
     }
 
     /**
@@ -86,7 +94,7 @@ public:
      */ 
     std::ostream & fatal(bool condition, const std::string &txt, const std::string &loc) {
         if (!condition) { std::cerr << "Tests failed.\n"; exit(99); } 
-        return expect(condition, txt, loc); 
+        return logstream;
     }
 
     /**
@@ -141,14 +149,16 @@ void test_##a##_##b::run()
 #define S_(x) S(x)
 #define S__LINE__ S_(__LINE__)
 
-#define LOC __FILE__ ":" S__LINE__
-#define EXPECT_TRUE(a) expect(a, #a, LOC) 
-#define EXPECT_FALSE(a) expect(!(a), "NOT " #a, LOC )
-#define EXPECT_EQ(a,b) expect((a)==(b), "EQ(" #a "," #b ")", LOC)
-#define EXPECT_LT(a,b) expect((a)<(b), "EQ(" #a "," #b ")", LOC )
-#define EXPECT_NE(a,b) expect((a)!=(b), "NE(" #a "," #b ")", LOC)
-#define EXPECT_STREQ(a,b) expect(std::string(a)==std::string(b), "EQ(" #a "," #b ")", LOC)
-#define EXPECT_PRED2(p,a,b) expect(p(a,b), #p "(" #a "," #b ")", LOC)
+#define LOC S__LINE__
+#define _EXPECT(condition,loc) if (auto __res = evaluate(condition)) {} else logstream << "\t\tTEST FAILED @ line " << (loc) << " : "
+
+#define EXPECT_TRUE(a) _EXPECT(a, LOC) << "expecting " << #a << " to be true, evaluated to false"
+#define EXPECT_FALSE(a) _EXPECT(!(a), LOC ) << "expecting " << #a << " to be false, evaluated to true"
+#define EXPECT_EQ(a,b) _EXPECT((a)==(b), LOC) << "expected " << #a << " == " << #b << " where\n\t\t\t" << #a << " evaluates to " << toString(a) << "\n\t\t\t" << #b << " evaluates to " << toString(b)
+#define EXPECT_NE(a,b) _EXPECT((a)!=(b), LOC) << "expected " << #a << " != " << #b << " where\n\t\t\t" << #a << " evaluates to " << toString(a) << "\n\t\t\t" << #b << " evaluates to " << toString(b)
+#define EXPECT_LT(a,b) _EXPECT((a)<(b), LOC ) << "expected " << #a << " < " << #b << " where\n\t\t\t" << #a << " evaluates to " << toString(a) << "\n\t\t\t" << #b << " evaluates to " << toString(b)
+#define EXPECT_STREQ(a,b) _EXPECT(std::string(a)==std::string(b), LOC) << "expected std::string(" << #a << ") == std::string(" << #b << ") where\n\t\t\t" << #a << " evaluates to " << toString(a) << "\n\t\t\t" << #b << " evaluates to " << toString(b)
+#define EXPECT_PRED2(p,a,b) _EXPECT(p(a,b), LOC) << "expected " << (#p "(" #a "," #b ")") << " where\n\t\t\t" << #a << " evaluates to " << toString(a) << "\n\t\t\t" << #b << " evaluates to " << toString(b)
 
 #define ASSERT_TRUE(a) fatal(a, #a, LOC) 
 #define ASSERT_LE(a,b) fatal((a)<=(b), "LE(" #a "," #b ")", LOC )
