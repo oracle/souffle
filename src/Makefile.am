@@ -81,7 +81,13 @@ souffle_sources = \
               TypeSystem.cpp        TypeSystem.h        \
               PrecedenceGraph.cpp   PrecedenceGraph.h
 
-souffle_SOURCES = $(souffle_sources) main.cpp                                  
+# -- build souffle as a library so it can be reused in testing
+noinst_LIBRARIES = libsouffle.a
+libsouffle_a_SOURCES = $(souffle_sources)
+libsouffle_a_CXXFLAGS = $(souffle_CPPFLAGS)
+
+souffle_SOURCES = main.cpp
+souffle_LDADD = libsouffle.a
 
 dist_bin_SCRIPTS = souffle-compile souffle-config
 
@@ -111,11 +117,6 @@ $(builddir)/ParserDriver.cpp: $(builddir)/parser.hh
 ########## Unit Tests
 
 AM_COLOR_TESTS=always
-
-# -- build souffle as a library to not have a copy in each unit test --
-noinst_LIBRARIES = libsouffle.a
-libsouffle_a_SOURCES = $(souffle_sources)
-libsouffle_a_CXXFLAGS = $(souffle_CPPFLAGS)
 
 # -------------------------
 
