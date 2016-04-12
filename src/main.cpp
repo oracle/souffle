@@ -110,6 +110,7 @@ void helpPage(bool error, int argc, char**argv)
     std::cerr << "\n";
     std::cerr << "    -c, --compile                  Compile datalog (translating to C++)\n";
     std::cerr << "    --auto-schedule                Switch on automated clause scheduling for compiler\n";
+    std::cerr << "    -g <FILE>                      Only generate sources of compilable analysis and write it to <FILE>\n";
     std::cerr << "    -o <FILE>, --dl-program=<FILE> Write executable program to <FILE> (without executing it)\n";
     std::cerr << "\n";
     std::cerr << "    -p<FILE>, --profile=<FILE>     Enable profiling and write profile data to <FILE>\n";
@@ -181,11 +182,14 @@ int main(int argc, char **argv)
     std::string outputFileName = "";
     std::string factFileDir = ".";
 
-    bool verbose  = false;    /* flag for verbose output */
-    bool compile = false;     /* flag for enabling compilation */
-    bool tune = false;        /* flag for enabling / disabling the rule scheduler */
-    bool logging = false;     /* flag for profiling */ 
-    bool debug = false;       /* flag for enabling debug mode */
+    std::string outputHeaderFileName = "";
+
+    bool verbose  = false;        /* flag for verbose output */
+    bool compile = false;         /* flag for enabling compilation */
+    bool tune = false;            /* flag for enabling / disabling the rule scheduler */
+    bool logging = false;         /* flag for profiling */
+    bool debug = false;           /* flag for enabling debug mode */
+    bool generateHeader = false;  /* flag for enabling code generation mode */
 
     enum {optAutoSchedule=1,
           optDebugReportFile=2};
@@ -215,7 +219,7 @@ int main(int argc, char **argv)
 
     static unsigned num_threads = 1;	  /* the number of threads to use for execution, 0 system-choice, 1 sequential */
     int c;     /* command-line arguments processing */
-    while ((c = getopt_long(argc, argv, "cj:D:F:I:p:o:hvd", longOptions, nullptr)) != EOF) {
+    while ((c = getopt_long(argc, argv, "cj:D:F:I:p:o:g:hvd", longOptions, nullptr)) != EOF) {
         switch(c) {
                 /* Print debug / profiling information */
             case 'v':
@@ -244,6 +248,12 @@ int main(int argc, char **argv)
                 outputFileName = optarg;
                 compile = true; 
                 break;
+
+                /* Generator mode and output file name */
+            case 'g':
+            	outputHeaderFileName = optarg;
+            	generateHeader = true;
+            	break;
 
                 /* Fact directories */
             case 'F':
@@ -431,7 +441,7 @@ int main(int argc, char **argv)
     // pick executor
     
     std::unique_ptr<RamExecutor> executor;
-    if (compile) {
+    if (generateHeader || compile) {
         // configure compiler
         executor = std::unique_ptr<RamExecutor>(new RamCompiler(outputFileName));
         if (verbose) {
@@ -464,8 +474,14 @@ int main(int argc, char **argv)
     }
     config.setCompileScript( "/bin/bash " + dir + "souffle-compile ");
 
-    // check if this is a compile only
-    if (compile && outputFileName != "") {
+    // check if this is code generation only
+    if (generateHeader) {
+
+    	// just generate, no compile, no execute
+		static_cast<const RamCompiler*>(executor.get())->generateCode(translationUnit->getSymbolTable(), *ramProg, outputHeaderFileName);
+
+    	// check if this is a compile only
+    } else if (compile && outputFileName != "") {
         // just compile, no execute
         static_cast<const RamCompiler*>(executor.get())->compileToBinary(translationUnit->getSymbolTable(), *ramProg);
     } else {

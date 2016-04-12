@@ -553,6 +553,18 @@ detail::multiplying_printer<T> times(const T& value, unsigned num) {
 }
 
 
+// -------------------------------------------------------------------------------
+//                              String Utils
+// -------------------------------------------------------------------------------
+
+/**
+ * Determines whether the given value string ends with the given
+ * end string.
+ */
+inline bool endsWith(const std::string& value, const std::string& ending) {
+	if (value.size() < ending.size()) return false;
+	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
 
 
 // -------------------------------------------------------------------------------

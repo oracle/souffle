@@ -365,6 +365,13 @@ public:
     }
 
     /**
+     * Generates the code for the given ram statement.The target file
+     * name is either set by the corresponding member field or will
+     * be determined randomly. The chosen file-name will be returned.
+     */
+    std::string generateCode(const SymbolTable& symTable, const RamStatement& stmt, const std::string& filename = "") const;
+
+    /**
      * Compiles the given statement to a binary file. The target file
      * name is either set by the corresponding member field or will
      * be determined randomly. The chosen file-name will be returned.
@@ -376,4 +383,12 @@ public:
      * program into a source file, compiling and executing it.
      */
     virtual void applyOn(const RamStatement& stmt, RamEnvironment& env) const;
+
+private:
+
+    /**
+     * Obtains a file name for the resulting source and executable file.
+     */
+    std::string resolveFileName() const;
+
 };

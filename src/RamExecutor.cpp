@@ -1638,7 +1638,18 @@ namespace {
 }
 
 
-std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamStatement& stmt) const {
+std::string RamCompiler::resolveFileName() const {
+	if (getBinaryFile() == "") {
+		// generate temporary file
+		char templ[40] = "./fileXXXXXX";
+		close(mkstemp(templ));
+		return templ;
+	}
+	return getBinaryFile();
+}
+
+
+std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStatement& stmt, const std::string& filename) const {
 
     // ---------------------------------------------------------------
     //                      Auto-Index Generation
@@ -1693,18 +1704,19 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
 
 
     // open output file
-    std::string fname;
-    if (getBinaryFile() == "") {
-        // generate temporary file
-        char templ[40] = "./fileXXXXXX";
-        close(mkstemp(templ));
-        fname = templ;
-    } else {
-        fname = getBinaryFile();
+    std::string fname = filename;
+    if(fname == "") {
+    	fname = resolveFileName();
     }
 
     // generate class name 
-    char *bname = strdup(fname.c_str());
+    std::string classname = fname;
+    if (endsWith(classname,".h")) {
+    	classname = classname.substr(0,classname.size() - 2);
+    } else if(endsWith(classname,".cpp")) {
+    	classname = classname.substr(0,classname.size() - 4);
+    }
+    char *bname = strdup(classname.c_str());
     std::string simplename = basename(bname);
     free(bname);
     for(size_t i=0;i<simplename.length();i++) {
@@ -1712,10 +1724,13 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
             simplename[i]='_';
         }
     }
-    std::string classname = "Sf_" + simplename; 
+    classname = "Sf_" + simplename;
 
-    std::string binary = fname;
-    std::string source = fname + ".cpp";
+    // add filename extension
+    std::string source = fname;
+    if (!(endsWith(fname,".h") || endsWith(fname,".cpp"))) {
+    	source += ".cpp";
+    }
 
     // open output stream for header file
     std::ofstream os(source);
@@ -1925,7 +1940,7 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     os << "return new " << classname << "();\n";
     os << "};\n";
     os << "public:\n";
-    os << "factory_" << classname << "() : ProgramFactory(\"" << fname << "\"){}\n";
+    os << "factory_" << classname << "() : ProgramFactory(\"" << simplename << "\"){}\n";
     os << "};\n";
     os << "static factory_" << classname << " factory;\n";
     os << "}\n";
@@ -1973,11 +1988,23 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     // close source file 
     os.close();
 
+    // return the filename
+    return source;
+
+}
+
+std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamStatement& stmt) const {
+
+    // ---------------------------------------------------------------
+    //                       Code Generation
+    // ---------------------------------------------------------------
+
+	std::string binary = resolveFileName();
+	std::string source = generateCode(symTable, stmt, binary + ".cpp");
 
     // ---------------------------------------------------------------
     //                    Compilation & Execution
     // ---------------------------------------------------------------
-
 
     // execute shell script that compiles the generated C++ program
     std::string cmd = getConfig().getCompileScript(); 
@@ -1998,7 +2025,7 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
 
     // run executable
     if(system(cmd.c_str()) != 0) {
-        std::cerr << "failed to compile C++ source " << fname << "\n";
+        std::cerr << "failed to compile C++ source " << binary << "\n";
     }
 
     // done
