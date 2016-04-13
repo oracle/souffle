@@ -345,24 +345,43 @@ TEST(SparseArray, LowerBound) {
 
 TEST(SparseArray, MemoryUsage) {
 
-    SparseArray<int> a;
+    if (sizeof(void*) > 4) { 
+        SparseArray<int> a;
 
-    // an empty one should be small
-    EXPECT_TRUE(a.empty());
-    // EXPECT_EQ(56, a.getMemoryUsage());
-    EXPECT_EQ(40, a.getMemoryUsage());
+        // an empty one should be small
+        EXPECT_TRUE(a.empty());
+        // EXPECT_EQ(56, a.getMemoryUsage());
+        EXPECT_EQ(40, a.getMemoryUsage());
 
-    // a single element should have the same size as an empty one
-    a.update(12, 15);
-    EXPECT_FALSE(a.empty());
-    // EXPECT_EQ(56, a.getMemoryUsage());
-    EXPECT_EQ(560, a.getMemoryUsage());
+        // a single element should have the same size as an empty one
+        a.update(12, 15);
+        EXPECT_FALSE(a.empty());
+        // EXPECT_EQ(56, a.getMemoryUsage());
+        EXPECT_EQ(560, a.getMemoryUsage());
 
-    // more than one => there are nodes
-    a.update(14, 18);
-    EXPECT_FALSE(a.empty());
-    //EXPECT_EQ(576, a.getMemoryUsage());
-    EXPECT_EQ(560, a.getMemoryUsage());
+        // more than one => there are nodes
+        a.update(14, 18);
+        EXPECT_FALSE(a.empty());
+
+        //EXPECT_EQ(576, a.getMemoryUsage());
+        EXPECT_EQ(560, a.getMemoryUsage());
+    }  else {
+        SparseArray<int> a;
+
+        // an empty one should be small
+        EXPECT_TRUE(a.empty());
+        EXPECT_EQ(28, a.getMemoryUsage());
+
+        // a single element should have the same size as an empty one
+        a.update(12, 15);
+        EXPECT_FALSE(a.empty());
+        EXPECT_EQ(288, a.getMemoryUsage());
+
+        // more than one => there are nodes
+        a.update(14, 18);
+        EXPECT_FALSE(a.empty());
+        EXPECT_EQ(288, a.getMemoryUsage());
+    }
 }
 
 
@@ -370,7 +389,7 @@ TEST(SparseBitMap, Basic) {
 
     SparseBitMap<> map;
 
-    EXPECT_EQ(sizeof(std::bitset<64>), sizeof(void*));
+    EXPECT_EQ(sizeof(std::bitset<sizeof(void*)*8>), sizeof(void*));
 
     EXPECT_FALSE(map[12]);
     EXPECT_FALSE(map[120]);
