@@ -12,6 +12,9 @@
  *
  ***********************************************************************/
 
+#include <array>
+#include <vector>
+#include <string>
 #include "souffle/SouffleInterface.h"
 
 using namespace souffle; 
