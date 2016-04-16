@@ -426,7 +426,7 @@ join(const Container& c, const std::string& sep = ",") {
 
 } // end namespace souffle
 
-
+#ifndef __EMBEDDED_SOUFFLE__
 
 namespace std {
 
@@ -469,6 +469,7 @@ namespace std {
 
 } // end namespace std
 
+#endif
 
 namespace souffle {
 
