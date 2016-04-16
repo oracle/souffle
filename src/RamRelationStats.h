@@ -42,6 +42,8 @@
 
 #include "RamRelation.h"
 
+namespace souffle {
+
 /** The type to reference indices */
 typedef unsigned Column;
 
@@ -110,5 +112,5 @@ public:
 
 };
 
-
+} // end of namespace souffle
 

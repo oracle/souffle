@@ -44,6 +44,8 @@
 
 #include "AstSrcLocation.h"
 
+namespace souffle {
+
 std::string AstSrcLocation::extloc() const {
     std::ifstream in(filename);
     std::stringstream s;
@@ -88,3 +90,6 @@ std::string AstSrcLocation::extloc() const {
     }
     return s.str();
 }
+
+} // end of namespace souffle
+

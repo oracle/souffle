@@ -40,6 +40,7 @@
 #include "AstTranslationUnit.h"
 #include "ParserDriver.h"
 
+namespace souffle {
 namespace test {
 
 	TEST(AstProgram, Parse) {
@@ -73,4 +74,5 @@ namespace test {
 	}
 
 } // end namespace test
+} // end namespace souffle
 

@@ -42,6 +42,8 @@
 
 #include "Util.h"
 
+namespace souffle {
+
 /**
  * The type of identifier utilized for referencing relations. Relation
  * name identifiers are hierarchically qualified names, e.g.
@@ -127,3 +129,6 @@ inline AstRelationIdentifier operator+(const std::string& name, const AstRelatio
     res.prepent(name);
     return res;
 }
+
+} // end of namespace souffle
+

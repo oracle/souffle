@@ -36,6 +36,8 @@
 #include "AstTransformer.h"
 #include "AstTranslationUnit.h"
 
+namespace souffle {
+
 bool AstTransformer::apply(AstTranslationUnit& translationUnit)  {
     bool changed = transform(translationUnit);
     if (changed) {
@@ -43,3 +45,6 @@ bool AstTransformer::apply(AstTranslationUnit& translationUnit)  {
     }
     return changed;
 }
+
+} // end of namespace souffle
+

@@ -42,6 +42,8 @@
 
 #include "ParallelUtils.h"
 
+namespace souffle {
+
 /**
  * Obtains a reference to the lock synchronizing output operations.
  */
@@ -89,3 +91,6 @@ public:
 	}
 
 };
+
+} // end of namespace souffle
+

@@ -48,6 +48,8 @@
     #include <omp.h>
 #endif
 
+namespace souffle {
+
 /**
  * A utility class for parsing command line arguments within generated
  * query programs.
@@ -303,3 +305,6 @@ private:
         return false;
     }
 };
+
+} // end of namespace souffle
+

@@ -46,6 +46,7 @@
 #include "Util.h"
 #include "ParallelUtils.h"
 
+namespace souffle {
 
 namespace detail {
 
@@ -2199,4 +2200,7 @@ public:
         return super::template load<btree_multiset>(a,b);
     }
 };
+
+} // end of namespace souffle
+
 

@@ -39,6 +39,8 @@
 #include "AstTranslationUnit.h"
 #include "PrecedenceGraph.h"
 
+namespace souffle {
+
 static std::string toBase64(std::string data) {
     static const std::vector<char> table =
         {'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P',
@@ -242,3 +244,6 @@ void DebugReporter::generateDebugReport(AstTranslationUnit& translationUnit, std
     translationUnit.getDebugReport().addSection(DebugReportSection(id, title,
             {datalogSection, precedenceGraphSection, sccGraphSection, topsortSCCGraphSection}, ""));
 }
+
+} // end of namespace souffle
+

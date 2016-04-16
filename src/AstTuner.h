@@ -39,6 +39,8 @@
 #include "RamExecutor.h"
 #include "AstTransformer.h"
 
+namespace souffle {
+
 class AstTranslationUnit;
 
 /**
@@ -72,3 +74,6 @@ public:
      */
     static bool autotune(AstTranslationUnit& translationUnit, const std::string& factDir, std::ostream* report, bool verbose = false, const QueryExecutionStrategy& strategy = ScheduledExecution);
 };
+
+} // end of namespace souffle
+

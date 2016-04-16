@@ -36,6 +36,8 @@
 #pragma once
 #include "AstTransformer.h"
 
+namespace souffle {
+
 class AstTranslationUnit;
 class ErrorReport;
 class AstProgram;
@@ -103,4 +105,6 @@ public:
         return "AstExecutionPlanChecker";
     }
 };
+
+} // end of namespace souffle
 

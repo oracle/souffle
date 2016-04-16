@@ -42,6 +42,8 @@
 
 #include "RamRelation.h"
 
+namespace souffle {
+
 /** forward declaration */
 class RamStatement;
 class RamInsert;
@@ -392,3 +394,6 @@ private:
     std::string resolveFileName() const;
 
 };
+
+} // end of namespace souffle
+

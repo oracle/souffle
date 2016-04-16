@@ -39,6 +39,8 @@
 #include "string.h"
 #include "Trie.h"
 
+using namespace souffle;
+
 TEST(SparseArray, Basic) {
     SparseArray<int> map;
 

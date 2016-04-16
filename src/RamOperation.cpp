@@ -49,6 +49,7 @@
 #include "RamRecords.h"
 #include "RamRelation.h"
 
+namespace souffle {
 
 /** add condition */
 void RamOperation::addCondition(std::unique_ptr<RamCondition> c, RamOperation *root) {
@@ -282,4 +283,6 @@ void RamProject::print(std::ostream &os, int tabpos) const {
         os << " UNLESS IN " << getFilter().getName();
     }
 }
+
+} // end of namespace souffle
 

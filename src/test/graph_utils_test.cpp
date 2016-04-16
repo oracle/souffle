@@ -39,6 +39,7 @@
 #include "Util.h"
 #include "GraphUtils.h"
 
+namespace souffle {
 namespace test {
 
     TEST(Graph, Basic) {
@@ -127,4 +128,5 @@ namespace test {
     }
 
 } // end namespace test
+} // end namespace souffle
 

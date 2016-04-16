@@ -37,6 +37,8 @@
 
 #include "RamAutoIndex.h"
 
+namespace souffle {
+
 /*
  * Class IndexSet 
  */ 
@@ -180,3 +182,6 @@ const RamAutoIndex::ChainOrderMap RamAutoIndex::getChainsFromMatching(const RamM
 
     return chainToOrder;
 }
+
+} // end of namespace souffle
+

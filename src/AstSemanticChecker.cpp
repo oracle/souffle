@@ -52,6 +52,8 @@
 #include "AstTypeAnalysis.h"
 #include "ComponentModel.h"
 
+namespace souffle {
+
 class AstTranslationUnit;
 
 bool AstSemanticChecker::transform(AstTranslationUnit &translationUnit) {
@@ -727,4 +729,6 @@ bool AstExecutionPlanChecker::transform(AstTranslationUnit& translationUnit) {
     }
     return false;
 }
+
+} // end of namespace souffle
 

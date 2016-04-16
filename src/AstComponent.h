@@ -42,6 +42,8 @@
 
 #include "AstRelation.h"
 
+namespace souffle {
+
 class ErrorReport;
 
 /**
@@ -382,3 +384,6 @@ protected:
     }
 
 };
+
+} // end of namespace souffle
+

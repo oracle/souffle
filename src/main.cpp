@@ -70,6 +70,8 @@
 #include "RamExecutor.h"
 #include "RamStatement.h"
 
+namespace souffle {
+
 /**
  * Check whether a string is a sequence of numbers
  */ 
@@ -497,3 +499,11 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
+} // end of namespace souffle
+
+int main(int argc, char **argv) {
+	return souffle::main(argc, argv);
+}
+
+

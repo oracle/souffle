@@ -39,6 +39,8 @@
 
 #include <iterator>
 
+namespace souffle {
+
 template<typename T, unsigned blockSize = 4096>
 class Table {
 
@@ -165,3 +167,6 @@ public:
 	}
 
 };
+
+} // end namespace souffle
+

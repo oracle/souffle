@@ -38,6 +38,7 @@
 
 #include "RuleScheduler.h"
 
+namespace souffle {
 namespace test {
 
     using namespace scheduler;
@@ -147,4 +148,5 @@ namespace test {
     }
 
 } // end namespace test
+} // end namespace souffle
 

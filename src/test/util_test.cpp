@@ -39,6 +39,7 @@
 #include "Util.h"
 
 using namespace std;
+using namespace souffle;
 
 TEST(Util, toString) {
 

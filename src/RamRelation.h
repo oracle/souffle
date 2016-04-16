@@ -51,6 +51,7 @@
 #include "Table.h"
 #include "SymbolTable.h"
 
+namespace souffle {
 
 // forward declaration
 class RamEnvironment;
@@ -564,4 +565,6 @@ public:
     }
 
 };
+
+} // end of namespace souffle
 

@@ -45,6 +45,8 @@
 #include "RamCondition.h"
 #include "RamValue.h"
 
+namespace souffle {
+
 /** A tag type required for the is_visitor type trait to identify RamVisitors */
 struct ram_visitor_tag {};
 
@@ -338,3 +340,6 @@ typename std::enable_if<!detail::is_visitor<Lambda>::value ,void>::type
 visitDepthFirst(const RamNode& root, const Lambda& fun) {
     visitDepthFirst(root, std::function<R(const N&)>(fun));
 }
+
+} // end of namespace souffle
+

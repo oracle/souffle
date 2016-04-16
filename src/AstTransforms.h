@@ -38,6 +38,8 @@
 #include "AstTranslationUnit.h"
 #include "AstTransformer.h"
 
+namespace souffle {
+
 /**
  * Transformation pass to eliminate grounded aliases.
  * e.g. resolve  a(r) , r = [x,y]    =>    a(x,y)
@@ -190,4 +192,6 @@ public:
         return "RemoveRedundantRelationsTransformer";
     }
 };
+
+} // end of namespace souffle
 

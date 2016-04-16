@@ -38,6 +38,7 @@
 
 #include "Table.h"
 
+namespace souffle {
 namespace test {
 
     template<typename C>
@@ -88,3 +89,4 @@ namespace test {
     }
 
 }
+} // end namespace souffle

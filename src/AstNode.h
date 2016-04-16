@@ -48,6 +48,8 @@
 #include "Util.h"
 #include "AstSrcLocation.h"
 
+namespace souffle {
+
 // forward declaration -- see below
 class AstNodeMapper;
 
@@ -171,5 +173,5 @@ detail::LambdaNodeMapper<Lambda> makeLambdaMapper(const Lambda& lambda) {
     return detail::LambdaNodeMapper<Lambda>(lambda);
 }
 
-
+} // end of namespace souffle
 

@@ -46,6 +46,8 @@
 #include "AstVisitor.h"
 #include "AstUtils.h"
 
+namespace souffle {
+
 void PrecedenceGraph::run(const AstTranslationUnit& translationUnit) {
     /* Get relations */
     std::vector<AstRelation *> relations = translationUnit.getProgram()->getRelations();
@@ -371,4 +373,6 @@ std::vector<std::set<const AstRelation *>> RelationSchedule::computeRelationExpi
 
     return relationExpirySchedule;
 }
+
+} // end of namespace souffle
 

@@ -65,6 +65,8 @@
 /* Rules of a relation defined in a component can be overwritten by sub-component */ 
 #define OVERRIDABLE_RELATION (0x8)
 
+namespace souffle {
+
 /*!
  * @class Relation
  * @brief Intermediate representation of a datalog relation
@@ -225,3 +227,6 @@ protected:
     }
 
 };
+
+} // end of namespace souffle
+

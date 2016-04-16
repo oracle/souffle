@@ -151,6 +151,7 @@
 
     #include <mutex>
 
+    namespace souffle {
 
     /**
      * A small utility class for implementing simple locks.
@@ -506,8 +507,12 @@
 
     };
 
+    } // end of namespace souffle
+
 
 #else
+
+    namespace souffle {
 
     /**
      * A small utility class for implementing simple locks.
@@ -618,4 +623,7 @@
 
     };
 
+    } // end of namespace souffle
+
 #endif
+

@@ -39,6 +39,8 @@
 #include <cassert>
 #include "AstSrcLocation.h"
 
+namespace souffle {
+
 class DiagnosticMessage {
 private:
     std::string message;
@@ -183,3 +185,6 @@ public:
     }
 
 };
+
+} // end of namespace souffle
+

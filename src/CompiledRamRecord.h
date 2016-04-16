@@ -43,6 +43,7 @@
 #include "CompiledRamTuple.h"
 #include "ParallelUtils.h"
 
+namespace souffle {
 
 // ----------------------------------------------------------------------------
 //                              Declarations
@@ -198,3 +199,6 @@ template<typename Tuple>
 const Tuple& unpack(RamDomain ref) {
     return detail::getRecordMap<Tuple>().unpack(ref);
 }
+
+} // end of namespace souffle
+

@@ -47,6 +47,8 @@
 
 #include "AstClause.h"
 
+namespace souffle {
+
 /** abstract class for statements */ 
 class RamStatement : public RamNode {
 public:
@@ -505,3 +507,6 @@ public:
         return toVector<const RamNode*>(nested.get());
     }
 };
+
+} // end of namespace souffle
+

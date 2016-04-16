@@ -52,6 +52,8 @@
 // define if enable unit tests
 #define M_UNIT_TEST 
 
+namespace souffle {
+
 class RamMaxMatching {
 
 public:
@@ -118,3 +120,6 @@ protected:
     bool dfSearch(SearchColumns u);
 
 };
+
+} // end of namespace souffle
+

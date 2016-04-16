@@ -43,6 +43,7 @@
 
 #include "Util.h"
 
+namespace souffle {
 
 //----------------------------------------------------------------------
 //                      forward declarations
@@ -483,3 +484,6 @@ public:
     }
 
 };
+
+} // end of namespace souffle
+

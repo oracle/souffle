@@ -51,6 +51,8 @@
 #include "SymbolTable.h"
 #include "ParallelUtils.h"
 
+namespace souffle {
+
 namespace ram {
 
 // -------------------------------------------------------------
@@ -2199,4 +2201,6 @@ public:
     }
 };
 
-} // end namespace ram
+} // end of namespace ram
+} // end of namespace souffle
+

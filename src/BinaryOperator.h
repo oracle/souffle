@@ -37,6 +37,8 @@
 
 #include <cassert>
 
+namespace souffle {
+
 /**
  * Binary Relational Operators
  */
@@ -205,3 +207,6 @@ inline bool isNumericBinaryOp(const BinaryOp op) {
 inline bool isSymbolicBinaryOp(const BinaryOp op) {
     return !isNumericBinaryOp(op);
 }
+
+} // end of namespace souffle
+

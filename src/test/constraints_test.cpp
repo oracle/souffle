@@ -47,6 +47,7 @@
 
 using namespace std;
 
+namespace souffle {
 namespace test {
 
 	TEST(Constraints, Basic) {
@@ -85,4 +86,4 @@ namespace test {
 	}
 
 } // end namespace test
-
+} // end namespace souffle

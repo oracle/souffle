@@ -40,6 +40,8 @@
 
 #include "Util.h"
 
+namespace souffle {
+
 /**
  * A special, internal type for the predefined symbolic and numeric types.
  */
@@ -593,4 +595,5 @@ TypeSet getGreatestCommonSubtypes(const TypeSet& a, const TypeSet& b) {
     return res;
 }
 
+} // end of namespace souffle
 

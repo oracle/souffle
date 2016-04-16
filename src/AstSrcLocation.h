@@ -39,6 +39,7 @@
 #include <string>
 #include <ostream>
 
+namespace souffle {
 
 /** A class describing a range in an input file */
 class AstSrcLocation {
@@ -108,3 +109,6 @@ public:
     }
 
 };
+
+} // end of namespace souffle
+

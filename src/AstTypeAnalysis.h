@@ -39,6 +39,8 @@
 #include "AstTranslationUnit.h"
 #include "AstAnalysis.h"
 
+namespace souffle {
+
 class AstNode;
 class AstProgram;
 class AstArgument;
@@ -111,5 +113,7 @@ public:
      */
     static std::map<const AstArgument*, TypeSet> analyseTypes(const TypeEnvironment& env, const AstClause& clause, const AstProgram *program, bool verbose = false);
 };
+
+} // end of namespace souffle
 
 

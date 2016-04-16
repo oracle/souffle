@@ -38,6 +38,8 @@
 
 #include "RamTypes.h"
 
+namespace souffle {
+
 /**
  * A function packing a tuple of the given arity into a reference.
  */
@@ -58,3 +60,6 @@ RamDomain getNull();
  * the absence of any nested record.
  */
 bool isNull(RamDomain ref);
+
+} // end of namespace souffle
+

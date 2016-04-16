@@ -50,7 +50,7 @@
 #include "SymbolTable.h"
 #include "StringPool.h"
 
-
+namespace souffle {
 
 
 /* print table in csv format */ 
@@ -119,3 +119,6 @@ bool RamRelation::load(std::istream &is, SymbolTable& symTable, const SymbolMask
     }
     return error;
 }
+
+} // end of namespace souffle
+

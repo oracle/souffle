@@ -61,10 +61,16 @@
     #include "AstArgument.h"
     #include "AstNode.h"
     #include "BinaryOperator.h"
-	#include "AstParserUtils.h"
+    #include "AstParserUtils.h"
     
     #include "AstSrcLocation.h"
-    class ParserDriver;
+
+    using namespace souffle;
+
+    namespace souffle {
+        class ParserDriver;
+    }
+
     typedef void* yyscan_t;
     
     #define YY_NULLPTR nullptr

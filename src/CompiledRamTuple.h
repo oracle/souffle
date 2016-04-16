@@ -41,6 +41,8 @@
 
 #include "RamTypes.h"
 
+namespace souffle {
+
 namespace ram {
 
 	/**
@@ -115,6 +117,7 @@ namespace ram {
     };
 
 } // end namespace ram
+} // end of namespace souffle
 
 
 // -- add hashing support --
@@ -122,8 +125,8 @@ namespace ram {
 namespace std {
 
     template<typename Domain, std::size_t arity>
-    struct hash<ram::Tuple<Domain,arity>> {
-        size_t operator()(const ram::Tuple<Domain,arity>& value) const {
+    struct hash<souffle::ram::Tuple<Domain,arity>> {
+        size_t operator()(const souffle::ram::Tuple<Domain,arity>& value) const {
             std::hash<Domain> hash;
             size_t res = 0;
             for(unsigned i=0; i<arity; i++) {

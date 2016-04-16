@@ -40,6 +40,8 @@
 
 #include "AstLiteral.h"
 
+namespace souffle {
+
 std::vector<const AstNode*> AstAggregator::getChildNodes() const {
     auto res = AstArgument::getChildNodes();
     if (expr) res.push_back(expr.get());
@@ -80,4 +82,5 @@ void AstAggregator::print(std::ostream& os) const {
     }
 }
 
+} // end of namespace souffle
 

@@ -43,6 +43,8 @@
 
 #include "BTree.h"
 
+namespace souffle {
+
 RamRelationStats RamRelationStats::extractFrom(const RamRelation& rel, uint32_t sample_size) {
 
     // write each column in its own set
@@ -92,3 +94,6 @@ RamRelationStats RamRelationStats::extractFrom(const RamRelation& rel, uint32_t 
     return stats;
 
 }
+
+} // end of namespace souffle
+

@@ -38,11 +38,14 @@
 #include "ErrorReport.h"
 #include "AstProgram.h"
 
+
 typedef struct yy_buffer_state * YY_BUFFER_STATE;
 extern YY_BUFFER_STATE yy_scan_string(const char*, yyscan_t scanner);
 extern int yylex_destroy(yyscan_t scanner);
 extern int yylex_init_extra(scanner_data *data, yyscan_t *scanner);
 extern void yyset_in(FILE *in_str, yyscan_t scanner);
+
+namespace souffle {
 
 ParserDriver::ParserDriver() : trace_scanning(false), trace_parsing(false) { }
 
@@ -139,4 +142,6 @@ void ParserDriver::error(const AstSrcLocation &loc, const std::string &msg) {
 void ParserDriver::error(const std::string &msg) {
     translationUnit->getErrorReport().addDiagnostic(Diagnostic(Diagnostic::ERROR, DiagnosticMessage(msg)));
 }
+
+} // end of namespace souffle
 

@@ -67,7 +67,7 @@ namespace std {
 
 }
 
-
+namespace souffle {
 namespace test {
 
     using namespace std;
@@ -549,3 +549,4 @@ namespace test {
         });
     }
 }
+} // end namespace souffle

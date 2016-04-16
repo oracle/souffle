@@ -37,6 +37,8 @@
 
 #include <string>
 
+namespace souffle {
+
 class AstTranslationUnit;
 
 class AstTransformer {
@@ -51,4 +53,6 @@ public:
     virtual std::string getName() const = 0;
 
 };
+
+} // end of namespace souffle
 

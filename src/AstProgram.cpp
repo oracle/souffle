@@ -53,6 +53,8 @@
 #include "AstTypeAnalysis.h"
 #include "ErrorReport.h"
 
+namespace souffle {
+
 /*
  * Program
  */
@@ -261,4 +263,6 @@ void AstProgram::finishParsing() {
     clauses.clear();
     clauses.swap(unbound);
 }
+
+} // end of namespace souffle
 

@@ -43,6 +43,8 @@
 
 #include "RamTypes.h"
 
+namespace souffle {
+
 /**
  * A class describing the sorting order of tuples within an index.
  */
@@ -224,3 +226,6 @@ public:
         return std::pair<iterator, iterator>(set.lower_bound(low), set.upper_bound(high));
     }
 }; 
+
+} // end of namespace souffle
+

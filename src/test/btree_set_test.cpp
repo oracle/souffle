@@ -67,7 +67,7 @@ namespace std {
 
 }
 
-
+namespace souffle {
 namespace test {
 
     using namespace std;
@@ -917,3 +917,4 @@ namespace test {
 #endif
 
 }
+} // end namespace souffle

@@ -50,6 +50,8 @@
 #include "RamTypes.h"
 #include "RamMaxMatching.h"
 
+namespace souffle {
+
 class RamAutoIndex {
 
 public:
@@ -182,3 +184,6 @@ protected:
         return unmatched;
     }
 };
+
+} // end of namespace souffle
+
