@@ -77,9 +77,20 @@
 /* Add line number tracking */
 %option yylineno noyywrap nounput
 
+%x IN_COMMENT
+
 %%
 
 "//".*$                          {  }
+<INITIAL>{
+"/*"              BEGIN(IN_COMMENT);
+}
+<IN_COMMENT>{
+"*/"      BEGIN(INITIAL);
+[^*\n]+   // eat comment in chunks
+"*"       // eat the lone star
+\n        yylineno++;
+}
 [ \t\r\v\f]*                     {  }
 \n                               { yycolumn = 1; }
 "#".*$                           { // processing line directive from cpp
@@ -90,7 +101,12 @@
                                        fname[strlen(fname)-1]='\0';
                                        yycolumn = 1; yylineno = lineno-1;
                                        yyfilename = SLOOKUP(fname);
-                                   }
+                                   } else if(sscanf(yytext,"#line %d \"%s",&lineno,fname)>=2) {
+                                       assert(strlen(fname) > 0 && "failed conversion");
+                                       fname[strlen(fname)-1]='\0';
+                                       yycolumn = 1; yylineno = lineno-1;
+                                       yyfilename = SLOOKUP(fname);
+                                   } 
                                  }
 ".decl"                          { return yy::parser::make_DECL(yylloc); }
 ".type"                          { return yy::parser::make_TYPE(yylloc); }
