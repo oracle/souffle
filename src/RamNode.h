@@ -39,6 +39,8 @@
 #include <vector>
 #include <iostream>
 
+namespace souffle {
+
 enum RamNodeType {
 
     // values
@@ -115,3 +117,6 @@ public:
     }
 
 };
+
+} // end of namespace souffle
+

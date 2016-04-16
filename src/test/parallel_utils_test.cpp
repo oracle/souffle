@@ -38,6 +38,7 @@
 
 #include "ParallelUtils.h"
 
+namespace souffle {
 namespace test {
 
     TEST(ParallelUtils,SpinLock) {
@@ -119,3 +120,4 @@ namespace test {
     }
 
 }
+} // end namespace souffle

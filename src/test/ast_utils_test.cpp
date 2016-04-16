@@ -43,6 +43,7 @@
 #include "AstTypeAnalysis.h"
 #include "ParserDriver.h"
 
+namespace souffle {
 namespace test {
 
     TEST(Ast, CloneAndEquals) {
@@ -551,4 +552,5 @@ namespace test {
     }
 
 } // end namespace test
+} // end namespace souffle
 

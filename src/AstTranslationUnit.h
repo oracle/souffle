@@ -45,6 +45,8 @@
 #include "DebugReport.h"
 #include "SymbolTable.h"
 
+namespace souffle {
+
 class AstTranslationUnit {
 private:
     mutable std::map<std::string, std::unique_ptr<AstAnalysis> > analyses;
@@ -113,3 +115,6 @@ public:
         return debugReport;
     }
 };
+
+} // end of namespace souffle
+

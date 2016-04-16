@@ -42,6 +42,8 @@
 #include "RamRelation.h"
 #include "AstTranslationUnit.h"
 
+namespace souffle {
+
 // forward declarations
 class AstRelation;
 class AstAtom;
@@ -93,3 +95,6 @@ public:
     std::unique_ptr<RamStatement> translateProgram(const AstTranslationUnit &translationUnit);
 
 };
+
+} // end of namespace souffle
+

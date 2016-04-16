@@ -43,6 +43,8 @@
 #include "AstLiteral.h"
 #include "Util.h"
 
+namespace souffle {
+
 class RuleBody {
 
 	// a struct to represent literals
@@ -102,4 +104,6 @@ private:
 	static void insert(std::vector<clause>& cnf, clause&& cls);
 
 };
+
+} // end of namespace souffle
 

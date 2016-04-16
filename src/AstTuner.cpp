@@ -42,6 +42,7 @@
 #include "RamTranslator.h"
 #include "RamExecutor.h"
 
+namespace souffle {
 
 namespace {
 
@@ -218,3 +219,6 @@ bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, cons
 
     return changed;
 }
+
+} // end of namespace souffle
+

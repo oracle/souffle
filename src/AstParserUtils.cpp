@@ -42,6 +42,8 @@
 #include "AstParserUtils.h"
 #include "AstClause.h"
 
+namespace souffle {
+
 void RuleBody::negate() {
 
 	RuleBody res = getTrue();
@@ -217,4 +219,6 @@ void RuleBody::insert(std::vector<clause>& cnf, clause&& cls) {
 	cnf.emplace_back(std::move(cls));
 
 }
+
+} // end of namespace souffle
 

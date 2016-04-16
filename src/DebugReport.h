@@ -42,6 +42,8 @@
 
 #include "AstTransformer.h"
 
+namespace souffle {
+
 class AstTranslationUnit;
 
 /**
@@ -149,3 +151,6 @@ public:
      */
     static DebugReportSection getDotGraphSection(std::string id, std::string title, std::string dotSpec);
 };
+
+} // end of namespace souffle
+

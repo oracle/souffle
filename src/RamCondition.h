@@ -50,6 +50,8 @@
 #include "SymbolTable.h"
 #include "BinaryOperator.h"
 
+namespace souffle {
+
 /** abstract class condition */ 
 class RamCondition : public RamNode {
 public:
@@ -266,3 +268,6 @@ public:
         return std::vector<const RamNode*>();
     }
 };
+
+} // end of namespace souffle
+

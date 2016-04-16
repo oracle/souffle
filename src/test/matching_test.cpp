@@ -48,6 +48,7 @@
 
 
 using namespace std;
+using namespace souffle;
 
 class TestAutoIndex : public RamAutoIndex {
 public:

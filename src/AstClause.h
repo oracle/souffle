@@ -47,6 +47,8 @@
 #include "AstArgument.h"
 #include "AstLiteral.h"
 
+namespace souffle {
+
 class AstProgram;
 
 /**
@@ -434,3 +436,6 @@ protected:
     }
 
 };
+
+} // end of namespace souffle
+

@@ -39,6 +39,7 @@
 #include "TypeSystem.h"
 #include "Util.h"
 
+namespace souffle {
 namespace test {
 
 	TEST(TypeSystem, Basic) {
@@ -395,4 +396,5 @@ namespace test {
     }
 
 } // end namespace test
+} // end namespace souffle
 

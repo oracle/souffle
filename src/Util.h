@@ -56,6 +56,7 @@
 #endif
 #endif
 
+namespace souffle {
 
 // -------------------------------------------------------------------------------
 //                           General Container Utilities
@@ -423,6 +424,10 @@ join(const Container& c, const std::string& sep = ",") {
 }
 
 
+} // end namespace souffle
+
+
+
 namespace std {
 
     /**
@@ -439,7 +444,7 @@ namespace std {
      */
     template<typename T, typename A>
     ostream& operator<<(ostream& out, const vector<T,A>& v) {
-        return out << "[" << join(v) << "]";
+        return out << "[" << souffle::join(v) << "]";
     }
 
     /**
@@ -448,7 +453,7 @@ namespace std {
      */
     template<typename K, typename C, typename A>
     ostream& operator<<(ostream& out, const set<K,C,A>& s) {
-        return out << "{" << join(s) << "}";
+        return out << "{" << souffle::join(s) << "}";
     }
 
     /**
@@ -457,13 +462,15 @@ namespace std {
      */
     template<typename K, typename T, typename C, typename A>
     ostream& operator<<(ostream& out, const map<K,T,C,A>& m) {
-        return out << "{" << join(m,",",[](ostream& out, const pair<K,T>& cur) {
+        return out << "{" << souffle::join(m,",",[](ostream& out, const pair<K,T>& cur) {
             out << cur.first << "->" << cur.second;
         }) << "}";
     }
 
 } // end namespace std
 
+
+namespace souffle {
 
 /**
  * A generic function converting strings into strings (trivial case).
@@ -730,4 +737,7 @@ inline time_point now() {
 inline long duration_in_ms(const time_point& start, const time_point& end) {
     return std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
 }
+
+} // end namespace souffle
+
 

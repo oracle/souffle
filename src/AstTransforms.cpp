@@ -39,6 +39,8 @@
 #include "AstTypeAnalysis.h"
 #include "PrecedenceGraph.h"
 
+namespace souffle {
+
 void ResolveAliasesTransformer::resolveAliases(AstProgram &program) {
     // get all clauses
     std::vector<const AstClause*> clauses;
@@ -761,4 +763,6 @@ bool RemoveRedundantRelationsTransformer::transform(AstTranslationUnit& translat
     }
     return changed;
 }
+
+} // end of namespace souffle
 

@@ -49,6 +49,8 @@
 #include "SymbolTable.h"
 #include "BinaryOperator.h"
 
+namespace souffle {
+
 /** Abstract class for values in the relational algebra machine used for evaluating, printing, and book-keeping */ 
 class RamValue : public RamNode {
 
@@ -288,3 +290,6 @@ public:
         return res;
     }
 };
+
+} // end of namespace souffle
+

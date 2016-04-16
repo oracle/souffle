@@ -41,6 +41,7 @@
 #include "RamExecutor.h"
 #include "RamStatement.h"
 
+namespace souffle {
 namespace test {
 
     TEST(Ast, CloneAndEquals) {
@@ -94,4 +95,5 @@ namespace test {
     }
 
 } // end namespace test
+} // end namespace souffle
 

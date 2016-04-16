@@ -43,6 +43,8 @@
 #include "AstTranslationUnit.h"
 #include "AstComponent.h"
 
+namespace souffle {
+
 class ErrorReport;
 
 /**
@@ -127,3 +129,6 @@ public:
         return "ComponentInstantiationTransformer";
     }
 };
+
+} // end of namespace souffle
+

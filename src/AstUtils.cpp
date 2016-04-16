@@ -42,7 +42,7 @@
 
 #include "TypeSystem.h"
 
-
+namespace souffle {
 
 std::vector<const AstVariable*> getVariables(const AstNode& root) {
     // simply collect the list of all variables by visiting all variables
@@ -109,3 +109,6 @@ bool hasClauseWithAggregatedRelation(const AstRelation *relation, const AstRelat
     }
     return false;
 }
+
+} // end of namespace souffle
+

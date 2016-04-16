@@ -38,19 +38,19 @@
 #include <memory>
 #include "parser.hh"
 
+#define YY_DECL yy::parser::symbol_type yylex(ParserDriver &driver, yyscan_t yyscanner)
+YY_DECL;
+
+namespace souffle {
+
 class AstTranslationUnit;
 class ErrorReport;
 class AstRelation;
 class AstType;
 class AstProgram;
-
-namespace souffle {
 class SymbolTable;
-}
-typedef void* yyscan_t;
-#define YY_DECL yy::parser::symbol_type yylex(ParserDriver &driver, yyscan_t yyscanner)
 
-YY_DECL;
+typedef void* yyscan_t;
 
 struct scanner_data {
     AstSrcLocation yylloc;
@@ -88,3 +88,6 @@ public:
     void error(const AstSrcLocation &loc, const std::string &msg);
     void error(const std::string &msg);
 };
+
+} // end of namespace souffle
+

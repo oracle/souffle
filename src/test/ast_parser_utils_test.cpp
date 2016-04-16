@@ -39,6 +39,7 @@
 #include "AstParserUtils.h"
 #include "AstClause.h"
 
+namespace souffle {
 namespace test {
 
 	TEST(RuleBody, Basic) {
@@ -134,4 +135,5 @@ namespace test {
 	}
 
 } // end namespace test
+} // end namespace souffle
 

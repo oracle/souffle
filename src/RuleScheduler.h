@@ -42,7 +42,7 @@
 #include "Util.h"
 #include "RamRelationStats.h"
 
-
+namespace souffle {
 namespace scheduler {
 
     using namespace std;
@@ -798,3 +798,5 @@ namespace scheduler {
     };
 
 } // end of namespace scheduler
+} // end of namespace souffle
+

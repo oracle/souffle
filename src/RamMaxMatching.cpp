@@ -35,6 +35,8 @@
 
 #include "RamMaxMatching.h"
 
+namespace souffle {
+
 /**
 * Class MaxMatching
 */
@@ -97,4 +99,6 @@ bool RamMaxMatching::dfSearch(SearchColumns u) {
     }
     return true;
 }
+
+} // end of namespace souffle
 

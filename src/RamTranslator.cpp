@@ -46,6 +46,7 @@
 #include "BinaryOperator.h"
 #include "AstTypeAnalysis.h"
 
+namespace souffle {
 
 namespace {
 
@@ -1094,3 +1095,6 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
     // done
     return res;
 }
+
+} // end of namespace souffle
+

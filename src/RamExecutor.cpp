@@ -56,6 +56,8 @@
 #include "RuleScheduler.h"
 #include "TypeSystem.h"
 
+namespace souffle {
+
 namespace {
 
     class EvalContext {
@@ -1949,7 +1951,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "int main(int argc, char** argv)\n{\n";
 
     // parse arguments
-    os << "CmdOptions opt(" ;
+    os << "souffle::CmdOptions opt(" ;
     os << "R\"(" << getConfig().getSourceFileName() << ")\",\n";
     os << "R\"(" << getConfig().getFactFileDir() << ")\",\n";
     os << "R\"(" << getConfig().getOutputDir() << ")\",\n";
@@ -2064,3 +2066,6 @@ void RamCompiler::applyOn(const RamStatement& stmt, RamEnvironment& env) const {
 
     // that's it!
 }
+
+} // end of namespace souffle
+

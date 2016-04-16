@@ -37,6 +37,8 @@
 #include "ComponentModel.h"
 #include "ErrorReport.h"
 
+namespace souffle {
+
 void ComponentLookup::run(const AstTranslationUnit& translationUnit) {
     const AstProgram *program = translationUnit.getProgram();
     for (AstComponent *component : program->getComponents()) {
@@ -287,3 +289,4 @@ void ComponentInstantiationTransformer::collectAllRelations(const AstComponent& 
         }
     }
 }
+} // end namespace souffle

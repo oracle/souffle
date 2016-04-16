@@ -36,6 +36,8 @@
 
 #pragma once
 
+namespace souffle {
+
 /**
  * A wrapper for an iterator obtaining pointers of a certain type,
  * dereferencing values before forwarding them to the consumer.
@@ -160,3 +162,6 @@ public:
     }
 
 };
+
+} // end of namespace souffle
+

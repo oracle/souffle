@@ -49,6 +49,8 @@
 #include "AstTranslationUnit.h"
 #include "GraphUtils.h"
 
+namespace souffle {
+
 /**
  * Analysis pass computing the precedence graph of the relations of the datalog progam.
  */
@@ -291,3 +293,6 @@ public:
         std::cerr << "end schedule\n";
     }
 };
+
+} // end of namespace souffle
+

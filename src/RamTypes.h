@@ -39,6 +39,8 @@
 #include <stdint.h>
 #include <limits>
 
+namespace souffle {
+
 /**
  * Type of an element in a tuple.
  *
@@ -58,4 +60,5 @@
 /** type of an index key; each bit represents a column of a table */ 
 typedef uint64_t SearchColumns;
 
+} // end of namespace souffle
 

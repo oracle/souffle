@@ -46,6 +46,8 @@
 #include "Util.h"
 #include "IterUtils.h"
 
+namespace souffle {
+
 // forward declaration
 class TypeEnvironment;
 
@@ -512,3 +514,6 @@ template<typename ... Types>
 TypeSet getGreatestCommonSubtypes(const Types& ... types) {
     return getGreatestCommonSubtypes(TypeSet(types...));
 }
+
+} // end namespace souffle
+

@@ -46,6 +46,8 @@
 #include "AstNode.h"
 #include "AstType.h"
 
+namespace souffle {
+
 // forward declaration
 class Type;
 
@@ -111,3 +113,6 @@ protected:
     }
 
 };
+
+} // end of namespace souffle
+

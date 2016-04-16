@@ -43,6 +43,8 @@
 #include "RamRecords.h"
 #include "Util.h"
 
+namespace souffle {
+
 namespace {
 
     using namespace std;
@@ -152,3 +154,6 @@ RamDomain getNull() {
 bool isNull(RamDomain ref) {
     return ref == 0;
 }
+
+} // end of namespace souffle
+

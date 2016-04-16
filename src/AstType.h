@@ -45,6 +45,8 @@
 
 #include "AstNode.h"
 
+namespace souffle {
+
 /** The kind of type utilized as an identifier for AST types */
 typedef std::string AstTypeIdentifier;
 
@@ -254,4 +256,6 @@ protected:
     }
 
 };
+
+} // end of namespace souffle
 

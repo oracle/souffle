@@ -48,6 +48,8 @@
 #include "AstRelation.h"
 #include "AstType.h"
 
+namespace souffle {
+
 /** A tag type required for the is_visitor type trait to identify AstVisitors */
 struct ast_visitor_tag {};
 
@@ -368,4 +370,7 @@ typename std::enable_if<!is_visitor<Lambda>::value ,void>::type
 visitDepthFirstPostOrder(const AstNode& root, const Lambda& fun) {
     visitDepthFirstPostOrder(root, std::function<R(const N&)>(fun));
 }
+
+} // end of namespace souffle
+
 

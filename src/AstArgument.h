@@ -49,6 +49,8 @@
 
 #include "TypeSystem.h"
 
+namespace souffle {
+
 /* Forward declarations */
 class AstClause;
 class AstVariable;
@@ -730,3 +732,6 @@ protected:
     }
 
 };
+
+} // end of namespace souffle
+

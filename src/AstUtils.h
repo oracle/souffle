@@ -40,6 +40,8 @@
 #include <vector>
 #include <set>
 
+namespace souffle {
+
 // some forward declarations
 class AstNode;
 class AstVariable;
@@ -114,4 +116,6 @@ bool hasClauseWithNegatedRelation(const AstRelation *relation, const AstRelation
  * @param foundLiteral set to the literal found in an aggregation
  */
 bool hasClauseWithAggregatedRelation(const AstRelation *relation, const AstRelation *aggRelation, const AstProgram *program, const AstLiteral *&foundLiteral);
+
+} // end of namespace souffle
 

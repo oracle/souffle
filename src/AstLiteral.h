@@ -49,6 +49,8 @@
 #include "AstRelationIdentifier.h"
 #include "BinaryOperator.h"
 
+namespace souffle {
+
 class AstRelation;
 class AstClause;
 class AstProgram;
@@ -272,7 +274,7 @@ public:
     void setOperator(BinaryRelOp op) { operation = op; }
 
     /** Negates the constraint */
-    void negate() { setOperator(::negate(operation)); }
+    void negate() { setOperator(souffle::negate(operation)); }
 
     /** Output the constraint to a given stream */
     virtual void print(std::ostream &os) const {
@@ -309,3 +311,6 @@ protected:
     }
 
 };
+
+} // end of namespace souffle
+

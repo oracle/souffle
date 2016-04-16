@@ -1,11 +1,14 @@
+#pragma once 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
 
-#pragma once 
 
 #define HASH_SIZE (1048583)
+
+namespace souffle {
 
 #define SLOOKUP(s) StringPool::instance()->lookup(s)
 
@@ -74,4 +77,7 @@ public:
 		return res;
     }
 };
+
+} // end namespace souffle
+
 

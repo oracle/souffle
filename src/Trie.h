@@ -49,9 +49,12 @@
 #include <atomic>
 #include <bitset>
 #include <iterator>
+#include <cstring>
 
 #include "CompiledRamTuple.h"
 #include "Util.h"
+
+namespace souffle {
 
 namespace detail {
 
@@ -1286,7 +1289,7 @@ private:
      */
     static Node* newNode() {
         Node* res = (Node*)(malloc(sizeof(Node)));
-        memset(res->cell, 0, sizeof(Cell) * NUM_CELLS);
+        std::memset(res->cell, 0, sizeof(Cell) * NUM_CELLS);
         return res;
     }
 
@@ -3128,5 +3131,6 @@ private:
 
 };
 
+} // end namespace souffle
 
 

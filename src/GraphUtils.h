@@ -38,6 +38,8 @@
 
 #include <map>
 
+namespace souffle {
+
 /**
  * A simple graph structure for graph-based operations.
  */
@@ -163,3 +165,6 @@ private:
     }
 
 };
+
+} // end of namespace souffle
+

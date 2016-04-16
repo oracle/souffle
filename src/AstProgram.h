@@ -49,6 +49,8 @@
 #include "TypeSystem.h"
 #include "ErrorReport.h"
 
+namespace souffle {
+
 class AstClause;
 class AstRelation;
 class AstLiteral;
@@ -240,3 +242,6 @@ class AstProgram : public AstNode {
        }
 
 };
+
+} // end of namespace souffle
+

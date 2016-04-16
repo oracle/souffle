@@ -40,6 +40,8 @@
 #include "Util.h"
 #include "BinaryOperator.h"
 
+namespace souffle {
+
 namespace {
 
     // -----------------------------------------------------------------------------
@@ -828,4 +830,6 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(const TypeEnvir
     // run analysis
     return Analysis(env, program).analyse(clause, verbose);
 }
+
+} // end of namespace souffle
 

@@ -48,6 +48,8 @@
 #include "AstLiteral.h"
 #include "AstVisitor.h"
 
+namespace souffle {
+
 /*
  * Clause
  */
@@ -130,3 +132,6 @@ void AstClause::reorderAtoms(const std::vector<unsigned int> &newOrder) {
         atoms[i].swap(oldAtoms[newOrder[i]]);
     }
 }
+
+} // end of namespace souffle
+

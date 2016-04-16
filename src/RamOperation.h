@@ -43,6 +43,8 @@
 #include "RamCondition.h"
 #include "RamIndex.h"
 
+namespace souffle {
+
 /** Abstract class for a relational algebra operation */ 
 class RamOperation : public RamNode {
 protected:
@@ -404,3 +406,6 @@ public:
         return res;
     }
 };
+
+} // end of namespace souffle
+

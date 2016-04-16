@@ -39,6 +39,7 @@
 #include <iostream>
 #include "CompiledRamTuple.h"
 
+namespace souffle {
 namespace ram {
 
     using namespace std;
@@ -101,3 +102,4 @@ namespace ram {
     }
 
 } // end namespace test
+} // end namespace souffle
