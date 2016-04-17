@@ -56,6 +56,7 @@ namespace souffle {
 
 class AstTranslationUnit;
 
+
 bool AstSemanticChecker::transform(AstTranslationUnit &translationUnit) {
     const TypeEnvironment &typeEnv = translationUnit.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
     TypeAnalysis *typeAnalysis = translationUnit.getAnalysis<TypeAnalysis>();
@@ -228,8 +229,14 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
                 const AstLiteral *foundLiteral = nullptr;
                 bool hasNegation = hasClauseWithNegatedRelation(cyclicRelation, cur, &program, foundLiteral);
                 if (hasNegation || hasClauseWithAggregatedRelation(cyclicRelation, cur, &program, foundLiteral)) {
-                    std::string relationsListStr = toString(join(clique, ",", [](std::ostream& out, const AstRelation *rel) {
-                        out << rel->getName();
+                    std::set<std::string> rel_names;
+                    for(const AstRelation *x: clique) {
+                        std::stringstream os;
+                        os << x->getName();
+                        rel_names.insert(os.str());
+                    } 
+                    std::string relationsListStr = toString(join(rel_names, ",", [](std::ostream& out, const std::string &name) {
+                        out << name;
                     }));
                     std::vector<DiagnosticMessage> messages;
                     messages.push_back(DiagnosticMessage("Relation " + toString(cur->getName()), cur->getSrcLoc()));
