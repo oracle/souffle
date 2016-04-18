@@ -1416,6 +1416,12 @@ struct RelationBase {
         }
     }
 
+    /* print table in csv format */
+    template<typename ... Format>
+    void printCSV(std::ostream& out, const SymbolTable& symbolTable, Format ... format) const {
+        printCSV(out, symbolTable, SymbolMask({int(format)...}));
+    }
+
     /**
      * Prints this relation to the given file.
      *
