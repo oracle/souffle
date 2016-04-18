@@ -1760,7 +1760,6 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     // declare symbol table
     os << "public:\n";
     os << "SymbolTable symTable;\n";
-    os << "protected:\n";
 
     // print relation definitions
     std::string initCons; // initialization of constructor 
@@ -1920,6 +1919,48 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         os << ");\n";
     });
     os << "}\n";  // end of loadAll() method
+
+
+    // issue dump methods
+	auto dumpRelation = [&](const std::string& name, const SymbolMask& mask, size_t arity) {
+		auto relName = "rel_" + name;
+
+		os << "out << \"---------------\\n" << name << "\\n===============\\n\";\n";
+
+		// create call
+		os << relName << ".printCSV(out,symTable";
+
+		// add format parameters
+		for(size_t i=0; i<arity; i++) {
+			os << ((mask.isSymbol(i)) ? ",1" : ",0");
+		}
+
+		os << ");\n";
+
+		os << "out << \"===============\\n\";\n";
+	};
+
+    // dump inputs
+	os << "public:\n";
+	os << "void dumpInputs(std::ostream& out = std::cout) {\n";
+	visitDepthFirst(stmt, [&](const RamLoad& load) {
+		auto& name = load.getRelation().getName();
+		auto& mask = load.getSymbolMask();
+		size_t arity = load.getRelation().getArity();
+		dumpRelation(name,mask,arity);
+	});
+	os << "}\n";  // end of dumpInputs() method
+
+	// dump outputs
+	os << "public:\n";
+	os << "void dumpOutputs(std::ostream& out = std::cout) {\n";
+	visitDepthFirst(stmt, [&](const RamStore& store) {
+		auto& name = store.getRelation().getName();
+		auto& mask = store.getSymbolMask();
+		size_t arity = store.getRelation().getArity();
+		dumpRelation(name,mask,arity);
+	});
+	os << "}\n";  // end of dumpOutputs() method
 
     os << "public:\n";
     os << "const SymbolTable &getSymbolTable() const {\n";
