@@ -1969,9 +1969,6 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 
     os << "};\n"; // end of class declaration
 
-    // factory base symbol (weak linkage: may be multiply defined)
-    os << "ProgramFactory *ProgramFactory::base __attribute__ ((weak)) = nullptr;\n";
-
     // hidden hooks
     os << "Program *newInstance_" << simplename << "(){return new " << classname << ";}\n";
     os << "SymbolTable *getST_" << simplename << "(Program *p){return &reinterpret_cast<"
@@ -1985,7 +1982,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "public:\n";
     os << "factory_" << classname << "() : ProgramFactory(\"" << simplename << "\"){}\n";
     os << "};\n";
-    os << "static factory_" << classname << " factory;\n";
+    os << "static factory_" << classname << " __factory_" << classname << "_instance;\n";
     os << "}\n";
     os << "#else\n";
     os << "}\n";
