@@ -219,9 +219,8 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
 
     // check for cyclic dependencies
     const Graph<const AstRelation *> &depGraph = precedenceGraph.getGraph();
-    std::set<const AstRelation *> covered;
     for(const AstRelation *cur : depGraph.getNodes()) {
-        if (covered.find(cur) == covered.end() && depGraph.reaches(cur,cur)) {
+        if (depGraph.reaches(cur,cur)) {
             std::set<const AstRelation *> clique = depGraph.getClique(cur);
             for (const AstRelation *cyclicRelation : clique) {
 
@@ -246,7 +245,6 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
                     break;
                 }
             }
-            covered.insert(clique.begin(), clique.end());
         }
     }
 }
