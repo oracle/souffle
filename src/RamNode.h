@@ -50,6 +50,7 @@ enum RamNodeType {
     RN_AutoIncrement,
     RN_Ord,
     RN_Negation,
+    RN_Complement,
     RN_Pack,
 
     // conditions

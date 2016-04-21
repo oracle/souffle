@@ -1,0 +1,5 @@
+.decl A(x:number) output
+A(1).
+A(x band x) :- A(x).
+A(x bor x) :- A(x).
+A(bnot x) :- A(x).

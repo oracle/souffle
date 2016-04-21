@@ -51,42 +51,44 @@ enum class BinaryRelOp {
     GE,           // greater-than-or-equal-to
     MATCH,        // matching string
     CONTAINS,     // whether a sub-string is contained in a string
-	NOT_MATCH,    // not matching string
-	NOT_CONTAINS  // whether a sub-string is not contained in a string
+    NOT_MATCH,    // not matching string
+    NOT_CONTAINS  // whether a sub-string is not contained in a string
 };
 
-inline BinaryRelOp negate(BinaryRelOp op) {
-	switch(op) {
-	case BinaryRelOp::EQ : return BinaryRelOp::NE;
-	case BinaryRelOp::NE : return BinaryRelOp::EQ;
-	case BinaryRelOp::LT : return BinaryRelOp::GE;
-	case BinaryRelOp::LE : return BinaryRelOp::GT;
-	case BinaryRelOp::GE : return BinaryRelOp::LT;
-	case BinaryRelOp::GT : return BinaryRelOp::LE;
-	case BinaryRelOp::MATCH     : return BinaryRelOp::NOT_MATCH;
-	case BinaryRelOp::NOT_MATCH : return BinaryRelOp::MATCH;
-	case BinaryRelOp::CONTAINS     : return BinaryRelOp::NOT_CONTAINS;
-	case BinaryRelOp::NOT_CONTAINS : return BinaryRelOp::CONTAINS;
-	}
-	assert(false && "Unsupported Operator!");
-	return op;
+inline BinaryRelOp negate(BinaryRelOp op) 
+{
+    switch(op) {
+        case BinaryRelOp::EQ : return BinaryRelOp::NE;
+        case BinaryRelOp::NE : return BinaryRelOp::EQ;
+        case BinaryRelOp::LT : return BinaryRelOp::GE;
+        case BinaryRelOp::LE : return BinaryRelOp::GT;
+        case BinaryRelOp::GE : return BinaryRelOp::LT;
+        case BinaryRelOp::GT : return BinaryRelOp::LE;
+        case BinaryRelOp::MATCH     : return BinaryRelOp::NOT_MATCH;
+        case BinaryRelOp::NOT_MATCH : return BinaryRelOp::MATCH;
+        case BinaryRelOp::CONTAINS     : return BinaryRelOp::NOT_CONTAINS;
+        case BinaryRelOp::NOT_CONTAINS : return BinaryRelOp::CONTAINS;
+    }
+    assert(false && "Unsupported Operator!");
+    return op;
 }
 
 /**
  * Returns the corresponding symbol for the given relational operator.
  */
-inline std::string getSymbolForBinaryRelOp(BinaryRelOp op) {
+inline std::string getSymbolForBinaryRelOp(BinaryRelOp op) 
+{
     switch(op) {
-    case BinaryRelOp::EQ : return "=";
-    case BinaryRelOp::NE : return "!=";
-    case BinaryRelOp::LT : return "<";
-    case BinaryRelOp::LE : return "<=";
-    case BinaryRelOp::GT : return ">";
-    case BinaryRelOp::GE : return ">=";
-    case BinaryRelOp::MATCH : return "match";
-    case BinaryRelOp::CONTAINS : return "contains";
-    case BinaryRelOp::NOT_MATCH : return "not_match";
-	case BinaryRelOp::NOT_CONTAINS : return "not_contains";
+        case BinaryRelOp::EQ : return "=";
+        case BinaryRelOp::NE : return "!=";
+        case BinaryRelOp::LT : return "<";
+        case BinaryRelOp::LE : return "<=";
+        case BinaryRelOp::GT : return ">";
+        case BinaryRelOp::GE : return ">=";
+        case BinaryRelOp::MATCH : return "match";
+        case BinaryRelOp::CONTAINS : return "contains";
+        case BinaryRelOp::NOT_MATCH : return "not_match";
+        case BinaryRelOp::NOT_CONTAINS : return "not_contains";
     }
     assert(false && "Unsupported Operator!");
     return "?";
@@ -105,7 +107,7 @@ inline BinaryRelOp getBinaryRelOpForSymbol(const std::string &symbol) {
     if (symbol == "match") return BinaryRelOp::MATCH;
     if (symbol == "contains") return BinaryRelOp::CONTAINS;
     if (symbol == "not_match") return BinaryRelOp::NOT_MATCH;
-	if (symbol == "not_contains") return BinaryRelOp::NOT_CONTAINS;
+    if (symbol == "not_contains") return BinaryRelOp::NOT_CONTAINS;
     std::cout << "Unrecognised operator: " << symbol << "\n";
     assert(false && "Unsupported Operator!");
     return BinaryRelOp::EQ;
@@ -148,6 +150,8 @@ enum class BinaryOp {
     DIV, // division
     EXP, // exponent
     MOD, // modulus
+    BAND, // bitwise and
+    BOR,  // bitwise or 
     CAT, // string concatenation
 };
 
@@ -162,6 +166,8 @@ inline std::string getSymbolForBinaryOp(BinaryOp op) {
     case BinaryOp::DIV : return "/";
     case BinaryOp::EXP : return "^";
     case BinaryOp::MOD : return "%";
+    case BinaryOp::BAND : return " band ";
+    case BinaryOp::BOR : return " bor ";
     case BinaryOp::CAT : return "cat";
     }
     assert(false && "Unsupported Operator!");
@@ -178,6 +184,8 @@ inline BinaryOp getBinaryOpForSymbol(const std::string &symbol) {
     if (symbol == "/") return BinaryOp::DIV;
     if (symbol == "^") return BinaryOp::EXP;
     if (symbol == "%") return BinaryOp::MOD;
+    if (symbol == "&") return BinaryOp::BAND;
+    if (symbol == "|") return BinaryOp::BOR;
     if (symbol == "cat") return BinaryOp::CAT;
     std::cout << "Unrecognised operator: " << symbol << "\n";
     assert(false && "Unsupported Operator!");
@@ -194,6 +202,8 @@ inline bool isNumericBinaryOp(const BinaryOp op) {
     case BinaryOp::MUL:
     case BinaryOp::DIV:
     case BinaryOp::EXP:
+    case BinaryOp::BAND:
+    case BinaryOp::BOR:
     case BinaryOp::MOD: return true;
     case BinaryOp::CAT: return false;
     }
