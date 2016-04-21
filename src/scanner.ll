@@ -99,6 +99,9 @@
 ".number_type"                   { return yy::parser::make_NUMBER_TYPE(yylloc); }
 ".symbol_type"                   { return yy::parser::make_SYMBOL_TYPE(yylloc); }
 ".override"                      { return yy::parser::make_OVERRIDE(yylloc); }
+"band"                           { return yy::parser::make_BW_AND(yylloc); }
+"bor"                            { return yy::parser::make_BW_OR(yylloc); }
+"bnot"                           { return yy::parser::make_BW_NOT(yylloc); }
 "match"                          { return yy::parser::make_TMATCH(yylloc); }
 "cat"                            { return yy::parser::make_CAT(yylloc); }
 "ord"                            { return yy::parser::make_ORD(yylloc); }

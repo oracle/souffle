@@ -115,6 +115,8 @@ namespace {
                 case BinaryOp::DIV: return visit(op.getLHS()) / visit(op.getRHS());
                 case BinaryOp::EXP: return std::pow(visit(op.getLHS()), visit(op.getRHS()));
                 case BinaryOp::MOD: return visit(op.getLHS()) % visit(op.getRHS());
+                case BinaryOp::BAND: return visit(op.getLHS()) & visit(op.getRHS());
+                case BinaryOp::BOR: return visit(op.getLHS()) | visit(op.getRHS());
 
                 // strings
                 case BinaryOp::CAT: {
@@ -132,6 +134,10 @@ namespace {
 
             RamDomain visitNegation(const RamNegation& op) {
                 return -visit(op.getValue());
+            }
+
+            RamDomain visitComplement(const RamComplement& op) {
+                return ~visit(op.getValue());
             }
 
 
@@ -1569,6 +1575,14 @@ namespace {
                 out << "(" << print(op.getLHS()) << ") % (" << print(op.getRHS()) << ")";
                 break;
             }
+            case BinaryOp::BAND: {
+                out << "(" << print(op.getLHS()) << ") & (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::BOR: {
+                out << "(" << print(op.getLHS()) << ") | (" << print(op.getRHS()) << ")";
+                break;
+            }
 
             // strings
             case BinaryOp::CAT: {
@@ -1601,7 +1615,11 @@ namespace {
         }
 
         void visitNegation(const RamNegation& neg, std::ostream& out) {
-            out << "(-" << print(neg.getValue()) << ")"; 
+            out << "(-(" << print(neg.getValue()) << "))"; 
+        }
+        
+        void visitComplement(const RamComplement& neg, std::ostream& out) {
+            out << "(~(" << print(neg.getValue()) << "))"; 
         }
 
         // -- safety net --

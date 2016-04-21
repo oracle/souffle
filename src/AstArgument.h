@@ -331,7 +331,8 @@ public:
     enum Function {
         // -- numerical --
         ORDINAL, 
-        NEGATION
+        NEGATION,
+        BNOT
 
         // -- symbolic --
     };
@@ -361,6 +362,7 @@ public:
         switch (fun) {
         case ORDINAL: return true;
         case NEGATION: return true;
+        case BNOT: return true;
         }
         assert(false && "Unsupported operator encountered!");
         return false;
@@ -370,6 +372,7 @@ public:
         switch (fun) {
         case ORDINAL: return false;
         case NEGATION: return false; 
+        case BNOT: return false; 
         }
         assert(false && "Unsupported operator encountered!");
         return false;
@@ -379,6 +382,7 @@ public:
         switch (fun) {
         case ORDINAL: return false;
         case NEGATION: return true;
+        case BNOT: return true;
         }
         assert(false && "Unsupported operator encountered!");
         return false;
@@ -388,6 +392,7 @@ public:
         switch (fun) {
         case ORDINAL: return true;
         case NEGATION: return false;
+        case BNOT: return false;
         }
         assert(false && "Unsupported operator encountered!");
         return false;
@@ -425,6 +430,7 @@ public:
         switch(fun) {
         case ORDINAL : return "ord";
         case NEGATION : return "-";
+        case BNOT : return "bnot";
         }
         assert(false && "Unknown function!");
         return "?";

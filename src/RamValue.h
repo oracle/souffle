@@ -101,6 +101,36 @@ public:
     }
 };
 
+/** bitwise complement */
+class RamComplement : public RamValue {
+    std::unique_ptr<RamValue> value;
+public:
+    RamComplement(std::unique_ptr<RamValue> value)
+        : RamValue(RN_Complement,value->isConstant()), value(std::move(value)) {}
+
+    ~RamComplement() { }
+
+    const RamValue& getValue() const {
+        ASSERT(value != NULL && "no null value expected");
+        return *value;
+    }
+
+    void print(std::ostream &os) const {
+        os << "complement(";
+        value->print(os);
+        os << ")";
+    }
+
+    size_t getLevel() const {
+        return value->getLevel();
+    }
+
+    /** Obtains a list of child nodes */
+    virtual std::vector<const RamNode*> getChildNodes() const {
+        return toVector<const RamNode*>(value.get());
+    }
+};
+
 /** negate a value arithmetically */
 class RamNegation : public RamValue {
     std::unique_ptr<RamValue> value;

@@ -152,6 +152,9 @@
 %token RBRACE                    "}"
 %token LT                        "<"
 %token GT                        ">"
+%token BW_AND                    "band"
+%token BW_OR                     "bor"
+%token BW_NOT                    "bnot"
 
 %type <int>                      qualifiers 
 %type <AstRelationIdentifier *>  rel_id
@@ -179,8 +182,11 @@
 
 %left DOT COLON
 %right AS
+%left BW_OR
+%left BW_AND
 %left PLUS MINUS
 %left STAR SLASH PERCENT
+%left BW_NOT
 %left NEG 
 %left CARET
 
@@ -301,6 +307,14 @@ arg: STRING {
    | LPAREN arg RPAREN {
        $$ = $2;
      }
+   | arg BW_OR arg {
+       $$ = new AstBinaryFunctor(BinaryOp::BOR, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | arg BW_AND arg {
+       $$ = new AstBinaryFunctor(BinaryOp::BAND, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
    | arg PLUS arg {
        $$ = new AstBinaryFunctor(BinaryOp::ADD, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
@@ -339,6 +353,10 @@ arg: STRING {
      }
    |  MINUS arg %prec NEG { 
        $$ = new AstUnaryFunctor(AstUnaryFunctor::NEGATION, std::unique_ptr<AstArgument>($2));
+       $$->setSrcLoc(@$); 
+     }
+   |  BW_NOT arg { 
+       $$ = new AstUnaryFunctor(AstUnaryFunctor::BNOT, std::unique_ptr<AstArgument>($2));
        $$->setSrcLoc(@$); 
      }
    | LBRACKET RBRACKET  {
