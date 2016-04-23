@@ -73,9 +73,20 @@
 namespace souffle {
 
 /**
+ * Get absolute path of executable
+ */
+inline std::string getAbsPath(char * argv0)
+{
+    char path[PATH_MAX];
+    if (realpath (argv0, path) != 0) { 
+        return dirname(path); 
+    }
+    return ".";
+}
+/**
  * Check whether a string is a sequence of numbers
  */ 
-static bool isNumber(const char *str)
+inline bool isNumber(const char *str)
 {
     if (str==NULL) return false; 
 
@@ -347,8 +358,8 @@ int main(int argc, char **argv)
     }
 
     /* Create the pipe to establish a communication between cpp and souffle */
-    std::string cmd = SOUFFLECPP;
-    cmd  += " -nostdinc " + includeOpt + " " + filenames;
+    std::string cmd = getAbsPath(argv[0]) + "/wave";
+    cmd  += " " + includeOpt + " " + filenames;
     FILE* in = popen(cmd.c_str(), "r"); 
 
     /* Time taking for parsing */
