@@ -117,6 +117,9 @@ namespace {
                 case BinaryOp::MOD: return visit(op.getLHS()) % visit(op.getRHS());
                 case BinaryOp::BAND: return visit(op.getLHS()) & visit(op.getRHS());
                 case BinaryOp::BOR: return visit(op.getLHS()) | visit(op.getRHS());
+                case BinaryOp::BXOR: return visit(op.getLHS()) ^ visit(op.getRHS());
+                case BinaryOp::LAND: return visit(op.getLHS()) && visit(op.getRHS());
+                case BinaryOp::LOR: return visit(op.getLHS()) || visit(op.getRHS());
 
                 // strings
                 case BinaryOp::CAT: {
@@ -140,6 +143,9 @@ namespace {
                 return ~visit(op.getValue());
             }
 
+            RamDomain visitNot(const RamNot& op) {
+                return !visit(op.getValue());
+            }
 
             RamDomain visitOrd(const RamOrd& op) {
                 return visit(op.getSymbol());
@@ -1583,6 +1589,18 @@ namespace {
                 out << "(" << print(op.getLHS()) << ") | (" << print(op.getRHS()) << ")";
                 break;
             }
+            case BinaryOp::BXOR: {
+                out << "(" << print(op.getLHS()) << ") ^ (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::LAND: {
+                out << "(" << print(op.getLHS()) << ") && (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::LOR: {
+                out << "(" << print(op.getLHS()) << ") || (" << print(op.getRHS()) << ")";
+                break;
+            }
 
             // strings
             case BinaryOp::CAT: {
@@ -1610,16 +1628,20 @@ namespace {
                 << ")";
         }
 
-        void visitOrd(const RamOrd& ord, std::ostream& out) {
-            out << print(ord.getSymbol());
+        void visitOrd(const RamOrd& op, std::ostream& out) {
+            out << print(op.getSymbol());
         }
 
-        void visitNegation(const RamNegation& neg, std::ostream& out) {
-            out << "(-(" << print(neg.getValue()) << "))"; 
+        void visitNegation(const RamNegation& op, std::ostream& out) {
+            out << "(-(" << print(op.getValue()) << "))"; 
         }
         
-        void visitComplement(const RamComplement& neg, std::ostream& out) {
-            out << "(~(" << print(neg.getValue()) << "))"; 
+        void visitComplement(const RamComplement& op, std::ostream& out) {
+            out << "(~(" << print(op.getValue()) << "))"; 
+        }
+
+        void visitNot(const RamNot& op, std::ostream& out) {
+            out << "(!(" << print(op.getValue()) << "))"; 
         }
 
         // -- safety net --
