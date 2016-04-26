@@ -37,7 +37,7 @@ wave_SOURCES = wave.cpp wave.hpp	wave_trace_macro_expansion.hpp \
 		wave_config.hpp			wave_version.hpp \
 		wave_stop_watch.hpp
 
-wave_CPPFLAGS = 
+wave_CPPFLAGS = $(BOOST_CPPFLAGS)
 wave_LDFLAGS = 
 wave_LDADD = $(BOOST_LDFLAGS) \
              $(BOOST_FILESYSTEM_LIB) \
