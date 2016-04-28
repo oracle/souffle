@@ -45,3 +45,13 @@ R2(X) :- U(X) , !( B(X) ; D(X) ) .
 
 .decl R3( x : number ) output
 R3(X) :- U(X) , !( B(X) , D(X) ) .
+
+.decl R4( x : number ) output
+R4(X) :- U(X) , !( B(X) ; D(X) ) .
+
+.decl R5( x : number ) output
+R5(X) :- U(X) , !!!( B(X) ; D(X) ) .
+
+.decl R6( x : number ) output
+R6(X) :- (!B(X) ; D(X)) , U(X) .
+
