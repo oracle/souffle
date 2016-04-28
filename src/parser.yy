@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle version 0.0.0
+ * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - souffle/LICENSE
  */
 
 /************************************************************************
@@ -152,6 +132,13 @@
 %token RBRACE                    "}"
 %token LT                        "<"
 %token GT                        ">"
+%token BW_AND                    "band"
+%token BW_OR                     "bor"
+%token BW_XOR                    "bxor"
+%token BW_NOT                    "bnot"
+%token L_AND                     "land"
+%token L_OR                      "lor"
+%token L_NOT                     "lnot"
 
 %type <int>                      qualifiers 
 %type <AstRelationIdentifier *>  rel_id
@@ -179,8 +166,14 @@
 
 %left DOT COLON
 %right AS
+%left L_OR
+%left L_AND
+%left BW_OR 
+%left BW_XOR
+%left BW_AND
 %left PLUS MINUS
 %left STAR SLASH PERCENT
+%left BW_NOT L_NOT
 %left NEG 
 %left CARET
 
@@ -301,6 +294,26 @@ arg: STRING {
    | LPAREN arg RPAREN {
        $$ = $2;
      }
+   | arg BW_OR arg {
+       $$ = new AstBinaryFunctor(BinaryOp::BOR, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | arg BW_XOR arg {
+       $$ = new AstBinaryFunctor(BinaryOp::BXOR, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | arg BW_AND arg {
+       $$ = new AstBinaryFunctor(BinaryOp::BAND, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | arg L_OR arg {
+       $$ = new AstBinaryFunctor(BinaryOp::LOR, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | arg L_AND arg {
+       $$ = new AstBinaryFunctor(BinaryOp::LAND, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
    | arg PLUS arg {
        $$ = new AstBinaryFunctor(BinaryOp::ADD, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
@@ -339,6 +352,14 @@ arg: STRING {
      }
    |  MINUS arg %prec NEG { 
        $$ = new AstUnaryFunctor(AstUnaryFunctor::NEGATION, std::unique_ptr<AstArgument>($2));
+       $$->setSrcLoc(@$); 
+     }
+   |  BW_NOT arg { 
+       $$ = new AstUnaryFunctor(AstUnaryFunctor::BNOT, std::unique_ptr<AstArgument>($2));
+       $$->setSrcLoc(@$); 
+     }
+   |  L_NOT arg { 
+       $$ = new AstUnaryFunctor(AstUnaryFunctor::LNOT, std::unique_ptr<AstArgument>($2));
        $$->setSrcLoc(@$); 
      }
    | LBRACKET RBRACKET  {

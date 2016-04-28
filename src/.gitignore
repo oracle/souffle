@@ -3,6 +3,7 @@
 souffle
 souffle-compile
 souffle-config
+wave
 
 stack.hh
 parser.hh

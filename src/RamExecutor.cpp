@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle version 0.0.0
+ * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - souffle/LICENSE
  */
 
 /************************************************************************
@@ -115,6 +95,11 @@ namespace {
                 case BinaryOp::DIV: return visit(op.getLHS()) / visit(op.getRHS());
                 case BinaryOp::EXP: return std::pow(visit(op.getLHS()), visit(op.getRHS()));
                 case BinaryOp::MOD: return visit(op.getLHS()) % visit(op.getRHS());
+                case BinaryOp::BAND: return visit(op.getLHS()) & visit(op.getRHS());
+                case BinaryOp::BOR: return visit(op.getLHS()) | visit(op.getRHS());
+                case BinaryOp::BXOR: return visit(op.getLHS()) ^ visit(op.getRHS());
+                case BinaryOp::LAND: return visit(op.getLHS()) && visit(op.getRHS());
+                case BinaryOp::LOR: return visit(op.getLHS()) || visit(op.getRHS());
 
                 // strings
                 case BinaryOp::CAT: {
@@ -134,6 +119,13 @@ namespace {
                 return -visit(op.getValue());
             }
 
+            RamDomain visitComplement(const RamComplement& op) {
+                return ~visit(op.getValue());
+            }
+
+            RamDomain visitNot(const RamNot& op) {
+                return !visit(op.getValue());
+            }
 
             RamDomain visitOrd(const RamOrd& op) {
                 return visit(op.getSymbol());
@@ -1569,6 +1561,26 @@ namespace {
                 out << "(" << print(op.getLHS()) << ") % (" << print(op.getRHS()) << ")";
                 break;
             }
+            case BinaryOp::BAND: {
+                out << "(" << print(op.getLHS()) << ") & (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::BOR: {
+                out << "(" << print(op.getLHS()) << ") | (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::BXOR: {
+                out << "(" << print(op.getLHS()) << ") ^ (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::LAND: {
+                out << "(" << print(op.getLHS()) << ") && (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::LOR: {
+                out << "(" << print(op.getLHS()) << ") || (" << print(op.getRHS()) << ")";
+                break;
+            }
 
             // strings
             case BinaryOp::CAT: {
@@ -1596,12 +1608,20 @@ namespace {
                 << ")";
         }
 
-        void visitOrd(const RamOrd& ord, std::ostream& out) {
-            out << print(ord.getSymbol());
+        void visitOrd(const RamOrd& op, std::ostream& out) {
+            out << print(op.getSymbol());
         }
 
-        void visitNegation(const RamNegation& neg, std::ostream& out) {
-            out << "(-" << print(neg.getValue()) << ")"; 
+        void visitNegation(const RamNegation& op, std::ostream& out) {
+            out << "(-(" << print(op.getValue()) << "))"; 
+        }
+        
+        void visitComplement(const RamComplement& op, std::ostream& out) {
+            out << "(~(" << print(op.getValue()) << "))"; 
+        }
+
+        void visitNot(const RamNot& op, std::ostream& out) {
+            out << "(!(" << print(op.getValue()) << "))"; 
         }
 
         // -- safety net --
