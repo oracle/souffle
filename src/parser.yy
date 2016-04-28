@@ -151,7 +151,7 @@
 %type <AstArgument *>            arg
 %type <AstAtom *>                arg_list atom
 %type <std::vector<AstAtom*>>    head
-%type <RuleBody *>               literal conjunction body
+%type <RuleBody *>               literal term disjunction conjunction body
 %type <AstClause *>              fact
 %type <std::vector<AstClause*>>  rule rule_def
 %type <AstExecutionOrder *>      exec_order exec_order_list
@@ -467,6 +467,7 @@ atom: rel_id LPAREN arg_list RPAREN {
         }
     ;
 
+
 /* Literal */
 literal: arg RELOP arg {
             auto* res = new AstConstraint($2, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
@@ -492,14 +493,6 @@ literal: arg RELOP arg {
             $1->setSrcLoc(@$);
             $$ = new RuleBody(std::move(RuleBody::atom($1)));
           }
-       | EXCLAMATION atom {
-		    $$ = new RuleBody(std::move(RuleBody::atom($2)));
-		    $$->negate();
-          }
-       | EXCLAMATION LPAREN body RPAREN {
-			$$ = $3;
-			$$->negate();
-		  }
        | TMATCH LPAREN arg COMMA arg RPAREN {
             auto* res = new AstConstraint(BinaryRelOp::MATCH, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
             res->setSrcLoc(@$);
@@ -511,7 +504,7 @@ literal: arg RELOP arg {
             $$ = new RuleBody(std::move(RuleBody::constraint(res)));
           }
        ;
-
+     
 /* Fact */
 fact: atom DOT {
           $$ = new AstClause();
@@ -525,18 +518,25 @@ head : atom					{ $$.push_back($1); }
      | head COMMA atom		{ $$.swap($1); $$.push_back($3); }
 	 ;
 
-/* Body */
-conjunction: literal 		{ $$ = $1; }
-    | conjunction COMMA literal {
-							  $$ = $1;
-							  $$->conjunct(std::move(*$3));
-      }
+/* Term */     
+term : literal							{ $$ = $1; }
+	 | EXCLAMATION term					{ $$ = $2; $$->negate(); }
+	 | LPAREN disjunction RPAREN		{ $$ = $2; }
+	 ;
+	
+/* Conjunction */
+conjunction: term 						{ $$ = $1; }
+    | conjunction COMMA term 			{ $$ = $1; $$->conjunct(std::move(*$3)); }
     ;
 
+/* Disjunction */
+disjunction : conjunction				 { $$ = $1; }
+	 | disjunction SEMICOLON conjunction { $$ = $1; $$->disjunct(std::move(*$3)); }
+	 ;
+	 
 /* Body */
-body : conjunction						{ $$ = $1; }
-     | body SEMICOLON conjunction		{ $$ = $1; $$->disjunct(std::move(*$3)); }
-    
+body : disjunction						{ $$ = $1; }
+     ;
     
 /* execution order list */
 exec_order_list: NUMBER {
