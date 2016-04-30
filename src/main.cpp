@@ -361,6 +361,10 @@ int main(int argc, char **argv)
     std::string cmd = getAbsPath(argv[0]) + "/wave";
     cmd  += " " + includeOpt + " " + filenames;
     FILE* in = popen(cmd.c_str(), "r"); 
+    if (in == NULL) {
+       perror(NULL);
+       fail("error: no wave pre-processor available");
+    } 
 
     /* Time taking for parsing */
     auto parser_start = std::chrono::high_resolution_clock::now();
@@ -372,9 +376,9 @@ int main(int argc, char **argv)
 
     // close input pipe
     int preprocessor_status = pclose(in);
-    if (preprocessor_status != 0) {
-        // an error message was already printed by the pre-processor
-        return preprocessor_status;
+    if (preprocessor_status == -1) {
+        perror(NULL);
+        fail("error: failed to close pre-processor pipe");
     }
 
     /* Report run-time of the parser if verbose flag is set */
