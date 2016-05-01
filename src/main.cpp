@@ -469,7 +469,7 @@ int main(int argc, char **argv)
     } else if (dir.size() > 0) {
        dir += "/";
     }
-    config.setCompileScript( "/bin/bash " + dir + "souffle-compile ");
+    config.setCompileScript( "/bin/sh " + dir + "souffle-compile ");
 
     // check if this is code generation only
     if (generateHeader) {
