@@ -49,18 +49,18 @@ class RamExecutorConfig {
     /** A flag for enabling logging during the computation */
     bool logging;
 
-    /** The name of the compile script */ 
-    std::string compileScript; 
+    /** The name of the compile script */
+    std::string compileScript;
 
     /** A filename for profile log */
-    std::string profileName; 
+    std::string profileName;
 
     /** A flag for enabling debug mode */
     bool debug;
 
 public:
 
-    RamExecutorConfig() : sourceFileName("-unknown-"), factFileDir("./"), outputDir("./"), num_threads(1), logging(false), compileScript("souffle-compile"), debug(false) {}
+    RamExecutorConfig() : sourceFileName("-unknown-"), factFileDir("./"), outputDir("./"), num_threads(1), logging(false), debug(false) {}
 
     // -- getters and setters --
 
@@ -142,7 +142,7 @@ class RamExecutor {
     /** The associated configuration */
     RamExecutorConfig config;
 
-protected: 
+protected:
     /** An optional stream to print logging information to */
     std::ostream* report;
 
