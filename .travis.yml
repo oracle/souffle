@@ -4,7 +4,7 @@ language: cpp
 osx_image: xcode7.3
 before_install:
   - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get -y install debhelper devscripts build-essential g++ automake autoconf bison flex openjdk-7-jdk libboost-all-dev; fi
-  - if [ $TRAVIS_OS_NAME == osx ]; then brew update;brew install bison boost; brew link bison --force; fi
+  - if [ $TRAVIS_OS_NAME == osx ]; then brew update; brew install md5sha1sum bison boost; brew link bison --force; fi
 compiler:
 - gcc
 - clang
@@ -19,10 +19,11 @@ script:
 - sh ./bootstrap
 - ./configure
 - make 
-- make check
-- if [ $TRAVIS_OS_NAME == linux ]; then make deb; mkdir deploy; cd packaging; for d in *.deb; do cp $d "../deploy/$CXX_$d"; done; cd ..;  fi
-- if [ $TRAVIS_OS_NAME == osx ]; then make pkg; mkdir deploy; cp *.pkg deploy; fi
-
+- TESTSUITEFLAGS=-j3 make check
+- if [ $CXX == g++ ]; then prefix=gcc; else prefix=clang; fi
+- if [ $TRAVIS_OS_NAME == linux ]; then make deb; mkdir deploy; cd packaging; for d in *.deb; do cp $d ../deploy/"$prefix"_"$d"; md5sum <$d >"../deploy/"$prefix"_"$d".md5"; done; cd ..; fi
+- if [ $TRAVIS_OS_NAME == osx ]; then make pkg; mkdir deploy; for d in *.pkg; do cp $d deploy/; md5sum <$d >deploy/$d.md5; done; fi
+- ls deploy/*
 deploy:
   skip_cleanup: true
   provider: releases
@@ -31,5 +32,4 @@ deploy:
   file_glob: true
   file: deploy/*
   on:
-    repo: souffle-lang/souffle
-
+    tags: true
