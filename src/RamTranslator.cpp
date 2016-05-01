@@ -104,7 +104,7 @@ namespace {
          * The type mapping variables (referenced by their names) to the
          * locations where they are used.
          */
-        typedef std::map<std::string, std::vector<Location>> variable_reference_map;
+        typedef std::map<std::string, std::set<Location>> variable_reference_map;
 
         /**
          * The type mapping record init expressions to their definition points,
@@ -142,9 +142,8 @@ namespace {
         // -- variables --
 
         void addVarReference(const AstVariable& var, const Location& l) {
-            std::vector<Location>& locs = var_references[var.getName()];
-            assert((locs.empty() || locs.back() < l) && "Unordered location insertion!");
-            locs.push_back(l);
+            std::set<Location>& locs = var_references[var.getName()];
+            locs.insert(l);
         }
 
         void addVarReference(const AstVariable& var, int level, int pos, const std::string &name="") {
@@ -158,7 +157,7 @@ namespace {
         const Location& getDefinitionPoint(const AstVariable& var) const {
             auto pos = var_references.find(var.getName());
             assert(pos != var_references.end() && "Undefined variable referenced!");
-            return pos->second.front();
+            return *pos->second.begin();
         }
 
         const variable_reference_map& getVariableReferences() const {
@@ -229,7 +228,7 @@ namespace {
         bool isSomethingDefinedOn(int level) const {
             // check for variable definitions
             for(const auto& cur : var_references) {
-                if (cur.second.front().level == level) return true;
+                if (cur.second.begin()->level == level) return true;
             }
             // check for record definitions
             for(const auto& cur : record_definitions) {
@@ -584,7 +583,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(const AstClause& cl
     /* add equivalence constraints imposed by variable binding */
     for (const auto& cur : valueIndex.getVariableReferences()) {
         // the first appearance
-        const Location& first = cur.second.front();
+        const Location& first = *cur.second.begin();
         // all other appearances
         for(const Location& loc : cur.second) {
             if (first != loc) {
