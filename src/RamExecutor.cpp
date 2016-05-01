@@ -522,7 +522,7 @@ namespace {
             RamEnvironment& env;
             const QueryExecutionStrategy& queryExecutor;
             std::ostream* report;
-            std::ostream* profile; 
+            std::ostream* profile;
 
         public:
 
@@ -619,8 +619,8 @@ namespace {
                     std::cerr << "Cannot open fact file " << fname << " for table " << load.getRelation().getName() << "\n";
                 }
                 if(env.getRelation(load.getRelation()).load(csvfile, env.getSymbolTable(), load.getSymbolMask())) {
-                    char *bname = strdup(fname.c_str()); 
-                    std::string simplename = basename(bname); 
+                    char *bname = strdup(fname.c_str());
+                    std::string simplename = basename(bname);
                     std::cerr << "Wrong arity of fact file " << simplename << "!\n";
                 };
                 return true;
@@ -887,10 +887,10 @@ namespace {
     std::string getRelationType(std::size_t arity, const RamAutoIndex& indices) {
         std::stringstream res;
         res << "ram::Relation<" << arity;
-        for(auto &cur : indices.getAllOrders() ) { 
+        for(auto &cur : indices.getAllOrders() ) {
             res << ",ram::index<";
-            res << join(cur, ","); 
-            res << ">"; 
+            res << join(cur, ",");
+            res << ">";
         }
         res << ">";
         return res.str();
@@ -1613,15 +1613,15 @@ namespace {
         }
 
         void visitNegation(const RamNegation& op, std::ostream& out) {
-            out << "(-(" << print(op.getValue()) << "))"; 
+            out << "(-(" << print(op.getValue()) << "))";
         }
-        
+
         void visitComplement(const RamComplement& op, std::ostream& out) {
-            out << "(~(" << print(op.getValue()) << "))"; 
+            out << "(~(" << print(op.getValue()) << "))";
         }
 
         void visitNot(const RamNot& op, std::ostream& out) {
-            out << "(!(" << print(op.getValue()) << "))"; 
+            out << "(!(" << print(op.getValue()) << "))";
         }
 
         // -- safety net --
@@ -1701,9 +1701,9 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
             *report << "\tNumber of Scan Patterns: " << cur.second.getSearches().size() << "\n";
             for(auto& cols : cur.second.getSearches()) {
                 *report << "\t\t";
-                for(uint32_t i=0;i<cur.first.getArity();i++) { 
+                for(uint32_t i=0;i<cur.first.getArity();i++) {
                     if ((1UL<<i) & cols) {
-                       *report << cur.first.getArg(i) << " "; 
+                       *report << cur.first.getArg(i) << " ";
                     }
                 }
                 *report << "\n";
@@ -1731,7 +1731,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     	fname = resolveFileName();
     }
 
-    // generate class name 
+    // generate class name
     std::string classname = fname;
     if (endsWith(classname,".h")) {
     	classname = classname.substr(0,classname.size() - 2);
@@ -1772,7 +1772,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "     std::cerr << \"warning: wrong pattern provided for match(\\\"\" << pattern << \"\\\",\\\"\" << text << \"\\\")\\n\";\n}\n";
     os << "   return result;\n";
     os << "}\n";
-   
+
     if (getConfig().isLogging()) {
         os << "std::string profiling_fname;\n";
     }
@@ -1782,32 +1782,32 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "SymbolTable symTable;\n";
 
     // print relation definitions
-    std::string initCons; // initialization of constructor 
-    std::string registerRel; // registration of relations 
+    std::string initCons; // initialization of constructor
+    std::string registerRel; // registration of relations
     int relCtr=0;
     visitDepthFirst(stmt, [&](const RamCreate& create) {
         // get some table details
         const auto& rel = create.getRelation();
         auto type = getRelationType(rel.getArity(), indices[rel]);
-        int arity = rel.getArity(); 
-        const std::string &name = rel.getName(); 
+        int arity = rel.getArity();
+        const std::string &name = rel.getName();
 
         // defining table
         os << "// -- Table: " << name << "\n";
         os << type << " rel_" << name << ";\n";
         bool isTemp = (name.find("_temp1_")==0) || (name.find("_temp2_")==0);
         if ((rel.isInput() || rel.isComputed() || getConfig().isDebug()) && !isTemp) {
-           os << "souffle::RelationWrapper<"; 
+           os << "souffle::RelationWrapper<";
            os << relCtr++ << ",";
            os << type << ",";
            os << "Tuple<RamDomain," << arity << ">,";
-           os << arity << ","; 
+           os << arity << ",";
            os << (rel.isInput()?"true":"false") << ",";
            os << (rel.isComputed()?"true":"false");
-           os << "> wrapper_" << name << ";\n"; 
-          
-           // construct types 
-           std::string tupleType = "std::array<const char *," + std::to_string(arity) + ">{"; 
+           os << "> wrapper_" << name << ";\n";
+
+           // construct types
+           std::string tupleType = "std::array<const char *," + std::to_string(arity) + ">{";
            tupleType += "\"" + rel.getArgTypeQualifier(0) + "\"";
            for(int i=1; i<arity; i++) {
                tupleType += ",\"" + rel.getArgTypeQualifier(i) + "\"";
@@ -1819,7 +1819,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
                tupleName += ",\"" + rel.getArg(i) + "\"";
            }
            tupleName += "}";
-           if (initCons.size() > 0) { 
+           if (initCons.size() > 0) {
                initCons += ",\n";
            }
            initCons += "wrapper_" + name + "(rel_" + name + ",symTable,\"" + name + "\"," + tupleType + "," + tupleName + ")";
@@ -1828,7 +1828,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     });
 
     os << "public:\n";
-    
+
     // -- constructor --
 
     os << classname;
@@ -1840,9 +1840,9 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     } else {
        os << "() : \n";
     }
-    os << initCons; 
+    os << initCons;
     os << "{\n";
-    os << registerRel; 
+    os << registerRel;
 
     if (symTable.size() > 0) {
 
@@ -1868,11 +1868,11 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "std::atomic<RamDomain> ctr(0);\n\n";
 
     // set default threads (in embedded mode)
-    if (getConfig().getNumThreads() > 0) { 
+    if (getConfig().getNumThreads() > 0) {
         os << "#if defined(__EMBEDDED_SOUFFLE__) && defined(_OPENMP)\n";
         os << "omp_set_num_threads(" << getConfig().getNumThreads() << ");\n";
         os << "#endif\n\n";
-    } 
+    }
 
     // add actual program body
     os << "// -- query evaluation --\n";
@@ -2014,12 +2014,12 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "R\"(" << getConfig().getFactFileDir() << ")\",\n";
     os << "R\"(" << getConfig().getOutputDir() << ")\",\n";
     if (getConfig().isLogging()) {
-       os << "true,\n"; 
+       os << "true,\n";
        os << "R\"(" << getConfig().getProfileName() << ")\",\n";
-    } else { 
-       os << "false,\n"; 
+    } else {
+       os << "false,\n";
        os << "R\"()\",\n";
-    } 
+    }
     os << getConfig().getNumThreads() << ",\n";
     os << ((getConfig().isDebug())?"R\"(true)\"":"R\"(false)\"");
     os << ");\n";
@@ -2045,7 +2045,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "}\n";
     os << "#endif\n";
 
-    // close source file 
+    // close source file
     os.close();
 
     // return the filename
@@ -2067,7 +2067,7 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     // ---------------------------------------------------------------
 
     // execute shell script that compiles the generated C++ program
-    std::string cmd = getConfig().getCompileScript(); 
+    std::string cmd = getConfig().getCompileScript();
     cmd += source;
 
     // set up number of threads
