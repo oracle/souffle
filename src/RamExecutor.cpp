@@ -2068,15 +2068,15 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
 
     // execute shell script that compiles the generated C++ program
     std::string cmd = getConfig().getCompileScript();
-    cmd += source;
 
     // set up number of threads
     auto num_threads = getConfig().getNumThreads();
     if (num_threads == 1) {
-        cmd+=" seq";
-    } else if (num_threads != 0) {
-        cmd += " " + std::to_string(num_threads);
+        cmd+="-s ";
     }
+
+    // add source code
+    cmd += source;
 
     // separate souffle output form executable output
     if (getConfig().isLogging()) {
@@ -2091,8 +2091,6 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     // done
     return binary;
 }
-
-
 
 void RamCompiler::applyOn(const RamStatement& stmt, RamEnvironment& env) const {
 
