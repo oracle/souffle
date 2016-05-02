@@ -1,11 +1,10 @@
-#!/bin/sh
-#
 # Souffle version 0.0.0
-#
+# Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
 # Licensed under the Universal Permissive License v 1.0 as shown at:
 # - https://opensource.org/licenses/UPL
 # - souffle/LICENSE
-#
+
+#!/bin/sh
 
 #
 # script that compiles a generated C++ program and executes it
@@ -90,15 +89,15 @@ error "cannot open source file: '$1'" $?
 exe=`basename $1 .cpp`
 rm -f ./$exe
 $CXX $CXXFLAGS -o./$exe $1 $LIBS -I$HEADER_DIR $OMP_FLAG 2> ./$exe.$$.ccerr
-if test -f ./$exe 
-then 
+if test -f ./$exe
+then
   if [ "$WARNINGS" = 1 ]
   then
      echo "$CXX $CXXFLAGS -o./$exe $1 $LIBS -I$HEADER_DIR $OMP_FLAG"
      cat ./$exe.$$.ccerr 1>&2
-  fi 
+  fi
   rm ./$exe.$$.ccerr
-else 
+else
   echo "compiler error: cannot compile source file $1" 1>&2
   echo "$CXX $CXXFLAGS -o./$exe $1 $LIBS -I$HEADER_DIR $OMP_FLAG"
   cat ./$exe.$$.ccerr 1>&2
