@@ -5,7 +5,7 @@
 # - souffle/LICENSE
 
 
-AC_INIT(souffle, 1.0, [programanalysis_au_grp@oracle.com])
+AC_INIT(souffle, 1.0, [souffle-talk@googlegroups.com])
 AC_PREREQ(2.68)
 AC_COPYRIGHT(['2013-15 Oracle and/or its affiliates'])
 AC_CONFIG_MACRO_DIRS([m4])
@@ -102,8 +102,6 @@ AC_CONFIG_FILES([
     prof/Makefile
     tests/Makefile
     tests/atlocal
-    src/souffle-compile
-    src/souffle-config
 ])
 AC_CONFIG_LINKS([include/souffle/CompiledRamOptions.h:src/CompiledRamOptions.h])
 AC_CONFIG_LINKS([include/souffle/CompiledRamRelation.h:src/CompiledRamRelation.h])
@@ -151,4 +149,8 @@ AC_FUNC_MMAP
 AC_FUNC_REALLOC
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([dup2 fchdir getcwd getpagesize gettimeofday isascii memset mkdir munmap pow regcomp rmdir setenv socket strcasecmp strchr strdup strerror strrchr strstr strtol strtoull])
-AC_OUTPUT
+
+AC_OUTPUT(
+    [ src/souffle-compile src/souffle-config ],
+    [ chmod +x src/souffle-compile src/souffle-config ]
+)

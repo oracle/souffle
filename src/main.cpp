@@ -53,39 +53,28 @@
 namespace souffle {
 
 /**
- * Get absolute path of executable
- */
-inline std::string getAbsPath(char * argv0)
-{
-    char path[PATH_MAX];
-    if (realpath (argv0, path) != 0) { 
-        return dirname(path); 
-    }
-    return ".";
-}
-/**
  * Check whether a string is a sequence of numbers
- */ 
+ */
 inline bool isNumber(const char *str)
 {
-    if (str==NULL) return false; 
+    if (str==NULL) return false;
 
-    while(*str) { 
-        if(!isdigit(*str)) 
-            return false; 
+    while(*str) {
+        if(!isdigit(*str))
+            return false;
         str++;
-    } 
-    return true; 
+    }
+    return true;
 }
 
-/** 
+/**
  *  Show help page.
  */
-void helpPage(bool error, int argc, char**argv)  
+void helpPage(bool error, int argc, char**argv)
 {
     if (error) {
         for(int i=0;i<argc;i++) {
-            std::cerr << argv[i] << " "; 
+            std::cerr << argv[i] << " ";
         }
         std::cerr << "\nError parsing command-line arguments\n";
     }
@@ -122,38 +111,102 @@ void helpPage(bool error, int argc, char**argv)
 }
 
 /**
- *  print error message and exit 
+ *  print error message and exit
  */
 void fail(const std::string &str)
 {
-    std::cerr << str << "\n"; 
+    std::cerr << str << "\n";
     exit(1);
 }
 
 /**
- *  Check whether a file exists in the file system 
+ *  Check whether a file exists in the file system
  */
 inline bool existFile (const std::string& name) {
-    struct stat buffer;   
+    struct stat buffer;
     if (stat (name.c_str(), &buffer) == 0) {
         if ((buffer.st_mode & S_IFREG) != 0) {
             return true;
         }
     }
-    return false; 
+    return false;
 }
 /**
- *  Check whether a directory exists in the file system 
+ *  Check whether a directory exists in the file system
  */
 inline bool existDir (const std::string& name) {
-    struct stat buffer;   
+    struct stat buffer;
     if (stat (name.c_str(), &buffer) == 0) {
         if ((buffer.st_mode & S_IFDIR) != 0) {
             return true;
         }
     }
-    return false; 
+    return false;
 }
+
+/**
+ * Check whether a given file exists and it is an executable
+ */
+int isExecutable(const std::string& name) {
+    return existFile(name) && !::access(name.c_str(), X_OK);
+}
+
+/**
+ * Simple implementation of a which tool
+ */
+std::string which(const std::string& name) {
+    char buf[PATH_MAX];
+    if (::realpath(name.c_str(), buf) && isExecutable(buf))
+        return std::string(buf);
+    else {
+        std::string syspath = ::getenv("PATH");
+        std::stringstream sstr(syspath);
+        std::string sub;
+        while (std::getline(sstr, sub, ':')) {
+            std::string path = sub + "/" + name;
+            if (::isExecutable(path) && ::realpath(path.c_str(), buf))
+              return std::string(buf);
+        }
+    }
+    return "";
+}
+
+/**
+ *  C++-style dirname
+ */
+std::string dirName(std::string &name) {
+    char buf[PATH_MAX];
+    strcpy(buf, name.c_str());
+    return std::string(::dirname(buf));
+}
+
+/**
+ *  C++-style realpath
+ */
+std::string absPath(std::string &path) {
+    char buf[PATH_MAX];
+    char *res = realpath(path.c_str(), buf);
+    return (res == NULL) ? "" : std::string(buf);
+}
+
+/*
+ * Find out if an executable given by @p tool exists in the path given @p path
+ * relative to the directory given by @ base. A path here refers a
+ * colon-separated list of directories.
+ */
+std::string findTool(std::string tool, std::string base, std::string path) {
+    std::string dir = ::dirName(base);
+    std::stringstream sstr(path);
+    std::string sub;
+
+    while (std::getline(sstr, sub, ':')) {
+      std::string subpath = dir + "/" +  sub + '/' + tool;
+      if (isExecutable(subpath))
+          return absPath(subpath);
+    }
+    return "";
+}
+
 
 static void wrapPassesForDebugReporting(std::vector<std::unique_ptr<AstTransformer>> &transforms) {
     for (unsigned int i = 0; i < transforms.size(); i++) {
@@ -161,10 +214,10 @@ static void wrapPassesForDebugReporting(std::vector<std::unique_ptr<AstTransform
     }
 }
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
 
-    /* Time taking for overall runtime */ 
+    /* Time taking for overall runtime */
     auto souffle_start = std::chrono::high_resolution_clock::now();
 
     std::string debugReportFile; /* filename to output debug report */
@@ -204,7 +257,7 @@ int main(int argc, char **argv)
         { "profile", true, nullptr, 'p' },
         //
         { "debug", false, nullptr, 'd' },
-        // 
+        //
         { "verbose", false, nullptr, 'v' },
         // the terminal option -- needs to be null
         { nullptr, false, nullptr, 0 }
@@ -221,25 +274,25 @@ int main(int argc, char **argv)
 
                 /* Enable compiler flag */
             case 'c':
-                compile = true; 
+                compile = true;
                 break;
 
-                /* Set number of jobs */ 
+                /* Set number of jobs */
             case 'j':
-                if (std::string(optarg) == "auto") { 
-                   num_threads = 0; 
+                if (std::string(optarg) == "auto") {
+                   num_threads = 0;
                 } else if(isNumber(optarg)) {
                    num_threads = atoi(optarg);
-                   if(num_threads == 0) { 
-                       fail("Number of jobs in the -j/--jobs options must be greater than zero!"); 
-                   } 
-                } else fail("Wrong parameter "+std::string(optarg)+" for option -j/--jobs!"); 
+                   if(num_threads == 0) {
+                       fail("Number of jobs in the -j/--jobs options must be greater than zero!");
+                   }
+                } else fail("Wrong parameter "+std::string(optarg)+" for option -j/--jobs!");
                 break;
 
                 /* Output file name of generated executable program */
             case 'o':
                 outputFileName = optarg;
-                compile = true; 
+                compile = true;
                 break;
 
                 /* Generator mode and output file name */
@@ -251,7 +304,7 @@ int main(int argc, char **argv)
                 /* Fact directories */
             case 'F':
                 // Add conditional check:
-                // if (factFileDir != NULL) { 
+                // if (factFileDir != NULL) {
                 //   fail("Fact directory option can only be specified once (-F%s -F%s)!\n", factFileDir, optarg);
                 // } else if (!existDir(optarg)) {
                 //   fail("Fact directory %s does not exists!\n", optarg);
@@ -272,7 +325,7 @@ int main(int argc, char **argv)
                 if (!existDir(optarg)) {
                     fail("error: include directory " + std::string(optarg) + " does not exists");
                 }
-                if(includeOpt == "") { 
+                if(includeOpt == "") {
                     includeOpt = "-I" + std::string(optarg);
                 } else {
                     includeOpt = includeOpt + " -I" + std::string(optarg);
@@ -281,7 +334,7 @@ int main(int argc, char **argv)
 
                 /* File-name for profile log */
             case 'p':
-                logging = true; 
+                logging = true;
                 profile = optarg;
                 break;
 
@@ -290,10 +343,10 @@ int main(int argc, char **argv)
                 debug = true;
                 break;
 
-                /* Enable auto scheduler */ 
+                /* Enable auto scheduler */
             case optAutoSchedule:
                 tune = true;
-                compile = true; 
+                compile = true;
                 break;
 
                 /* Enable generation of debug output report */
@@ -315,19 +368,19 @@ int main(int argc, char **argv)
         }
     }
 
-    if (tune && outputFileName == "") { 
+    if (tune && outputFileName == "") {
        fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
-    } 
-        
+    }
 
-    /* collect all input files for the C pre-processor */ 
+
+    /* collect all input files for the C pre-processor */
     std::string filenames = "";
     if (optind < argc) {
         for (; optind < argc; optind++) {
             if (!existFile(argv[optind])) {
-                fail("error: cannot open file " + std::string(argv[optind])); 
+                fail("error: cannot open file " + std::string(argv[optind]));
             }
-            if (filenames == "") { 
+            if (filenames == "") {
                 filenames = argv[optind];
             } else {
                 filenames = filenames + " " + std::string(argv[optind]);
@@ -337,14 +390,18 @@ int main(int argc, char **argv)
         helpPage(true,argc,argv);
     }
 
+    std::string programName = which(argv[0]);
+    if (programName.empty())
+        fail("error: failed to determine souffle executable path");
+
     /* Create the pipe to establish a communication between cpp and souffle */
-    std::string cmd = getAbsPath(argv[0]) + "/wave";
+    std::string cmd = ::findTool("souffle-wave", programName, ".");
+
+    if (!isExecutable(cmd))
+        fail("error: failed to locate souffle preprocessor");
+
     cmd  += " " + includeOpt + " " + filenames;
-    FILE* in = popen(cmd.c_str(), "r"); 
-    if (in == NULL) {
-       perror(NULL);
-       fail("error: no wave pre-processor available");
-    } 
+    FILE* in = popen(cmd.c_str(), "r");
 
     /* Time taking for parsing */
     auto parser_start = std::chrono::high_resolution_clock::now();
@@ -436,13 +493,13 @@ int main(int argc, char **argv)
     if (!ramProg) return 0;
 
     // pick executor
-    
+
     std::unique_ptr<RamExecutor> executor;
     if (generateHeader || compile) {
         // configure compiler
         executor = std::unique_ptr<RamExecutor>(new RamCompiler(outputFileName));
         if (verbose) {
-           executor -> setReportTarget(std::cout); 
+           executor -> setReportTarget(std::cout);
         }
     } else {
         // configure interpreter
@@ -463,13 +520,14 @@ int main(int argc, char **argv)
     config.setProfileName(profile);
     config.setDebug(debug);
 
-    std::string dir = dirname(argv[0]); 
-    if (dir == "." && argv[0][0] != '.' ) {
-       dir = "";
-    } else if (dir.size() > 0) {
-       dir += "/";
-    }
-    config.setCompileScript( "/bin/sh " + dir + "souffle-compile ");
+    /* Locate souffle-compile script */
+    std::string compileCmd = ::findTool("souffle-compile", programName, ".");
+
+    /* Fail if a souffle-compile executable is not found */
+    if (!isExecutable(compileCmd))
+        fail("error: failed to locate souffle-compile");
+
+    config.setCompileScript(compileCmd + " ");
 
     // check if this is code generation only
     if (generateHeader) {
@@ -487,7 +545,7 @@ int main(int argc, char **argv)
     }
 
     /* Report overall run-time in verbose mode */
-    if (verbose) { 
+    if (verbose) {
         auto souffle_end = std::chrono::high_resolution_clock::now();
         std::cout << "Total Time: " << std::chrono::duration<double>(souffle_end-souffle_start).count() << "sec\n";
     }
