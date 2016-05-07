@@ -57,7 +57,7 @@ DX_PS_FEATURE(OFF)
 DX_INIT_DOXYGEN([$PACKAGE_NAME],[doxygen.cfg],[doc])
 
 dnl add boost configuration for c-preprocessor
-AX_BOOST_BASE([1.46],, [AC_MSG_ERROR([Souffle needs Boost, but it was not found.])])
+AX_BOOST_BASE([1.54],, [AC_MSG_ERROR([Souffle needs Boost, but it was not found.])])
 AX_BOOST_SYSTEM
 AX_BOOST_FILESYSTEM
 AX_BOOST_WAVE
