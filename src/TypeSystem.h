@@ -25,6 +25,7 @@
 
 #include "Util.h"
 #include "IterUtils.h"
+#include "AstType.h"
 
 namespace souffle {
 
@@ -44,18 +45,18 @@ protected:
 private:
 
     /** The name of this type. */
-    std::string name;
+    AstTypeIdentifier name;
 
 public:
 
-    Type(const TypeEnvironment& environment, const std::string& name)
+    Type(const TypeEnvironment& environment, const AstTypeIdentifier& name)
         : environment(environment), name(name) {}
 
     Type(const Type& other) = delete;
 
     virtual ~Type() {}
 
-    const std::string& getName() const {
+    const AstTypeIdentifier& getName() const {
         return name;
     }
 
@@ -100,7 +101,7 @@ class PrimitiveType : public Type {
     /** The base type -- may be symbol or numerical */
     const Type& baseType;
 
-    PrimitiveType(const TypeEnvironment& environment, const std::string& name, const Type& base)
+    PrimitiveType(const TypeEnvironment& environment, const AstTypeIdentifier& name, const Type& base)
         : Type(environment, name), baseType(base) {}
 
 public:
@@ -123,7 +124,7 @@ class UnionType : public Type {
     /** The contained element types */
     std::vector<const Type*> elementTypes;
 
-    UnionType(const TypeEnvironment& environment, const std::string& name) : Type(environment, name) {}
+    UnionType(const TypeEnvironment& environment, const AstTypeIdentifier& name) : Type(environment, name) {}
 
 public:
 
@@ -155,7 +156,7 @@ private:
     /** The list of contained fields */
     std::vector<Field> fields;
 
-    RecordType(const TypeEnvironment& environment, const std::string& name) : Type(environment, name) {}
+    RecordType(const TypeEnvironment& environment, const AstTypeIdentifier& name) : Type(environment, name) {}
 
 public:
 
@@ -309,7 +310,7 @@ public:
 class TypeEnvironment {
 
     /** The type utilized for identifying types */
-    typedef std::string identifier;
+    typedef AstTypeIdentifier identifier;
 
 private:
 
@@ -396,7 +397,7 @@ private:
 /**
  * Returns full type qualifier for a given type
  */
-const std::string getTypeQualifier(const Type& type);
+std::string getTypeQualifier(const Type& type);
 
 /**
  * Determines whether the given type is a number type.

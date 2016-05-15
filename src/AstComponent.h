@@ -44,14 +44,14 @@ class AstComponentType {
     /**
      * The list of associated type parameters.
      */
-    std::vector<std::string> typeParams;
+    std::vector<AstTypeIdentifier> typeParams;
 
 public:
 
     /**
      * Creates a new component type based on the given name and parameters.
      */
-    AstComponentType(const std::string& name = "", const std::vector<std::string>& params = std::vector<std::string>())
+    AstComponentType(const std::string& name = "", const std::vector<AstTypeIdentifier>& params = std::vector<AstTypeIdentifier>())
         : name(name), typeParams(params) {}
 
     // -- copy constructors and assignment operators --
@@ -84,11 +84,11 @@ public:
         name = n;
     }
 
-    const std::vector<std::string>& getTypeParameters() const {
+    const std::vector<AstTypeIdentifier>& getTypeParameters() const {
         return typeParams;
     }
 
-    void setTypeParameters(const std::vector<std::string>& params) {
+    void setTypeParameters(const std::vector<AstTypeIdentifier>& params) {
         typeParams = params;
     }
 
@@ -197,6 +197,11 @@ class AstComponent : public AstNode {
     std::vector<AstComponentType> baseComponents;
 
     /**
+     * A list of types declared in this component.
+     */
+    std::vector<std::unique_ptr<AstType>> types;
+
+    /**
      * A list of relations declared in this component.
      */
     std::vector<std::unique_ptr<AstRelation>> relations;
@@ -248,6 +253,14 @@ public:
         baseComponents.push_back(component);
     }
 
+    void addType(std::unique_ptr<AstType> t) {
+    	types.push_back(std::move(t));
+    }
+
+    std::vector<AstType*> getTypes() const {
+    	return toPtrVector(types);
+    }
+
     void addRelation(std::unique_ptr<AstRelation> r) {
         relations.push_back(std::move(r));
     }
@@ -297,6 +310,7 @@ public:
 
         for(const auto& cur : components)       res->components.push_back(std::unique_ptr<AstComponent>(cur->clone()));
         for(const auto& cur : instantiations)   res->instantiations.push_back(std::unique_ptr<AstComponentInit>(cur->clone()));
+        for(const auto& cur : types)            res->types.push_back(std::unique_ptr<AstType>(cur->clone()));
         for(const auto& cur : relations)        res->relations.push_back(std::unique_ptr<AstRelation>(cur->clone()));
         for(const auto& cur : clauses)          res->clauses.push_back(std::unique_ptr<AstClause>(cur->clone()));
         for(const auto& cur : overrideRules)    res->overrideRules.insert(cur);
@@ -310,6 +324,7 @@ public:
         // apply mapper to all sub-nodes
         for(auto& cur : components)       cur = mapper(std::move(cur));
         for(auto& cur : instantiations)   cur = mapper(std::move(cur));
+        for(auto& cur : types)            cur = mapper(std::move(cur));
         for(auto& cur : relations)        cur = mapper(std::move(cur));
         for(auto& cur : clauses)          cur = mapper(std::move(cur));
 
@@ -322,6 +337,7 @@ public:
 
         for(const auto& cur : components)       res.push_back(cur.get());
         for(const auto& cur : instantiations)   res.push_back(cur.get());
+        for(const auto& cur : types)            res.push_back(cur.get());
         for(const auto& cur : relations)        res.push_back(cur.get());
         for(const auto& cur : clauses)          res.push_back(cur.get());
 
@@ -339,6 +355,7 @@ public:
 
         if (!components.empty())        os << join(components, "\n", print_deref<std::unique_ptr<AstComponent>>()) << "\n";
         if (!instantiations.empty())    os << join(instantiations, "\n", print_deref<std::unique_ptr<AstComponentInit>>()) << "\n";
+        if (!types.empty())             os << join(types, "\n", print_deref<std::unique_ptr<AstType>>()) << "\n";
         if (!relations.empty())         os << join(relations, "\n", print_deref<std::unique_ptr<AstRelation>>()) << "\n";
         for (const auto &cur : overrideRules) { 
             os << ".override " << cur << "\n"; 
@@ -357,6 +374,7 @@ protected:
 
         // compare all fields
         return type == other.type && baseComponents == other.baseComponents &&
+        	   equal_targets(types, other.types) &&
                equal_targets(relations, other.relations) &&
                equal_targets(clauses, other.clauses) &&
                equal_targets(components, other.components) &&

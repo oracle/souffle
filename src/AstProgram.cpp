@@ -55,7 +55,7 @@ void AstProgram::addType(std::unique_ptr<AstType> type)
     cur = std::move(type);
 }
 
-const AstType* AstProgram::getType(const std::string& name) const {
+const AstType* AstProgram::getType(const AstTypeIdentifier& name) const {
     auto pos = types.find(name);
     return (pos == types.end()) ? nullptr : pos->second.get();
 }
