@@ -22,11 +22,6 @@
 using namespace souffle; 
 
 /**
- * Declare static vars for program factory 
- */
-ProgramFactory *ProgramFactory::base = nullptr;
-
-/**
  * Error handler
  */ 
 void error(std::string txt) 
