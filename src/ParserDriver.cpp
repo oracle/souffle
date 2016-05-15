@@ -93,8 +93,9 @@ void ParserDriver::addRelation(AstRelation *r) {
 }
 
 void ParserDriver::addType(AstType *type) {
-    if (const AstType *prev = translationUnit->getProgram()->getType(type->getName())) {
-        Diagnostic err(Diagnostic::ERROR, DiagnosticMessage("Redefinition of type " + type->getName(), type->getSrcLoc()),
+	const auto& name = type->getName();
+    if (const AstType *prev = translationUnit->getProgram()->getType(name)) {
+        Diagnostic err(Diagnostic::ERROR, DiagnosticMessage("Redefinition of type " + toString(name), type->getSrcLoc()),
                 {DiagnosticMessage("Previous definition", prev->getSrcLoc())});
         translationUnit->getErrorReport().addDiagnostic(err);
     } else {

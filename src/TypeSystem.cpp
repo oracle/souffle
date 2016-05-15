@@ -26,7 +26,7 @@ namespace souffle {
  * A special, internal type for the predefined symbolic and numeric types.
  */
 struct PredefinedType : public Type {
-    PredefinedType(const TypeEnvironment& environment, const std::string& name) : Type(environment, name) {}
+    PredefinedType(const TypeEnvironment& environment, const AstTypeIdentifier& name) : Type(environment, name) {}
 };
 
 void PrimitiveType::print(std::ostream& out) const {
@@ -249,7 +249,7 @@ namespace {
 }
 
 /* generate unique type qualifier string for a type */
-const std::string getTypeQualifier(const Type& type) {
+std::string getTypeQualifier(const Type& type) {
 
     struct visitor : public VisitOnceTypeVisitor<std::string> {
 
@@ -282,11 +282,11 @@ const std::string getTypeQualifier(const Type& type) {
         std::string visitType(const Type &type) const {
             std::string str;
             if(isNumberType(type)) {
-                str="i:"+type.getName();
+                str="i:"+toString(type.getName());
             } else if(isSymbolType(type)) {
-                str="s:"+type.getName();
+                str="s:"+toString(type.getName());
             } else if(isRecordType(type)) {
-                str="r:"+type.getName();
+                str="r:"+toString(type.getName());
             } else {
                 ASSERT(false && "unknown type class"); 
             } 

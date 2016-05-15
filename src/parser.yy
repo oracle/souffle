@@ -140,27 +140,28 @@
 %token L_OR                      "lor"
 %token L_NOT                     "lnot"
 
-%type <int>                      qualifiers 
-%type <AstRelationIdentifier *>  rel_id
-%type <AstProgram *>             unit
-%type <AstType *>                type
-%type <AstComponent *>           component component_head component_body
-%type <AstComponentType *>       comp_type
-%type <AstComponentInit *>       comp_init
-%type <AstRelation *>            attributes relation
-%type <AstArgument *>            arg
-%type <AstAtom *>                arg_list atom
-%type <std::vector<AstAtom*>>    head
-%type <RuleBody *>               literal term disjunction conjunction body
-%type <AstClause *>              fact
-%type <std::vector<AstClause*>>  rule rule_def
-%type <AstExecutionOrder *>      exec_order exec_order_list
-%type <AstExecutionPlan *>       exec_plan exec_plan_list
-%type <AstRecordInit *>          recordlist 
-%type <AstRecordType *>          recordtype 
-%type <AstUnionType *>             uniontype
-%type <std::vector<std::string>> type_params type_param_list
-%type <std::string>              comp_override
+%type <int>                              qualifiers
+%type <AstTypeIdentifier *>              type_id
+%type <AstRelationIdentifier *>          rel_id
+%type <AstProgram *>                     unit
+%type <AstType *>                        type
+%type <AstComponent *>                   component component_head component_body
+%type <AstComponentType *>               comp_type
+%type <AstComponentInit *>               comp_init
+%type <AstRelation *>                    attributes relation
+%type <AstArgument *>                    arg
+%type <AstAtom *>                        arg_list atom
+%type <std::vector<AstAtom*>>            head
+%type <RuleBody *>                       literal term disjunction conjunction body
+%type <AstClause *>                      fact
+%type <std::vector<AstClause*>>          rule rule_def
+%type <AstExecutionOrder *>              exec_order exec_order_list
+%type <AstExecutionPlan *>               exec_plan exec_plan_list
+%type <AstRecordInit *>                  recordlist 
+%type <AstRecordType *>                  recordtype 
+%type <AstUnionType *>                   uniontype
+%type <std::vector<AstTypeIdentifier>>   type_params type_param_list
+%type <std::string>                      comp_override
 
 %printer { yyoutput << $$; } <*>;
 
@@ -194,6 +195,15 @@ unit: unit type { $$ = $1; driver.addType($2); }
       }
     ;
 
+
+/* Type Identifier */
+
+type_id: 
+	  IDENT { $$ = new AstTypeIdentifier($1); }
+	| type_id DOT IDENT { $$ = $1; $$->append($3); }
+	;
+
+    
 /* Type Declaration */
 type: NUMBER_TYPE IDENT {
           $$ = new AstPrimitiveType($2, true);
@@ -224,14 +234,15 @@ type: NUMBER_TYPE IDENT {
       }
     ;
 
-recordtype: IDENT COLON IDENT  { $$ = new AstRecordType(); $$->add($1, $3); } 
-          | recordtype COMMA IDENT COLON IDENT  {  $$ = $1; $1->add($3, $5); } 
+recordtype: IDENT COLON type_id  { $$ = new AstRecordType(); $$->add($1, *$3); delete $3; } 
+          | recordtype COMMA IDENT COLON type_id  {  $$ = $1; $1->add($3, *$5); delete $5; } 
           ;
 
-uniontype: IDENT  { $$ = new AstUnionType(); $$->add($1); } 
-         | uniontype PIPE IDENT { $$ = $1; $1->add($3); }
+uniontype: type_id  { $$ = new AstUnionType(); $$->add(*$1); delete $1; } 
+         | uniontype PIPE type_id { $$ = $1; $1->add(*$3); delete $3; }
          ;
-
+	   
+         
 /* Relation Identifier */
 
 rel_id: 
@@ -241,17 +252,19 @@ rel_id:
          
          
 /* Relations */
-attributes: IDENT COLON IDENT {
+attributes: IDENT COLON type_id {
            $$ = new AstRelation();
-           AstAttribute *a = new AstAttribute($1, $3);
+           AstAttribute *a = new AstAttribute($1, *$3);
            a->setSrcLoc(@3);
            $$->addAttribute(std::unique_ptr<AstAttribute>(a));
+           delete $3;
           }
-        | attributes COMMA IDENT COLON IDENT {
+        | attributes COMMA IDENT COLON type_id {
             $$ = $1;
-            AstAttribute *a = new AstAttribute($3, $5);
+            AstAttribute *a = new AstAttribute($3, *$5);
             a->setSrcLoc(@5);
             $$->addAttribute(std::unique_ptr<AstAttribute>(a));
+            delete $5;
           }
         ;
 
@@ -613,9 +626,10 @@ type_param_list:
       IDENT {
           $$.push_back($1);
       }
-    | type_param_list COMMA IDENT {
+    | type_param_list COMMA type_id {
           $$ = $1;
-          $$.push_back($3);
+          $$.push_back(*$3);
+          delete $3;
       }
     ;
     
@@ -652,7 +666,8 @@ component_head: COMPONENT comp_type {
       }
     
 component_body:
-      component_body relation      { $$ = $1; $$->addRelation(std::unique_ptr<AstRelation>($2)); }
+      component_body type          { $$ = $1; $$->addType(std::unique_ptr<AstType>($2)); }
+    | component_body relation      { $$ = $1; $$->addRelation(std::unique_ptr<AstRelation>($2)); }
     | component_body fact          { $$ = $1; $$->addClause(std::unique_ptr<AstClause>($2)); }
     | component_body rule          { $$ = $1; for(const auto& cur : $2) $$->addClause(std::unique_ptr<AstClause>(cur)); }
     | component_body comp_override { $$ = $1; $$->addOverride($2); }
