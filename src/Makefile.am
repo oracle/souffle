@@ -4,6 +4,8 @@
 # - https://opensource.org/licenses/UPL
 # - souffle/LICENSE
 
+SUBDIRS = wavelib
+
 SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 
 bin_PROGRAMS = souffle souffle-wave
@@ -21,7 +23,7 @@ souffle_wave_CPPFLAGS = $(BOOST_CPPFLAGS)
 souffle_wave_LDFLAGS =
 souffle_wave_LDADD = $(BOOST_LDFLAGS) \
              $(BOOST_FILESYSTEM_LIB) \
-             $(BOOST_WAVE_LIB) \
+             wavelib/libwave.a \
              $(BOOST_SYSTEM_LIB) \
              $(BOOST_THREAD_LIB) \
              $(BOOST_DATE_TIME_LIB) \

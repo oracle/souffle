@@ -23,12 +23,12 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //  Include Wave itself
-#include <boost/wave.hpp>
+#include <wavelib/wave.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 //  Include the lexer related stuff
-#include <boost/wave/cpplexer/cpp_lex_token.hpp>      // token type
-#include <boost/wave/cpplexer/cpp_lex_iterator.hpp>   // lexer type
+#include <wavelib/cpplexer/cpp_lex_token.hpp>      // token type
+#include <wavelib/cpplexer/cpp_lex_iterator.hpp>   // lexer type
 
 ///////////////////////////////////////////////////////////////////////////////
 //  Include serialization support, if requested
@@ -59,19 +59,19 @@ typedef boost::archive::text_oarchive oarchive;
 ///////////////////////////////////////////////////////////////////////////////
 //  Include lexer specifics, import lexer names
 #if BOOST_WAVE_SEPARATE_LEXER_INSTANTIATION == 0
-#include <boost/wave/cpplexer/re2clex/cpp_re2c_lexer.hpp>
+#include <wavelib/cpplexer/re2clex/cpp_re2c_lexer.hpp>
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
 //  Include the grammar definitions, if these shouldn't be compiled separately
 //  (ATTENTION: _very_ large compilation times!)
 #if BOOST_WAVE_SEPARATE_GRAMMAR_INSTANTIATION == 0
-#include <boost/wave/grammars/cpp_intlit_grammar.hpp>
-#include <boost/wave/grammars/cpp_chlit_grammar.hpp>
-#include <boost/wave/grammars/cpp_grammar.hpp>
-#include <boost/wave/grammars/cpp_expression_grammar.hpp>
-#include <boost/wave/grammars/cpp_predef_macros_grammar.hpp>
-#include <boost/wave/grammars/cpp_defined_grammar.hpp>
+#include <wavelib/grammars/cpp_intlit_grammar.hpp>
+#include <wavelib/grammars/cpp_chlit_grammar.hpp>
+#include <wavelib/grammars/cpp_grammar.hpp>
+#include <wavelib/grammars/cpp_expression_grammar.hpp>
+#include <wavelib/grammars/cpp_predef_macros_grammar.hpp>
+#include <wavelib/grammars/cpp_defined_grammar.hpp>
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
