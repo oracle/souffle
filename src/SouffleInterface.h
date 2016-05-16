@@ -290,7 +290,6 @@ protected:
    // to static initialization order fiasco. The static 
    // container needs to be a primitive type such as pointer 
    // set to NULL. 
-   static ProgramFactory *base;  // base of sinlgly-linked list 
    ProgramFactory *link;         // link to next factory
    std::string name;             // name of factory
 
@@ -300,26 +299,31 @@ protected:
     * for registration. 
     */ 
    ProgramFactory(const std::string &name) : name(name) {
-       if(base == nullptr) {  // linked list is empty 
-          base = this; 
-          link = nullptr;
-       } else {   // linked list has at least one element
-          assert(find(name) == NULL && "double-linked/defined souffle module");
-          link = base;
-          base = this; 
-       }  
+       registerFactory(this);
    } 
+
+private:
+
+   static inline std::map<std::string,ProgramFactory*>& getFactoryRegistry() {
+       static std::map<std::string,ProgramFactory*> factoryReg;
+       return factoryReg;
+   }
+
+protected:
+
+   static inline void registerFactory(ProgramFactory* factory) {
+       auto& entry = getFactoryRegistry()[factory->name];
+       assert(!entry && "double-linked/defined souffle analyis");
+       entry = factory;
+   }
 
    /**
     * Find a factory by its name 
     */ 
-   static ProgramFactory *find(std::string factoryName) {
-       for(ProgramFactory *factory = base;factory!=nullptr; factory=factory->link) {
-           if (factory->name == factoryName) {
-               return factory;
-           }
-       }
-       return nullptr;
+   static inline ProgramFactory* find(const std::string& factoryName) {
+       const auto& reg = getFactoryRegistry();
+       auto pos = reg.find(factoryName);
+       return (pos == reg.end()) ? nullptr : pos->second;
    }
 
    /**
