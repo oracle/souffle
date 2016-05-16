@@ -81,6 +81,6 @@ libwave_a_SOURCES = instantiate_cpp_literalgrs.cpp \
                     instantiate_defined_grammar.cpp \
                     token_ids.cpp
 
-libwave_a_CXXFLAGS = -I@abs_top_srcdir@/src/
+libwave_a_CXXFLAGS = -I@abs_top_srcdir@/src/ $(BOOST_CPPFLAGS)
 
 
