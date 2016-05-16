@@ -60,7 +60,6 @@ dnl add boost configuration for c-preprocessor
 AX_BOOST_BASE([1.54],, [AC_MSG_ERROR([Souffle needs Boost, but it was not found.])])
 AX_BOOST_SYSTEM
 AX_BOOST_FILESYSTEM
-AX_BOOST_WAVE
 AX_BOOST_THREAD
 AX_BOOST_DATE_TIME
 AX_BOOST_PROGRAM_OPTIONS
@@ -99,6 +98,7 @@ AC_CONFIG_TESTDIR([tests])
 AC_CONFIG_FILES([
     Makefile
     src/Makefile
+    src/wavelib/Makefile
     prof/Makefile
     tests/Makefile
     tests/atlocal
