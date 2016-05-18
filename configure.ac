@@ -5,7 +5,7 @@
 # - souffle/LICENSE
 
 
-AC_INIT(souffle, 1.0, [souffle-talk@googlegroups.com])
+AC_INIT(souffle, m4_esyscmd([git describe --tags --abbrev=0 | tr -d '\n']), [souffle-talk@googlegroups.com])
 AC_PREREQ(2.68)
 AC_COPYRIGHT(['2013-15 Oracle and/or its affiliates'])
 AC_CONFIG_MACRO_DIRS([m4])
@@ -63,10 +63,6 @@ AX_BOOST_FILESYSTEM
 AX_BOOST_THREAD
 AX_BOOST_DATE_TIME
 AX_BOOST_PROGRAM_OPTIONS
-
-# Check for cpp
-AC_CHECK_PROG(SOUFFLECPP, cpp, cpp)
-AS_IF([test -z "$SOUFFLECPP"], [AC_MSG_ERROR([cpp not found.])])
 
 # Check for flex
 AC_CHECK_PROG(FLEX, flex, flex)
