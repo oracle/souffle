@@ -2,7 +2,7 @@
 # Copyright (c) 2013-15, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at:
 # - https://opensource.org/licenses/UPL
-# - souffle/LICENSE
+# - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 DIR = @abs_top_srcdir@/prof
 dist_bin_SCRIPTS = souffle-profile souffleprof.jar
