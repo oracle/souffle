@@ -46,6 +46,7 @@ pkg:
 		&& $(MKDIR_P) `pwd`/pkg \
 		&& ./configure --prefix `pwd`/pkg \
 		&& $(MAKE) -j8 install \
+		&& TESTSUITEFLAGS=-j2 $(MAKE) check \
 		&& $(PKGBUILD) \
 			--root `pwd`/pkg \
 			--identifier com.oracle.souffle \

@@ -1,29 +1,24 @@
 sudo: required
-dist: trusty
 language: cpp
-osx_image: xcode7.3
-before_install:
-  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get -y install debhelper devscripts build-essential g++ automake autoconf bison flex openjdk-7-jdk libboost-all-dev; fi
-  - if [ $TRAVIS_OS_NAME == osx ]; then brew update; brew install md5sha1sum bison boost; brew link bison --force; fi
-compiler:
-- gcc
-- clang
-os:
-- linux
-- osx
+
+install:
+  - "./.travis/install.sh"
+
 matrix:
-    exclude:
-        - os: osx
-          compiler: gcc
+  include: 
+  - os: linux 
+    dist: trusty
+    compiler: gcc 
+  - os: linux 
+    dist: trusty
+    compiler: clang 
+  - os: osx
+    osx_image: xcode7.3
+    compiler: clang 
+
 script: 
-- sh ./bootstrap
-- ./configure
-- make 
-- TESTSUITEFLAGS=-j3 make check
-- if [ $CXX == g++ ]; then prefix=gcc; else prefix=clang; fi
-- if [ $TRAVIS_OS_NAME == linux ]; then make deb; mkdir deploy; cd packaging; for d in *.deb; do cp $d ../deploy/"$prefix"_"$d"; md5sum <$d >"../deploy/"$prefix"_"$d".md5"; done; cd ..; fi
-- if [ $TRAVIS_OS_NAME == osx ]; then make pkg; mkdir deploy; for d in *.pkg; do cp $d deploy/; md5sum <$d >deploy/$d.md5; done; fi
-- ls deploy/*
+  - "./.travis/run.sh"
+
 deploy:
   skip_cleanup: true
   provider: releases
