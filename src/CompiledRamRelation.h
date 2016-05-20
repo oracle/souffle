@@ -1450,6 +1450,7 @@ struct RelationBase {
             char *bname = strdup(fn);
             std::string simplename = basename(bname);
             std::cerr << "Wrong arity of fact file " << simplename << "!\n";
+            exit(1);
         }
     }
 

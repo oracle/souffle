@@ -9,5 +9,8 @@ stack.hh
 parser.hh
 parser.cc
 scanner.cc
+file*
+libsouffle*
 
 test-suite.log
+wavelib/cpplexer/re2clex/.dirstamp

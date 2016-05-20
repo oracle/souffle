@@ -69,7 +69,7 @@
 "*/"      BEGIN(INITIAL);
 [^*\n]+   // eat comment in chunks
 "*"       // eat the lone star
-\n        yylineno++;
+\n        //
 }
 [ \t\r\v\f]*                     {  }
 \n                               { yycolumn = 1; }

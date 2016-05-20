@@ -461,7 +461,7 @@ void AstSemanticChecker::checkRelationDeclaration(ErrorReport& report, const Typ
                     report.addError("Input relations must not have record types. Attribute " + attr->getAttributeName() + " has record type " + toString(attr->getTypeName()), attr->getSrcLoc());
                 }
                 if (relation.isOutput()) {
-                    report.addWarning("Output relations with record types cannot be output precisely. Attribute " + attr->getAttributeName() + " has record type " + toString(attr->getTypeName()), attr->getSrcLoc());
+                    report.addWarning("Record types in output relations are not printed verbatim: attribute " + attr->getAttributeName() + " has record type " + toString(attr->getTypeName()), attr->getSrcLoc());
                 }
             }
         }
