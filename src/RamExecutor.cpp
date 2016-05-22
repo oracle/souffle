@@ -616,7 +616,7 @@ namespace {
                 csvfile.open(fname.c_str());
                 if (!csvfile.is_open()) {
                     // TODO: use different error reporting here!!
-                    std::cerr << "Cannot open fact file " << fname << " for table " << load.getRelation().getName() << "\n";
+                    std::cerr << "Cannot open fact file " << baseName(fname) << "\n";
                     return false; 
                 }
                 if(env.getRelation(load.getRelation()).load(csvfile, env.getSymbolTable(), load.getSymbolMask())) {

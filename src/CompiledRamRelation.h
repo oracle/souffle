@@ -1441,7 +1441,9 @@ struct RelationBase {
         std::ifstream in;
         in.open(fn);
         if (!in.is_open()) {
-            std::cerr << "Cannot open file " << fn << "!\n";
+            char bfn[strlen(fn)+1];
+            strcpy(bfn,fn);
+            std::cerr << "Cannot open fact file " << basename(bfn) << "\n";
             exit(1);        // panic ?!?
         }
 
