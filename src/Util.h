@@ -836,6 +836,17 @@ inline std::string findTool(std::string tool, std::string base, std::string path
     return "";
 }
 
+/*
+ * Get the basename of a fully qualified filename
+ */
+inline std::string baseName(std::string &filename)
+{
+   char fn[filename.size()+1];
+   strcpy(fn,filename.c_str()); 
+   std::string result = basename(fn); 
+   return result;
+} 
+
 } // end namespace souffle
 
 
