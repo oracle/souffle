@@ -18,6 +18,8 @@
 
 #include <string>
 #include <map>
+#include <unordered_map>
+#include <unordered_set>
 #include <functional>
 
 #include "RamRelation.h"
@@ -374,6 +376,57 @@ private:
     std::string resolveFileName() const;
 
 };
+
+
+/**
+ * A singleton which provides a mapping from strings to unique valid CPP identifiers.
+ */
+class CPPIdentifierMap {
+public:
+    /**
+     * Obtains the singleton instance.
+     */
+    static CPPIdentifierMap& getInstance();
+
+    /**
+     * Given a string, returns its corresponding unique valid identifier;
+     */
+    static std::string getIdentifier(std::string);
+
+    ~CPPIdentifierMap() {}
+
+    private:
+    
+    /**
+     * Given a string, returns its corresponding unique valid identifier.
+     */
+    std::string identifier(std::string);
+
+    /*
+     * Removes invalid substrings, adds trailing digits if the resulting identifier is in use.
+     */
+    std::string uniqueIdentifier(std::string name);
+
+    /*
+     * True if the given character is valid to use in an identifier.
+     */
+    bool isValidChar(char c);
+
+    CPPIdentifierMap() {}
+    static CPPIdentifierMap* instance;
+
+    //A map from names to identifiers.
+    std::unordered_map<std::string, std::string> name_id_map;
+
+    //Contains the identifiers currently in use.
+    std::unordered_set<std::string> used_ids;
+    
+    // Permissible identifier lengths.
+    static const size_t id_len = 28;
+    static const size_t suffix_len = 5;
+    static const size_t prefix_len = id_len - suffix_len;
+};
+
 
 } // end of namespace souffle
 

@@ -119,7 +119,6 @@
 "|"                              { return yy::parser::make_PIPE(yylloc); }
 "["                              { return yy::parser::make_LBRACKET(yylloc); }
 "]"                              { return yy::parser::make_RBRACKET(yylloc); }
-"_"                              { return yy::parser::make_UNDERSCORE(yylloc); }
 "$"                              { return yy::parser::make_DOLLAR(yylloc); }
 "+"                              { return yy::parser::make_PLUS(yylloc); }
 "-"                              { return yy::parser::make_MINUS(yylloc); }
@@ -139,9 +138,13 @@
 "}"                              { return yy::parser::make_RBRACE(yylloc); }
 "<"                              { return yy::parser::make_LT(yylloc); }
 ">"                              { return yy::parser::make_GT(yylloc); }
-[\?[:alpha:]][_\?[:alnum:]]*     { return yy::parser::make_IDENT(SLOOKUP(yytext), yylloc); }
 ":-"                             { return yy::parser::make_IF(yylloc); }
 (!=|>=|<=)                       { return yy::parser::make_RELOP(SLOOKUP(yytext), yylloc); }
+[_\?[:alpha:]][[:alnum:]_\?]*     { if (!strcmp(yytext, "_")) {
+                                        return yy::parser::make_UNDERSCORE(yylloc);
+                                    } else {
+                                        return yy::parser::make_IDENT(SLOOKUP(yytext), yylloc); }
+                                    }
 [0-9]+                           { try {
                                       return yy::parser::make_NUMBER(std::stoi(yytext), yylloc); 
                                    } catch (...) { 

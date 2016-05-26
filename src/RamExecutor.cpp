@@ -965,7 +965,7 @@ namespace {
 
         void visitFact(const RamFact& fact, std::ostream& out) {
             out << getRelationName(fact.getRelation()) << ".insert("
-                    << join(fact.getValues(), ",", rec)
+                << join(fact.getValues(), ",", rec)
                 << ");\n";
         }
 
@@ -1068,7 +1068,7 @@ namespace {
 
         void visitMerge(const RamMerge& merge, std::ostream& out) {
             out << getRelationName(merge.getTargetRelation()) << ".insertAll("
-                    << getRelationName(merge.getSourceRelation())
+                << getRelationName(merge.getSourceRelation())
                 << ");\n";
         }
 
@@ -1089,8 +1089,9 @@ namespace {
 
         void visitLogSize(const RamLogSize& print, std::ostream& out) {
             out << "{ auto lease = getOutputLock().acquire(); \n";
-            out << "profile << R\"(" << print.getLabel() << ")\" <<  " << getRelationName(print.getRelation()) << ".size() << \"\\n\";\n";
-            out << "}";
+            out << "profile << R\"(" << print.getLabel() << ")\" <<  ";
+            out << getRelationName(print.getRelation());
+            out << ".size() << \"\\n\";\n" << "}";
         }
 
         // -- control flow statements --
@@ -1642,11 +1643,11 @@ namespace {
         }
 
         std::string getRelationName(const RamRelationIdentifier& rel) const {
-            return "rel_" + rel.getName();
+            return "rel_" + CPPIdentifierMap::getIdentifier(rel.getName());
         }
 
         std::string getOpContextName(const RamRelationIdentifier& rel) const {
-            return "rel_" + rel.getName() + "_op_ctxt";
+            return getRelationName(rel) + "_op_ctxt";
         }
     };
 
@@ -1659,6 +1660,63 @@ namespace {
 
 }
 
+
+CPPIdentifierMap* CPPIdentifierMap::instance = 0;
+
+CPPIdentifierMap& CPPIdentifierMap::getInstance() {
+    if (instance == NULL) {
+        instance = new CPPIdentifierMap();
+    }
+    return *instance;
+}
+
+
+std::string CPPIdentifierMap::getIdentifier(std::string rel_name) {
+    return getInstance().identifier(rel_name);
+}
+
+std::string CPPIdentifierMap::identifier(std::string rel_name) {
+    if (name_id_map.count(rel_name)) {
+        return name_id_map.find(rel_name)->second;
+    }
+    
+    std::string unique_id = uniqueIdentifier(rel_name);
+    name_id_map.insert(std::make_pair(rel_name, unique_id));
+    return unique_id;
+}
+
+std::string CPPIdentifierMap::uniqueIdentifier(std::string name) {
+
+    // Remove digits, invalid characters.
+    std::string new_id;
+    bool start_digits = true;
+    for (size_t i = 0; i < name.size(); ++i) {
+        if (start_digits && !isdigit(name[i])) {
+            start_digits = false;
+        }
+        if (!start_digits && isValidChar(name[i])) {
+            new_id.push_back(name[i]);
+        }
+    }
+
+    // Truncate the string if too long.
+    if (new_id.length() > prefix_len) new_id = new_id.substr(0, prefix_len);
+    else if (new_id.length() == 0) new_id = "identifier";
+    
+    // Make the identifier unique.
+    if (used_ids.count(new_id)) {
+        size_t n = 0;
+        for (; used_ids.count(new_id + std::to_string(n)); ++n);
+        new_id = new_id + std::to_string(n);
+    }
+
+    used_ids.insert(new_id);
+    return new_id;
+}
+
+bool CPPIdentifierMap::isValidChar(char c) {
+    return isalnum(c) || c == '_';
+}
 
 std::string RamCompiler::resolveFileName() const {
 	if (getBinaryFile() == "") {
@@ -1790,10 +1848,11 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         const auto& rel = create.getRelation();
         auto type = getRelationType(rel.getArity(), indices[rel]);
         int arity = rel.getArity();
-        const std::string &name = rel.getName();
+        const std::string &raw_name = rel.getName();
+        const std::string &name = CPPIdentifierMap::getIdentifier(raw_name);
 
         // defining table
-        os << "// -- Table: " << name << "\n";
+        os << "// -- Table: " << raw_name << "\n";
         os << type << " rel_" << name << ";\n";
         bool isTemp = (name.find("_temp1_")==0) || (name.find("_temp2_")==0);
         if ((rel.isInput() || rel.isComputed() || getConfig().isDebug()) && !isTemp) {
@@ -1822,8 +1881,8 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
            if (initCons.size() > 0) {
                initCons += ",\n";
            }
-           initCons += "wrapper_" + name + "(rel_" + name + ",symTable,\"" + name + "\"," + tupleType + "," + tupleName + ")";
-           registerRel += "addRelation(\"" + name + "\",&wrapper_" + name + "," + std::to_string(rel.isInput()) + "," + std::to_string(rel.isOutput()) + ");\n";
+           initCons += "wrapper_" + name + "(rel_" + name + ",symTable,\"" + raw_name + "\"," + tupleType + "," + tupleName + ")";
+           registerRel += "addRelation(\"" + raw_name + "\",&wrapper_" + name + "," + std::to_string(rel.isInput()) + "," + std::to_string(rel.isOutput()) + ");\n";
         }
     });
 
@@ -1892,7 +1951,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     visitDepthFirst(stmt, [&](const RamStatement& node) {
         if (auto store = dynamic_cast<const RamStore*>(&node)) {
             auto name = store->getRelation().getName();
-            auto relName = "rel_" + name;
+            auto relName = "rel_" + CPPIdentifierMap::getIdentifier(name);
 
             // pick target
             std::string fname = "dirname + \"/" + store->getFileName() + "\"";
@@ -1916,8 +1975,9 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 
             if (toConsole) os << "std::cout << \"===============\\n\";\n";
         } else if (auto print = dynamic_cast<const RamPrintSize*>(&node)) {
+            auto relName = "rel_" + CPPIdentifierMap::getIdentifier(print->getRelation().getName());
             os << "{ auto lease = getOutputLock().acquire(); \n";
-            os << "std::cout << R\"(" << print->getLabel() << ")\" <<  rel_" << print->getRelation().getName() << ".size() << \"\\n\";\n";
+            os << "std::cout << R\"(" << print->getLabel() << ")\" <<  " << relName << ".size() << \"\\n\";\n";
             os << "}";
         }
     });
@@ -1928,8 +1988,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "void loadAll(std::string dirname=\"" << getConfig().getOutputDir() << "\") {\n";
     visitDepthFirst(stmt, [&](const RamLoad& load) {
         // get some table details
-        os << "rel_";
-        os << load.getRelation().getName();
+        os << "rel_" <<  CPPIdentifierMap::getIdentifier(load.getRelation().getName());
         os << ".loadCSV(dirname + \"/";
         os << load.getFileName() << "\"";
         os << ",symTable";
@@ -1943,7 +2002,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 
     // issue dump methods
 	auto dumpRelation = [&](const std::string& name, const SymbolMask& mask, size_t arity) {
-		auto relName = "rel_" + name;
+		auto relName = "rel_" + CPPIdentifierMap::getIdentifier(name);
 
 		os << "out << \"---------------\\n" << name << "\\n===============\\n\";\n";
 
