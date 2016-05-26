@@ -1,9 +1,9 @@
 /*
- * Souffle version 0.0.0
+ * Souffle - A Datalog Compiler
  * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All rights reserved
  * Licensed under the Universal Permissive License v 1.0 as shown at:
  * - https://opensource.org/licenses/UPL
- * - souffle/LICENSE
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -43,22 +43,22 @@ class AstAttribute : public AstNode {
     std::string name;
 
     /** Type name */ 
-    std::string typeName; 
+    AstTypeIdentifier typeName;
 
 public:
 
-    AstAttribute(const std::string& n, const std::string& t, const Type* type = NULL)
+    AstAttribute(const std::string& n, const AstTypeIdentifier& t, const Type* type = NULL)
         : name(n), typeName(t) {}
 
     const std::string& getAttributeName() const {
         return name; 
     }
 
-    const std::string& getTypeName() const {
+    const AstTypeIdentifier& getTypeName() const {
         return typeName; 
     }
 
-    void setTypeName(const std::string& name) {
+    void setTypeName(const AstTypeIdentifier& name) {
         typeName = name;
     }
 
