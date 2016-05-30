@@ -4,7 +4,7 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-# add macros 
+# add macros
 ACLOCAL_AMFLAGS = -I m4
 
 # directories
