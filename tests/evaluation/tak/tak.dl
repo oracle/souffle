@@ -15,8 +15,8 @@ tak(X,Y,Z,V,Q1+Q2+Q3+Q4+1) :- tak(X-1,Y,Z,V1,Q1), tak(Y-1,Z,X,V2,Q2), tak(Z-1,X,
 /* Restrict the range in which tak is evaluated. */
 .decl natural(N:number)
 
-natural(-10).
-natural(n+1) :- natural(n), n < 10.
+natural(-8).
+natural(n+1) :- natural(n), n < 8.
 
 
 /* N : index
