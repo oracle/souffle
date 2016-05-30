@@ -3,11 +3,14 @@
 souffle
 souffle-compile
 souffle-config
-wave
+souffle-wave
 
 stack.hh
 parser.hh
 parser.cc
 scanner.cc
+file*
+libsouffle*
 
 test-suite.log
+wavelib/cpplexer/re2clex/.dirstamp

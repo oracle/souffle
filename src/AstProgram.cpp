@@ -1,9 +1,9 @@
 /*
- * Souffle version 0.0.0
+ * Souffle - A Datalog Compiler
  * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
  * Licensed under the Universal Permissive License v 1.0 as shown at:
  * - https://opensource.org/licenses/UPL
- * - souffle/LICENSE
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -55,7 +55,7 @@ void AstProgram::addType(std::unique_ptr<AstType> type)
     cur = std::move(type);
 }
 
-const AstType* AstProgram::getType(const std::string& name) const {
+const AstType* AstProgram::getType(const AstTypeIdentifier& name) const {
     auto pos = types.find(name);
     return (pos == types.end()) ? nullptr : pos->second.get();
 }

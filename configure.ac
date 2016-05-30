@@ -1,11 +1,11 @@
-# Souffle version 0.0.0
+# Souffle - A Datalog Compiler
 # Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at:
 # - https://opensource.org/licenses/UPL
-# - souffle/LICENSE
+# - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 
-AC_INIT(souffle, 1.0, [souffle-talk@googlegroups.com])
+AC_INIT(souffle, m4_esyscmd([git describe --tags --abbrev=0 | tr -d '\n']), [souffle-talk@googlegroups.com])
 AC_PREREQ(2.68)
 AC_COPYRIGHT(['2013-15 Oracle and/or its affiliates'])
 AC_CONFIG_MACRO_DIRS([m4])
@@ -57,17 +57,12 @@ DX_PS_FEATURE(OFF)
 DX_INIT_DOXYGEN([$PACKAGE_NAME],[doxygen.cfg],[doc])
 
 dnl add boost configuration for c-preprocessor
-AX_BOOST_BASE([1.46],, [AC_MSG_ERROR([Souffle needs Boost, but it was not found.])])
+AX_BOOST_BASE([1.54],, [AC_MSG_ERROR([Souffle needs Boost, but it was not found.])])
 AX_BOOST_SYSTEM
 AX_BOOST_FILESYSTEM
-AX_BOOST_WAVE
 AX_BOOST_THREAD
 AX_BOOST_DATE_TIME
 AX_BOOST_PROGRAM_OPTIONS
-
-# Check for cpp
-AC_CHECK_PROG(SOUFFLECPP, cpp, cpp)
-AS_IF([test -z "$SOUFFLECPP"], [AC_MSG_ERROR([cpp not found.])])
 
 # Check for flex
 AC_CHECK_PROG(FLEX, flex, flex)
@@ -99,6 +94,7 @@ AC_CONFIG_TESTDIR([tests])
 AC_CONFIG_FILES([
     Makefile
     src/Makefile
+    src/wavelib/Makefile
     prof/Makefile
     tests/Makefile
     tests/atlocal

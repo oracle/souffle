@@ -1,9 +1,9 @@
 /*
- * Souffle version 0.0.0
+ * Souffle - A Datalog Compiler
  * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved
  * Licensed under the Universal Permissive License v 1.0 as shown at:
  * - https://opensource.org/licenses/UPL
- * - souffle/LICENSE
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -15,6 +15,16 @@
  ***********************************************************************/
 
 #pragma once
+
+#include <stdlib.h>
+#include <errno.h>
+#include <libgen.h>
+#include <limits.h>
+#include <string.h>
+#include <stdarg.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <sys/stat.h>
 
 #include <algorithm>
 #include <string>
@@ -37,6 +47,21 @@
 #endif
 
 namespace souffle {
+
+/**
+ * Check whether a string is a sequence of numbers
+ */
+inline bool isNumber(const char *str)
+{
+    if (str==NULL) return false;
+
+    while(*str) {
+        if(!isdigit(*str))
+            return false;
+        str++;
+    }
+    return true;
+}
 
 // -------------------------------------------------------------------------------
 //                           General Container Utilities
@@ -718,6 +743,109 @@ inline time_point now() {
 inline long duration_in_ms(const time_point& start, const time_point& end) {
     return std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
 }
+// -------------------------------------------------------------------------------
+//                               File Utils
+// -------------------------------------------------------------------------------
+
+/**
+ *  Check whether a file exists in the file system
+ */
+inline bool existFile (const std::string& name) {
+    struct stat buffer;
+    if (stat (name.c_str(), &buffer) == 0) {
+        if ((buffer.st_mode & S_IFREG) != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ *  Check whether a directory exists in the file system
+ */
+inline bool existDir (const std::string& name) {
+    struct stat buffer;
+    if (stat (name.c_str(), &buffer) == 0) {
+        if ((buffer.st_mode & S_IFDIR) != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Check whether a given file exists and it is an executable
+ */
+inline int isExecutable(const std::string& name) {
+    return existFile(name) && !access(name.c_str(), X_OK);
+}
+
+/**
+ * Simple implementation of a which tool
+ */
+inline std::string which(const std::string& name) {
+    char buf[PATH_MAX];
+    if (::realpath(name.c_str(), buf) && isExecutable(buf))
+        return std::string(buf);
+    else {
+        std::string syspath = ::getenv("PATH");
+        std::stringstream sstr(syspath);
+        std::string sub;
+        while (std::getline(sstr, sub, ':')) {
+            std::string path = sub + "/" + name;
+            if (isExecutable(path) && realpath(path.c_str(), buf))
+              return std::string(buf);
+        }
+    }
+    return "";
+}
+
+/**
+ *  C++-style dirname
+ */
+inline std::string dirName(std::string &name) {
+    char buf[PATH_MAX];
+    strcpy(buf, name.c_str());
+    return std::string(dirname(buf));
+}
+
+/**
+ *  C++-style realpath
+ */
+inline std::string absPath(std::string &path) {
+    char buf[PATH_MAX];
+    char *res = realpath(path.c_str(), buf);
+    return (res == NULL) ? "" : std::string(buf);
+}
+
+/*
+ * Find out if an executable given by @p tool exists in the path given @p path
+ * relative to the directory given by @ base. A path here refers a
+ * colon-separated list of directories.
+ */
+inline std::string findTool(std::string tool, std::string base, std::string path) {
+    std::string dir = dirName(base);
+    std::stringstream sstr(path);
+    std::string sub;
+
+    while (std::getline(sstr, sub, ':')) {
+      std::string subpath = dir + "/" +  sub + '/' + tool;
+      if (isExecutable(subpath))
+          return absPath(subpath);
+    }
+    return "";
+}
+
+/*
+ * Get the basename of a fully qualified filename
+ */
+inline std::string baseName(std::string &filename)
+{
+   char fn[filename.size()+1];
+   strcpy(fn,filename.c_str()); 
+   std::string result = basename(fn); 
+   return result;
+} 
 
 } // end namespace souffle
 

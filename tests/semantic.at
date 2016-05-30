@@ -1,8 +1,8 @@
-# Souffle version 0.0.0
+# Souffle - A Datalog Compiler
 # Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at:
 # - https://opensource.org/licenses/UPL
-# - souffle/LICENSE
+# - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 NEGATIVE_TEST([attrib_dupl],[semantic])
 NEGATIVE_TEST([fact_arity],[semantic])
@@ -32,6 +32,7 @@ NEGATIVE_TEST([underscore],[semantic])
 NEGATIVE_TEST([execution_plan],[semantic])
 NEGATIVE_TEST([comp_name_resolution],[semantic])
 NEGATIVE_TEST([comp_clauses],[semantic])
+NEGATIVE_TEST([comp_types],[semantic])
 NEGATIVE_TEST([comp_relation],[semantic])
 NEGATIVE_TEST([agg_checks],[semantic])
 NEGATIVE_TEST([agg_checks2],[semantic])
@@ -47,3 +48,12 @@ POSITIVE_TEST([lrg_attr_id],[semantic])
 POSITIVE_TEST([lrg_rel_id1],[semantic])
 POSITIVE_TEST([lrg_rel_id2],[semantic])
 POSITIVE_TEST([bitwise],[semantic])
+POSITIVE_TEST([load],[semantic])
+POSITIVE_TEST([load2],[semantic])
+POSITIVE_TEST([records],[semantic])
+POSITIVE_TEST([records1],[semantic])
+POSITIVE_TEST([records2],[semantic])
+POSITIVE_TEST([records3],[semantic])
+POSITIVE_TEST([records4],[semantic])
+POSITIVE_TEST([records5],[semantic])
+POSITIVE_TEST([records6],[semantic])

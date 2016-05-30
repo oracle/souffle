@@ -1,9 +1,9 @@
 /*
- * Souffle version 0.0.0
+ * Souffle - A Datalog Compiler
  * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
  * Licensed under the Universal Permissive License v 1.0 as shown at:
  * - https://opensource.org/licenses/UPL
- * - souffle/LICENSE
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -616,12 +616,14 @@ namespace {
                 csvfile.open(fname.c_str());
                 if (!csvfile.is_open()) {
                     // TODO: use different error reporting here!!
-                    std::cerr << "Cannot open fact file " << fname << " for table " << load.getRelation().getName() << "\n";
+                    std::cerr << "Cannot open fact file " << baseName(fname) << "\n";
+                    return false; 
                 }
                 if(env.getRelation(load.getRelation()).load(csvfile, env.getSymbolTable(), load.getSymbolMask())) {
                     char *bname = strdup(fname.c_str());
                     std::string simplename = basename(bname);
                     std::cerr << "Wrong arity of fact file " << simplename << "!\n";
+                    return false;
                 };
                 return true;
             }
@@ -2097,30 +2099,21 @@ void RamCompiler::applyOn(const RamStatement& stmt, RamEnvironment& env) const {
     // compile statement
     std::string binary = compileToBinary(env.getSymbolTable(), stmt);
 
-    // TODO: future task: make environment state accessible to binary
-
-    // set number of threads
-    auto num_threads = getConfig().getNumThreads();
-    if (num_threads > 0) {
-        setenv("OMP_NUM_THREADS", std::to_string(num_threads).c_str(), true);
-    }
-
-    // create command
-    std::string cmd = binary;
-
     // separate souffle output form executable output
     if (getConfig().isLogging()) {
         std::cout.flush();
     }
 
-    // run executable
-    if(system(cmd.c_str()) != 0) {
-        std::cerr << "failed to run executable " << binary << "\n";
+    // check whether the executable exists
+    if(!isExecutable(binary)) {
+       std::cerr << "failed to run executable " << binary << "\n";
     }
 
-    // TODO: future task: load resulting environment back into this process
-
-    // that's it!
+    // run executable
+    int result = system(binary.c_str());
+    if (result !=0) { 
+       exit(result);
+    } 
 }
 
 } // end of namespace souffle

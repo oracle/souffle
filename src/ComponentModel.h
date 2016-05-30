@@ -1,9 +1,9 @@
 /*
- * Souffle version 0.0.0
+ * Souffle - A Datalog Compiler
  * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved
  * Licensed under the Universal Permissive License v 1.0 as shown at:
  * - https://opensource.org/licenses/UPL
- * - souffle/LICENSE
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -37,20 +37,21 @@ class TypeBinding {
      * Key value pair. Keys are names that should be forwarded to value,
      * which is the actual name. Example T->MyImplementation.
      */
-    std::map<std::string,std::string> binding;
+    std::map<AstTypeIdentifier,AstTypeIdentifier> binding;
 
 public:
 
     /**
      * Returns binding for given name or empty string if such binding does not exist.
      */
-    const std::string find(const std::string& name) const {
+    const AstTypeIdentifier& find(const AstTypeIdentifier& name) const {
+    	const static AstTypeIdentifier unknown;
         auto pos = binding.find(name);
-        if (pos == binding.end()) return std::string();
+        if (pos == binding.end()) return unknown;
         return pos->second;
     }
 
-    TypeBinding extend(const std::vector<std::string>& formalParams, const std::vector<std::string>& actualParams) const {
+    TypeBinding extend(const std::vector<AstTypeIdentifier>& formalParams, const std::vector<AstTypeIdentifier>& actualParams) const {
         TypeBinding result;
         if (formalParams.size() != actualParams.size())
             return *this;     // invalid init => will trigger a semantic error
@@ -90,20 +91,9 @@ public:
 
 class ComponentInstantiationTransformer : public AstTransformer {
 private:
-    virtual bool transform(AstTranslationUnit &translationUnit);
 
-    static const unsigned int MAX_INSTANTIATION_DEPTH = 1000;
+	virtual bool transform(AstTranslationUnit &translationUnit);
 
-    /**
-     * Recursively computes the set of relations (and included clauses) introduced
-     * by this init statement enclosed within the given scope.
-     */
-    static std::vector<std::unique_ptr<AstRelation>> getInstantiatedRelations(const AstComponentInit &componentInit, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, std::vector<std::unique_ptr<AstClause>> &orphans, ErrorReport &report, const TypeBinding& binding = TypeBinding(), unsigned int maxDepth = MAX_INSTANTIATION_DEPTH);
-
-    /**
-     * Collects clones of all relations in the given component and its base components.
-     */
-    static void collectAllRelations(const AstComponent& component, const TypeBinding& binding, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, std::vector<std::unique_ptr<AstRelation>>& res, std::vector<std::unique_ptr<AstClause>> &orphans, std::set<std::string> overridden, ErrorReport &report, unsigned int maxInstantiationDepth);
 public:
     std::string getName() const {
         return "ComponentInstantiationTransformer";

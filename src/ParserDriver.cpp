@@ -1,9 +1,9 @@
 /*
- * Souffle version 0.0.0
+ * Souffle - A Datalog Compiler
  * Copyright (c) 2015, Oracle and/or its affiliates. All rights reserved
  * Licensed under the Universal Permissive License v 1.0 as shown at:
  * - https://opensource.org/licenses/UPL
- * - souffle/LICENSE
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -93,8 +93,9 @@ void ParserDriver::addRelation(AstRelation *r) {
 }
 
 void ParserDriver::addType(AstType *type) {
-    if (const AstType *prev = translationUnit->getProgram()->getType(type->getName())) {
-        Diagnostic err(Diagnostic::ERROR, DiagnosticMessage("Redefinition of type " + type->getName(), type->getSrcLoc()),
+	const auto& name = type->getName();
+    if (const AstType *prev = translationUnit->getProgram()->getType(name)) {
+        Diagnostic err(Diagnostic::ERROR, DiagnosticMessage("Redefinition of type " + toString(name), type->getSrcLoc()),
                 {DiagnosticMessage("Previous definition", prev->getSrcLoc())});
         translationUnit->getErrorReport().addDiagnostic(err);
     } else {
