@@ -149,6 +149,16 @@
                                       return yy::parser::make_NUMBER(0, yylloc);
                                    }
                                  }
+0[xX][0-9a-fA-F]+                {  try {
+                                      return yy::parser::make_NUMBER(std::stoul(yytext, nullptr, 16), yylloc); 
+                                    }
+                                    catch(...) {
+                                      driver.error(yylloc, "hex constant must use hex digits");
+                                      return yy::parser::make_NUMBER(0, yylloc);
+                                    }
+                                   
+                                 }
+
 \"[^\"]*\"                       { yytext[strlen(yytext)-1]=0; 
                                    if(strlen(&yytext[1]) == 0) {
                                       driver.error(yylloc, "string literal is empty"); 
