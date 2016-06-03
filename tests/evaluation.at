@@ -1,12 +1,11 @@
-# Souffle version 0.0.0
+# Souffle - A Datalog Compiler
 # Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at:
 # - https://opensource.org/licenses/UPL
-# - souffle/LICENSE
+# - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 dnl Positive test cases for evaluating Datalog programs
 
-POSITIVE_TEST([load],[evaluation])
 POSITIVE_TEST([number_constants],[evaluation])
 POSITIVE_TEST([multiple_heads],[evaluation])
 POSITIVE_TEST([arithm],[evaluation])
@@ -14,12 +13,6 @@ POSITIVE_TEST([metro],[evaluation])
 POSITIVE_TEST([subtype],[evaluation])
 POSITIVE_TEST([subtype2],[evaluation])
 POSITIVE_TEST([aliases],[evaluation])
-POSITIVE_TEST([records],[evaluation])
-POSITIVE_TEST([records1],[evaluation])
-POSITIVE_TEST([records2],[evaluation])
-POSITIVE_TEST([records3],[evaluation])
-POSITIVE_TEST([records4],[evaluation])
-POSITIVE_TEST([records5],[evaluation])
 POSITIVE_TEST([unpacking],[evaluation])
 POSITIVE_TEST([flights],[evaluation])
 POSITIVE_TEST([linksum],[evaluation])
@@ -116,3 +109,4 @@ POSITIVE_TEST([factorial],[evaluation])
 POSITIVE_MULTI_TEST([lucas],[evaluation],[[fibonacci], [lucas], [mersenne], [pell]])
 POSITIVE_TEST([tak],[evaluation])
 POSITIVE_TEST([nqueens],[evaluation])
+POSITIVE_TEST([count_sccs],[evaluation])

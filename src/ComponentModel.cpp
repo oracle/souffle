@@ -1,9 +1,9 @@
 /*
- * Souffle version 0.0.0
+ * Souffle - A Datalog Compiler
  * Copyright (c) 2015, Oracle and/or its affiliates. All rights reserved
  * Licensed under the Universal Permissive License v 1.0 as shown at:
  * - https://opensource.org/licenses/UPL
- * - souffle/LICENSE
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -36,7 +36,7 @@ void ComponentLookup::run(const AstTranslationUnit& translationUnit) {
 
 const AstComponent* ComponentLookup::getComponent(const AstComponent* scope, const std::string& name, const TypeBinding& activeBinding) const {
     // forward according to binding (we do not do this recursively on purpose)
-    std::string boundName = activeBinding.find(name);
+    AstTypeIdentifier boundName = activeBinding.find(name);
     if (boundName.empty()) {
         // compName is not bound to anything => just just compName
         boundName = name;
@@ -46,7 +46,7 @@ const AstComponent* ComponentLookup::getComponent(const AstComponent* scope, con
     const AstComponent *searchScope = scope;
     while (searchScope != nullptr) {
         for(const AstComponent* cur : searchScope->getComponents()) {
-            if (cur->getComponentType().getName() == boundName) return cur;
+            if (cur->getComponentType().getName() == toString(boundName)) return cur;
         }
         auto found = enclosingComponent.find(searchScope);
         if (found != enclosingComponent.end()) {
@@ -59,12 +59,261 @@ const AstComponent* ComponentLookup::getComponent(const AstComponent* scope, con
 
     // check global scope
     for (const AstComponent *cur : globalScopeComponents) {
-        if (cur->getComponentType().getName() == boundName) return cur;
+        if (cur->getComponentType().getName() == toString(boundName)) return cur;
     }
 
     // no such component in scope
     return nullptr;
 }
+
+
+namespace {
+
+	static const unsigned int MAX_INSTANTIATION_DEPTH = 1000;
+
+	/**
+	 * A container type for the (instantiated) content of a component.
+	 */
+	struct ComponentContent {
+		std::vector<std::unique_ptr<AstType>> types;
+		std::vector<std::unique_ptr<AstRelation>> relations;
+
+		void add(std::unique_ptr<AstType>& type, ErrorReport &report) {
+			// add to result content (check existence first)
+			auto foundItem = std::find_if(types.begin(), types.end(),
+					[&](const std::unique_ptr<AstType> &element) { return (element->getName() == type->getName()); });
+			if(foundItem != types.end()) {
+				Diagnostic err(Diagnostic::ERROR, DiagnosticMessage("Redefinition of type " + toString(type->getName()), type->getSrcLoc()),
+						{DiagnosticMessage("Previous definition", (*foundItem)->getSrcLoc())});
+				report.addDiagnostic(err);
+			}
+			types.push_back(std::move(type));
+		}
+
+		void add(std::unique_ptr<AstRelation>& rel, ErrorReport &report) {
+			// add to result content (check existence first)
+			auto foundItem = std::find_if(relations.begin(), relations.end(),
+					[&](const std::unique_ptr<AstRelation> &element) { return (element->getName() == rel->getName()); });
+			if(foundItem != relations.end()) {
+				Diagnostic err(Diagnostic::ERROR, DiagnosticMessage("Redefinition of relation " + toString(rel->getName()), rel->getSrcLoc()),
+						{DiagnosticMessage("Previous definition", (*foundItem)->getSrcLoc())});
+				report.addDiagnostic(err);
+			}
+			relations.push_back(std::move(rel));
+		}
+	};
+
+	/**
+	 * Recursively computes the set of relations (and included clauses) introduced
+	 * by this init statement enclosed within the given scope.
+	 */
+	ComponentContent getInstantiatedContent(const AstComponentInit &componentInit, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, std::vector<std::unique_ptr<AstClause>> &orphans, ErrorReport &report, const TypeBinding& binding = TypeBinding(), unsigned int maxDepth = MAX_INSTANTIATION_DEPTH);
+
+	/**
+	 * Collects clones of all the content in the given component and its base components.
+	 */
+	void collectContent(const AstComponent& component, const TypeBinding& binding, const AstComponent* enclosingComponent, const ComponentLookup& componentLookup, ComponentContent& res, std::vector<std::unique_ptr<AstClause>> &orphans, std::set<std::string> overridden, ErrorReport &report, unsigned int maxInstantiationDepth) {
+
+		// start with relations and clauses of the base components
+		for(const auto& base : component.getBaseComponents()) {
+			const AstComponent* comp = componentLookup.getComponent(enclosingComponent, base.getName(), binding);
+
+			if (comp) {
+
+				// link formal with actual type parameters
+				const auto& formalParams = comp->getComponentType().getTypeParameters();
+				const auto& actualParams = base.getTypeParameters();
+
+				// update type binding
+				TypeBinding activeBinding = binding.extend(formalParams, actualParams);
+
+				for(const auto& cur : comp->getInstantiations()) {
+
+					// instantiate sub-component
+					ComponentContent content = getInstantiatedContent(*cur, enclosingComponent, componentLookup, orphans, report, activeBinding, maxInstantiationDepth - 1);
+
+					// process types
+					for(auto& type : content.types) res.add(type,report);
+
+					// process relations
+					for(auto& rel : content.relations) res.add(rel,report);
+				}
+
+				// collect definitions from base type
+				std::set<std::string> superOverridden;
+				superOverridden.insert(overridden.begin(), overridden.end());
+				superOverridden.insert(component.getOverridden().begin(), component.getOverridden().end());
+				collectContent(*comp, activeBinding, comp, componentLookup, res, orphans, superOverridden, report, maxInstantiationDepth);
+			}
+		}
+
+		// and continue with the local types
+		for(const auto& cur : component.getTypes()) {
+
+			// create a clone
+			std::unique_ptr<AstType> type(cur->clone());
+
+			// instantiate elements of union types
+			visitDepthFirst(*type, [&](const AstUnionType& type) {
+				for(const auto& name : type.getTypes()) {
+					AstTypeIdentifier newName = binding.find(name);
+					if (!newName.empty()) {
+						const_cast<AstTypeIdentifier&>(name) = newName;
+					}
+				}
+			});
+
+			// instantiate elements of record types
+			visitDepthFirst(*type, [&](const AstRecordType& type) {
+				for(const auto& field : type.getFields()) {
+					AstTypeIdentifier newName = binding.find(field.type);
+					if (!newName.empty()) {
+						const_cast<AstTypeIdentifier&>(field.type) = newName;
+					}
+				}
+			});
+
+			// add to result list (check existence first)
+			res.add(type,report);
+		}
+
+		// and the local relations
+		for(const auto& cur : component.getRelations()) {
+
+			// create a clone
+			std::unique_ptr<AstRelation> rel(cur->clone());
+
+			// update attribute types
+			for(AstAttribute *attr : rel->getAttributes()) {
+				AstTypeIdentifier forward = binding.find(attr->getTypeName());
+				if (!forward.empty()) attr->setTypeName(forward);
+			}
+
+			// add to result list (check existence first)
+			res.add(rel,report);
+		}
+
+		// index the available relations
+		std::map<AstRelationIdentifier,AstRelation*> index;
+		for(const auto& cur : res.relations) {
+			index[cur->getName()] = cur.get();
+		}
+
+		// and finally add the local clauses
+		for(const auto& cur : component.getClauses()) {
+			if (overridden.count(cur->getHead()->getName().getNames()[0]) == 0) {
+				AstRelation* rel = index[cur->getHead()->getName()];
+				if (rel) {
+					rel->addClause(std::unique_ptr<AstClause>(cur->clone()));
+				} else {
+					orphans.push_back(std::unique_ptr<AstClause>(cur->clone()));
+				}
+			}
+		}
+
+		// add orphan clauses at the current level if they can be resolved
+		for(auto iter=orphans.begin(); iter != orphans.end(); ) {
+			auto &cur = *iter;
+			AstRelation* rel = index[cur->getHead()->getName()];
+			if (rel) {
+				// add orphan to current instance and delete from orphan list
+				rel->addClause(std::unique_ptr<AstClause>(cur->clone()));
+				iter = orphans.erase(iter);
+			} else {
+				++iter;
+			}
+		}
+	}
+
+	ComponentContent getInstantiatedContent(const AstComponentInit &componentInit, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, std::vector<std::unique_ptr<AstClause>> &orphans, ErrorReport &report, const TypeBinding& binding, unsigned int maxDepth) {
+
+
+		// start with an empty list
+		ComponentContent res;
+
+		if (maxDepth == 0) {
+			report.addError("Component instantiation limit reached", componentInit.getSrcLoc());
+			return res;
+		}
+
+		// get referenced component
+		const AstComponent* component = componentLookup.getComponent(enclosingComponent, componentInit.getComponentType().getName(), binding);
+		if (!component) return res;         // this component is not defined => will trigger a semantic error
+
+		// update type biding
+		const auto& formalParams = component->getComponentType().getTypeParameters();
+		const auto& actualParams = componentInit.getComponentType().getTypeParameters();
+		TypeBinding activeBinding = binding.extend(formalParams, actualParams);
+
+		// instantiated nested components
+		for(const auto& cur : component->getInstantiations()) {
+			// get nested content
+			ComponentContent nestedContent = getInstantiatedContent(*cur, component, componentLookup, orphans, report, activeBinding, maxDepth - 1);
+
+			// add types
+			for(auto& type : nestedContent.types) res.add(type,report);
+
+			// add relations
+			for(auto& rel : nestedContent.relations) res.add(rel,report);
+
+		}
+
+		// collect all content in this component
+		std::set<std::string> overridden;
+		collectContent(*component, activeBinding, enclosingComponent, componentLookup, res, orphans, overridden, report, maxDepth);
+
+		// update type names
+		std::map<AstTypeIdentifier,AstTypeIdentifier> typeNameMapping;
+		for(const auto& cur : res.types) {
+			auto newName = componentInit.getInstanceName() + cur->getName();
+			typeNameMapping[cur->getName()] = newName;
+			cur->setName(newName);
+		}
+
+		// update relation names
+		std::map<AstRelationIdentifier,AstRelationIdentifier> relationNameMapping;
+		for(const auto& cur : res.relations) {
+			auto newName = componentInit.getInstanceName() + cur->getName();
+			relationNameMapping[cur->getName()] = newName;
+			cur->setName(newName);
+		}
+
+		// create a helper function fixing type and relation references
+		auto fixNames = [&](const AstNode& node) {
+
+			// rename attribute types in headers
+			visitDepthFirst(node, [&](const AstAttribute& attr) {
+				auto pos = typeNameMapping.find(attr.getTypeName());
+				if (pos != typeNameMapping.end()) {
+					const_cast<AstAttribute&>(attr).setTypeName(pos->second);
+				}
+			});
+
+			// rename atoms in clauses
+			visitDepthFirst(node, [&](const AstAtom& atom) {
+				auto pos = relationNameMapping.find(atom.getName());
+				if (pos != relationNameMapping.end()) {
+					const_cast<AstAtom&>(atom).setName(pos->second);
+				}
+			});
+		};
+
+		// rename attribute type in headers and atoms in clauses of the relation
+		for(const auto& cur : res.relations) {
+			fixNames(*cur);
+		}
+
+		// rename orphans
+		for(const auto& cur : orphans) {
+			fixNames(*cur);
+		}
+
+		// done
+		return res;
+	}
+
+}
+
 
 bool ComponentInstantiationTransformer::transform(AstTranslationUnit& translationUnit) {
     // TODO: Do this without being a friend class of AstProgram
@@ -78,7 +327,12 @@ bool ComponentInstantiationTransformer::transform(AstTranslationUnit& translatio
 
     for(const auto& cur : program.instantiations) {
         std::vector<std::unique_ptr<AstClause>> orphans;
-        for(auto& rel : getInstantiatedRelations(*cur, nullptr, *componentLookup, orphans, translationUnit.getErrorReport())) {
+
+        ComponentContent content = getInstantiatedContent(*cur, nullptr, *componentLookup, orphans, translationUnit.getErrorReport());
+        for(auto& type : content.types) {
+        	program.types.insert(std::make_pair(type->getName(), std::move(type)));
+        }
+        for(auto& rel : content.relations) {
             program.relations.insert(std::make_pair(rel->getName(), std::move(rel)));
         }
         for(auto& cur : orphans) {
@@ -107,166 +361,4 @@ bool ComponentInstantiationTransformer::transform(AstTranslationUnit& translatio
     return true;
 }
 
-std::vector<std::unique_ptr<AstRelation>> ComponentInstantiationTransformer::getInstantiatedRelations(const AstComponentInit &componentInit, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, std::vector<std::unique_ptr<AstClause>> &orphans, ErrorReport &report, const TypeBinding& binding, unsigned int maxDepth) {
-
-
-    // start with an empty list
-    std::vector<std::unique_ptr<AstRelation>> res;
-
-    if (maxDepth == 0) {
-        report.addError("Component instantiation limit reached", componentInit.getSrcLoc());
-        return res;
-    }
-
-    // get referenced component
-    const AstComponent* component = componentLookup.getComponent(enclosingComponent, componentInit.getComponentType().getName(), binding);
-    if (!component) return res;         // this component is not defined => will trigger a semantic error
-
-    // update type biding
-    const auto& formalParams = component->getComponentType().getTypeParameters();
-    const auto& actualParams = componentInit.getComponentType().getTypeParameters();
-    TypeBinding activeBinding = binding.extend(formalParams, actualParams);
-
-    // instantiated nested components
-    for(const auto& cur : component->getInstantiations()) {
-        for(auto& rel : getInstantiatedRelations(*cur, component, componentLookup, orphans, report, activeBinding, maxDepth - 1)) {
-            // add to result list (check existence first)
-            auto foundItem = std::find_if(res.begin(), res.end(),
-                     [&](const std::unique_ptr<AstRelation> &element) { return (element->getName() == rel->getName()); });
-            if(foundItem != res.end()) {
-                Diagnostic err(Diagnostic::ERROR, DiagnosticMessage("Redefinition of relation " + toString(rel->getName()), rel->getSrcLoc()),
-                        {DiagnosticMessage("Previous definition", (*foundItem)->getSrcLoc())});
-                report.addDiagnostic(err);
-            }
-            res.push_back(std::move(rel));
-        }
-    }
-
-    // collect all relations and clauses in this component
-    std::set<std::string> overridden;
-    collectAllRelations(*component, activeBinding, enclosingComponent, componentLookup, res, orphans, overridden, report, maxDepth);
-
-    // update relation names
-    std::map<AstRelationIdentifier,AstRelationIdentifier> mapping;
-    for(const auto& cur : res) {
-        auto newName = componentInit.getInstanceName() + cur->getName();
-        mapping[cur->getName()] = newName;
-        cur->setName(newName);
-    }
-
-    // rename atoms in clauses of the relation
-    for(const auto& cur : res) {
-        visitDepthFirst(*cur, [&](const AstAtom& atom) {
-            auto pos = mapping.find(atom.getName());
-            if (pos != mapping.end()) {
-                const_cast<AstAtom&>(atom).setName(pos->second);
-            }
-        });
-    }
-
-    // rename orphans
-    for(const auto& cur : orphans) {
-        visitDepthFirst(*cur, [&](const AstAtom& atom) {
-            auto pos = mapping.find(atom.getName());
-            if (pos != mapping.end()) {
-                const_cast<AstAtom&>(atom).setName(pos->second);
-            }
-        });
-    }
-
-    // done
-    return res;
-}
-
-void ComponentInstantiationTransformer::collectAllRelations(const AstComponent& component, const TypeBinding& binding, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, std::vector<std::unique_ptr<AstRelation>>& res, std::vector<std::unique_ptr<AstClause>> &orphans, std::set<std::string> overridden, ErrorReport &report, unsigned int maxInstantiationDepth) {
-
-    // start with relations and clauses of the base components
-    for(const auto& base : component.getBaseComponents()) {
-        const AstComponent* comp = componentLookup.getComponent(enclosingComponent, base.getName(), binding);
-
-        if (comp) {
-
-            // link formal with actual type parameters
-            const auto& formalParams = comp->getComponentType().getTypeParameters();
-            const auto& actualParams = base.getTypeParameters();
-
-            // update type binding
-            TypeBinding activeBinding = binding.extend(formalParams, actualParams);
-
-            for(const auto& cur : comp->getInstantiations()) {
-                for(auto& rel : getInstantiatedRelations(*cur, enclosingComponent, componentLookup, orphans, report, activeBinding, maxInstantiationDepth - 1)) {
-                    // add to result list (check existence first)
-                    auto foundItem = std::find_if(res.begin(), res.end(),
-                            [&](const std::unique_ptr<AstRelation> &element) { return (element->getName() == rel->getName()); });
-                    if(foundItem != res.end()) {
-                        Diagnostic err(Diagnostic::ERROR, DiagnosticMessage("Redefinition of relation " + toString(rel->getName()), rel->getSrcLoc()),
-                                {DiagnosticMessage("Previous definition", (*foundItem)->getSrcLoc())});
-                        report.addDiagnostic(err);
-                    }
-                    res.push_back(std::move(rel));
-                }
-            }
-
-            // collect definitions from base type
-            std::set<std::string> superOverridden;
-            superOverridden.insert(overridden.begin(), overridden.end());
-            superOverridden.insert(component.getOverridden().begin(), component.getOverridden().end());
-            collectAllRelations(*comp, activeBinding, comp, componentLookup, res, orphans, superOverridden, report, maxInstantiationDepth);
-        }
-    }
-
-    // and continue with the local once
-    for(const auto& cur : component.getRelations()) {
-
-        // create a clone
-        std::unique_ptr<AstRelation> rel(cur->clone());
-
-        // update attribute types
-        for(AstAttribute *attr : rel->getAttributes()) {
-            std::string forward = binding.find(attr->getTypeName());
-            if (!forward.empty()) attr->setTypeName(forward);
-        }
-
-        // add to result list (check existence first)
-        auto foundItem = std::find_if(res.begin(), res.end(),
-                [&](const std::unique_ptr<AstRelation> &element) { return (element->getName() == rel->getName()); });
-        if(foundItem != res.end()) {
-            Diagnostic err(Diagnostic::ERROR, DiagnosticMessage("Redefinition of relation " + toString(rel->getName()), rel->getSrcLoc()),
-                    {DiagnosticMessage("Previous definition", (*foundItem)->getSrcLoc())});
-            report.addDiagnostic(err);
-        }
-        res.push_back(std::move(rel));
-    }
-
-    // index the available relations
-    std::map<AstRelationIdentifier,AstRelation*> index;
-    for(const auto& cur : res) {
-        index[cur->getName()] = cur.get();
-    }
-
-    // and finally add the local clauses
-    for(const auto& cur : component.getClauses()) {
-        if (overridden.count(cur->getHead()->getName().getNames()[0]) == 0) {
-            AstRelation* rel = index[cur->getHead()->getName()];
-            if (rel) {
-                rel->addClause(std::unique_ptr<AstClause>(cur->clone()));
-            } else {
-                orphans.push_back(std::unique_ptr<AstClause>(cur->clone()));
-            }
-        }
-    }
-
-    // add orphan clauses at the current level if they can be resolved
-    for(auto iter=orphans.begin(); iter != orphans.end(); ) {
-        auto &cur = *iter;
-        AstRelation* rel = index[cur->getHead()->getName()];
-        if (rel) {
-            // add orphan to current instance and delete from orphan list
-            rel->addClause(std::unique_ptr<AstClause>(cur->clone()));
-            iter = orphans.erase(iter);
-        } else {
-            ++iter;
-        }
-    }
-}
 } // end namespace souffle

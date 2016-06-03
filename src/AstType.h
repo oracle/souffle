@@ -1,9 +1,9 @@
 /*
- * Souffle version 0.0.0
+ * Souffle - A Datalog Compiler
  * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All rights reserved
  * Licensed under the Universal Permissive License v 1.0 as shown at:
  * - https://opensource.org/licenses/UPL
- * - souffle/LICENSE
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -27,8 +27,100 @@
 
 namespace souffle {
 
-/** The kind of type utilized as an identifier for AST types */
-typedef std::string AstTypeIdentifier;
+
+/**
+ * The type of identifier utilized for referencing types. Type
+ * name identifiers are hierarchically qualified names, e.g.
+ *
+ *          problem.graph.edge
+ *
+ */
+class AstTypeIdentifier {
+
+    /**
+     * The list of names forming this identifier.
+     */
+    std::vector<std::string> names;
+
+public:
+
+    // -- constructors --
+
+    AstTypeIdentifier()
+		: names() {}
+
+    AstTypeIdentifier(const std::string& name)
+        : names(toVector(name)) {}
+
+    AstTypeIdentifier(const char* name)
+        : AstTypeIdentifier(std::string(name)) {}
+
+    AstTypeIdentifier(const AstTypeIdentifier&) =default;
+    AstTypeIdentifier(AstTypeIdentifier&&) =default;
+
+
+    // -- assignment operators --
+
+    AstTypeIdentifier& operator=(const AstTypeIdentifier&) = default;
+    AstTypeIdentifier& operator=(AstTypeIdentifier&&) = default;
+
+
+    // -- mutators --
+
+    void append(const std::string& name) {
+        names.push_back(name);
+    }
+
+    void prepent(const std::string& name) {
+        names.insert(names.begin(), name);
+    }
+
+
+    // -- getters and setters --
+
+    bool empty() const {
+    	return names.empty();
+    }
+
+    const std::vector<std::string>& getNames() const {
+        return names;
+    }
+
+
+    // -- comparison operators --
+
+    bool operator==(const AstTypeIdentifier& other) const {
+        return names == other.names;
+    }
+
+    bool operator!=(const AstTypeIdentifier& other) const {
+        return !(*this == other);
+    }
+
+    bool operator<(const AstTypeIdentifier& other) const {
+        return std::lexicographical_compare(names.begin(), names.end(), other.names.begin(), other.names.end());
+    }
+
+    void print(std::ostream& out) const {
+        out << join(names, ".");
+    }
+
+    friend std::ostream& operator<<(std::ostream& out, const AstTypeIdentifier& id) {
+        id.print(out);
+        return out;
+    }
+
+};
+
+/**
+ * A overloaded operator to add a new prefix to a given relation identifier.
+ */
+inline AstTypeIdentifier operator+(const std::string& name, const AstTypeIdentifier& id) {
+    AstTypeIdentifier res = id;
+    res.prepent(name);
+    return res;
+}
+
 
 /**
  *  @class Type

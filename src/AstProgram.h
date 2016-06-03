@@ -1,9 +1,9 @@
 /*
- * Souffle version 0.0.0
+ * Souffle - A Datalog Compiler
  * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved
  * Licensed under the Universal Permissive License v 1.0 as shown at:
  * - https://opensource.org/licenses/UPL
- * - souffle/LICENSE
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -50,7 +50,7 @@ class AstProgram : public AstNode {
       friend class ComponentInstantiationTransformer;
 
       /** Program types  */
-      std::map<std::string, std::unique_ptr<AstType>> types;
+      std::map<AstTypeIdentifier, std::unique_ptr<AstType>> types;
 
       /** Program relations */
       std::map<AstRelationIdentifier, std::unique_ptr<AstRelation>> relations;
@@ -89,7 +89,7 @@ class AstProgram : public AstNode {
    public:
 
       /** Obtains the type with the given name */
-      const AstType* getType(const std::string& name) const;
+      const AstType* getType(const AstTypeIdentifier& name) const;
 
       /** Gets a list of all types in this program */
       std::vector<const AstType*> getTypes() const;

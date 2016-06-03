@@ -1,13 +1,14 @@
-# Souffle version 0.0.0
+# Souffle - A Datalog Compiler
 # Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at:
 # - https://opensource.org/licenses/UPL
-# - souffle/LICENSE
+# - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 NEGATIVE_TEST([string_empty],[syntactic])
 NEGATIVE_TEST([string_quote],[syntactic])
 POSITIVE_TEST([binary],[syntactic])
 POSITIVE_TEST([comment],[syntactic])
+POSITIVE_TEST([comment2],[syntactic])
 POSITIVE_TEST([comment_rule],[syntactic])
 POSITIVE_TEST([empty],[syntactic])
 POSITIVE_TEST([relation],[syntactic])

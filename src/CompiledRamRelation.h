@@ -1,9 +1,9 @@
 /*
- * Souffle version 0.0.0
+ * Souffle - A Datalog Compiler
  * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
  * Licensed under the Universal Permissive License v 1.0 as shown at:
  * - https://opensource.org/licenses/UPL
- * - souffle/LICENSE
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -1441,7 +1441,9 @@ struct RelationBase {
         std::ifstream in;
         in.open(fn);
         if (!in.is_open()) {
-            std::cerr << "Cannot open file " << fn << "!\n";
+            char bfn[strlen(fn)+1];
+            strcpy(bfn,fn);
+            std::cerr << "Cannot open fact file " << basename(bfn) << "\n";
             exit(1);        // panic ?!?
         }
 
@@ -1450,6 +1452,7 @@ struct RelationBase {
             char *bname = strdup(fn);
             std::string simplename = basename(bname);
             std::cerr << "Wrong arity of fact file " << simplename << "!\n";
+            exit(1);
         }
     }
 

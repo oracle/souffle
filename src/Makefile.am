@@ -1,8 +1,10 @@
-# Souffle version 0.0.0
+# Souffle - A Datalog Compiler
 # Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at:
 # - https://opensource.org/licenses/UPL
-# - souffle/LICENSE
+# - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+SUBDIRS = wavelib
 
 SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 
@@ -21,7 +23,7 @@ souffle_wave_CPPFLAGS = $(BOOST_CPPFLAGS)
 souffle_wave_LDFLAGS =
 souffle_wave_LDADD = $(BOOST_LDFLAGS) \
              $(BOOST_FILESYSTEM_LIB) \
-             $(BOOST_WAVE_LIB) \
+             wavelib/libwave.a \
              $(BOOST_SYSTEM_LIB) \
              $(BOOST_THREAD_LIB) \
              $(BOOST_DATE_TIME_LIB) \

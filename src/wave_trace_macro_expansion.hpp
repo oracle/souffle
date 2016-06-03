@@ -25,13 +25,13 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/convenience.hpp>
 
-#include <boost/wave/token_ids.hpp>
-#include <boost/wave/util/macro_helpers.hpp>
-#include <boost/wave/util/filesystem_compatibility.hpp>
-#include <boost/wave/preprocessing_hooks.hpp>
-#include <boost/wave/whitespace_handling.hpp>
-#include <boost/wave/language_support.hpp>
-#include <boost/wave/cpp_exceptions.hpp>
+#include <wavelib/token_ids.hpp>
+#include <wavelib/util/macro_helpers.hpp>
+#include <wavelib/util/filesystem_compatibility.hpp>
+#include <wavelib/preprocessing_hooks.hpp>
+#include <wavelib/whitespace_handling.hpp>
+#include <wavelib/language_support.hpp>
+#include <wavelib/cpp_exceptions.hpp>
 
 #include "wave_stop_watch.hpp"
 
