@@ -85,6 +85,7 @@
 %token <std::string> STRING      "symbol"
 %token <std::string> IDENT       "identifier"
 %token <int> NUMBER              "number"
+%token <bool> BOOL               "bool"
 %token <std::string> RELOP       "relational operator"
 %token OUTPUT_QUALIFIER          "relation qualifier output"
 %token INPUT_QUALIFIER           "relation qualifier input"
@@ -281,6 +282,12 @@ relation: DECL IDENT LPAREN attributes RPAREN qualifiers {
            $4->setQualifier($6);
            $$->setSrcLoc(@$);
           }
+        | DECL IDENT COLON type_id qualifiers /*should we hard code Bool?*/ {
+           $$ = new AstRelation();
+           $$->setName($2);
+           $$->setQualifier($5);
+           $$->setSrcLoc(@$);
+          }
         ;
 
 /* Atom */
@@ -471,6 +478,10 @@ arg_list: arg {
             $$ = $1;
             $$->addArgument(std::unique_ptr<AstArgument>($3));
           }
+        | 
+        {
+          $$ = 0;
+        }
         ;
 
 atom: rel_id LPAREN arg_list RPAREN {
@@ -479,7 +490,6 @@ atom: rel_id LPAREN arg_list RPAREN {
           $$->setSrcLoc(@$);
         }
     ;
-
 
 /* Literal */
 literal: arg RELOP arg {
@@ -516,6 +526,9 @@ literal: arg RELOP arg {
             res->setSrcLoc(@$);
             $$ = new RuleBody(std::move(RuleBody::constraint(res)));
           }
+       /*| BOOL { $$ = new AstBooleanConstant($1); 
+                $$->setSrcLoc(@$);
+              }*/
        ;
      
 /* Fact */

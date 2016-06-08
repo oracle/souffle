@@ -57,20 +57,11 @@
 /* Add line number tracking */
 %option yylineno noyywrap nounput
 
-%x IN_COMMENT
-
+%x ZERO HEX BIN
 %%
+0 { BEGIN(ZERO); }
 
 "//".*$                          {  }
-<INITIAL>{
-"/*"              BEGIN(IN_COMMENT);
-}
-<IN_COMMENT>{
-"*/"      BEGIN(INITIAL);
-[^*\n]+   // eat comment in chunks
-"*"       // eat the lone star
-\n        //
-}
 [ \t\r\v\f]*                     {  }
 \n                               { yycolumn = 1; }
 "#".*$                           { // processing line directive from cpp
@@ -88,6 +79,9 @@
                                        yyfilename = SLOOKUP(fname);
                                    } 
                                  }
+
+
+
 ".decl"                          { return yy::parser::make_DECL(yylloc); }
 ".type"                          { return yy::parser::make_TYPE(yylloc); }
 ".comp"                          { return yy::parser::make_COMPONENT(yylloc); }
@@ -139,25 +133,19 @@
 "}"                              { return yy::parser::make_RBRACE(yylloc); }
 "<"                              { return yy::parser::make_LT(yylloc); }
 ">"                              { return yy::parser::make_GT(yylloc); }
-[\?[:alpha:]][_\?[:alnum:]]*     { return yy::parser::make_IDENT(SLOOKUP(yytext), yylloc); }
+
+<ZERO>[0-9]*  { BEGIN(INITIAL); return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 10), yylloc);  }
+<ZERO>[b] { BEGIN(BIN); }
+<ZERO>[x] { BEGIN(HEX); }
+<BIN>[0-1]+ { BEGIN(INITIAL); return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 2), yylloc); }
+<HEX>[A-Fa-f0-9]+ {  BEGIN(INITIAL); return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 16), yylloc);  }
+[0-9]+  {printf("+\n"); return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 10), yylloc);  }
+
+
+[_\?[:alpha:]][_\?[:alnum:]]*     { return yy::parser::make_IDENT(SLOOKUP(yytext), yylloc); }
 ":-"                             { return yy::parser::make_IF(yylloc); }
 (!=|>=|<=)                       { return yy::parser::make_RELOP(SLOOKUP(yytext), yylloc); }
-[0-9]+                           { try {
-                                      return yy::parser::make_NUMBER(std::stoi(yytext), yylloc); 
-                                   } catch (...) { 
-                                      driver.error(yylloc, "integer constant must be in range [0, 2147483647]");
-                                      return yy::parser::make_NUMBER(0, yylloc);
-                                   }
-                                 }
-0[xX][0-9a-fA-F]+                {  try {
-                                      return yy::parser::make_NUMBER(std::stoul(yytext, nullptr, 16), yylloc); 
-                                    }
-                                    catch(...) {
-                                      driver.error(yylloc, "hex constant must use hex digits");
-                                      return yy::parser::make_NUMBER(0, yylloc);
-                                    }
-                                   
-                                 }
+
 
 \"[^\"]*\"                       { yytext[strlen(yytext)-1]=0; 
                                    if(strlen(&yytext[1]) == 0) {
