@@ -270,29 +270,6 @@ public:
 };
 
 /**
- * @class Boolean Constant
- * @brief Subclass of Argument that represents a datalog Boolean constant value
- */
-class AstBooleanConstant : public AstConstant {
-public:
-
-    AstBooleanConstant(bool val)
-        : AstConstant(val) {}
-
-    /** @brief Print argument to the given output stream */
-    virtual void print(std::ostream &os) const {
-        os << (int64_t)idx;
-    }
-
-    /** Creates a clone if this AST sub-structure */
-    virtual AstBooleanConstant* clone() const {
-        AstBooleanConstant* res = new AstBooleanConstant(getIndex());
-        res->setSrcLoc(getSrcLoc());
-        return res;
-    }
-};
-
-/**
  * @class AstNullConstant
  * @brief Subclass of AstConstant that represents a null-constant (no record)
  */

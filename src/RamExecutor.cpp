@@ -484,7 +484,9 @@ namespace {
 
                 // build new tuple
                 auto arity = project.getRelation().getArity();
+                printf("\n Arity is %d \n", arity);
                 const auto& values = project.getValues();
+                printf("\n First value is %d \n", values[0]);
                 RamDomain tuple[arity];
                 for(size_t i=0;i<arity;i++) {
                     tuple[i] = eval(values[i], env, ctxt);

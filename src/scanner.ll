@@ -57,11 +57,21 @@
 /* Add line number tracking */
 %option yylineno noyywrap nounput
 
-%x ZERO HEX BIN
-%%
-0 { BEGIN(ZERO); }
+%x ZERO HEX BIN IN_COMMENT
 
+%%
+
+0 { BEGIN(ZERO); }
 "//".*$                          {  }
+<INITIAL>{
+"/*"              BEGIN(IN_COMMENT);
+}
+<IN_COMMENT>{
+"*/"      BEGIN(INITIAL);
+[^*\n]+   // eat comment in chunks
+"*"       // eat the lone star
+\n        //
+}
 [ \t\r\v\f]*                     {  }
 \n                               { yycolumn = 1; }
 "#".*$                           { // processing line directive from cpp
@@ -79,8 +89,6 @@
                                        yyfilename = SLOOKUP(fname);
                                    } 
                                  }
-
-
 
 ".decl"                          { return yy::parser::make_DECL(yylloc); }
 ".type"                          { return yy::parser::make_TYPE(yylloc); }
@@ -132,11 +140,36 @@
 "}"                              { return yy::parser::make_RBRACE(yylloc); }
 "<"                              { return yy::parser::make_LT(yylloc); }
 ">"                              { return yy::parser::make_GT(yylloc); }
-<ZERO>[0-9]*  { BEGIN(INITIAL); return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 10), yylloc);  }
+<ZERO>[0-9]*  { BEGIN(INITIAL); 
+                try {
+                      return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 10), yylloc);  
+                    } catch (...) { 
+                      driver.error(yylloc, "integer constant must be in range [0, 2147483647]");
+                      return yy::parser::make_NUMBER(0, yylloc);
+                    }
+              }
 <ZERO>[b] { BEGIN(BIN); }
 <ZERO>[x] { BEGIN(HEX); }
-<BIN>[0-1]+ { BEGIN(INITIAL); return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 2), yylloc); }
-<HEX>[A-Fa-f0-9]+ {  BEGIN(INITIAL); return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 16), yylloc);  }
+<BIN>[0-1]+ { BEGIN(INITIAL);
+              try {
+                return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 2), yylloc); 
+              }
+              catch(...) {
+                driver.error(yylloc, "bool out of range");
+                return yy::parser::make_NUMBER(0, yylloc); 
+              }
+            }
+
+<HEX>[A-Fa-f0-9]+ {  BEGIN(INITIAL); 
+                     try {
+                       return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 16), yylloc);
+                     }
+                     catch(...) {
+                       driver.error(yylloc, "hex out of range");
+                       return yy::parser::make_NUMBER(0, yylloc);
+                     }
+                  }
+
 ":-"                             { return yy::parser::make_IF(yylloc); }
 (!=|>=|<=)                       { return yy::parser::make_RELOP(SLOOKUP(yytext), yylloc); }
 [_\?[:alpha:]][[:alnum:]_\?]*     { if (!strcmp(yytext, "_")) {

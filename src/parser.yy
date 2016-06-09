@@ -85,7 +85,6 @@
 %token <std::string> STRING      "symbol"
 %token <std::string> IDENT       "identifier"
 %token <int> NUMBER              "number"
-%token <bool> BOOL               "bool"
 %token <std::string> RELOP       "relational operator"
 %token OUTPUT_QUALIFIER          "relation qualifier output"
 %token INPUT_QUALIFIER           "relation qualifier input"
@@ -267,25 +266,22 @@ attributes: IDENT COLON type_id {
             $$->addAttribute(std::unique_ptr<AstAttribute>(a));
             delete $5;
           }
+        | { 
+           $$ = new AstRelation();
+          }
         ;
 
 qualifiers: qualifiers OUTPUT_QUALIFIER { if($1 & OUTPUT_RELATION) driver.error(@2, "output qualifier already set"); $$ = $1 | OUTPUT_RELATION; }
           | qualifiers INPUT_QUALIFIER { if($1 & INPUT_RELATION) driver.error(@2, "input qualifier already set"); $$ = $1 | INPUT_RELATION; }
           | qualifiers PRINTSIZE_QUALIFIER { if($1 & PRINTSIZE_RELATION) driver.error(@2, "printsize qualifier already set"); $$ = $1 | PRINTSIZE_RELATION; }
           | qualifiers OVERRIDABLE_QUALIFIER { if($1 & OVERRIDABLE_RELATION) driver.error(@2, "overridable qualifier already set"); $$ = $1 | OVERRIDABLE_RELATION; }
-          | {$$ = 0; }
+          | { $$ = 0; }
           ;
 
 relation: DECL IDENT LPAREN attributes RPAREN qualifiers {
            $$ = $4;
            $4->setName($2);
            $4->setQualifier($6);
-           $$->setSrcLoc(@$);
-          }
-        | DECL IDENT COLON type_id qualifiers /*should we hard code Bool?*/ {
-           $$ = new AstRelation();
-           $$->setName($2);
-           $$->setQualifier($5);
            $$->setSrcLoc(@$);
           }
         ;
@@ -480,7 +476,7 @@ arg_list: arg {
           }
         | 
         {
-          $$ = 0;
+          $$ = new AstAtom();
         }
         ;
 
@@ -526,9 +522,6 @@ literal: arg RELOP arg {
             res->setSrcLoc(@$);
             $$ = new RuleBody(std::move(RuleBody::constraint(res)));
           }
-       /*| BOOL { $$ = new AstBooleanConstant($1); 
-                $$->setSrcLoc(@$);
-              }*/
        ;
      
 /* Fact */
