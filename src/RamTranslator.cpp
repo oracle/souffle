@@ -352,9 +352,11 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(const AstClause& cl
 
     // handle facts
     if (clause.isFact()) {
-
         // translate arguments
         std::vector<std::unique_ptr<const RamValue>> values;
+        //if(clause.getHead()->getArguments().empty()) {
+        //  values.push_back(std::unique_ptr<RamValue>(new RamUnit())); 
+        //}
         for(auto &arg : clause.getHead()->getArguments()) {
             values.push_back(translateValue(*arg));
         }

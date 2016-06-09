@@ -72,7 +72,6 @@ namespace {
                 : env(env), ctxt(ctxt) {}
 
             // -- basics --
-
             RamDomain visitNumber(const RamNumber& num) {
                 return num.getConstant();
             }
@@ -486,7 +485,6 @@ namespace {
                 auto arity = project.getRelation().getArity();
                 printf("\n Arity is %d \n", arity);
                 const auto& values = project.getValues();
-                printf("\n First value is %d \n", values[0]);
                 RamDomain tuple[arity];
                 for(size_t i=0;i<arity;i++) {
                     tuple[i] = eval(values[i], env, ctxt);
@@ -1529,7 +1527,6 @@ namespace {
         }
 
         // -- values --
-
         void visitNumber(const RamNumber& num, std::ostream& out) {
             out << num.getConstant();
         }
