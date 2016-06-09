@@ -79,24 +79,31 @@ namespace detail {
     template<typename Tuple>
     class RecordMap {
 
+	// create blocks of a million entries
+	static const std::size_t BLOCK_SIZE = 1<<20;
+	static const std::size_t NUM_BLOCKS = 1<<(sizeof(RamDomain)*8-20);
+
         /** The definition of the tuple type handled by this instance */
-        typedef Tuple tuple_type;
+        using tuple_type = Tuple;
+
+	/** The definition of the type of a tuple block */
+	using block_type = std::array<tuple_type,BLOCK_SIZE>;
+
+	/** The type utilized for the block index */
+	using block_index_type = std::array<std::unique_ptr<block_type>,NUM_BLOCKS>;
 
         /** The mapping from tuples to references/indices */
         std::unordered_map<tuple_type,RamDomain> r2i;
 
         /** The mapping from indices to tuples */
-        std::vector<tuple_type> i2r;
+	block_index_type i2r;
 
         /** a lock for the pack operation */
         Lock pack_lock;
 
-        /** a lock for the unpack operation */
-        Lock unpack_lock;
-
     public:
 
-        RecordMap() : i2r(1) {}       // note: index 0 element left free
+        RecordMap() {}
 
         /**
          * Packs the given tuple -- and may create a new reference if necessary.
@@ -119,40 +126,32 @@ namespace detail {
 
                 } else {
 
-                    {
-                        // lock unpack operation
-                        auto leas = unpack_lock.acquire();
-                        (void) leas; // avoid warning
+	            // add tuple to index
+		    index = r2i.size() + 1; 	     // since 0 is skipped for the Nil element
+		    r2i[tuple] = index;
 
-                        // create new entry
-                        i2r.push_back(tuple);
-                        index = i2r.size() - 1;
-                        r2i[tuple] = index;
+		    // assert that new index is smaller than the range
+		    assert(index != std::numeric_limits<RamDomain>::max());
 
-                        // assert that new index is smaller than the range
-                        assert(index != std::numeric_limits<RamDomain>::max());
-                    }
+		    // create entry for unpacking
+		    auto& list = i2r[index/BLOCK_SIZE];
+		    if (!list) list = std::unique_ptr<block_type>(new block_type());
+
+		    // insert tuple
+		    (*list)[index%BLOCK_SIZE] = tuple;
                 }
             }
 
             // done
-            return index;
+            return index; 		
         }
 
         /**
          * Obtains a pointer to the tuple addressed by the given index.
          */
         const tuple_type& unpack(RamDomain index) {
-
-            tuple_type* res;
-
-            {
-                auto leas = unpack_lock.acquire();
-                (void) leas; // avoid warning
-                res = &(i2r[index]);
-            }
-
-            return *res;
+	    // just look up the right spot
+	    return (*(i2r[index/BLOCK_SIZE]))[index%BLOCK_SIZE];
         }
 
     };

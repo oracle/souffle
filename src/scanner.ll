@@ -113,7 +113,6 @@
 "|"                              { return yy::parser::make_PIPE(yylloc); }
 "["                              { return yy::parser::make_LBRACKET(yylloc); }
 "]"                              { return yy::parser::make_RBRACKET(yylloc); }
-"_"                              { return yy::parser::make_UNDERSCORE(yylloc); }
 "$"                              { return yy::parser::make_DOLLAR(yylloc); }
 "+"                              { return yy::parser::make_PLUS(yylloc); }
 "-"                              { return yy::parser::make_MINUS(yylloc); }
@@ -133,20 +132,25 @@
 "}"                              { return yy::parser::make_RBRACE(yylloc); }
 "<"                              { return yy::parser::make_LT(yylloc); }
 ">"                              { return yy::parser::make_GT(yylloc); }
-
 <ZERO>[0-9]*  { BEGIN(INITIAL); return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 10), yylloc);  }
 <ZERO>[b] { BEGIN(BIN); }
 <ZERO>[x] { BEGIN(HEX); }
 <BIN>[0-1]+ { BEGIN(INITIAL); return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 2), yylloc); }
 <HEX>[A-Fa-f0-9]+ {  BEGIN(INITIAL); return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 16), yylloc);  }
-[0-9]+  {printf("+\n"); return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 10), yylloc);  }
-
-
-[_\?[:alpha:]][_\?[:alnum:]]*     { return yy::parser::make_IDENT(SLOOKUP(yytext), yylloc); }
 ":-"                             { return yy::parser::make_IF(yylloc); }
 (!=|>=|<=)                       { return yy::parser::make_RELOP(SLOOKUP(yytext), yylloc); }
-
-
+[_\?[:alpha:]][[:alnum:]_\?]*     { if (!strcmp(yytext, "_")) {
+                                        return yy::parser::make_UNDERSCORE(yylloc);
+                                    } else {
+                                        return yy::parser::make_IDENT(SLOOKUP(yytext), yylloc); }
+                                    }
+[0-9]+                           { try {
+                                      return yy::parser::make_NUMBER(std::stoll(yytext), yylloc); 
+                                   } catch (...) { 
+                                      driver.error(yylloc, "integer constant must be in range [0, 2147483647]");
+                                      return yy::parser::make_NUMBER(0, yylloc);
+                                   }
+                                 }
 \"[^\"]*\"                       { yytext[strlen(yytext)-1]=0; 
                                    if(strlen(&yytext[1]) == 0) {
                                       driver.error(yylloc, "string literal is empty"); 

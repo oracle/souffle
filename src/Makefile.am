@@ -233,6 +233,7 @@ test_parallel_utils_test_SOURCES = test/parallel_utils_test.cpp
 test_parallel_utils_test_LDADD = libsouffle.a
 
 
+
 # make all check-programs tests
 TESTS = $(check_PROGRAMS)
 
