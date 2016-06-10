@@ -474,6 +474,7 @@ namespace {
             }
 
             void visitProject(const RamProject& project) {
+                printf("Project called\n");
 
                 // check constraints
                 RamCondition* condition = project.getCondition();
@@ -483,7 +484,6 @@ namespace {
 
                 // build new tuple
                 auto arity = project.getRelation().getArity();
-                printf("\n Arity is %d \n", arity);
                 const auto& values = project.getValues();
                 RamDomain tuple[arity];
                 for(size_t i=0;i<arity;i++) {
@@ -491,8 +491,14 @@ namespace {
                 }
 
                 // check filter relation
-                if(project.hasFilter() && env.getRelation(project.getFilter()).exists(tuple)){
+                if(project.hasFilter() && env.getRelation(project.getFilter()).exists(tuple)) {
                     return;
+                }
+ 
+                if(project.getRelation().getArity() == 0) {
+                  RamDomain eps[1] = RamNumber(2);
+                  env.getRelation(project.getRelation()).insert(eps);
+                  return;
                 }
 
                 // insert in target relation
@@ -585,11 +591,13 @@ namespace {
             }
 
             bool visitCreate(const RamCreate& create) {
+                printf("create\n");
                 env.getRelation(create.getRelation());
                 return true;
             }
 
             bool visitClear(const RamClear& clear) {
+                printf("clear\n");
                 env.getRelation(clear.getRelation()).purge();
                 return true;
             }
@@ -610,6 +618,7 @@ namespace {
             }
 
             bool visitLoad(const RamLoad& load) {
+                printf("load\n");
                 // load facts from file
                 std::ifstream csvfile;
                 std::string fname = config.getFactFileDir() + "/" + load.getFileName();
@@ -629,6 +638,7 @@ namespace {
             }
 
             bool visitStore(const RamStore& store) {
+                printf("store\n");
                 auto& rel = env.getRelation(store.getRelation());
                 if (config.getOutputDir() == "-") {
                     std::cout << "---------------\n" << rel.getName() << "\n===============\n";
@@ -642,9 +652,16 @@ namespace {
             }
 
             bool visitFact(const RamFact& fact) {
+                printf("fact\n");
                 auto arity = fact.getRelation().getArity();
                 RamDomain tuple[arity];
                 auto values = fact.getValues();
+                if(values.size() == 0){
+                  RamDomain eps[1] = { '\n' };
+                  env.getRelation(fact.getRelation()).insert(eps);
+                  return true;
+                }
+
                 for(size_t i = 0 ; i < arity ; ++i) {
                     tuple[i] = eval(values[i], env);
                 }
@@ -653,6 +670,7 @@ namespace {
             }
 
             bool visitInsert(const RamInsert& insert) {
+                printf("insert\n");
                 // run generic query executor
                 queryExecutor(config, insert, env, report);
                 return true;
@@ -660,6 +678,7 @@ namespace {
 
             bool visitMerge(const RamMerge& merge) {
 
+                printf("insert\n");
                 // get involved relation
                 RamRelation& src = env.getRelation(merge.getSourceRelation());
                 RamRelation& trg = env.getRelation(merge.getTargetRelation());

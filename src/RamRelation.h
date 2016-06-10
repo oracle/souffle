@@ -257,7 +257,7 @@ public:
 
         // prepare tail
         auto arity = getArity();
-        if (tail->getFreeSpace() < arity) {
+        if (tail->getFreeSpace() < arity || arity == 0) {
             tail->next = std::unique_ptr<Block>(new Block());
             tail = tail->next.get();
         }
