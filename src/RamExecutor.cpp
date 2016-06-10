@@ -496,7 +496,7 @@ namespace {
                 }
  
                 if(project.getRelation().getArity() == 0) {
-                  RamDomain eps[1] = RamNumber(2);
+                  RamDomain eps[1] = {'\n'};
                   env.getRelation(project.getRelation()).insert(eps);
                   return;
                 }
@@ -657,7 +657,7 @@ namespace {
                 RamDomain tuple[arity];
                 auto values = fact.getValues();
                 if(values.size() == 0){
-                  RamDomain eps[1] = { '\n' };
+                  RamDomain eps[1] = { 0};
                   env.getRelation(fact.getRelation()).insert(eps);
                   return true;
                 }

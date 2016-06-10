@@ -252,11 +252,14 @@ public:
 
     /** insert a new tuple to table */
     void insert(const RamDomain *tuple) {
+        printf("\ninserting into relation\n");
         // make existence check
         if (exists(tuple)) return;
 
         // prepare tail
         auto arity = getArity();
+        if(arity == 0) arity++;
+
         if (tail->getFreeSpace() < arity || arity == 0) {
             tail->next = std::unique_ptr<Block>(new Block());
             tail = tail->next.get();
@@ -414,7 +417,10 @@ public:
     /** get iterator begin of relation */
     inline iterator begin() const {
         if (empty()) return end();
-        return iterator(head.get(), &head->data[0], getArity());
+        if(getArity() == 0 && size() == 1)
+          return iterator(head.get(), &head->data[0], 1);
+        else
+          return iterator(head.get(), &head->data[0], getArity());
     }
 
     /** get iterator begin of relation */ 
