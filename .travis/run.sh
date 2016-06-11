@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Enable debugging and logging of shell operations 
+# Enable debugging and logging of shell operations
 # that are executed.
 set -e
 set -x
@@ -8,8 +8,8 @@ set -x
 # create configure files
 ./bootstrap
 
-# configure project 
-./configure
+# configure project
+./configure --enable-host-packaging
 
 # create deployment directory
 mkdir deploy
@@ -18,17 +18,17 @@ mkdir deploy
 # Linux Build #
 ###############
 if [ $TRAVIS_OS_NAME == linux ]
-then 
+then
   # if c++ compiler is g++, build Debian package
-  # otherwise; just check whether latest check-in works with 
-  # clang. 
+  # otherwise; just check whether latest check-in works with
+  # clang.
   if [ $CXX == g++ ]
-  then 
-    TESTSUITEFLAGS=-j3 make deb
+  then
+    TESTSUITEFLAGS=-j3 make package
     # compute md5 for package &
     # copy files to deploy directory
     for f in packaging/*.deb
-    do 
+    do
       pkg=`basename $f .deb`
       src="packaging/$pkg.deb"
       dest="deploy/$pkg.deb"
@@ -37,7 +37,7 @@ then
     done
     # show contents of deployment
     ls deploy/*
-  else 
+  else
     make
     TESTSUITEFLAGS=-j3 make check
   fi
@@ -48,12 +48,12 @@ fi
 ############
 
 if [ $TRAVIS_OS_NAME == osx ]
-then 
+then
   TESTSUITEFLAGS=-j3 make pkg
   # compute md5 for package &
   # copy files to deploy directory
   for f in *.pkg
-  do 
+  do
     pkg=`basename $f .pkg`
     src="$pkg.pkg"
     dest="deploy/$pkg.pkg"
