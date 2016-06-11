@@ -127,7 +127,15 @@ m4_define([DEFNSUBST], [
 # enable conditional AUTOMAKE macro amnd check and define the tool responsible
 # for building a package
 m4_define(DIST_PACKAGING,[
-  if test -n "$SOUFFLE_PACKAGING" && test $DISTRIBUTION = $1; then
+  unset package
+  for distro in $1; do
+    if test -n "$SOUFFLE_PACKAGING" && test $DISTRIBUTION = $distro; then
+      package=1;
+      break;
+    fi
+  done
+
+  if test -n "$package"; then
     DEFNSUBST($3, $4)
     AM_CONDITIONAL($2, true)
   else
@@ -135,8 +143,7 @@ m4_define(DIST_PACKAGING,[
   fi
 ])
 
-DIST_PACKAGING([debian],[DEBIAN_PACKAGE],[DEBUILD],[debuild])
-DIST_PACKAGING([ubuntu],[DEBIAN_PACKAGE],[DEBUILD],[debuild])
+DIST_PACKAGING([debian ubuntu],[DEBIAN_PACKAGE],[DEBUILD],[debuild])
 DIST_PACKAGING([osx],[OSX_PACKAGE],[PKGBUILD],[pkgbuild])
 DIST_PACKAGING([bsd],[BSD_PACKAGE],[PKGBUILD],[pkgbuild])
 
