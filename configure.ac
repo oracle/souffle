@@ -82,7 +82,6 @@ AC_ARG_ENABLE(
 
 # Get the name of the distribution
 if test -n "$SOUFFLE_PACKAGING"; then
-  AM_CONDITIONAL(PACKAGING, [true])
   case $host_os in
     darwin* )
       DISTRIBUTION=osx
@@ -92,11 +91,9 @@ if test -n "$SOUFFLE_PACKAGING"; then
       AC_CHECK_PROG(LSB_RELEASE, lsb_release, lsb_release)
       AS_IF([test -z "$LSB_RELEASE"], [AC_MSG_ERROR([lsb_release required to detect LINUX distribution not found.])])
       DISTRIBUTION=m4_esyscmd([lsb_release -i | sed 's/^.*:[ \t]\+//' | tr [A-Z] [a-z]])
-      AM_CONDITIONAL(LINUX_PACKAGE, [true])
     ;;
     *BSD*)
       DISTRIBUTION=bsd
-      AM_CONDITIONAL(BSD_PACKAGE, [true])
     ;;
     *)
       AC_MSG_ERROR([Unsupported platform])
