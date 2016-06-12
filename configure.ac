@@ -205,6 +205,6 @@ AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([dup2 fchdir getcwd getpagesize gettimeofday isascii memset mkdir munmap pow regcomp rmdir setenv socket strcasecmp strchr strdup strerror strrchr strstr strtol strtoull])
 
 AC_OUTPUT(
-    [ src/souffle-compile src/souffle-config ],
+    [ src/souffle-compile src/souffle-config debian/changelog ],
     [ chmod +x src/souffle-compile src/souffle-config ]
 )

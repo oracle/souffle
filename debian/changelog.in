@@ -1,4 +1,4 @@
-souffle (1.0.0) UNRELEASED; urgency=low
+souffle (@VERSION@-1) UNRELEASED; urgency=low
 
   * Initial release
 
