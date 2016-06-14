@@ -36,7 +36,7 @@ public class Cli {
      * Prints usage of souffle profiler
      */
     public void error() {
-        System.out.println("java -jar souffleprof.jar [-f <file> [-c <command>] [-l]] [-h] [-v]"); 
+        System.out.println("java -jar souffleprof.jar [-f <file> [-c <command>] [-l]] [-h]"); 
         System.exit(1); 
     }
 
