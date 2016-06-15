@@ -474,16 +474,22 @@ namespace {
             }
 
             void visitProject(const RamProject& project) {
-                printf("Project called\n");
-
                 // check constraints
                 RamCondition* condition = project.getCondition();
                 if (condition && !eval(*condition, env, ctxt)) {
                     return;        // condition violated => skip insert
                 }
 
-                // build new tuple
+                if (project.getRelation().isNullary()) {
+                    // build new tuple
+                    assert(project.getRelation().isNullary());
+                    RamDomain eps[1] = { project.getRelation().getNullValue() };
+                    env.getRelation(project.getRelation()).insert(eps);
+                    return;
+                }
+
                 auto arity = project.getRelation().getArity();
+
                 const auto& values = project.getValues();
                 RamDomain tuple[arity];
                 for(size_t i=0;i<arity;i++) {
@@ -494,19 +500,12 @@ namespace {
                 if(project.hasFilter() && env.getRelation(project.getFilter()).exists(tuple)) {
                     return;
                 }
- 
-                if(project.getRelation().getArity() == 0) {
-                  RamDomain eps[1] = {'\n'};
-                  env.getRelation(project.getRelation()).insert(eps);
-                  return;
-                }
 
                 // insert in target relation
                 env.getRelation(project.getRelation()).insert(tuple);
             }
 
             // -- safety net --
-
             void visitNode(const RamNode& node) {
                 std::cout << "Unsupported node Type: " << typeid(node).name() << "\n";
                 assert(false && "Unsupported Node Type!");
@@ -591,13 +590,11 @@ namespace {
             }
 
             bool visitCreate(const RamCreate& create) {
-                printf("create\n");
                 env.getRelation(create.getRelation());
                 return true;
             }
 
             bool visitClear(const RamClear& clear) {
-                printf("clear\n");
                 env.getRelation(clear.getRelation()).purge();
                 return true;
             }
@@ -618,7 +615,6 @@ namespace {
             }
 
             bool visitLoad(const RamLoad& load) {
-                printf("load\n");
                 // load facts from file
                 std::ifstream csvfile;
                 std::string fname = config.getFactFileDir() + "/" + load.getFileName();
@@ -638,7 +634,6 @@ namespace {
             }
 
             bool visitStore(const RamStore& store) {
-                printf("store\n");
                 auto& rel = env.getRelation(store.getRelation());
                 if (config.getOutputDir() == "-") {
                     std::cout << "---------------\n" << rel.getName() << "\n===============\n";
@@ -651,16 +646,17 @@ namespace {
                 return true;
             }
 
+            bool visitNFact(const RamNFact& fact) {
+                  std::cout << "null fact!\n";
+                  RamDomain eps[1] = {fact.getRelation().getNullValue()};
+                  env.getRelation(fact.getRelation()).insert(eps);
+                  return true;
+            }
+
             bool visitFact(const RamFact& fact) {
-                printf("fact\n");
                 auto arity = fact.getRelation().getArity();
                 RamDomain tuple[arity];
                 auto values = fact.getValues();
-                if(values.size() == 0){
-                  RamDomain eps[1] = { 0};
-                  env.getRelation(fact.getRelation()).insert(eps);
-                  return true;
-                }
 
                 for(size_t i = 0 ; i < arity ; ++i) {
                     tuple[i] = eval(values[i], env);
@@ -670,15 +666,12 @@ namespace {
             }
 
             bool visitInsert(const RamInsert& insert) {
-                printf("insert\n");
                 // run generic query executor
                 queryExecutor(config, insert, env, report);
                 return true;
             }
 
             bool visitMerge(const RamMerge& merge) {
-
-                printf("insert\n");
                 // get involved relation
                 RamRelation& src = env.getRelation(merge.getSourceRelation());
                 RamRelation& trg = env.getRelation(merge.getTargetRelation());
@@ -982,6 +975,12 @@ namespace {
         // -- relation statements --
 
         void visitCreate(const RamCreate& create, std::ostream& out) {
+        }
+
+        void visitNFact(const RamNFact& fact, std::ostream& out) {
+            out << getRelationName(fact.getRelation()) << ".insert("
+                << fact.getRelation().getNullValue()
+                << ");\n";
         }
 
         void visitFact(const RamFact& fact, std::ostream& out) {
@@ -1402,11 +1401,21 @@ namespace {
             if (condition) {
                 out << "if (" << print(condition) << ") {\n";
             }
+            
 
-            // create projected tuple
-            out << "Tuple<RamDomain," << arity << "> tuple({"
-                    << join(project.getValues(), ",", rec)
-                << "});\n";
+            if (project.getRelation().isNullary()) {
+                out << "Tuple<RamDomain," << arity << "> tuple({"
+                    << project.getRelation().getNullValue()
+                    << "});\n";
+
+            }
+            else {
+                // create projected tuple
+                out << "Tuple<RamDomain," << arity << "> tuple({"
+                        << join(project.getValues(), ",", rec)
+                    << "});\n";
+
+            }
 
             // check filter
             if (project.hasFilter()) {
@@ -1441,7 +1450,6 @@ namespace {
                     out << " else { ++private_num_failed_proofs; }";
                 }
             }
-
 
         }
 

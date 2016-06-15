@@ -50,6 +50,7 @@ enum RamNodeType {
     // statements
     RN_Create,
     RN_Fact,
+    RN_NFact,
     RN_Load,
     RN_Store,
     RN_Insert,

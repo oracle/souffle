@@ -45,6 +45,7 @@ class RamRelationIdentifier {
     std::vector<std::string> attributeNames;
     std::vector<std::string> attributeTypeQualifiers;
     bool input;
+    bool nullary;
     bool computed;
     bool output;
 
@@ -55,21 +56,27 @@ class RamRelationIdentifier {
 
 public:
 
-    RamRelationIdentifier() : arity(0), input(false), computed(false), output(false), last(nullptr), rel(nullptr) {
+    RamRelationIdentifier() : arity(0), input(false), nullary(false), computed(false), output(false), last(nullptr), rel(nullptr) {
+      //std::cout << "created empty non nullary\n";
     }
 
     RamRelationIdentifier(const std::string& name, unsigned arity,
             std::vector<std::string> attributeNames = {},
             std::vector<std::string> attributeTypeQualifiers = {},
-            bool input = false, bool computed = false, bool output = false)
+            bool input = false, bool nullary = false, bool computed = false, bool output = false)
         : name(name), arity(arity), attributeNames(attributeNames), attributeTypeQualifiers(attributeTypeQualifiers),
-          input(input), computed(computed), output(output), last(nullptr), rel(nullptr)  {
+          input(input), nullary(nullary), computed(computed), output(output), last(nullptr), rel(nullptr)  {
+        //nullary ? std::cout << "created nullary :: name = "<< name << "\n" :  std::cout << "created non nullary :: name = " << name << "\n";
         assert(this->attributeNames.size() == arity || this->attributeNames.empty());
         assert(this->attributeTypeQualifiers.size() == arity || this->attributeTypeQualifiers.empty());
     }
 
     const std::string& getName() const {
         return name;
+    }
+ 
+    const char getNullValue() const {
+        return '0';
     }
 
     const std::string getArg(uint32_t i) const {
@@ -84,13 +91,17 @@ public:
         if (!attributeTypeQualifiers.empty()) {
             return attributeTypeQualifiers[i];
         } else {
-            assert(0 && "has no type qualifiers");
+            //assert(0 && "has no type qualifiers");
             return "";
         }
     }
 
     bool isInput() const {
         return input;
+    }
+
+    bool isNullary() const { 
+        return nullary; 
     }
 
     bool isComputed() const {
@@ -252,13 +263,11 @@ public:
 
     /** insert a new tuple to table */
     void insert(const RamDomain *tuple) {
-        printf("\ninserting into relation\n");
         // make existence check
         if (exists(tuple)) return;
 
         // prepare tail
         auto arity = getArity();
-        if(arity == 0) arity++;
 
         if (tail->getFreeSpace() < arity || arity == 0) {
             tail->next = std::unique_ptr<Block>(new Block());
@@ -428,8 +437,6 @@ public:
         return iterator(); 
     }
 };
-
-
 
 /**
  * An environment encapsulates all the context information required for
