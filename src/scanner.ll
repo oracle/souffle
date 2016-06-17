@@ -140,8 +140,10 @@
 "}"                              { return yy::parser::make_RBRACE(yylloc); }
 "<"                              { return yy::parser::make_LT(yylloc); }
 ">"                              { return yy::parser::make_GT(yylloc); }
-<ZERO>[0-9]*  { BEGIN(INITIAL); 
+<ZERO>[0-9]*  {  
+                BEGIN(INITIAL);
                 try {
+                      printf("\nreturning number\n");
                       return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 10), yylloc);  
                     } catch (...) { 
                       driver.error(yylloc, "integer constant must be in range [0, 2147483647]");
@@ -150,6 +152,7 @@
               }
 <ZERO>[b] { BEGIN(BIN); }
 <ZERO>[x] { BEGIN(HEX); }
+
 <BIN>[0-1]+ { BEGIN(INITIAL);
               try {
                 return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 2), yylloc); 

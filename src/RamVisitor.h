@@ -76,6 +76,7 @@ struct RamVisitor : public ram_visitor_tag {
             // values
             FORWARD(ElementAccess);
             FORWARD(Number);
+            FORWARD(Null);
             FORWARD(BinaryOperator);
             FORWARD(AutoIncrement);
             FORWARD(Ord);
@@ -99,7 +100,6 @@ struct RamVisitor : public ram_visitor_tag {
             // statements
             FORWARD(Create);
             FORWARD(Fact);
-            FORWARD(NFact);
             FORWARD(Load);
             FORWARD(Store);
             FORWARD(Insert);
@@ -141,7 +141,6 @@ protected:
     // -- statements --
     LINK(Create, RelationStatement);
     LINK(Fact, RelationStatement);
-    LINK(NFact, RelationStatement);
     LINK(Load, RelationStatement);
     LINK(Store, RelationStatement);
     LINK(Clear, RelationStatement);
@@ -184,6 +183,7 @@ protected:
 
     // -- values --
     LINK(Number, Value)
+    LINK(Null, Value)
     LINK(ElementAccess, Value)
     LINK(BinaryOperator, Value)
     LINK(Ord, Value)

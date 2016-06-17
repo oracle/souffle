@@ -57,7 +57,6 @@ class RamRelationIdentifier {
 public:
 
     RamRelationIdentifier() : arity(0), input(false), nullary(false), computed(false), output(false), last(nullptr), rel(nullptr) {
-      //std::cout << "created empty non nullary\n";
     }
 
     RamRelationIdentifier(const std::string& name, unsigned arity,
@@ -66,7 +65,6 @@ public:
             bool input = false, bool nullary = false, bool computed = false, bool output = false)
         : name(name), arity(arity), attributeNames(attributeNames), attributeTypeQualifiers(attributeTypeQualifiers),
           input(input), nullary(nullary), computed(computed), output(output), last(nullptr), rel(nullptr)  {
-        //nullary ? std::cout << "created nullary :: name = "<< name << "\n" :  std::cout << "created non nullary :: name = " << name << "\n";
         assert(this->attributeNames.size() == arity || this->attributeNames.empty());
         assert(this->attributeTypeQualifiers.size() == arity || this->attributeTypeQualifiers.empty());
     }

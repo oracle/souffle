@@ -76,6 +76,10 @@ namespace {
                 return num.getConstant();
             }
 
+            RamDomain visitNull(const RamNull& null) {
+                return null.getConstant();
+            }
+
             RamDomain visitElementAccess(const RamElementAccess& access) {
                 return ctxt[access.getLevel()][access.getElement()];
             }
@@ -189,19 +193,24 @@ namespace {
             }
 
             bool visitNotExists(const RamNotExists& ne) {
-
                 const RamRelation& rel = env.getRelation(ne.getRelation());
 
                 // construct the pattern tuple
                 auto arity = rel.getArity();
                 auto values = ne.getValues();
 
+                bool isNullary = ne.getRelation().isNullary();
+
                 // for total we use the exists test
                 if (ne.isTotal()) {
-
                     RamDomain tuple[arity];
-                    for(size_t i=0;i<arity;i++) {
-                        tuple[i]= (values[i]) ? eval(values[i],env,ctxt) : MIN_RAM_DOMAIN;
+                    if(arity == 1 && isNullary) {
+                        tuple[0] = rel.getID().getNullValue();
+                    }
+                    else {
+                        for(size_t i=0;i<arity;i++) {
+                            tuple[i]= (values[i]) ? eval(values[i],env,ctxt) : MIN_RAM_DOMAIN;
+                        }
                     }
 
                     return !rel.exists(tuple);
@@ -388,7 +397,6 @@ namespace {
             }
 
             void visitAggregate(const RamAggregate& aggregate) {
-
                 // get the targeted relation
                 const RamRelation& rel = env.getRelation(aggregate.getRelation());
 
@@ -480,15 +488,8 @@ namespace {
                     return;        // condition violated => skip insert
                 }
 
-                if (project.getRelation().isNullary()) {
-                    // build new tuple
-                    assert(project.getRelation().isNullary());
-                    RamDomain eps[1] = { project.getRelation().getNullValue() };
-                    env.getRelation(project.getRelation()).insert(eps);
-                    return;
-                }
-
                 auto arity = project.getRelation().getArity();
+                assert(arity != 0);
 
                 const auto& values = project.getValues();
                 RamDomain tuple[arity];
@@ -646,13 +647,6 @@ namespace {
                 return true;
             }
 
-            bool visitNFact(const RamNFact& fact) {
-                  std::cout << "null fact!\n";
-                  RamDomain eps[1] = {fact.getRelation().getNullValue()};
-                  env.getRelation(fact.getRelation()).insert(eps);
-                  return true;
-            }
-
             bool visitFact(const RamFact& fact) {
                 auto arity = fact.getRelation().getArity();
                 RamDomain tuple[arity];
@@ -661,6 +655,7 @@ namespace {
                 for(size_t i = 0 ; i < arity ; ++i) {
                     tuple[i] = eval(values[i], env);
                 }
+
                 env.getRelation(fact.getRelation()).insert(tuple);
                 return true;
             }
@@ -975,12 +970,6 @@ namespace {
         // -- relation statements --
 
         void visitCreate(const RamCreate& create, std::ostream& out) {
-        }
-
-        void visitNFact(const RamNFact& fact, std::ostream& out) {
-            out << getRelationName(fact.getRelation()) << ".insert("
-                << fact.getRelation().getNullValue()
-                << ");\n";
         }
 
         void visitFact(const RamFact& fact, std::ostream& out) {
@@ -1556,6 +1545,10 @@ namespace {
         // -- values --
         void visitNumber(const RamNumber& num, std::ostream& out) {
             out << num.getConstant();
+        }
+
+        void visitNull(const RamNull& null, std::ostream& out) {
+            out << null.getConstant();
         }
 
         void visitElementAccess(const RamElementAccess& access, std::ostream& out) {

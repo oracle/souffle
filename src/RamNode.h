@@ -26,6 +26,7 @@ enum RamNodeType {
     // values
     RN_ElementAccess,
     RN_Number,
+    RN_Null,
     /*RN_Unit,*/
     RN_BinaryOperator,
     RN_AutoIncrement,
@@ -50,7 +51,6 @@ enum RamNodeType {
     // statements
     RN_Create,
     RN_Fact,
-    RN_NFact,
     RN_Load,
     RN_Store,
     RN_Insert,

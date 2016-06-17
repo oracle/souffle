@@ -123,24 +123,6 @@ public:
 
 };
 
-/** Adds a fact to a given relation */
-class RamNFact : public RamRelationStatement {
-
-public:
-    RamNFact(const RamRelationIdentifier& rel)
-        : RamRelationStatement(RN_NFact, rel) {
-    }
-
-    ~RamNFact() { }
-
-    /** Pretty print statement */
-    virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos);
-        os << "INSERT (" << getRelation().getNullValue() <<  ") INTO " << getRelation().getName();
-    }
-};
-
-
 /** Loads data from a file into a relation */
 class RamLoad : public RamRelationStatement {
 
