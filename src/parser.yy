@@ -148,9 +148,9 @@
 %type <AstComponent *>                   component component_head component_body
 %type <AstComponentType *>               comp_type
 %type <AstComponentInit *>               comp_init
-%type <AstRelation *>                    attributes relation
+%type <AstRelation *>                    attributes non_empty_attributes relation
 %type <AstArgument *>                    arg
-%type <AstAtom *>                        arg_list atom
+%type <AstAtom *>                        arg_list non_empty_arg_list atom
 %type <std::vector<AstAtom*>>            head
 %type <RuleBody *>                       literal term disjunction conjunction body
 %type <AstClause *>                      fact
@@ -252,7 +252,7 @@ rel_id:
          
          
 /* Relations */
-attributes: IDENT COLON type_id {
+non_empty_attributes : IDENT COLON type_id {
            $$ = new AstRelation();
            AstAttribute *a = new AstAttribute($1, *$3);
            a->setSrcLoc(@3);
@@ -266,6 +266,9 @@ attributes: IDENT COLON type_id {
             $$->addAttribute(std::unique_ptr<AstAttribute>(a));
             delete $5;
           }
+        ;
+
+attributes: non_empty_attributes { $$ = $1; }
         | { 
            $$ = new AstRelation();
           }
@@ -466,7 +469,8 @@ recordlist: arg {
             }
           ; 
 
-arg_list: arg {
+non_empty_arg_list : 
+          arg {
             $$ = new AstAtom();
             $$->addArgument(std::unique_ptr<AstArgument>($1));
           }
@@ -474,8 +478,10 @@ arg_list: arg {
             $$ = $1;
             $$->addArgument(std::unique_ptr<AstArgument>($3));
           }
-        | 
-        {
+        ;
+
+arg_list: non_empty_arg_list { $$ = $1; }
+        | {
           $$ = new AstAtom();
         }
         ;
