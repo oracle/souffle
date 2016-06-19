@@ -532,8 +532,7 @@ pp_iterator_functor<ContextT>::operator()()
         skipped_newline = true;
 
 // if there were skipped any newlines, we must emit a #line directive
-    if ((must_emit_line_directive || (was_seen_newline && skipped_newline)) &&
-        impl::consider_emitting_line_directive(ctx, id))
+    if ((must_emit_line_directive) && impl::consider_emitting_line_directive(ctx, id))
     {
     // must emit a #line directive
         if (need_emit_line_directives(ctx.get_language()) && emit_line_directive())
@@ -607,15 +606,15 @@ pp_iterator_functor<ContextT>::operator()()
         break;
     }
 
-    if (whitespace.must_insert(id, act_token.get_value())) {
+    //if (whitespace.must_insert(id, act_token.get_value())) {
     // must insert some whitespace into the output stream to avoid adjacent
     // tokens, which would form different (and wrong) tokens
-        whitespace.shift_tokens(T_SPACE);
-        pending_queue.push_front(act_token);        // push this token back
-        return act_token = result_type(T_SPACE,
-            typename result_type::string_type(" "),
-            act_token.get_position());
-    }
+    //    whitespace.shift_tokens(T_SPACE);
+    //    pending_queue.push_front(act_token);        // push this token back
+    //    return act_token = result_type(T_SPACE,
+    //        typename result_type::string_type(" "),
+    //        act_token.get_position());
+    //}
     whitespace.shift_tokens(id);
     return ctx.get_hooks().generated_token(ctx.derived(), act_token);
 }

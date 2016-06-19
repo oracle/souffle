@@ -81,12 +81,7 @@ public:
     }
 
     const std::string getArgTypeQualifier(uint32_t i) const {
-        if (!attributeTypeQualifiers.empty()) {
-            return attributeTypeQualifiers[i];
-        } else {
-            assert(0 && "has no type qualifiers");
-            return "";
-        }
+    	return (i < attributeTypeQualifiers.size()) ? attributeTypeQualifiers[i] : "";
     }
 
     bool isInput() const {
@@ -252,12 +247,20 @@ public:
 
     /** insert a new tuple to table */
     void insert(const RamDomain *tuple) {
+
+    	// check for null-arity
+        auto arity = getArity();
+    	if (arity == 0) {
+    		// set number of tuples to one -- that's it
+    		num_tuples = 1;
+    		return;
+    	}
+
         // make existence check
         if (exists(tuple)) return;
 
         // prepare tail
-        auto arity = getArity();
-        if (tail->getFreeSpace() < arity) {
+        if (tail->getFreeSpace() < arity || arity == 0) {
             tail->next = std::unique_ptr<Block>(new Block());
             tail = tail->next.get();
         }
@@ -359,6 +362,10 @@ public:
 
     /** check whether a tuple exists in the relation */
     bool exists(const RamDomain* tuple) const {
+    	// handle arity 0
+    	if (getArity() == 0) return !empty();
+
+    	// handle all other arities
         if (!totalIndex)
             totalIndex = getIndex(getTotalIndexKey());
         return totalIndex->exists(tuple);
@@ -401,7 +408,17 @@ public:
         }
 
         iterator& operator++() {
+        	// check for end
             if (!cur) return *this;
+
+            // support 0-arity
+        	if (arity == 0) {
+        		// move to end
+        		*this = iterator();
+        		return *this;
+        	}
+
+            // support all other arities
             tuple += arity;
             if (tuple >= &cur->data[cur->used]) {
                 cur = cur->next.get();
@@ -413,8 +430,19 @@ public:
 
     /** get iterator begin of relation */
     inline iterator begin() const {
+    	// check for emptiness
         if (empty()) return end();
-        return iterator(head.get(), &head->data[0], getArity());
+
+        // support 0-arity
+        auto arity = getArity();
+        if(arity == 0) {
+        	Block dummyBlock;
+        	RamDomain dummyTuple;
+        	return iterator(&dummyBlock, &dummyTuple, 0);
+        }
+
+        // support non-empty non-zero arity relation
+        return iterator(head.get(), &head->data[0], arity);
     }
 
     /** get iterator begin of relation */ 
@@ -422,8 +450,6 @@ public:
         return iterator(); 
     }
 };
-
-
 
 /**
  * An environment encapsulates all the context information required for
