@@ -54,40 +54,11 @@
 
 %}
 
+%x IN_COMMENT
 /* Add line number tracking */
 %option yylineno noyywrap nounput
 
-%x IN_COMMENT
-
 %%
-
-"//".*$                          {  }
-<INITIAL>{
-"/*"              BEGIN(IN_COMMENT);
-}
-<IN_COMMENT>{
-"*/"      BEGIN(INITIAL);
-[^*\n]+   // eat comment in chunks
-"*"       // eat the lone star
-\n        //
-}
-[ \t\r\v\f]*                     {  }
-\n                               { yycolumn = 1; }
-"#".*$                           { // processing line directive from cpp
-                                   char fname[yyleng+1];
-                                   int lineno;
-                                   if(sscanf(yytext,"# %d \"%s",&lineno,fname)>=2) {
-                                       assert(strlen(fname) > 0 && "failed conversion");
-                                       fname[strlen(fname)-1]='\0';
-                                       yycolumn = 1; yylineno = lineno-1;
-                                       yyfilename = SLOOKUP(fname);
-                                   } else if(sscanf(yytext,"#line %d \"%s",&lineno,fname)>=2) {
-                                       assert(strlen(fname) > 0 && "failed conversion");
-                                       fname[strlen(fname)-1]='\0';
-                                       yycolumn = 1; yylineno = lineno-1;
-                                       yyfilename = SLOOKUP(fname);
-                                   } 
-                                 }
 ".decl"                          { return yy::parser::make_DECL(yylloc); }
 ".type"                          { return yy::parser::make_TYPE(yylloc); }
 ".comp"                          { return yy::parser::make_COMPONENT(yylloc); }
@@ -140,37 +111,78 @@
 ">"                              { return yy::parser::make_GT(yylloc); }
 ":-"                             { return yy::parser::make_IF(yylloc); }
 (!=|>=|<=)                       { return yy::parser::make_RELOP(SLOOKUP(yytext), yylloc); }
-[_\?[:alpha:]][[:alnum:]_\?]*     { if (!strcmp(yytext, "_")) {
-                                        return yy::parser::make_UNDERSCORE(yylloc);
-                                    } else {
-                                        return yy::parser::make_IDENT(SLOOKUP(yytext), yylloc); }
-                                    }
+0b[0-1][0-1]*                    { try {
+                                     return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 2), yylloc); 
+                                   } catch(...) {
+                                     driver.error(yylloc, "bool out of range");
+                                     return yy::parser::make_NUMBER(0, yylloc); 
+                                   }
+                                 }
+0x[a-fA-F0-9]+                   { try {
+                                     return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 16), yylloc);
+                                   } catch(...) {
+                                     driver.error(yylloc, "hex out of range");
+                                     return yy::parser::make_NUMBER(0, yylloc);
+                                   }
+                                 }
 [0-9]+                           { try {
-                                      return yy::parser::make_NUMBER(std::stoi(yytext), yylloc); 
+                                     return yy::parser::make_NUMBER(std::stoi(yytext, NULL, 10), yylloc);  
                                    } catch (...) { 
-                                      driver.error(yylloc, "integer constant must be in range [0, 2147483647]");
-                                      return yy::parser::make_NUMBER(0, yylloc);
+                                     driver.error(yylloc, "integer constant must be in range [0, 2147483647]");
+                                     return yy::parser::make_NUMBER(0, yylloc);
+                                   }
+                                 }
+[_\?a-zA-Z][_\?a-zA-Z0-9]*       { if (!strcmp(yytext, "_")) {
+                                     return yy::parser::make_UNDERSCORE(yylloc);
+                                   } else {
+                                     return yy::parser::make_IDENT(SLOOKUP(yytext), yylloc); 
                                    }
                                  }
 \"[^\"]*\"                       { yytext[strlen(yytext)-1]=0; 
                                    if(strlen(&yytext[1]) == 0) {
-                                      driver.error(yylloc, "string literal is empty"); 
+                                     driver.error(yylloc, "string literal is empty"); 
                                    } 
                                    for(size_t i=1;i<=strlen(&yytext[1]); i++) {
-                                      if(yytext[i] == '\t' || yytext[i] == '\n') {
-                                          driver.error(yylloc, "no tabs/newlines in string literals"); 
-                                          break;
-                                      }
+                                     if(yytext[i] == '\t' || yytext[i] == '\n') {
+                                       driver.error(yylloc, "no tabs/newlines in string literals"); 
+                                       break;
+                                     }
                                    }
                                    for(size_t i=1;i<=strlen(&yytext[1]); i++) {
                                       if(!isascii(yytext[i])) {
-                                          driver.error(yylloc, "only ascii characters in string literals"); 
-                                          break;
+                                        driver.error(yylloc, "only ascii characters in string literals"); 
+                                        break;
                                       } 
                                    } 
                                    return yy::parser::make_STRING(SLOOKUP(&yytext[1]), yylloc); 
                                  }
-<<EOF>>                          { return yy::parser::make_END(yylloc); }                                 
+\#.*$                            { // processing line directive from cpp
+                                   char fname[yyleng+1];
+                                   int lineno;
+                                   if(sscanf(yytext,"# %d \"%s",&lineno,fname)>=2) {
+                                     assert(strlen(fname) > 0 && "failed conversion");
+                                     fname[strlen(fname)-1]='\0';
+                                     yycolumn = 1; yylineno = lineno-1;
+                                     yyfilename = SLOOKUP(fname);
+                                   } else if(sscanf(yytext,"#line %d \"%s",&lineno,fname)>=2) {
+                                     assert(strlen(fname) > 0 && "failed conversion");
+                                     fname[strlen(fname)-1]='\0';
+                                     yycolumn = 1; yylineno = lineno-1;
+                                     yyfilename = SLOOKUP(fname);
+                                   } 
+                                 }
+"//".*$                          { }
+<INITIAL>{
+"/*"                             BEGIN(IN_COMMENT);
+}
+<IN_COMMENT>{
+"*/"                             BEGIN(INITIAL);
+[^*\n]+                          { }
+"*"                              { }
+\n                               { }
+}
+\n                               { yycolumn = 1; }
+[ \t\r\v\f]*                     { }
+<<EOF>>                          { return yy::parser::make_END(yylloc); }
 .                                { driver.error(yylloc, std::string("unexpected ") + yytext); } 
-
 %%
