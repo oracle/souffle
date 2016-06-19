@@ -148,9 +148,9 @@
 %type <AstComponent *>                   component component_head component_body
 %type <AstComponentType *>               comp_type
 %type <AstComponentInit *>               comp_init
-%type <AstRelation *>                    attributes relation
+%type <AstRelation *>                    attributes non_empty_attributes relation
 %type <AstArgument *>                    arg
-%type <AstAtom *>                        arg_list atom
+%type <AstAtom *>                        arg_list non_empty_arg_list atom
 %type <std::vector<AstAtom*>>            head
 %type <RuleBody *>                       literal term disjunction conjunction body
 %type <AstClause *>                      fact
@@ -252,7 +252,7 @@ rel_id:
          
          
 /* Relations */
-attributes: IDENT COLON type_id {
+non_empty_attributes : IDENT COLON type_id {
            $$ = new AstRelation();
            AstAttribute *a = new AstAttribute($1, *$3);
            a->setSrcLoc(@3);
@@ -268,11 +268,17 @@ attributes: IDENT COLON type_id {
           }
         ;
 
+attributes: non_empty_attributes { $$ = $1; }
+        | { 
+           $$ = new AstRelation();
+          }
+        ;
+
 qualifiers: qualifiers OUTPUT_QUALIFIER { if($1 & OUTPUT_RELATION) driver.error(@2, "output qualifier already set"); $$ = $1 | OUTPUT_RELATION; }
           | qualifiers INPUT_QUALIFIER { if($1 & INPUT_RELATION) driver.error(@2, "input qualifier already set"); $$ = $1 | INPUT_RELATION; }
           | qualifiers PRINTSIZE_QUALIFIER { if($1 & PRINTSIZE_RELATION) driver.error(@2, "printsize qualifier already set"); $$ = $1 | PRINTSIZE_RELATION; }
           | qualifiers OVERRIDABLE_QUALIFIER { if($1 & OVERRIDABLE_RELATION) driver.error(@2, "overridable qualifier already set"); $$ = $1 | OVERRIDABLE_RELATION; }
-          | {$$ = 0; }
+          | { $$ = 0; }
           ;
 
 relation: DECL IDENT LPAREN attributes RPAREN qualifiers {
@@ -463,7 +469,8 @@ recordlist: arg {
             }
           ; 
 
-arg_list: arg {
+non_empty_arg_list : 
+          arg {
             $$ = new AstAtom();
             $$->addArgument(std::unique_ptr<AstArgument>($1));
           }
@@ -473,13 +480,18 @@ arg_list: arg {
           }
         ;
 
+arg_list: non_empty_arg_list { $$ = $1; }
+        | {
+          $$ = new AstAtom();
+        }
+        ;
+
 atom: rel_id LPAREN arg_list RPAREN {
           $$ = $3; $3->setName(*$1);
           delete $1;
           $$->setSrcLoc(@$);
         }
     ;
-
 
 /* Literal */
 literal: arg RELOP arg {
