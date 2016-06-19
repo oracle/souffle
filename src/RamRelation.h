@@ -45,7 +45,6 @@ class RamRelationIdentifier {
     std::vector<std::string> attributeNames;
     std::vector<std::string> attributeTypeQualifiers;
     bool input;
-    bool nullary;
     bool computed;
     bool output;
 
@@ -56,25 +55,21 @@ class RamRelationIdentifier {
 
 public:
 
-    RamRelationIdentifier() : arity(0), input(false), nullary(false), computed(false), output(false), last(nullptr), rel(nullptr) {
+    RamRelationIdentifier() : arity(0), input(false), computed(false), output(false), last(nullptr), rel(nullptr) {
     }
 
     RamRelationIdentifier(const std::string& name, unsigned arity,
             std::vector<std::string> attributeNames = {},
             std::vector<std::string> attributeTypeQualifiers = {},
-            bool input = false, bool nullary = false, bool computed = false, bool output = false)
+            bool input = false, bool computed = false, bool output = false)
         : name(name), arity(arity), attributeNames(attributeNames), attributeTypeQualifiers(attributeTypeQualifiers),
-          input(input), nullary(nullary), computed(computed), output(output), last(nullptr), rel(nullptr)  {
+          input(input), computed(computed), output(output), last(nullptr), rel(nullptr)  {
         assert(this->attributeNames.size() == arity || this->attributeNames.empty());
         assert(this->attributeTypeQualifiers.size() == arity || this->attributeTypeQualifiers.empty());
     }
 
     const std::string& getName() const {
         return name;
-    }
- 
-    const char getNullValue() const {
-        return '0';
     }
 
     const std::string getArg(uint32_t i) const {
@@ -86,20 +81,11 @@ public:
     }
 
     const std::string getArgTypeQualifier(uint32_t i) const {
-        if (!attributeTypeQualifiers.empty()) {
-            return attributeTypeQualifiers[i];
-        } else {
-            //assert(0 && "has no type qualifiers");
-            return "";
-        }
+    	return (i < attributeTypeQualifiers.size()) ? attributeTypeQualifiers[i] : "";
     }
 
     bool isInput() const {
         return input;
-    }
-
-    bool isNullary() const { 
-        return nullary; 
     }
 
     bool isComputed() const {
@@ -261,12 +247,19 @@ public:
 
     /** insert a new tuple to table */
     void insert(const RamDomain *tuple) {
+
+    	// check for null-arity
+        auto arity = getArity();
+    	if (arity == 0) {
+    		// set number of tuples to one -- that's it
+    		num_tuples = 1;
+    		return;
+    	}
+
         // make existence check
         if (exists(tuple)) return;
 
         // prepare tail
-        auto arity = getArity();
-
         if (tail->getFreeSpace() < arity || arity == 0) {
             tail->next = std::unique_ptr<Block>(new Block());
             tail = tail->next.get();
@@ -369,6 +362,10 @@ public:
 
     /** check whether a tuple exists in the relation */
     bool exists(const RamDomain* tuple) const {
+    	// handle arity 0
+    	if (getArity() == 0) return !empty();
+
+    	// handle all other arities
         if (!totalIndex)
             totalIndex = getIndex(getTotalIndexKey());
         return totalIndex->exists(tuple);
@@ -411,7 +408,17 @@ public:
         }
 
         iterator& operator++() {
+        	// check for end
             if (!cur) return *this;
+
+            // support 0-arity
+        	if (arity == 0) {
+        		// move to end
+        		*this = iterator();
+        		return *this;
+        	}
+
+            // support all other arities
             tuple += arity;
             if (tuple >= &cur->data[cur->used]) {
                 cur = cur->next.get();
@@ -423,11 +430,19 @@ public:
 
     /** get iterator begin of relation */
     inline iterator begin() const {
+    	// check for emptiness
         if (empty()) return end();
-        if(getArity() == 0 && size() == 1)
-          return iterator(head.get(), &head->data[0], 1);
-        else
-          return iterator(head.get(), &head->data[0], getArity());
+
+        // support 0-arity
+        auto arity = getArity();
+        if(arity == 0) {
+        	Block dummyBlock;
+        	RamDomain dummyTuple;
+        	return iterator(&dummyBlock, &dummyTuple, 0);
+        }
+
+        // support non-empty non-zero arity relation
+        return iterator(head.get(), &head->data[0], arity);
     }
 
     /** get iterator begin of relation */ 

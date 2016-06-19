@@ -76,10 +76,6 @@ namespace {
                 return num.getConstant();
             }
 
-            RamDomain visitNull(const RamNull& null) {
-                return null.getConstant();
-            }
-
             RamDomain visitElementAccess(const RamElementAccess& access) {
                 return ctxt[access.getLevel()][access.getElement()];
             }
@@ -199,19 +195,12 @@ namespace {
                 auto arity = rel.getArity();
                 auto values = ne.getValues();
 
-                bool isNullary = ne.getRelation().isNullary();
-
                 // for total we use the exists test
                 if (ne.isTotal()) {
                     RamDomain tuple[arity];
-                    if(arity == 1 && isNullary) {
-                        tuple[0] = rel.getID().getNullValue();
-                    }
-                    else {
-                        for(size_t i=0;i<arity;i++) {
-                            tuple[i]= (values[i]) ? eval(values[i],env,ctxt) : MIN_RAM_DOMAIN;
-                        }
-                    }
+					for(size_t i=0;i<arity;i++) {
+						tuple[i]= (values[i]) ? eval(values[i],env,ctxt) : MIN_RAM_DOMAIN;
+					}
 
                     return !rel.exists(tuple);
                 }
@@ -488,9 +477,8 @@ namespace {
                     return;        // condition violated => skip insert
                 }
 
+                // create a tuple of the proper arity (also supports arity 0)
                 auto arity = project.getRelation().getArity();
-                assert(arity != 0);
-
                 const auto& values = project.getValues();
                 RamDomain tuple[arity];
                 for(size_t i=0;i<arity;i++) {
@@ -1391,20 +1379,10 @@ namespace {
                 out << "if (" << print(condition) << ") {\n";
             }
             
-
-            if (project.getRelation().isNullary()) {
-                out << "Tuple<RamDomain," << arity << "> tuple({"
-                    << project.getRelation().getNullValue()
-                    << "});\n";
-
-            }
-            else {
-                // create projected tuple
-                out << "Tuple<RamDomain," << arity << "> tuple({"
-                        << join(project.getValues(), ",", rec)
-                    << "});\n";
-
-            }
+			// create projected tuple
+			out << "Tuple<RamDomain," << arity << "> tuple({"
+					<< join(project.getValues(), ",", rec)
+				<< "});\n";
 
             // check filter
             if (project.hasFilter()) {
@@ -1545,10 +1523,6 @@ namespace {
         // -- values --
         void visitNumber(const RamNumber& num, std::ostream& out) {
             out << num.getConstant();
-        }
-
-        void visitNull(const RamNull& null, std::ostream& out) {
-            out << null.getConstant();
         }
 
         void visitElementAccess(const RamElementAccess& access, std::ostream& out) {
