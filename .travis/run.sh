@@ -49,7 +49,7 @@ fi
 
 if [ $TRAVIS_OS_NAME == osx ]
 then
-  TESTSUITEFLAGS=-j3 make pkg
+  TESTSUITEFLAGS=-j3 make package
   # compute md5 for package &
   # copy files to deploy directory
   for f in *.pkg
