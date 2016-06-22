@@ -24,3 +24,6 @@ warn.log
 packaging/*
 
 build_*
+
+debian/changelog
+souffle-*.*.*
