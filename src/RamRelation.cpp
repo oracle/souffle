@@ -36,6 +36,10 @@ namespace souffle {
 /* print table in csv format */ 
 void RamRelation::store(std::ostream &os, const SymbolTable& symTable, const SymbolMask& mask) const {
     size_t cols = getArity(); 
+    if (cols == 0 && !empty()) {
+        os << "()\n";
+        return;
+    }
     for(iterator it=begin(); it!=end(); ++it) {
         const RamDomain *tuple = (*it);
         if (mask.isSymbol(0)) {

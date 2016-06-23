@@ -1384,6 +1384,7 @@ struct RelationBase {
     void printCSV(std::ostream& out, const SymbolTable& symbolTable, const SymbolMask& format) const {
         /* print table */
         for(const tuple_type& cur : asDerived()) {
+            if (arity == 0) out << "()";
             for(unsigned i=0; i<arity; i++) {
                 if (format.isSymbol(i)) {
                     out << symbolTable.resolve(cur[i]);
@@ -1469,9 +1470,8 @@ struct RelationBase {
             getline(in,line);
             if (in.eof()) break;
 
-            int start, end = -1;
+            int start = 0, end = 0;
             for(uint32_t col=0;col<arity;col++) {
-                start = end+1;
                 end = line.find('\t', start);
                 if ((size_t)end == std::string::npos) {
                     end = line.length();
@@ -1491,6 +1491,7 @@ struct RelationBase {
                 } else {
                     tuple[col] = atoi(element.c_str());
                 }
+                start = end+1;
             }
             if ((size_t)end != line.length()) {
                 error = true;

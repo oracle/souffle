@@ -466,7 +466,6 @@ void AstSemanticChecker::checkRelationDeclaration(ErrorReport& report, const Typ
             }
         }
     }
-
 }
 
 
