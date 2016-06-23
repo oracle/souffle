@@ -69,6 +69,8 @@ private:
     static void checkType(ErrorReport& report, const AstProgram& program, const AstType& type);
     static void checkTypes(ErrorReport& report, const AstProgram& program);
 
+    static void checkNamespaces(ErrorReport& report, const AstProgram& program);
+
 public:
     virtual ~AstSemanticChecker() { }
 

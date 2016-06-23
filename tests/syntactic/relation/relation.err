@@ -1,15 +1,15 @@
 Warning: No rules/facts defined for relation B in file relation.dl at line 10
-.decl B(a:B,b:C) output
+.decl B(a:M,b:N) output
 ^-----------------------
 Warning: No rules/facts defined for relation C in file relation.dl at line 11
-.decl C(a:B,b:C) output
+.decl C(a:M,b:N) output
 ^-----------------------
 Warning: No rules/facts defined for relation E in file relation.dl at line 13
-.decl E(a:B)
+.decl E(a:M)
 ^------------
 Warning: No rules/facts defined for relation F in file relation.dl at line 14
-.decl F(a:B,b:C)
+.decl F(a:M,b:N)
 ^----------------
 Warning: No rules/facts defined for relation G in file relation.dl at line 15
-.decl G(a:B,b:C)
+.decl G(a:M,b:N)
 ^----------------
