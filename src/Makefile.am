@@ -15,8 +15,7 @@ bin_PROGRAMS = souffle souffle-wave
 # ... which should no go to distribution
 nodist_souffle_wave_SOURCES = $(BUILT_SOURCES)
 
-souffle_wave_SOURCES = wave.cpp wave.hpp	wave_trace_macro_expansion.hpp \
-		wave_config.hpp			wave_version.hpp \
+souffle_wave_SOURCES = wave.cpp wave_trace_macro_expansion.hpp \
 		wave_stop_watch.hpp
 
 souffle_wave_CPPFLAGS = $(BOOST_CPPFLAGS) -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\""
