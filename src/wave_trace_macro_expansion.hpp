@@ -7,8 +7,7 @@
     LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#if !defined(TRACE_MACRO_EXPANSION_HPP_D8469318_8407_4B9D_A19F_13CA60C1661F_INCLUDED)
-#define TRACE_MACRO_EXPANSION_HPP_D8469318_8407_4B9D_A19F_13CA60C1661F_INCLUDED
+#pragma once
 
 #include <cstdio>
 #include <cstdlib>
@@ -1489,4 +1488,3 @@ private:
 #undef BOOST_WAVE_GETSTRING
 #undef BOOST_WAVE_OSSTREAM
 
-#endif // !defined(TRACE_MACRO_EXPANSION_HPP_D8469318_8407_4B9D_A19F_13CA60C1661F_INCLUDED)
