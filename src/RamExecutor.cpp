@@ -72,7 +72,6 @@ namespace {
                 : env(env), ctxt(ctxt) {}
 
             // -- basics --
-
             RamDomain visitNumber(const RamNumber& num) {
                 return num.getConstant();
             }
@@ -190,7 +189,6 @@ namespace {
             }
 
             bool visitNotExists(const RamNotExists& ne) {
-
                 const RamRelation& rel = env.getRelation(ne.getRelation());
 
                 // construct the pattern tuple
@@ -199,11 +197,10 @@ namespace {
 
                 // for total we use the exists test
                 if (ne.isTotal()) {
-
                     RamDomain tuple[arity];
-                    for(size_t i=0;i<arity;i++) {
-                        tuple[i]= (values[i]) ? eval(values[i],env,ctxt) : MIN_RAM_DOMAIN;
-                    }
+					for(size_t i=0;i<arity;i++) {
+						tuple[i]= (values[i]) ? eval(values[i],env,ctxt) : MIN_RAM_DOMAIN;
+					}
 
                     return !rel.exists(tuple);
                 }
@@ -389,7 +386,6 @@ namespace {
             }
 
             void visitAggregate(const RamAggregate& aggregate) {
-
                 // get the targeted relation
                 const RamRelation& rel = env.getRelation(aggregate.getRelation());
 
@@ -475,14 +471,13 @@ namespace {
             }
 
             void visitProject(const RamProject& project) {
-
                 // check constraints
                 RamCondition* condition = project.getCondition();
                 if (condition && !eval(*condition, env, ctxt)) {
                     return;        // condition violated => skip insert
                 }
 
-                // build new tuple
+                // create a tuple of the proper arity (also supports arity 0)
                 auto arity = project.getRelation().getArity();
                 const auto& values = project.getValues();
                 RamDomain tuple[arity];
@@ -491,7 +486,7 @@ namespace {
                 }
 
                 // check filter relation
-                if(project.hasFilter() && env.getRelation(project.getFilter()).exists(tuple)){
+                if(project.hasFilter() && env.getRelation(project.getFilter()).exists(tuple)) {
                     return;
                 }
 
@@ -500,7 +495,6 @@ namespace {
             }
 
             // -- safety net --
-
             void visitNode(const RamNode& node) {
                 std::cout << "Unsupported node Type: " << typeid(node).name() << "\n";
                 assert(false && "Unsupported Node Type!");
@@ -645,9 +639,11 @@ namespace {
                 auto arity = fact.getRelation().getArity();
                 RamDomain tuple[arity];
                 auto values = fact.getValues();
+
                 for(size_t i = 0 ; i < arity ; ++i) {
                     tuple[i] = eval(values[i], env);
                 }
+
                 env.getRelation(fact.getRelation()).insert(tuple);
                 return true;
             }
@@ -659,7 +655,6 @@ namespace {
             }
 
             bool visitMerge(const RamMerge& merge) {
-
                 // get involved relation
                 RamRelation& src = env.getRelation(merge.getSourceRelation());
                 RamRelation& trg = env.getRelation(merge.getTargetRelation());
@@ -1383,11 +1378,11 @@ namespace {
             if (condition) {
                 out << "if (" << print(condition) << ") {\n";
             }
-
-            // create projected tuple
-            out << "Tuple<RamDomain," << arity << "> tuple({"
-                    << join(project.getValues(), ",", rec)
-                << "});\n";
+            
+			// create projected tuple
+			out << "Tuple<RamDomain," << arity << "> tuple({"
+					<< join(project.getValues(), ",", rec)
+				<< "});\n";
 
             // check filter
             if (project.hasFilter()) {
@@ -1422,7 +1417,6 @@ namespace {
                     out << " else { ++private_num_failed_proofs; }";
                 }
             }
-
 
         }
 
@@ -1527,7 +1521,6 @@ namespace {
         }
 
         // -- values --
-
         void visitNumber(const RamNumber& num, std::ostream& out) {
             out << num.getConstant();
         }

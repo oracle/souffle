@@ -4,7 +4,7 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-# add macros 
+# add macros
 ACLOCAL_AMFLAGS = -I m4
 
 # directories
@@ -17,12 +17,13 @@ include $(top_srcdir)/aminclude.am
 EXTRA_DIST = doxygen.cfg
 
 # Debian packaging
-if DEB
+if DEBIAN_PACKAGE
 dpkg_dir = packaging
 dist_src = $(PACKAGE)-$(VERSION).tar.gz
 deb_src  = $(PACKAGE)_$(VERSION).orig.tar.gz
 
-deb:
+package:
+	@which "$(DEBUILD)" 2>&1 > /dev/null || { echo "No debuild executable found" 1>&2 && exit 1; }
 	rm -rf $(dpkg_dir)
 	$(MKDIR_P) $(dpkg_dir)
 	$(MAKE) dist
@@ -36,8 +37,8 @@ clean-local:
 endif
 
 # MacOS packaging
-if PKG
-pkg:
+if OSX_PACKAGE
+package:
 	@test -d $(distdir) \
 		&& { echo "$(distdir) directory exists. (Re)move it before creating a MacOS package" 2>&1 && exit 1; } \
 		|| true

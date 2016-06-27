@@ -62,7 +62,6 @@ AX_BOOST_SYSTEM
 AX_BOOST_FILESYSTEM
 AX_BOOST_THREAD
 AX_BOOST_DATE_TIME
-AX_BOOST_PROGRAM_OPTIONS
 
 # Check for flex
 AC_CHECK_PROG(FLEX, flex, flex)
@@ -72,15 +71,80 @@ AS_IF([test -z "$FLEX"], [AC_MSG_ERROR([flex not found.])])
 AC_CHECK_PROG(BISON, bison, bison)
 AS_IF([test -z "$BISON"], [AC_MSG_ERROR([bison not found.])])
 
-# Check for debuild
-AC_CHECK_PROG(DEBUILD, debuild, debuild)
-AC_SUBST([DEBUILD])
-AM_CONDITIONAL(DEB, [test -n "$DEBUILD"])
+# Enable packaging option
+AC_ARG_ENABLE(
+  [host-packaging],
+  [enable packaging using a given distribution],
+  [SOUFFLE_PACKAGING=1],
+  [unset SOUFFLE_PACKAGING]
+)
 
-# Check for pkgbuild
-AC_CHECK_PROG(PKGBUILD, pkgbuild, pkgbuild)
-AC_SUBST([PKGBUILD])
-AM_CONDITIONAL(PKG, [test -n "$PKGBUILD" && echo $host_os | grep -i "^darwin"])
+# Get the name of the distribution
+if test -n "$SOUFFLE_PACKAGING"; then
+  case $host_os in
+    darwin* )
+      DISTRIBUTION=osx
+    ;;
+    linux*)
+      # Check for bison
+      AC_CHECK_PROG(LSB_RELEASE, lsb_release, lsb_release)
+      AS_IF([test -z "$LSB_RELEASE"], [AC_MSG_ERROR([lsb_release required to detect LINUX distribution not found.])])
+      DISTRIBUTION=m4_esyscmd([lsb_release -i | sed 's/^.*:[ \t]\+//' | tr [A-Z] [a-z]])
+    ;;
+    *BSD*)
+      DISTRIBUTION=bsd
+    ;;
+    *)
+      AC_MSG_ERROR([Unsupported platform])
+    ;;
+  esac
+  echo "Enable packaging for: $DISTRIBUTION"
+fi
+
+dnl Check for the program(s), define a variable and perform substitution in the
+dnl Makefiles if found.  Bail with an error message otherwise
+dnl   $1 -- Variable
+dnl   $2 -- Program names separated by an empty space
+dnl   $3 -- search path (unless specified $PATH is used)
+dnl   $4 -- absolute/relative path (unless specified the path is relative and absolute otherwise)
+m4_define([DEFNSUBST], [
+  unset prog
+  for prog in $2; do
+    if test -z "`eval echo \$$1`"; then
+      if test -z "$4"; then
+        AC_CHECK_TOOL($1, $prog, [], $3)
+      else
+        AC_PATH_PROG($1, $prog, [], $3)
+      fi
+    fi
+  done
+  test -z "`eval echo \$$1`" && AC_MSG_FAILURE([Neither of: '$2' found])
+  AC_SUBST([$1])
+])
+
+# Check the distribution name (if --enable-host-packaging is specified),
+# enable conditional AUTOMAKE macro amnd check and define the tool responsible
+# for building a package
+m4_define(DIST_PACKAGING,[
+  unset package
+  for distro in $1; do
+    if test -n "$SOUFFLE_PACKAGING" && test $DISTRIBUTION = $distro; then
+      package=1;
+      break;
+    fi
+  done
+
+  if test -n "$package"; then
+    DEFNSUBST($3, $4)
+    AM_CONDITIONAL($2, true)
+  else
+    AM_CONDITIONAL($2, false)
+  fi
+])
+
+DIST_PACKAGING([debian ubuntu],[DEBIAN_PACKAGE],[DEBUILD],[debuild])
+DIST_PACKAGING([osx],[OSX_PACKAGE],[PKGBUILD],[pkgbuild])
+DIST_PACKAGING([bsd],[BSD_PACKAGE],[PKGBUILD],[pkgbuild])
 
 dnl Enable pthread library
 AC_CHECK_LIB(pthread, pthread_create,,
@@ -147,6 +211,6 @@ AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([dup2 fchdir getcwd getpagesize gettimeofday isascii memset mkdir munmap pow regcomp rmdir setenv socket strcasecmp strchr strdup strerror strrchr strstr strtol strtoull])
 
 AC_OUTPUT(
-    [ src/souffle-compile src/souffle-config ],
+    [ src/souffle-compile src/souffle-config debian/changelog ],
     [ chmod +x src/souffle-compile src/souffle-config ]
 )
