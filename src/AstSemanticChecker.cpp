@@ -53,6 +53,7 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
     checkTypes(report, program);
     checkRules(report, typeEnv, program);
     checkComponents(report, program, componentLookup);
+    checkNamespaces(report, program);
 
 
     // get the list of components to be checked
@@ -680,6 +681,39 @@ void AstSemanticChecker::checkTypes(ErrorReport& report, const AstProgram& progr
         checkType(report, program, *cur);
     }
 }
+
+
+// Check that type, relation, component names are disjoint sets.
+void AstSemanticChecker::checkNamespaces(ErrorReport& report, const AstProgram& program) {
+    std::map<std::string, AstSrcLocation> names;
+    
+    // Find all names and report redeclarations as we go.
+    for (const auto& type : program.getTypes()) {
+        const std::string name = toString(type->getName());
+        if (names.count(name)) report.addError("Name clash on type " + name, type->getSrcLoc());
+        else names[name] = type->getSrcLoc();
+    }
+
+    for (const auto& rel : program.getRelations()) {
+        const std::string name = toString(rel->getName());
+        if (names.count(name)) report.addError("Name clash on relation " + name, rel->getSrcLoc());
+        else names[name] = rel->getSrcLoc();
+    }
+    
+    // Note: Nested component and instance names are not obtained.
+    for (const auto& comp : program.getComponents()) {
+        const std::string name = toString(comp->getComponentType().getName());
+        if (names.count(name)) report.addError("Name clash on component " + name, comp->getSrcLoc());
+        else names[name] = comp->getSrcLoc();
+    }
+
+    for (const auto& inst : program.getComponentInstantiations()) {
+        const std::string name = toString(inst->getInstanceName());
+        if (names.count(name)) report.addError("Name clash on instantiation " + name, inst->getSrcLoc());
+        else names[name] = inst->getSrcLoc();
+    }
+}
+
 
 bool AstExecutionPlanChecker::transform(AstTranslationUnit& translationUnit) {
 

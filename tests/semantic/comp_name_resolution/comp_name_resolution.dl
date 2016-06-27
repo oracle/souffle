@@ -50,15 +50,15 @@
 .init X = A
 
 // this should fail
-.init X = B
+.init Y = B
 
 // this is OK
-.init X = B<symbol>
+.init Z = B<symbol>
 
 // this is not
-.init X = B<symbol,symbol>
+.init W = B<symbol,symbol>
 
 // also this is not ok
-.init X = M
+.init U = M
 
 
