@@ -56,6 +56,7 @@ Follow the steps below to compile and install Soufflé on a UNIX system:
      brew update                
      brew reinstall gcc --without-multilib                
      brew install bison  
+     brew install boost
      brew link bison --force
      export CXX=/usr/local/bin/g++-5                
      export CXXFLAGS=-fopenmp                
