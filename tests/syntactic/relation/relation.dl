@@ -3,13 +3,13 @@
 // <Qualifiers>
 // output|input
 
-.type B
-.type C
+.type M
+.type N
 
-.decl A(a:B) input output
-.decl B(a:B,b:C) output
-.decl C(a:B,b:C) output
-.decl D(a:B,b:C) input output
-.decl E(a:B)
-.decl F(a:B,b:C)
-.decl G(a:B,b:C)
+.decl A(a:M) input output
+.decl B(a:M,b:N) output
+.decl C(a:M,b:N) output
+.decl D(a:M,b:N) input output
+.decl E(a:M)
+.decl F(a:M,b:N)
+.decl G(a:M,b:N)
