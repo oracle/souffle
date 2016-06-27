@@ -1862,17 +1862,22 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 
            // construct types
            std::string tupleType = "std::array<const char *," + std::to_string(arity) + ">{";
-           tupleType += "\"" + rel.getArgTypeQualifier(0) + "\"";
-           for(int i=1; i<arity; i++) {
-               tupleType += ",\"" + rel.getArgTypeQualifier(i) + "\"";
+           std::string tupleName = "std::array<const char *," + std::to_string(arity) + ">{";
+           
+           if (rel.getArity()) {
+               tupleType += "\"" + rel.getArgTypeQualifier(0) + "\"";
+               for(int i=1; i<arity; i++) {
+                   tupleType += ",\"" + rel.getArgTypeQualifier(i) + "\"";
+               }
+
+               tupleName += "\"" + rel.getArg(0) + "\"";
+               for (int i=1; i<arity; i++) {
+                   tupleName += ",\"" + rel.getArg(i) + "\"";
+               }
            }
            tupleType += "}";
-           std::string tupleName = "std::array<const char *," + std::to_string(arity) + ">{";
-           tupleName += "\"" + rel.getArg(0) + "\"";
-           for (int i=1; i<arity; i++) {
-               tupleName += ",\"" + rel.getArg(i) + "\"";
-           }
            tupleName += "}";
+
            if (initCons.size() > 0) {
                initCons += ",\n";
            }

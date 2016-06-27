@@ -75,7 +75,11 @@ public:
     const std::string getArg(uint32_t i) const {
        if(!attributeNames.empty()) {
            return attributeNames[i];
-       } else {
+       } 
+       else if (arity == 0) {
+           return "";
+       }
+       else {
            return "c"+std::to_string(i); 
        }
     }
