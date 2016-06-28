@@ -23,7 +23,6 @@ F().
 
 // Empty nullary relation without input
 .decl G() printsize
-// ERROR, doesn't print out size yet
 
 // Nullaries as conditions.
 .decl H(x:number) output
@@ -52,8 +51,8 @@ L(x+y) :- I(x), K(), J(y).
 
 
 // Recursively defined nullary relations.
-//.decl M()
-//M() :- M().
+.decl M() printsize
+M() :- M().
 
 .decl N() output
 N().
@@ -72,6 +71,3 @@ R(x) :- S(), R(x).
 
 .decl S() 
 S() :- R(_).
-
-
-
