@@ -5,10 +5,10 @@
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 // check whether constants in head of rules work correctly
-.type N
+.type n
 
-.decl N (x:N) output
-.decl A (x:N, y:N) output
+.decl N (x:n) output
+.decl A (x:n, y:n) output
 
 N("0"). 
 N("1"). 

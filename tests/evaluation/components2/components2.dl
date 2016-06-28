@@ -8,10 +8,10 @@
 X(1).
 .decl A(x:number) output
 
-.comp A  {
+.comp B  {
     A(x) :- X(x).
 }
 
 
-.init a = A
+.init b = B
 
