@@ -76,7 +76,7 @@ Follow the steps below to compile and install Soufflé on a UNIX system:
 
 ## License
 
-See [LICENSE](https://github.com/souffle-lang/souffle/blob/master/LICENSE).
+See [LICENSE](https://github.com/souffle-lang/souffle/blob/master/licenses/SOUFFLE-UPL.txt).
 
 ## For souffle developers
 
