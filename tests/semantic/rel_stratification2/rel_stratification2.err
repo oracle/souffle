@@ -4,5 +4,5 @@ Relation Input in file rel_stratification2.dl at line 1
 ^---------------------
 has cyclic negation in file rel_stratification2.dl at line 10
 Trace(a, b) :- RelevantNumber(a), RelevantNumber(b), !Input(a+b).
------------------------------------------------------^------------
+------------------------------------------------------^-----------
 1 errors generated, evaluation aborted

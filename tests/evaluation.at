@@ -1,44 +1,18 @@
+# Souffle - A Datalog Compiler
 # Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
-#
-# The Universal Permissive License (UPL), Version 1.0
-#
-# Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
-# associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
-# Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
-# Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
-# 
-# (a) the Software, and
-# (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
-# Work” to which the Software is contributed by such licensors),
-#
-# without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
-# distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
-# Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
-#
-# This license is subject to the following condition:
-# The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
-# IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# Licensed under the Universal Permissive License v 1.0 as shown at:
+# - https://opensource.org/licenses/UPL
+# - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 dnl Positive test cases for evaluating Datalog programs
 
-POSITIVE_TEST([load],[evaluation])
 POSITIVE_TEST([number_constants],[evaluation])
+POSITIVE_TEST([multiple_heads],[evaluation])
 POSITIVE_TEST([arithm],[evaluation])
 POSITIVE_TEST([metro],[evaluation])
 POSITIVE_TEST([subtype],[evaluation])
 POSITIVE_TEST([subtype2],[evaluation])
 POSITIVE_TEST([aliases],[evaluation])
-POSITIVE_TEST([records],[evaluation])
-POSITIVE_TEST([records1],[evaluation])
-POSITIVE_TEST([records2],[evaluation])
-POSITIVE_TEST([records3],[evaluation])
-POSITIVE_TEST([records4],[evaluation])
-POSITIVE_TEST([records5],[evaluation])
 POSITIVE_TEST([unpacking],[evaluation])
 POSITIVE_TEST([flights],[evaluation])
 POSITIVE_TEST([linksum],[evaluation])
@@ -78,6 +52,7 @@ POSITIVE_TEST([neg3],[evaluation])
 POSITIVE_TEST([neg4],[evaluation])
 POSITIVE_TEST([neg5],[evaluation])
 POSITIVE_TEST([neg6],[evaluation])
+POSITIVE_TEST([dnf],[evaluation])
 POSITIVE_TEST([indirect_negation],[evaluation])
 POSITIVE_TEST([game2],[evaluation])
 POSITIVE_TEST([orbits],[evaluation])
@@ -87,7 +62,6 @@ POSITIVE_TEST([rmut2],[evaluation])
 POSITIVE_TEST([cliquer],[evaluation])
 POSITIVE_TEST([pointsto],[evaluation])
 POSITIVE_TEST([ackermann],[evaluation])
-POSITIVE_TEST([choice],[evaluation])
 POSITIVE_TEST([equal],[evaluation])
 POSITIVE_TEST([fib],[evaluation])
 POSITIVE_TEST([list],[evaluation])
@@ -130,3 +104,10 @@ POSITIVE_TEST([comp-override3],[evaluation])
 POSITIVE_TEST([andersen],[evaluation])
 POSITIVE_TEST([lubm],[evaluation])
 POSITIVE_TEST([hmmer],[evaluation])
+POSITIVE_TEST([catalan],[evaluation])
+POSITIVE_TEST([factorial],[evaluation])
+POSITIVE_TEST([hex],[evaluation])
+POSITIVE_MULTI_TEST([lucas],[evaluation],[[fibonacci], [lucas], [mersenne], [pell]])
+POSITIVE_TEST([tak],[evaluation])
+POSITIVE_TEST([nqueens],[evaluation])
+POSITIVE_TEST([count_sccs],[evaluation])

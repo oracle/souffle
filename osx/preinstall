@@ -1,0 +1,4 @@
+#!/bin/sh
+
+mkdir -p /usr/local || exit 1
+exit 0

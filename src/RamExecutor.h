@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -38,9 +18,13 @@
 
 #include <string>
 #include <map>
+#include <unordered_map>
+#include <unordered_set>
 #include <functional>
 
 #include "RamRelation.h"
+
+namespace souffle {
 
 /** forward declaration */
 class RamStatement;
@@ -67,18 +51,18 @@ class RamExecutorConfig {
     /** A flag for enabling logging during the computation */
     bool logging;
 
-    /** The name of the compile script */ 
-    std::string compileScript; 
+    /** The name of the compile script */
+    std::string compileScript;
 
     /** A filename for profile log */
-    std::string profileName; 
+    std::string profileName;
 
     /** A flag for enabling debug mode */
     bool debug;
 
 public:
 
-    RamExecutorConfig() : sourceFileName("-unknown-"), factFileDir("./"), outputDir("./"), num_threads(1), logging(false), compileScript("souffle-compile"), debug(false) {}
+    RamExecutorConfig() : sourceFileName("-unknown-"), factFileDir("./"), outputDir("./"), num_threads(1), logging(false), debug(false) {}
 
     // -- getters and setters --
 
@@ -160,7 +144,7 @@ class RamExecutor {
     /** The associated configuration */
     RamExecutorConfig config;
 
-protected: 
+protected:
     /** An optional stream to print logging information to */
     std::ostream* report;
 
@@ -365,6 +349,13 @@ public:
     }
 
     /**
+     * Generates the code for the given ram statement.The target file
+     * name is either set by the corresponding member field or will
+     * be determined randomly. The chosen file-name will be returned.
+     */
+    std::string generateCode(const SymbolTable& symTable, const RamStatement& stmt, const std::string& filename = "") const;
+
+    /**
      * Compiles the given statement to a binary file. The target file
      * name is either set by the corresponding member field or will
      * be determined randomly. The chosen file-name will be returned.
@@ -376,4 +367,66 @@ public:
      * program into a source file, compiling and executing it.
      */
     virtual void applyOn(const RamStatement& stmt, RamEnvironment& env) const;
+
+private:
+
+    /**
+     * Obtains a file name for the resulting source and executable file.
+     */
+    std::string resolveFileName() const;
+
 };
+
+
+/**
+ * A singleton which provides a mapping from strings to unique valid CPP identifiers.
+ */
+class CPPIdentifierMap {
+public:
+    /**
+     * Obtains the singleton instance.
+     */
+    static CPPIdentifierMap& getInstance();
+
+    /**
+     * Given a string, returns its corresponding unique valid identifier;
+     */
+    static std::string getIdentifier(std::string);
+
+    ~CPPIdentifierMap() {}
+
+    private:
+    
+    /**
+     * Given a string, returns its corresponding unique valid identifier.
+     */
+    std::string identifier(std::string);
+
+    /*
+     * Removes invalid substrings, adds trailing digits if the resulting identifier is in use.
+     */
+    std::string uniqueIdentifier(std::string name);
+
+    /*
+     * True if the given character is valid to use in an identifier.
+     */
+    bool isValidChar(char c);
+
+    CPPIdentifierMap() {}
+    static CPPIdentifierMap* instance;
+
+    //A map from names to identifiers.
+    std::unordered_map<std::string, std::string> name_id_map;
+
+    //Contains the identifiers currently in use.
+    std::unordered_set<std::string> used_ids;
+    
+    // Permissible identifier lengths.
+    static const size_t id_len = 28;
+    static const size_t suffix_len = 5;
+    static const size_t prefix_len = id_len - suffix_len;
+};
+
+
+} // end of namespace souffle
+

@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -38,6 +18,8 @@
 
 #include "string.h"
 #include "Trie.h"
+
+using namespace souffle;
 
 TEST(SparseArray, Basic) {
     SparseArray<int> map;
@@ -345,24 +327,43 @@ TEST(SparseArray, LowerBound) {
 
 TEST(SparseArray, MemoryUsage) {
 
-    SparseArray<int> a;
+    if (sizeof(void*) > 4) { 
+        SparseArray<int> a;
 
-    // an empty one should be small
-    EXPECT_TRUE(a.empty());
-    // EXPECT_EQ(56, a.getMemoryUsage());
-    EXPECT_EQ(40, a.getMemoryUsage());
+        // an empty one should be small
+        EXPECT_TRUE(a.empty());
+        // EXPECT_EQ(56, a.getMemoryUsage());
+        EXPECT_EQ(40, a.getMemoryUsage());
 
-    // a single element should have the same size as an empty one
-    a.update(12, 15);
-    EXPECT_FALSE(a.empty());
-    // EXPECT_EQ(56, a.getMemoryUsage());
-    EXPECT_EQ(560, a.getMemoryUsage());
+        // a single element should have the same size as an empty one
+        a.update(12, 15);
+        EXPECT_FALSE(a.empty());
+        // EXPECT_EQ(56, a.getMemoryUsage());
+        EXPECT_EQ(560, a.getMemoryUsage());
 
-    // more than one => there are nodes
-    a.update(14, 18);
-    EXPECT_FALSE(a.empty());
-    //EXPECT_EQ(576, a.getMemoryUsage());
-    EXPECT_EQ(560, a.getMemoryUsage());
+        // more than one => there are nodes
+        a.update(14, 18);
+        EXPECT_FALSE(a.empty());
+
+        //EXPECT_EQ(576, a.getMemoryUsage());
+        EXPECT_EQ(560, a.getMemoryUsage());
+    }  else {
+        SparseArray<int> a;
+
+        // an empty one should be small
+        EXPECT_TRUE(a.empty());
+        EXPECT_EQ(28, a.getMemoryUsage());
+
+        // a single element should have the same size as an empty one
+        a.update(12, 15);
+        EXPECT_FALSE(a.empty());
+        EXPECT_EQ(288, a.getMemoryUsage());
+
+        // more than one => there are nodes
+        a.update(14, 18);
+        EXPECT_FALSE(a.empty());
+        EXPECT_EQ(288, a.getMemoryUsage());
+    }
 }
 
 
@@ -370,7 +371,7 @@ TEST(SparseBitMap, Basic) {
 
     SparseBitMap<> map;
 
-    EXPECT_EQ(sizeof(std::bitset<64>), sizeof(void*));
+    EXPECT_EQ(sizeof(std::bitset<sizeof(void*)*8>), sizeof(void*));
 
     EXPECT_FALSE(map[12]);
     EXPECT_FALSE(map[120]);

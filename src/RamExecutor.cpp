@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -55,6 +35,8 @@
 #include "AstVisitor.h"
 #include "RuleScheduler.h"
 #include "TypeSystem.h"
+
+namespace souffle {
 
 namespace {
 
@@ -90,7 +72,6 @@ namespace {
                 : env(env), ctxt(ctxt) {}
 
             // -- basics --
-
             RamDomain visitNumber(const RamNumber& num) {
                 return num.getConstant();
             }
@@ -113,6 +94,11 @@ namespace {
                 case BinaryOp::DIV: return visit(op.getLHS()) / visit(op.getRHS());
                 case BinaryOp::EXP: return std::pow(visit(op.getLHS()), visit(op.getRHS()));
                 case BinaryOp::MOD: return visit(op.getLHS()) % visit(op.getRHS());
+                case BinaryOp::BAND: return visit(op.getLHS()) & visit(op.getRHS());
+                case BinaryOp::BOR: return visit(op.getLHS()) | visit(op.getRHS());
+                case BinaryOp::BXOR: return visit(op.getLHS()) ^ visit(op.getRHS());
+                case BinaryOp::LAND: return visit(op.getLHS()) && visit(op.getRHS());
+                case BinaryOp::LOR: return visit(op.getLHS()) || visit(op.getRHS());
 
                 // strings
                 case BinaryOp::CAT: {
@@ -132,6 +118,13 @@ namespace {
                 return -visit(op.getValue());
             }
 
+            RamDomain visitComplement(const RamComplement& op) {
+                return ~visit(op.getValue());
+            }
+
+            RamDomain visitNot(const RamNot& op) {
+                return !visit(op.getValue());
+            }
 
             RamDomain visitOrd(const RamOrd& op) {
                 return visit(op.getSymbol());
@@ -196,7 +189,6 @@ namespace {
             }
 
             bool visitNotExists(const RamNotExists& ne) {
-
                 const RamRelation& rel = env.getRelation(ne.getRelation());
 
                 // construct the pattern tuple
@@ -205,11 +197,10 @@ namespace {
 
                 // for total we use the exists test
                 if (ne.isTotal()) {
-
                     RamDomain tuple[arity];
-                    for(size_t i=0;i<arity;i++) {
-                        tuple[i]= (values[i]) ? eval(values[i],env,ctxt) : MIN_RAM_DOMAIN;
-                    }
+					for(size_t i=0;i<arity;i++) {
+						tuple[i]= (values[i]) ? eval(values[i],env,ctxt) : MIN_RAM_DOMAIN;
+					}
 
                     return !rel.exists(tuple);
                 }
@@ -395,7 +386,6 @@ namespace {
             }
 
             void visitAggregate(const RamAggregate& aggregate) {
-
                 // get the targeted relation
                 const RamRelation& rel = env.getRelation(aggregate.getRelation());
 
@@ -481,14 +471,13 @@ namespace {
             }
 
             void visitProject(const RamProject& project) {
-
                 // check constraints
                 RamCondition* condition = project.getCondition();
                 if (condition && !eval(*condition, env, ctxt)) {
                     return;        // condition violated => skip insert
                 }
 
-                // build new tuple
+                // create a tuple of the proper arity (also supports arity 0)
                 auto arity = project.getRelation().getArity();
                 const auto& values = project.getValues();
                 RamDomain tuple[arity];
@@ -497,7 +486,7 @@ namespace {
                 }
 
                 // check filter relation
-                if(project.hasFilter() && env.getRelation(project.getFilter()).exists(tuple)){
+                if(project.hasFilter() && env.getRelation(project.getFilter()).exists(tuple)) {
                     return;
                 }
 
@@ -506,7 +495,6 @@ namespace {
             }
 
             // -- safety net --
-
             void visitNode(const RamNode& node) {
                 std::cout << "Unsupported node Type: " << typeid(node).name() << "\n";
                 assert(false && "Unsupported Node Type!");
@@ -528,7 +516,7 @@ namespace {
             RamEnvironment& env;
             const QueryExecutionStrategy& queryExecutor;
             std::ostream* report;
-            std::ostream* profile; 
+            std::ostream* profile;
 
         public:
 
@@ -622,12 +610,14 @@ namespace {
                 csvfile.open(fname.c_str());
                 if (!csvfile.is_open()) {
                     // TODO: use different error reporting here!!
-                    std::cerr << "Cannot open fact file " << fname << " for table " << load.getRelation().getName() << "\n";
+                    std::cerr << "Cannot open fact file " << baseName(fname) << "\n";
+                    return false; 
                 }
                 if(env.getRelation(load.getRelation()).load(csvfile, env.getSymbolTable(), load.getSymbolMask())) {
-                    char *bname = strdup(fname.c_str()); 
-                    std::string simplename = basename(bname); 
+                    char *bname = strdup(fname.c_str());
+                    std::string simplename = basename(bname);
                     std::cerr << "Wrong arity of fact file " << simplename << "!\n";
+                    return false;
                 };
                 return true;
             }
@@ -649,9 +639,11 @@ namespace {
                 auto arity = fact.getRelation().getArity();
                 RamDomain tuple[arity];
                 auto values = fact.getValues();
+
                 for(size_t i = 0 ; i < arity ; ++i) {
                     tuple[i] = eval(values[i], env);
                 }
+
                 env.getRelation(fact.getRelation()).insert(tuple);
                 return true;
             }
@@ -663,7 +655,6 @@ namespace {
             }
 
             bool visitMerge(const RamMerge& merge) {
-
                 // get involved relation
                 RamRelation& src = env.getRelation(merge.getSourceRelation());
                 RamRelation& trg = env.getRelation(merge.getTargetRelation());
@@ -893,10 +884,10 @@ namespace {
     std::string getRelationType(std::size_t arity, const RamAutoIndex& indices) {
         std::stringstream res;
         res << "ram::Relation<" << arity;
-        for(auto &cur : indices.getAllOrders() ) { 
+        for(auto &cur : indices.getAllOrders() ) {
             res << ",ram::index<";
-            res << join(cur, ","); 
-            res << ">"; 
+            res << join(cur, ",");
+            res << ">";
         }
         res << ">";
         return res.str();
@@ -971,7 +962,7 @@ namespace {
 
         void visitFact(const RamFact& fact, std::ostream& out) {
             out << getRelationName(fact.getRelation()) << ".insert("
-                    << join(fact.getValues(), ",", rec)
+                << join(fact.getValues(), ",", rec)
                 << ");\n";
         }
 
@@ -1074,7 +1065,7 @@ namespace {
 
         void visitMerge(const RamMerge& merge, std::ostream& out) {
             out << getRelationName(merge.getTargetRelation()) << ".insertAll("
-                    << getRelationName(merge.getSourceRelation())
+                << getRelationName(merge.getSourceRelation())
                 << ");\n";
         }
 
@@ -1095,8 +1086,9 @@ namespace {
 
         void visitLogSize(const RamLogSize& print, std::ostream& out) {
             out << "{ auto lease = getOutputLock().acquire(); \n";
-            out << "profile << R\"(" << print.getLabel() << ")\" <<  " << getRelationName(print.getRelation()) << ".size() << \"\\n\";\n";
-            out << "}";
+            out << "profile << R\"(" << print.getLabel() << ")\" <<  ";
+            out << getRelationName(print.getRelation());
+            out << ".size() << \"\\n\";\n" << "}";
         }
 
         // -- control flow statements --
@@ -1386,11 +1378,11 @@ namespace {
             if (condition) {
                 out << "if (" << print(condition) << ") {\n";
             }
-
-            // create projected tuple
-            out << "Tuple<RamDomain," << arity << "> tuple({"
-                    << join(project.getValues(), ",", rec)
-                << "});\n";
+            
+			// create projected tuple
+			out << "Tuple<RamDomain," << arity << "> tuple({"
+					<< join(project.getValues(), ",", rec)
+				<< "});\n";
 
             // check filter
             if (project.hasFilter()) {
@@ -1425,7 +1417,6 @@ namespace {
                     out << " else { ++private_num_failed_proofs; }";
                 }
             }
-
 
         }
 
@@ -1468,6 +1459,14 @@ namespace {
                 out << "))";
                 break;
             }
+            case BinaryRelOp::NOT_MATCH: {
+				out << "!regex_wrapper(symTable.resolve((size_t)";
+				out << print(rel.getLHS());
+				out << "),symTable.resolve((size_t)";
+				out << print(rel.getRHS());
+				out << "))";
+				break;
+			}
             case BinaryRelOp::CONTAINS: {
                 out << "(std::string(symTable.resolve((size_t)";
                 out << print(rel.getRHS());
@@ -1476,9 +1475,17 @@ namespace {
                 out << "))!=std::string::npos)";
                 break;
             }
-            default:
-                assert(0 && "unsupported operation");
-                break;
+            case BinaryRelOp::NOT_CONTAINS: {
+				out << "(std::string(symTable.resolve((size_t)";
+				out << print(rel.getRHS());
+				out << ")).find(symTable.resolve((size_t)";
+				out << print(rel.getLHS());
+				out << "))==std::string::npos)";
+				break;
+			}
+//            default:
+//                assert(0 && "unsupported operation");
+//                break;
             }
         }
 
@@ -1514,7 +1521,6 @@ namespace {
         }
 
         // -- values --
-
         void visitNumber(const RamNumber& num, std::ostream& out) {
             out << num.getConstant();
         }
@@ -1551,6 +1557,26 @@ namespace {
                 out << "(" << print(op.getLHS()) << ") % (" << print(op.getRHS()) << ")";
                 break;
             }
+            case BinaryOp::BAND: {
+                out << "(" << print(op.getLHS()) << ") & (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::BOR: {
+                out << "(" << print(op.getLHS()) << ") | (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::BXOR: {
+                out << "(" << print(op.getLHS()) << ") ^ (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::LAND: {
+                out << "(" << print(op.getLHS()) << ") && (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::LOR: {
+                out << "(" << print(op.getLHS()) << ") || (" << print(op.getRHS()) << ")";
+                break;
+            }
 
             // strings
             case BinaryOp::CAT: {
@@ -1578,12 +1604,20 @@ namespace {
                 << ")";
         }
 
-        void visitOrd(const RamOrd& ord, std::ostream& out) {
-            out << print(ord.getSymbol());
+        void visitOrd(const RamOrd& op, std::ostream& out) {
+            out << print(op.getSymbol());
         }
 
-        void visitNegation(const RamNegation& neg, std::ostream& out) {
-            out << "(-" << print(neg.getValue()) << ")"; 
+        void visitNegation(const RamNegation& op, std::ostream& out) {
+            out << "(-(" << print(op.getValue()) << "))";
+        }
+
+        void visitComplement(const RamComplement& op, std::ostream& out) {
+            out << "(~(" << print(op.getValue()) << "))";
+        }
+
+        void visitNot(const RamNot& op, std::ostream& out) {
+            out << "(!(" << print(op.getValue()) << "))";
         }
 
         // -- safety net --
@@ -1604,11 +1638,11 @@ namespace {
         }
 
         std::string getRelationName(const RamRelationIdentifier& rel) const {
-            return "rel_" + rel.getName();
+            return "rel_" + CPPIdentifierMap::getIdentifier(rel.getName());
         }
 
         std::string getOpContextName(const RamRelationIdentifier& rel) const {
-            return "rel_" + rel.getName() + "_op_ctxt";
+            return getRelationName(rel) + "_op_ctxt";
         }
     };
 
@@ -1622,7 +1656,75 @@ namespace {
 }
 
 
-std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamStatement& stmt) const {
+CPPIdentifierMap* CPPIdentifierMap::instance = 0;
+
+CPPIdentifierMap& CPPIdentifierMap::getInstance() {
+    if (instance == NULL) {
+        instance = new CPPIdentifierMap();
+    }
+    return *instance;
+}
+
+
+std::string CPPIdentifierMap::getIdentifier(std::string rel_name) {
+    return getInstance().identifier(rel_name);
+}
+
+std::string CPPIdentifierMap::identifier(std::string rel_name) {
+    if (name_id_map.count(rel_name)) {
+        return name_id_map.find(rel_name)->second;
+    }
+    
+    std::string unique_id = uniqueIdentifier(rel_name);
+    name_id_map.insert(std::make_pair(rel_name, unique_id));
+    return unique_id;
+}
+
+std::string CPPIdentifierMap::uniqueIdentifier(std::string name) {
+
+    // Remove digits, invalid characters.
+    std::string new_id;
+    bool start_digits = true;
+    for (size_t i = 0; i < name.size(); ++i) {
+        if (start_digits && !isdigit(name[i])) {
+            start_digits = false;
+        }
+        if (!start_digits && isValidChar(name[i])) {
+            new_id.push_back(name[i]);
+        }
+    }
+
+    // Truncate the string if too long.
+    if (new_id.length() > prefix_len) new_id = new_id.substr(0, prefix_len);
+    else if (new_id.length() == 0) new_id = "identifier";
+    
+    // Make the identifier unique.
+    if (used_ids.count(new_id)) {
+        size_t n = 0;
+        for (; used_ids.count(new_id + std::to_string(n)); ++n);
+        new_id = new_id + std::to_string(n);
+    }
+
+    used_ids.insert(new_id);
+    return new_id;
+}
+
+bool CPPIdentifierMap::isValidChar(char c) {
+    return isalnum(c) || c == '_';
+}
+
+std::string RamCompiler::resolveFileName() const {
+	if (getBinaryFile() == "") {
+		// generate temporary file
+		char templ[40] = "./fileXXXXXX";
+		close(mkstemp(templ));
+		return templ;
+	}
+	return getBinaryFile();
+}
+
+
+std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStatement& stmt, const std::string& filename) const {
 
     // ---------------------------------------------------------------
     //                      Auto-Index Generation
@@ -1652,9 +1754,9 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
             *report << "\tNumber of Scan Patterns: " << cur.second.getSearches().size() << "\n";
             for(auto& cols : cur.second.getSearches()) {
                 *report << "\t\t";
-                for(uint32_t i=0;i<cur.first.getArity();i++) { 
+                for(uint32_t i=0;i<cur.first.getArity();i++) {
                     if ((1UL<<i) & cols) {
-                       *report << cur.first.getArg(i) << " "; 
+                       *report << cur.first.getArg(i) << " ";
                     }
                 }
                 *report << "\n";
@@ -1677,18 +1779,19 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
 
 
     // open output file
-    std::string fname;
-    if (getBinaryFile() == "") {
-        // generate temporary file
-        char templ[40] = "./fileXXXXXX";
-        close(mkstemp(templ));
-        fname = templ;
-    } else {
-        fname = getBinaryFile();
+    std::string fname = filename;
+    if(fname == "") {
+    	fname = resolveFileName();
     }
 
-    // generate class name 
-    char *bname = strdup(fname.c_str());
+    // generate class name
+    std::string classname = fname;
+    if (endsWith(classname,".h")) {
+    	classname = classname.substr(0,classname.size() - 2);
+    } else if(endsWith(classname,".cpp")) {
+    	classname = classname.substr(0,classname.size() - 4);
+    }
+    char *bname = strdup(classname.c_str());
     std::string simplename = basename(bname);
     free(bname);
     for(size_t i=0;i<simplename.length();i++) {
@@ -1696,10 +1799,13 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
             simplename[i]='_';
         }
     }
-    std::string classname = "Sf_" + simplename; 
+    classname = "Sf_" + simplename;
 
-    std::string binary = fname;
-    std::string source = fname + ".cpp";
+    // add filename extension
+    std::string source = fname;
+    if (!(endsWith(fname,".h") || endsWith(fname,".cpp"))) {
+    	source += ".cpp";
+    }
 
     // open output stream for header file
     std::ofstream os(source);
@@ -1719,7 +1825,7 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     os << "     std::cerr << \"warning: wrong pattern provided for match(\\\"\" << pattern << \"\\\",\\\"\" << text << \"\\\")\\n\";\n}\n";
     os << "   return result;\n";
     os << "}\n";
-   
+
     if (getConfig().isLogging()) {
         os << "std::string profiling_fname;\n";
     }
@@ -1727,56 +1833,61 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     // declare symbol table
     os << "public:\n";
     os << "SymbolTable symTable;\n";
-    os << "protected:\n";
 
     // print relation definitions
-    std::string initCons; // initialization of constructor 
-    std::string registerRel; // registration of relations 
+    std::string initCons; // initialization of constructor
+    std::string registerRel; // registration of relations
     int relCtr=0;
     visitDepthFirst(stmt, [&](const RamCreate& create) {
         // get some table details
         const auto& rel = create.getRelation();
         auto type = getRelationType(rel.getArity(), indices[rel]);
-        int arity = rel.getArity(); 
-        const std::string &name = rel.getName(); 
+        int arity = rel.getArity();
+        const std::string &raw_name = rel.getName();
+        const std::string &name = CPPIdentifierMap::getIdentifier(raw_name);
 
         // defining table
-        os << "// -- Table: " << name << "\n";
+        os << "// -- Table: " << raw_name << "\n";
         os << type << " rel_" << name << ";\n";
         bool isTemp = (name.find("_temp1_")==0) || (name.find("_temp2_")==0);
         if ((rel.isInput() || rel.isComputed() || getConfig().isDebug()) && !isTemp) {
-           os << "souffle::RelationWrapper<"; 
+           os << "souffle::RelationWrapper<";
            os << relCtr++ << ",";
            os << type << ",";
            os << "Tuple<RamDomain," << arity << ">,";
-           os << arity << ","; 
+           os << arity << ",";
            os << (rel.isInput()?"true":"false") << ",";
            os << (rel.isComputed()?"true":"false");
-           os << "> wrapper_" << name << ";\n"; 
-          
-           // construct types 
-           std::string tupleType = "std::array<const char *," + std::to_string(arity) + ">{"; 
-           tupleType += "\"" + rel.getArgTypeQualifier(0) + "\"";
-           for(int i=1; i<arity; i++) {
-               tupleType += ",\"" + rel.getArgTypeQualifier(i) + "\"";
+           os << "> wrapper_" << name << ";\n";
+
+           // construct types
+           std::string tupleType = "std::array<const char *," + std::to_string(arity) + ">{";
+           std::string tupleName = "std::array<const char *," + std::to_string(arity) + ">{";
+           
+           if (rel.getArity()) {
+               tupleType += "\"" + rel.getArgTypeQualifier(0) + "\"";
+               for(int i=1; i<arity; i++) {
+                   tupleType += ",\"" + rel.getArgTypeQualifier(i) + "\"";
+               }
+
+               tupleName += "\"" + rel.getArg(0) + "\"";
+               for (int i=1; i<arity; i++) {
+                   tupleName += ",\"" + rel.getArg(i) + "\"";
+               }
            }
            tupleType += "}";
-           std::string tupleName = "std::array<const char *," + std::to_string(arity) + ">{";
-           tupleName += "\"" + rel.getArg(0) + "\"";
-           for (int i=1; i<arity; i++) {
-               tupleName += ",\"" + rel.getArg(i) + "\"";
-           }
            tupleName += "}";
-           if (initCons.size() > 0) { 
+
+           if (initCons.size() > 0) {
                initCons += ",\n";
            }
-           initCons += "wrapper_" + name + "(rel_" + name + ",symTable,\"" + name + "\"," + tupleType + "," + tupleName + ")";
-           registerRel += "addRelation(\"" + name + "\",&wrapper_" + name + "," + std::to_string(rel.isInput()) + "," + std::to_string(rel.isOutput()) + ");\n";
+           initCons += "wrapper_" + name + "(rel_" + name + ",symTable,\"" + raw_name + "\"," + tupleType + "," + tupleName + ")";
+           registerRel += "addRelation(\"" + raw_name + "\",&wrapper_" + name + "," + std::to_string(rel.isInput()) + "," + std::to_string(rel.isOutput()) + ");\n";
         }
     });
 
     os << "public:\n";
-    
+
     // -- constructor --
 
     os << classname;
@@ -1788,9 +1899,9 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     } else {
        os << "() : \n";
     }
-    os << initCons; 
+    os << initCons;
     os << "{\n";
-    os << registerRel; 
+    os << registerRel;
 
     if (symTable.size() > 0) {
 
@@ -1816,9 +1927,11 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     os << "std::atomic<RamDomain> ctr(0);\n\n";
 
     // set default threads (in embedded mode)
-    os << "#if defined(__EMBEDDED_SOUFFLE__) && defined(_OPENMP)\n";
-    os << "omp_set_num_threads(" << getConfig().getNumThreads() << ");\n";
-    os << "#endif\n\n";
+    if (getConfig().getNumThreads() > 0) {
+        os << "#if defined(__EMBEDDED_SOUFFLE__) && defined(_OPENMP)\n";
+        os << "omp_set_num_threads(" << getConfig().getNumThreads() << ");\n";
+        os << "#endif\n\n";
+    }
 
     // add actual program body
     os << "// -- query evaluation --\n";
@@ -1838,7 +1951,7 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     visitDepthFirst(stmt, [&](const RamStatement& node) {
         if (auto store = dynamic_cast<const RamStore*>(&node)) {
             auto name = store->getRelation().getName();
-            auto relName = "rel_" + name;
+            auto relName = "rel_" + CPPIdentifierMap::getIdentifier(name);
 
             // pick target
             std::string fname = "dirname + \"/" + store->getFileName() + "\"";
@@ -1862,8 +1975,9 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
 
             if (toConsole) os << "std::cout << \"===============\\n\";\n";
         } else if (auto print = dynamic_cast<const RamPrintSize*>(&node)) {
+            auto relName = "rel_" + CPPIdentifierMap::getIdentifier(print->getRelation().getName());
             os << "{ auto lease = getOutputLock().acquire(); \n";
-            os << "std::cout << R\"(" << print->getLabel() << ")\" <<  rel_" << print->getRelation().getName() << ".size() << \"\\n\";\n";
+            os << "std::cout << R\"(" << print->getLabel() << ")\" <<  " << relName << ".size() << \"\\n\";\n";
             os << "}";
         }
     });
@@ -1874,8 +1988,7 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     os << "void loadAll(std::string dirname=\"" << getConfig().getOutputDir() << "\") {\n";
     visitDepthFirst(stmt, [&](const RamLoad& load) {
         // get some table details
-        os << "rel_";
-        os << load.getRelation().getName();
+        os << "rel_" <<  CPPIdentifierMap::getIdentifier(load.getRelation().getName());
         os << ".loadCSV(dirname + \"/";
         os << load.getFileName() << "\"";
         os << ",symTable";
@@ -1886,15 +1999,54 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     });
     os << "}\n";  // end of loadAll() method
 
+
+    // issue dump methods
+	auto dumpRelation = [&](const std::string& name, const SymbolMask& mask, size_t arity) {
+		auto relName = "rel_" + CPPIdentifierMap::getIdentifier(name);
+
+		os << "out << \"---------------\\n" << name << "\\n===============\\n\";\n";
+
+		// create call
+		os << relName << ".printCSV(out,symTable";
+
+		// add format parameters
+		for(size_t i=0; i<arity; i++) {
+			os << ((mask.isSymbol(i)) ? ",1" : ",0");
+		}
+
+		os << ");\n";
+
+		os << "out << \"===============\\n\";\n";
+	};
+
+    // dump inputs
+	os << "public:\n";
+	os << "void dumpInputs(std::ostream& out = std::cout) {\n";
+	visitDepthFirst(stmt, [&](const RamLoad& load) {
+		auto& name = load.getRelation().getName();
+		auto& mask = load.getSymbolMask();
+		size_t arity = load.getRelation().getArity();
+		dumpRelation(name,mask,arity);
+	});
+	os << "}\n";  // end of dumpInputs() method
+
+	// dump outputs
+	os << "public:\n";
+	os << "void dumpOutputs(std::ostream& out = std::cout) {\n";
+	visitDepthFirst(stmt, [&](const RamStore& store) {
+		auto& name = store.getRelation().getName();
+		auto& mask = store.getSymbolMask();
+		size_t arity = store.getRelation().getArity();
+		dumpRelation(name,mask,arity);
+	});
+	os << "}\n";  // end of dumpOutputs() method
+
     os << "public:\n";
     os << "const SymbolTable &getSymbolTable() const {\n";
     os << "return symTable;\n";
     os << "}\n"; // end of getSymbolTable() method
 
     os << "};\n"; // end of class declaration
-
-    // factory base symbol (weak linkage: may be multiply defined)
-    os << "ProgramFactory *ProgramFactory::base __attribute__ ((weak)) = nullptr;\n";
 
     // hidden hooks
     os << "Program *newInstance_" << simplename << "(){return new " << classname << ";}\n";
@@ -1907,23 +2059,30 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     os << "return new " << classname << "();\n";
     os << "};\n";
     os << "public:\n";
-    os << "factory_" << classname << "() : ProgramFactory(\"" << fname << "\"){}\n";
+    os << "factory_" << classname << "() : ProgramFactory(\"" << simplename << "\"){}\n";
     os << "};\n";
-    os << "static factory_" << classname << " factory;\n";
+    os << "static factory_" << classname << " __factory_" << classname << "_instance;\n";
     os << "}\n";
     os << "#else\n";
     os << "}\n";
     os << "int main(int argc, char** argv)\n{\n";
 
     // parse arguments
-    os << "CmdOptions opt(" << getConfig().isLogging() << "," << getConfig().isDebug() << ");\n";
-    os << "opt.analysis_src = R\"(" << getConfig().getSourceFileName() << ")\";\n";
-    os << "opt.input_dir = R\"(" << getConfig().getFactFileDir() << ")\";\n";
-    os << "opt.output_dir = R\"(" << getConfig().getOutputDir() << ")\";\n";
-     
+    os << "souffle::CmdOptions opt(" ;
+    os << "R\"(" << getConfig().getSourceFileName() << ")\",\n";
+    os << "R\"(" << getConfig().getFactFileDir() << ")\",\n";
+    os << "R\"(" << getConfig().getOutputDir() << ")\",\n";
     if (getConfig().isLogging()) {
-       os << "opt.profile_fname = R\"(" << getConfig().getProfileName() << ")\";\n";
+       os << "true,\n";
+       os << "R\"(" << getConfig().getProfileName() << ")\",\n";
+    } else {
+       os << "false,\n";
+       os << "R\"()\",\n";
     }
+    os << getConfig().getNumThreads() << ",\n";
+    os << ((getConfig().isDebug())?"R\"(true)\"":"R\"(false)\"");
+    os << ");\n";
+
     os << "if (!opt.parse(argc,argv)) return 1;\n";
 
     os << "#if defined(_OPENMP) \n";
@@ -1932,39 +2091,51 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
 
     os << "souffle::";
     if (getConfig().isLogging()) {
-       os << classname + " obj(opt.profile_fname);\n";
+       os << classname + " obj(opt.getProfileName());\n";
     } else {
        os << classname + " obj;\n";
     }
 
-    os << "obj.loadAll(opt.input_dir);\n";
+    os << "obj.loadAll(opt.getInputFileDir());\n";
     os << "obj.run();\n";
-    os << "if (!opt.output_dir.empty()) obj.printAll(opt.output_dir);\n";
+    os << "if (!opt.getOutputFileDir().empty()) obj.printAll(opt.getOutputFileDir());\n";
 
     os << "return 0;\n";
     os << "}\n";
     os << "#endif\n";
 
-    // close source file 
+    // close source file
     os.close();
 
+    // return the filename
+    return source;
+
+}
+
+std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamStatement& stmt) const {
+
+    // ---------------------------------------------------------------
+    //                       Code Generation
+    // ---------------------------------------------------------------
+
+	std::string binary = resolveFileName();
+	std::string source = generateCode(symTable, stmt, binary + ".cpp");
 
     // ---------------------------------------------------------------
     //                    Compilation & Execution
     // ---------------------------------------------------------------
 
-
     // execute shell script that compiles the generated C++ program
-    std::string cmd = getConfig().getCompileScript(); 
-    cmd += source;
+    std::string cmd = getConfig().getCompileScript();
 
     // set up number of threads
     auto num_threads = getConfig().getNumThreads();
     if (num_threads == 1) {
-        cmd+=" seq";
-    } else if (num_threads != 0) {
-        cmd += " " + std::to_string(num_threads);
+        cmd+="-s ";
     }
+
+    // add source code
+    cmd += source;
 
     // separate souffle output form executable output
     if (getConfig().isLogging()) {
@@ -1973,42 +2144,34 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
 
     // run executable
     if(system(cmd.c_str()) != 0) {
-        std::cerr << "failed to compile C++ source " << fname << "\n";
+        std::cerr << "failed to compile C++ source " << binary << "\n";
     }
 
     // done
     return binary;
 }
 
-
-
 void RamCompiler::applyOn(const RamStatement& stmt, RamEnvironment& env) const {
 
     // compile statement
     std::string binary = compileToBinary(env.getSymbolTable(), stmt);
-
-    // TODO: future task: make environment state accessible to binary
-
-    // set number of threads
-    auto num_threads = getConfig().getNumThreads();
-    if (num_threads > 0) {
-        setenv("OMP_NUM_THREADS", std::to_string(num_threads).c_str(), true);
-    }
-
-    // create command
-    std::string cmd = binary;
 
     // separate souffle output form executable output
     if (getConfig().isLogging()) {
         std::cout.flush();
     }
 
-    // run executable
-    if(system(cmd.c_str()) != 0) {
-        std::cerr << "failed to run executable " << binary << "\n";
+    // check whether the executable exists
+    if(!isExecutable(binary)) {
+       std::cerr << "failed to run executable " << binary << "\n";
     }
 
-    // TODO: future task: load resulting environment back into this process
-
-    // that's it!
+    // run executable
+    int result = system(binary.c_str());
+    if (result !=0) { 
+       exit(result);
+    } 
 }
+
+} // end of namespace souffle
+

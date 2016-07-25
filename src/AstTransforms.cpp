@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2015, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2015, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -38,6 +18,8 @@
 #include "AstUtils.h"
 #include "AstTypeAnalysis.h"
 #include "PrecedenceGraph.h"
+
+namespace souffle {
 
 void ResolveAliasesTransformer::resolveAliases(AstProgram &program) {
     // get all clauses
@@ -453,7 +435,7 @@ bool RemoveRelationCopiesTransformer::removeRelationCopies(AstProgram &program) 
 
     // search for relations only defined by a single rule ..
     for(AstRelation* rel : program.getRelations()) {
-        if (!rel->isOutput() && rel->getClauses().size() == 1u) {
+        if (!rel->isComputed() && rel->getClauses().size() == 1u) {
             // .. of shape r(x,y,..) :- s(x,y,..)
             AstClause* cl = rel->getClause(0);
             if (!cl->isFact() && cl->getBodySize() == 1u && cl->getAtoms().size() == 1u) {
@@ -468,11 +450,23 @@ bool RemoveRelationCopiesTransformer::removeRelationCopies(AstProgram &program) 
 
     // map each relation to its ultimate alias (could be transitive)
     alias_map isAliasOf;
+    
+    // track any copy cycles; cyclic rules are effectively empty
+    std::set<AstRelationIdentifier> cycle_reps;
 
     for(std::pair<AstRelationIdentifier,AstRelationIdentifier> cur : isDirectAliasOf) {
         // compute replacement
+        
+        std::set<AstRelationIdentifier> visited;
+        visited.insert(cur.first);
+        visited.insert(cur.second);
+
         auto pos = isDirectAliasOf.find(cur.second);
         while(pos != isDirectAliasOf.end()) {
+            if (visited.count(pos->second)) {
+                cycle_reps.insert(cur.second);
+                break;
+            }
             cur.second = pos->second;
             pos = isDirectAliasOf.find(cur.second);
         }
@@ -491,9 +485,17 @@ bool RemoveRelationCopiesTransformer::removeRelationCopies(AstProgram &program) 
         }
     });
 
+    // break remaining cycles
+    for (const auto& rep : cycle_reps) {
+        auto rel = program.getRelation(rep);
+        rel->removeClause(rel->getClause(0));
+    }
+
     // remove unused relations
     for(const auto& cur : isAliasOf) {
-        program.removeRelation(program.getRelation(cur.first)->getName());
+        if (!cycle_reps.count(cur.first)) {
+            program.removeRelation(program.getRelation(cur.first)->getName());
+        }
     }
 
     return true;
@@ -676,7 +678,10 @@ bool RemoveEmptyRelationsTransformer::removeEmptyRelations(AstTranslationUnit &t
     for (auto rel : program.getRelations() ) {
         if(rel->clauseSize() == 0 && !rel->isInput()) {
             removeEmptyRelationUses(translationUnit, rel);
-            program.removeRelation(rel->getName());
+
+            if (!rel->isComputed()) {
+                program.removeRelation(rel->getName());
+            }
             changed = true;
         }
     }
@@ -761,4 +766,6 @@ bool RemoveRedundantRelationsTransformer::transform(AstTranslationUnit& translat
     }
     return changed;
 }
+
+} // end of namespace souffle
 

@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2015, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2015, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -52,7 +32,10 @@
 #include "AstTypeAnalysis.h"
 #include "ComponentModel.h"
 
+namespace souffle {
+
 class AstTranslationUnit;
+
 
 bool AstSemanticChecker::transform(AstTranslationUnit &translationUnit) {
     const TypeEnvironment &typeEnv = translationUnit.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
@@ -70,6 +53,7 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
     checkTypes(report, program);
     checkRules(report, typeEnv, program);
     checkComponents(report, program, componentLookup);
+    checkNamespaces(report, program);
 
 
     // get the list of components to be checked
@@ -216,9 +200,8 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
 
     // check for cyclic dependencies
     const Graph<const AstRelation *> &depGraph = precedenceGraph.getGraph();
-    std::set<const AstRelation *> covered;
     for(const AstRelation *cur : depGraph.getNodes()) {
-        if (covered.find(cur) == covered.end() && depGraph.reaches(cur,cur)) {
+        if (depGraph.reaches(cur,cur)) {
             std::set<const AstRelation *> clique = depGraph.getClique(cur);
             for (const AstRelation *cyclicRelation : clique) {
 
@@ -226,8 +209,14 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
                 const AstLiteral *foundLiteral = nullptr;
                 bool hasNegation = hasClauseWithNegatedRelation(cyclicRelation, cur, &program, foundLiteral);
                 if (hasNegation || hasClauseWithAggregatedRelation(cyclicRelation, cur, &program, foundLiteral)) {
-                    std::string relationsListStr = toString(join(clique, ",", [](std::ostream& out, const AstRelation *rel) {
-                        out << rel->getName();
+                    std::set<std::string> rel_names;
+                    for(const AstRelation *x: clique) {
+                        std::stringstream os;
+                        os << x->getName();
+                        rel_names.insert(os.str());
+                    } 
+                    std::string relationsListStr = toString(join(rel_names, ",", [](std::ostream& out, const std::string &name) {
+                        out << name;
                     }));
                     std::vector<DiagnosticMessage> messages;
                     messages.push_back(DiagnosticMessage("Relation " + toString(cur->getName()), cur->getSrcLoc()));
@@ -237,7 +226,6 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
                     break;
                 }
             }
-            covered.insert(clique.begin(), clique.end());
         }
     }
 }
@@ -428,9 +416,11 @@ void AstSemanticChecker::checkClause(ErrorReport& report, const AstProgram& prog
     });
 
     // check for variables only occurring once
-    for(const auto& cur : var_count) {
-        if (cur.second == 1) {
-            report.addWarning("Variable " + cur.first + " only occurs once", var_pos[cur.first]->getSrcLoc());
+    if (!clause.isGenerated()) {
+    	for(const auto& cur : var_count) {
+			if (cur.second == 1 && cur.first[0] != '_') {
+				report.addWarning("Variable " + cur.first + " only occurs once", var_pos[cur.first]->getSrcLoc());
+			}
         }
     }
 
@@ -450,17 +440,17 @@ void AstSemanticChecker::checkRelationDeclaration(ErrorReport& report, const Typ
 
     for (size_t i = 0; i < relation.getArity(); i++) {
         AstAttribute *attr = relation.getAttribute(i);
-        std::string typeName = attr->getTypeName();
+        AstTypeIdentifier typeName = attr->getTypeName();
 
         /* check whether type exists */
         if (typeName != "number" && typeName != "symbol" && !program.getType(typeName)) {
-            report.addError("Undefined type in attribute " + attr->getAttributeName() + ":" + attr->getTypeName(), attr->getSrcLoc());
+            report.addError("Undefined type in attribute " + attr->getAttributeName() + ":" + toString(attr->getTypeName()), attr->getSrcLoc());
         }
 
         /* check whether name occurs more than once */
         for (size_t j=0; j < i; j++) {
             if (attr->getAttributeName() == relation.getAttribute(j)->getAttributeName()) {
-                report.addError("Doubly defined attribute name " + attr->getAttributeName() + ":" + attr->getTypeName(), attr->getSrcLoc());
+                report.addError("Doubly defined attribute name " + attr->getAttributeName() + ":" + toString(attr->getTypeName()), attr->getSrcLoc());
             }
         }
 
@@ -469,15 +459,14 @@ void AstSemanticChecker::checkRelationDeclaration(ErrorReport& report, const Typ
             const Type &type = typeEnv.getType(typeName);
             if (isRecordType(type)) {
                 if (relation.isInput()) {
-                    report.addError("Input relations must not have record types. Attribute " + attr->getAttributeName() + " has record type " + attr->getTypeName(), attr->getSrcLoc());
+                    report.addError("Input relations must not have record types. Attribute " + attr->getAttributeName() + " has record type " + toString(attr->getTypeName()), attr->getSrcLoc());
                 }
                 if (relation.isOutput()) {
-                    report.addWarning("Output relations with record types cannot be output precisely. Attribute " + attr->getAttributeName() + " has record type " + attr->getTypeName(), attr->getSrcLoc());
+                    report.addWarning("Record types in output relations are not printed verbatim: attribute " + attr->getAttributeName() + " has record type " + toString(attr->getTypeName()), attr->getSrcLoc());
                 }
             }
         }
     }
-
 }
 
 
@@ -512,7 +501,7 @@ void AstSemanticChecker::checkRules(ErrorReport& report, const TypeEnvironment &
 // ----- components --------
 
 const AstComponent* AstSemanticChecker::checkComponentNameReference(ErrorReport& report, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, const std::string& name, const AstSrcLocation& loc, const TypeBinding& binding) {
-    std::string forwarded = binding.find(name);
+    const AstTypeIdentifier& forwarded = binding.find(name);
     if (!forwarded.empty()) {
         // for forwarded types we do not check anything, because we do not know,
         // what the actual type will be
@@ -566,7 +555,7 @@ void AstSemanticChecker::checkComponent(ErrorReport& report, const AstComponent 
     // Type parameter for us here is unknown type that will be bound at the template
     // instation time.
     auto parentTypeParameters = component.getComponentType().getTypeParameters();
-    std::vector<std::string> actualParams(parentTypeParameters.size(), "<type parameter>");
+    std::vector<AstTypeIdentifier> actualParams(parentTypeParameters.size(), "<type parameter>");
     TypeBinding activeBinding = binding.extend(parentTypeParameters,actualParams );
 
     // check parents of component
@@ -648,9 +637,9 @@ void AstSemanticChecker::checkComponents(ErrorReport& report, const AstProgram& 
 void AstSemanticChecker::checkUnionType(ErrorReport& report, const AstProgram& program, const AstUnionType& type) {
 
     // check presence of all the element types
-    for(const std::string& sub : type.getTypes()) {
+    for(const AstTypeIdentifier& sub : type.getTypes()) {
         if (sub != "number" && sub != "symbol" && !program.getType(sub)) {
-            report.addError("Undefined type " + sub + " in definition of union type " + type.getName(), type.getSrcLoc());
+            report.addError("Undefined type " + toString(sub) + " in definition of union type " + toString(type.getName()), type.getSrcLoc());
         }
     }
 
@@ -661,7 +650,7 @@ void AstSemanticChecker::checkRecordType(ErrorReport& report, const AstProgram& 
     // check proper definition of all field types
     for(const auto& field : type.getFields()) {
         if (field.type != "number" && field.type != "symbol" && !program.getType(field.type)) {
-            report.addError("Undefined type " + field.type + " in definition of field " + field.name, type.getSrcLoc());
+            report.addError("Undefined type " + toString(field.type) + " in definition of field " + field.name, type.getSrcLoc());
         }
     }
 
@@ -672,7 +661,7 @@ void AstSemanticChecker::checkRecordType(ErrorReport& report, const AstProgram& 
         const std::string& cur_name = fields[i].name;
         for(std::size_t j = 0; j<i; j++) {
             if (fields[j].name == cur_name) {
-                report.addError("Doubly defined field name " + cur_name + " in definition of type " + type.getName(), type.getSrcLoc());
+                report.addError("Doubly defined field name " + cur_name + " in definition of type " + toString(type.getName()), type.getSrcLoc());
             }
         }
     }
@@ -692,6 +681,39 @@ void AstSemanticChecker::checkTypes(ErrorReport& report, const AstProgram& progr
         checkType(report, program, *cur);
     }
 }
+
+
+// Check that type, relation, component names are disjoint sets.
+void AstSemanticChecker::checkNamespaces(ErrorReport& report, const AstProgram& program) {
+    std::map<std::string, AstSrcLocation> names;
+    
+    // Find all names and report redeclarations as we go.
+    for (const auto& type : program.getTypes()) {
+        const std::string name = toString(type->getName());
+        if (names.count(name)) report.addError("Name clash on type " + name, type->getSrcLoc());
+        else names[name] = type->getSrcLoc();
+    }
+
+    for (const auto& rel : program.getRelations()) {
+        const std::string name = toString(rel->getName());
+        if (names.count(name)) report.addError("Name clash on relation " + name, rel->getSrcLoc());
+        else names[name] = rel->getSrcLoc();
+    }
+    
+    // Note: Nested component and instance names are not obtained.
+    for (const auto& comp : program.getComponents()) {
+        const std::string name = toString(comp->getComponentType().getName());
+        if (names.count(name)) report.addError("Name clash on component " + name, comp->getSrcLoc());
+        else names[name] = comp->getSrcLoc();
+    }
+
+    for (const auto& inst : program.getComponentInstantiations()) {
+        const std::string name = toString(inst->getInstanceName());
+        if (names.count(name)) report.addError("Name clash on instantiation " + name, inst->getSrcLoc());
+        else names[name] = inst->getSrcLoc();
+    }
+}
+
 
 bool AstExecutionPlanChecker::transform(AstTranslationUnit& translationUnit) {
 
@@ -725,4 +747,6 @@ bool AstExecutionPlanChecker::transform(AstTranslationUnit& translationUnit) {
     }
     return false;
 }
+
+} // end of namespace souffle
 

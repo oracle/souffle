@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -50,6 +30,8 @@
 #include "CompiledRamTuple.h"
 #include "SymbolTable.h"
 #include "ParallelUtils.h"
+
+namespace souffle {
 
 namespace ram {
 
@@ -1402,6 +1384,7 @@ struct RelationBase {
     void printCSV(std::ostream& out, const SymbolTable& symbolTable, const SymbolMask& format) const {
         /* print table */
         for(const tuple_type& cur : asDerived()) {
+            if (arity == 0) out << "()";
             for(unsigned i=0; i<arity; i++) {
                 if (format.isSymbol(i)) {
                     out << symbolTable.resolve(cur[i]);
@@ -1412,6 +1395,12 @@ struct RelationBase {
             }
             out << '\n';
         }
+    }
+
+    /* print table in csv format */
+    template<typename ... Format>
+    void printCSV(std::ostream& out, const SymbolTable& symbolTable, Format ... format) const {
+        printCSV(out, symbolTable, SymbolMask({int(format)...}));
     }
 
     /**
@@ -1453,7 +1442,9 @@ struct RelationBase {
         std::ifstream in;
         in.open(fn);
         if (!in.is_open()) {
-            std::cerr << "Cannot open file " << fn << "!\n";
+            char bfn[strlen(fn)+1];
+            strcpy(bfn,fn);
+            std::cerr << "Cannot open fact file " << basename(bfn) << "\n";
             exit(1);        // panic ?!?
         }
 
@@ -1462,6 +1453,7 @@ struct RelationBase {
             char *bname = strdup(fn);
             std::string simplename = basename(bname);
             std::cerr << "Wrong arity of fact file " << simplename << "!\n";
+            exit(1);
         }
     }
 
@@ -1478,9 +1470,8 @@ struct RelationBase {
             getline(in,line);
             if (in.eof()) break;
 
-            int start, end = -1;
+            int start = 0, end = 0;
             for(uint32_t col=0;col<arity;col++) {
-                start = end+1;
                 end = line.find('\t', start);
                 if ((size_t)end == std::string::npos) {
                     end = line.length();
@@ -1500,6 +1491,7 @@ struct RelationBase {
                 } else {
                     tuple[col] = atoi(element.c_str());
                 }
+                start = end+1;
             }
             if ((size_t)end != line.length()) {
                 error = true;
@@ -2199,4 +2191,6 @@ public:
     }
 };
 
-} // end namespace ram
+} // end of namespace ram
+} // end of namespace souffle
+

@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -51,6 +31,7 @@
 #include "Table.h"
 #include "SymbolTable.h"
 
+namespace souffle {
 
 // forward declaration
 class RamEnvironment;
@@ -94,18 +75,17 @@ public:
     const std::string getArg(uint32_t i) const {
        if(!attributeNames.empty()) {
            return attributeNames[i];
-       } else {
+       } 
+       else if (arity == 0) {
+           return "";
+       }
+       else {
            return "c"+std::to_string(i); 
        }
     }
 
     const std::string getArgTypeQualifier(uint32_t i) const {
-        if (!attributeTypeQualifiers.empty()) {
-            return attributeTypeQualifiers[i];
-        } else {
-            assert(0 && "has no type qualifiers");
-            return "";
-        }
+    	return (i < attributeTypeQualifiers.size()) ? attributeTypeQualifiers[i] : "";
     }
 
     bool isInput() const {
@@ -271,12 +251,20 @@ public:
 
     /** insert a new tuple to table */
     void insert(const RamDomain *tuple) {
+
+    	// check for null-arity
+        auto arity = getArity();
+    	if (arity == 0) {
+    		// set number of tuples to one -- that's it
+    		num_tuples = 1;
+    		return;
+    	}
+
         // make existence check
         if (exists(tuple)) return;
 
         // prepare tail
-        auto arity = getArity();
-        if (tail->getFreeSpace() < arity) {
+        if (tail->getFreeSpace() < arity || arity == 0) {
             tail->next = std::unique_ptr<Block>(new Block());
             tail = tail->next.get();
         }
@@ -378,6 +366,10 @@ public:
 
     /** check whether a tuple exists in the relation */
     bool exists(const RamDomain* tuple) const {
+    	// handle arity 0
+    	if (getArity() == 0) return !empty();
+
+    	// handle all other arities
         if (!totalIndex)
             totalIndex = getIndex(getTotalIndexKey());
         return totalIndex->exists(tuple);
@@ -420,7 +412,17 @@ public:
         }
 
         iterator& operator++() {
+        	// check for end
             if (!cur) return *this;
+
+            // support 0-arity
+        	if (arity == 0) {
+        		// move to end
+        		*this = iterator();
+        		return *this;
+        	}
+
+            // support all other arities
             tuple += arity;
             if (tuple >= &cur->data[cur->used]) {
                 cur = cur->next.get();
@@ -432,8 +434,19 @@ public:
 
     /** get iterator begin of relation */
     inline iterator begin() const {
+    	// check for emptiness
         if (empty()) return end();
-        return iterator(head.get(), &head->data[0], getArity());
+
+        // support 0-arity
+        auto arity = getArity();
+        if(arity == 0) {
+        	Block dummyBlock;
+        	RamDomain dummyTuple;
+        	return iterator(&dummyBlock, &dummyTuple, 0);
+        }
+
+        // support non-empty non-zero arity relation
+        return iterator(head.get(), &head->data[0], arity);
     }
 
     /** get iterator begin of relation */ 
@@ -441,8 +454,6 @@ public:
         return iterator(); 
     }
 };
-
-
 
 /**
  * An environment encapsulates all the context information required for
@@ -564,4 +575,6 @@ public:
     }
 
 };
+
+} // end of namespace souffle
 

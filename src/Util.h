@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -35,6 +15,16 @@
  ***********************************************************************/
 
 #pragma once
+
+#include <stdlib.h>
+#include <errno.h>
+#include <libgen.h>
+#include <limits.h>
+#include <string.h>
+#include <stdarg.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <sys/stat.h>
 
 #include <algorithm>
 #include <string>
@@ -56,6 +46,22 @@
 #endif
 #endif
 
+namespace souffle {
+
+/**
+ * Check whether a string is a sequence of numbers
+ */
+inline bool isNumber(const char *str)
+{
+    if (str==NULL) return false;
+
+    while(*str) {
+        if(!isdigit(*str))
+            return false;
+        str++;
+    }
+    return true;
+}
 
 // -------------------------------------------------------------------------------
 //                           General Container Utilities
@@ -98,6 +104,7 @@ std::vector<T*> toPtrVector(const std::vector<std::unique_ptr<T>> &v) {
     }
     return res;
 }
+
 
 // -------------------------------------------------------------
 //                             Ranges
@@ -423,6 +430,10 @@ join(const Container& c, const std::string& sep = ",") {
 }
 
 
+} // end namespace souffle
+
+#ifndef __EMBEDDED_SOUFFLE__
+
 namespace std {
 
     /**
@@ -439,7 +450,7 @@ namespace std {
      */
     template<typename T, typename A>
     ostream& operator<<(ostream& out, const vector<T,A>& v) {
-        return out << "[" << join(v) << "]";
+        return out << "[" << souffle::join(v) << "]";
     }
 
     /**
@@ -448,7 +459,7 @@ namespace std {
      */
     template<typename K, typename C, typename A>
     ostream& operator<<(ostream& out, const set<K,C,A>& s) {
-        return out << "{" << join(s) << "}";
+        return out << "{" << souffle::join(s) << "}";
     }
 
     /**
@@ -457,13 +468,16 @@ namespace std {
      */
     template<typename K, typename T, typename C, typename A>
     ostream& operator<<(ostream& out, const map<K,T,C,A>& m) {
-        return out << "{" << join(m,",",[](ostream& out, const pair<K,T>& cur) {
+        return out << "{" << souffle::join(m,",",[](ostream& out, const pair<K,T>& cur) {
             out << cur.first << "->" << cur.second;
         }) << "}";
     }
 
 } // end namespace std
 
+#endif
+
+namespace souffle {
 
 /**
  * A generic function converting strings into strings (trivial case).
@@ -471,6 +485,26 @@ namespace std {
 inline const std::string& toString(const std::string& str) {
     return str;
 }
+
+namespace detail {
+
+	/**
+	 * A type trait to check whether a given type is printable.
+	 * In this general case, nothing is printable.
+	 */
+	template<typename T, typename filter = void>
+	struct is_printable : public std::false_type {};
+
+	/**
+	 * A type trait to check whether a given type is printable.
+	 * This specialization makes types with an output operator printable.
+	 */
+	template<typename T>
+	struct is_printable<T,
+			typename std::conditional<false,decltype(std::declval<std::ostream&>() << std::declval<T>()),void>::type
+	> : public std::true_type {};
+}
+
 
 /**
  * A generic function converting arbitrary objects to strings by utilizing
@@ -480,13 +514,27 @@ inline const std::string& toString(const std::string& str) {
  * operations.
  */
 template<typename T>
-std::string toString(const T& value) {
+typename std::enable_if<detail::is_printable<T>::value,std::string>::type
+toString(const T& value) {
     // write value into stream and return result
     std::stringstream ss;
     ss << value;
     return ss.str();
 }
 
+/**
+ * A fallback for the to-string function in case an unprintable object is supposed
+ * to be printed.
+ */
+template<typename T>
+typename std::enable_if<!detail::is_printable<T>::value,std::string>::type
+toString(const T& value) {
+	std::stringstream ss;
+	ss << "(print for type ";
+	ss << typeid(T).name();
+	ss << " not supported)";
+	return ss.str();
+}
 
 namespace detail {
 
@@ -519,6 +567,18 @@ detail::multiplying_printer<T> times(const T& value, unsigned num) {
 }
 
 
+// -------------------------------------------------------------------------------
+//                              String Utils
+// -------------------------------------------------------------------------------
+
+/**
+ * Determines whether the given value string ends with the given
+ * end string.
+ */
+inline bool endsWith(const std::string& value, const std::string& ending) {
+	if (value.size() < ending.size()) return false;
+	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
 
 
 // -------------------------------------------------------------------------------
@@ -684,4 +744,110 @@ inline time_point now() {
 inline long duration_in_ms(const time_point& start, const time_point& end) {
     return std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
 }
+// -------------------------------------------------------------------------------
+//                               File Utils
+// -------------------------------------------------------------------------------
+
+/**
+ *  Check whether a file exists in the file system
+ */
+inline bool existFile (const std::string& name) {
+    struct stat buffer;
+    if (stat (name.c_str(), &buffer) == 0) {
+        if ((buffer.st_mode & S_IFREG) != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ *  Check whether a directory exists in the file system
+ */
+inline bool existDir (const std::string& name) {
+    struct stat buffer;
+    if (stat (name.c_str(), &buffer) == 0) {
+        if ((buffer.st_mode & S_IFDIR) != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Check whether a given file exists and it is an executable
+ */
+inline int isExecutable(const std::string& name) {
+    return existFile(name) && !access(name.c_str(), X_OK);
+}
+
+/**
+ * Simple implementation of a which tool
+ */
+inline std::string which(const std::string& name) {
+    char buf[PATH_MAX];
+    if (::realpath(name.c_str(), buf) && isExecutable(buf))
+        return std::string(buf);
+    else {
+        std::string syspath = ::getenv("PATH");
+        std::stringstream sstr(syspath);
+        std::string sub;
+        while (std::getline(sstr, sub, ':')) {
+            std::string path = sub + "/" + name;
+            if (isExecutable(path) && realpath(path.c_str(), buf))
+              return std::string(buf);
+        }
+    }
+    return "";
+}
+
+/**
+ *  C++-style dirname
+ */
+inline std::string dirName(std::string &name) {
+    char buf[PATH_MAX];
+    strcpy(buf, name.c_str());
+    return std::string(dirname(buf));
+}
+
+/**
+ *  C++-style realpath
+ */
+inline std::string absPath(std::string &path) {
+    char buf[PATH_MAX];
+    char *res = realpath(path.c_str(), buf);
+    return (res == NULL) ? "" : std::string(buf);
+}
+
+/*
+ * Find out if an executable given by @p tool exists in the path given @p path
+ * relative to the directory given by @ base. A path here refers a
+ * colon-separated list of directories.
+ */
+inline std::string findTool(std::string tool, std::string base, std::string path) {
+    std::string dir = dirName(base);
+    std::stringstream sstr(path);
+    std::string sub;
+
+    while (std::getline(sstr, sub, ':')) {
+      std::string subpath = dir + "/" +  sub + '/' + tool;
+      if (isExecutable(subpath))
+          return absPath(subpath);
+    }
+    return "";
+}
+
+/*
+ * Get the basename of a fully qualified filename
+ */
+inline std::string baseName(std::string &filename)
+{
+   char fn[filename.size()+1];
+   strcpy(fn,filename.c_str()); 
+   std::string result = basename(fn); 
+   return result;
+} 
+
+} // end namespace souffle
+
 

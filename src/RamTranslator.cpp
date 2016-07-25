@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -46,6 +26,7 @@
 #include "BinaryOperator.h"
 #include "AstTypeAnalysis.h"
 
+namespace souffle {
 
 namespace {
 
@@ -57,10 +38,10 @@ namespace {
     }
 
     RamRelationIdentifier getRamRelationIdentifier(const std::string& name, unsigned arity, const AstRelation *rel, const TypeEnvironment *typeEnv) {
-        if (!rel) {
-            return RamRelationIdentifier(name, arity);
-        }
-        assert(arity == rel->getArity());
+    	if (!rel) {
+    		return RamRelationIdentifier(name, arity);
+    	}
+    	assert(arity == rel->getArity());
         std::vector<std::string> attributeNames;
         std::vector<std::string> attributeTypeQualifiers;
         for (unsigned int i = 0; i < arity; i++) {
@@ -69,8 +50,8 @@ namespace {
                 attributeTypeQualifiers.push_back(getTypeQualifier(typeEnv->getType(rel->getAttribute(i)->getTypeName())));
             }
         }
-        return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers, rel->isInput(), rel->isComputed(), rel->isOutput());
-
+		return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers, rel->isInput(),
+				  rel->isComputed(), rel->isOutput());
     }
 
 }
@@ -123,7 +104,7 @@ namespace {
          * The type mapping variables (referenced by their names) to the
          * locations where they are used.
          */
-        typedef std::map<std::string, std::vector<Location>> variable_reference_map;
+        typedef std::map<std::string, std::set<Location>> variable_reference_map;
 
         /**
          * The type mapping record init expressions to their definition points,
@@ -161,9 +142,8 @@ namespace {
         // -- variables --
 
         void addVarReference(const AstVariable& var, const Location& l) {
-            std::vector<Location>& locs = var_references[var.getName()];
-            assert((locs.empty() || locs.back() < l) && "Unordered location insertion!");
-            locs.push_back(l);
+            std::set<Location>& locs = var_references[var.getName()];
+            locs.insert(l);
         }
 
         void addVarReference(const AstVariable& var, int level, int pos, const std::string &name="") {
@@ -177,7 +157,7 @@ namespace {
         const Location& getDefinitionPoint(const AstVariable& var) const {
             auto pos = var_references.find(var.getName());
             assert(pos != var_references.end() && "Undefined variable referenced!");
-            return pos->second.front();
+            return *pos->second.begin();
         }
 
         const variable_reference_map& getVariableReferences() const {
@@ -248,7 +228,7 @@ namespace {
         bool isSomethingDefinedOn(int level) const {
             // check for variable definitions
             for(const auto& cur : var_references) {
-                if (cur.second.front().level == level) return true;
+                if (cur.second.begin()->level == level) return true;
             }
             // check for record definitions
             for(const auto& cur : record_definitions) {
@@ -291,6 +271,12 @@ namespace {
                 break;
             case AstUnaryFunctor::NEGATION:
                 val = std::unique_ptr<RamValue>(new RamNegation(translateValue(uf->getOperand(), index)));
+                break;
+            case AstUnaryFunctor::BNOT:
+                val = std::unique_ptr<RamValue>(new RamComplement(translateValue(uf->getOperand(), index)));
+                break;
+            case AstUnaryFunctor::LNOT:
+                val = std::unique_ptr<RamValue>(new RamNot(translateValue(uf->getOperand(), index)));
                 break;
             default:
                 ASSERT(false && "unknown unary function");
@@ -488,11 +474,11 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(const AstClause& cl
     // -- create RAM statement --
 
     // begin with projection
-    RamProject* project = new RamProject(getRelation(&head), level) ;
+    RamProject* project = new RamProject(getRelation(&head), level);
 
-    for(AstArgument *arg : head.getArguments()) {
-        project->addArg(translateValue(arg, valueIndex));
-    }
+	for(AstArgument *arg : head.getArguments()) {
+		project->addArg(translateValue(arg, valueIndex));
+	}
 
     // build up insertion call
     std::unique_ptr<RamOperation> op(project);       // start with innermost
@@ -552,6 +538,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(const AstClause& cl
                 }
             }
 
+            
             // add a scan level
             op = std::unique_ptr<RamOperation>(new RamScan(getRelation(atom), std::move(op), isExistCheck));
 
@@ -597,7 +584,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(const AstClause& cl
     /* add equivalence constraints imposed by variable binding */
     for (const auto& cur : valueIndex.getVariableReferences()) {
         // the first appearance
-        const Location& first = cur.second.front();
+        const Location& first = *cur.second.begin();
         // all other appearances
         for(const Location& loc : cur.second) {
             if (first != loc) {
@@ -635,9 +622,10 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(const AstClause& cl
 
             // create constraint
             RamNotExists *notExists = new RamNotExists(getRelation(atom));
-            for(const auto& arg : atom->getArguments()) {
-                notExists->addArg(translateValue(*arg, valueIndex));
-            }
+
+			for(const auto& arg : atom->getArguments()) {
+				notExists->addArg(translateValue(*arg, valueIndex));
+			}
 
             // add constraint
             op->addCondition(std::unique_ptr<RamCondition>(notExists));
@@ -1047,8 +1035,6 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
         }
     }
 
-
-
     // --- computation ---
 
     std::unique_ptr<RamStatement> comp;
@@ -1094,3 +1080,6 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
     // done
     return res;
 }
+
+} // end of namespace souffle
+

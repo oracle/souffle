@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -42,6 +22,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <ctype.h>
 #include <sys/stat.h>
 #include <getopt.h>
 
@@ -69,15 +50,17 @@
 #include "RamExecutor.h"
 #include "RamStatement.h"
 
+namespace souffle {
 
-/** 
+
+/**
  *  Show help page.
  */
-void helpPage(bool error, int argc, char**argv)  
+void helpPage(bool error, int argc, char**argv)
 {
     if (error) {
         for(int i=0;i<argc;i++) {
-            std::cerr << argv[i] << " "; 
+            std::cerr << argv[i] << " ";
         }
         std::cerr << "\nError parsing command-line arguments\n";
     }
@@ -95,6 +78,7 @@ void helpPage(bool error, int argc, char**argv)
     std::cerr << "\n";
     std::cerr << "    -c, --compile                  Compile datalog (translating to C++)\n";
     std::cerr << "    --auto-schedule                Switch on automated clause scheduling for compiler\n";
+    std::cerr << "    -g <FILE>                      Only generate sources of compilable analysis and write it to <FILE>\n";
     std::cerr << "    -o <FILE>, --dl-program=<FILE> Write executable program to <FILE> (without executing it)\n";
     std::cerr << "\n";
     std::cerr << "    -p<FILE>, --profile=<FILE>     Enable profiling and write profile data to <FILE>\n";
@@ -113,38 +97,15 @@ void helpPage(bool error, int argc, char**argv)
 }
 
 /**
- *  print error message and exit 
+ *  print error message and exit
  */
 void fail(const std::string &str)
 {
-    std::cerr << str << "\n"; 
+    std::cerr << str << "\n";
     exit(1);
 }
 
-/**
- *  Check whether a file exists in the file system 
- */
-inline bool existFile (const std::string& name) {
-    struct stat buffer;   
-    if (stat (name.c_str(), &buffer) == 0) {
-        if ((buffer.st_mode & S_IFREG) != 0) {
-            return true;
-        }
-    }
-    return false; 
-}
-/**
- *  Check whether a directory exists in the file system 
- */
-inline bool existDir (const std::string& name) {
-    struct stat buffer;   
-    if (stat (name.c_str(), &buffer) == 0) {
-        if ((buffer.st_mode & S_IFDIR) != 0) {
-            return true;
-        }
-    }
-    return false; 
-}
+
 
 static void wrapPassesForDebugReporting(std::vector<std::unique_ptr<AstTransformer>> &transforms) {
     for (unsigned int i = 0; i < transforms.size(); i++) {
@@ -152,10 +113,10 @@ static void wrapPassesForDebugReporting(std::vector<std::unique_ptr<AstTransform
     }
 }
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
 
-    /* Time taking for overall runtime */ 
+    /* Time taking for overall runtime */
     auto souffle_start = std::chrono::high_resolution_clock::now();
 
     std::string debugReportFile; /* filename to output debug report */
@@ -166,11 +127,14 @@ int main(int argc, char **argv)
     std::string outputFileName = "";
     std::string factFileDir = ".";
 
-    bool verbose  = false;    /* flag for verbose output */
-    bool compile = false;     /* flag for enabling compilation */
-    bool tune = false;        /* flag for enabling / disabling the rule scheduler */
-    bool logging = false;     /* flag for profiling */ 
-    bool debug = false;       /* flag for enabling debug mode */
+    std::string outputHeaderFileName = "";
+
+    bool verbose  = false;        /* flag for verbose output */
+    bool compile = false;         /* flag for enabling compilation */
+    bool tune = false;            /* flag for enabling / disabling the rule scheduler */
+    bool logging = false;         /* flag for profiling */
+    bool debug = false;           /* flag for enabling debug mode */
+    bool generateHeader = false;  /* flag for enabling code generation mode */
 
     enum {optAutoSchedule=1,
           optDebugReportFile=2};
@@ -192,7 +156,7 @@ int main(int argc, char **argv)
         { "profile", true, nullptr, 'p' },
         //
         { "debug", false, nullptr, 'd' },
-        // 
+        //
         { "verbose", false, nullptr, 'v' },
         // the terminal option -- needs to be null
         { nullptr, false, nullptr, 0 }
@@ -200,7 +164,7 @@ int main(int argc, char **argv)
 
     static unsigned num_threads = 1;	  /* the number of threads to use for execution, 0 system-choice, 1 sequential */
     int c;     /* command-line arguments processing */
-    while ((c = getopt_long(argc, argv, "cj:D:F:I:p:o:hvd", longOptions, nullptr)) != EOF) {
+    while ((c = getopt_long(argc, argv, "cj:D:F:I:p:o:g:hvd", longOptions, nullptr)) != EOF) {
         switch(c) {
                 /* Print debug / profiling information */
             case 'v':
@@ -209,24 +173,37 @@ int main(int argc, char **argv)
 
                 /* Enable compiler flag */
             case 'c':
-                compile = true; 
+                compile = true;
                 break;
 
-                /* Set number of jobs */ 
+                /* Set number of jobs */
             case 'j':
-                num_threads = atoi(optarg);
+                if (std::string(optarg) == "auto") {
+                   num_threads = 0;
+                } else if(isNumber(optarg)) {
+                   num_threads = atoi(optarg);
+                   if(num_threads == 0) {
+                       fail("Number of jobs in the -j/--jobs options must be greater than zero!");
+                   }
+                } else fail("Wrong parameter "+std::string(optarg)+" for option -j/--jobs!");
                 break;
 
                 /* Output file name of generated executable program */
             case 'o':
                 outputFileName = optarg;
-                compile = true; 
+                compile = true;
                 break;
+
+                /* Generator mode and output file name */
+            case 'g':
+            	outputHeaderFileName = optarg;
+            	generateHeader = true;
+            	break;
 
                 /* Fact directories */
             case 'F':
                 // Add conditional check:
-                // if (factFileDir != NULL) { 
+                // if (factFileDir != NULL) {
                 //   fail("Fact directory option can only be specified once (-F%s -F%s)!\n", factFileDir, optarg);
                 // } else if (!existDir(optarg)) {
                 //   fail("Fact directory %s does not exists!\n", optarg);
@@ -247,7 +224,7 @@ int main(int argc, char **argv)
                 if (!existDir(optarg)) {
                     fail("error: include directory " + std::string(optarg) + " does not exists");
                 }
-                if(includeOpt == "") { 
+                if(includeOpt == "") {
                     includeOpt = "-I" + std::string(optarg);
                 } else {
                     includeOpt = includeOpt + " -I" + std::string(optarg);
@@ -256,7 +233,7 @@ int main(int argc, char **argv)
 
                 /* File-name for profile log */
             case 'p':
-                logging = true; 
+                logging = true;
                 profile = optarg;
                 break;
 
@@ -265,10 +242,10 @@ int main(int argc, char **argv)
                 debug = true;
                 break;
 
-                /* Enable auto scheduler */ 
+                /* Enable auto scheduler */
             case optAutoSchedule:
                 tune = true;
-                compile = true; 
+                compile = true;
                 break;
 
                 /* Enable generation of debug output report */
@@ -290,19 +267,19 @@ int main(int argc, char **argv)
         }
     }
 
-    if (tune && outputFileName == "") { 
+    if (tune && outputFileName == "") {
        fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
-    } 
-        
+    }
 
-    /* collect all input files for the C pre-processor */ 
+
+    /* collect all input files for the C pre-processor */
     std::string filenames = "";
     if (optind < argc) {
         for (; optind < argc; optind++) {
             if (!existFile(argv[optind])) {
-                fail("error: cannot open file " + std::string(argv[optind])); 
+                fail("error: cannot open file " + std::string(argv[optind]));
             }
-            if (filenames == "") { 
+            if (filenames == "") {
                 filenames = argv[optind];
             } else {
                 filenames = filenames + " " + std::string(argv[optind]);
@@ -312,10 +289,18 @@ int main(int argc, char **argv)
         helpPage(true,argc,argv);
     }
 
+    std::string programName = which(argv[0]);
+    if (programName.empty())
+        fail("error: failed to determine souffle executable path");
+
     /* Create the pipe to establish a communication between cpp and souffle */
-    std::string cmd = SOUFFLECPP;
-    cmd  += " -nostdinc " + includeOpt + " " + filenames;
-    FILE* in = popen(cmd.c_str(), "r"); 
+    std::string cmd = ::findTool("souffle-wave", programName, ".");
+
+    if (!isExecutable(cmd))
+        fail("error: failed to locate souffle preprocessor");
+
+    cmd  += " " + includeOpt + " " + filenames;
+    FILE* in = popen(cmd.c_str(), "r");
 
     /* Time taking for parsing */
     auto parser_start = std::chrono::high_resolution_clock::now();
@@ -327,9 +312,9 @@ int main(int argc, char **argv)
 
     // close input pipe
     int preprocessor_status = pclose(in);
-    if (preprocessor_status != 0) {
-        // an error message was already printed by the pre-processor
-        return preprocessor_status;
+    if (preprocessor_status == -1) {
+        perror(NULL);
+        fail("error: failed to close pre-processor pipe");
     }
 
     /* Report run-time of the parser if verbose flag is set */
@@ -381,6 +366,7 @@ int main(int argc, char **argv)
         std::cerr << translationUnit->getErrorReport();
     }
 
+
     // ------- execution -------------
 
     auto ram_start = std::chrono::high_resolution_clock::now();
@@ -407,13 +393,13 @@ int main(int argc, char **argv)
     if (!ramProg) return 0;
 
     // pick executor
-    
+
     std::unique_ptr<RamExecutor> executor;
-    if (compile) {
+    if (generateHeader || compile) {
         // configure compiler
         executor = std::unique_ptr<RamExecutor>(new RamCompiler(outputFileName));
         if (verbose) {
-           executor -> setReportTarget(std::cout); 
+           executor -> setReportTarget(std::cout);
         }
     } else {
         // configure interpreter
@@ -434,16 +420,23 @@ int main(int argc, char **argv)
     config.setProfileName(profile);
     config.setDebug(debug);
 
-    std::string dir = dirname(argv[0]); 
-    if (dir == "." && argv[0][0] != '.' ) {
-       dir = "";
-    } else if (dir.size() > 0) {
-       dir += "/";
-    }
-    config.setCompileScript( "/bin/bash " + dir + "souffle-compile ");
+    /* Locate souffle-compile script */
+    std::string compileCmd = ::findTool("souffle-compile", programName, ".");
 
-    // check if this is a compile only
-    if (compile && outputFileName != "") {
+    /* Fail if a souffle-compile executable is not found */
+    if (!isExecutable(compileCmd))
+        fail("error: failed to locate souffle-compile");
+
+    config.setCompileScript(compileCmd + " ");
+
+    // check if this is code generation only
+    if (generateHeader) {
+
+    	// just generate, no compile, no execute
+		static_cast<const RamCompiler*>(executor.get())->generateCode(translationUnit->getSymbolTable(), *ramProg, outputHeaderFileName);
+
+    	// check if this is a compile only
+    } else if (compile && outputFileName != "") {
         // just compile, no execute
         static_cast<const RamCompiler*>(executor.get())->compileToBinary(translationUnit->getSymbolTable(), *ramProg);
     } else {
@@ -452,10 +445,18 @@ int main(int argc, char **argv)
     }
 
     /* Report overall run-time in verbose mode */
-    if (verbose) { 
+    if (verbose) {
         auto souffle_end = std::chrono::high_resolution_clock::now();
         std::cout << "Total Time: " << std::chrono::duration<double>(souffle_end-souffle_start).count() << "sec\n";
     }
 
     return 0;
 }
+
+} // end of namespace souffle
+
+int main(int argc, char **argv) {
+	return souffle::main(argc, argv);
+}
+
+

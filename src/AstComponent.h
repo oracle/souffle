@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -41,6 +21,8 @@
 #include <memory>
 
 #include "AstRelation.h"
+
+namespace souffle {
 
 class ErrorReport;
 
@@ -62,14 +44,14 @@ class AstComponentType {
     /**
      * The list of associated type parameters.
      */
-    std::vector<std::string> typeParams;
+    std::vector<AstTypeIdentifier> typeParams;
 
 public:
 
     /**
      * Creates a new component type based on the given name and parameters.
      */
-    AstComponentType(const std::string& name = "", const std::vector<std::string>& params = std::vector<std::string>())
+    AstComponentType(const std::string& name = "", const std::vector<AstTypeIdentifier>& params = std::vector<AstTypeIdentifier>())
         : name(name), typeParams(params) {}
 
     // -- copy constructors and assignment operators --
@@ -102,11 +84,11 @@ public:
         name = n;
     }
 
-    const std::vector<std::string>& getTypeParameters() const {
+    const std::vector<AstTypeIdentifier>& getTypeParameters() const {
         return typeParams;
     }
 
-    void setTypeParameters(const std::vector<std::string>& params) {
+    void setTypeParameters(const std::vector<AstTypeIdentifier>& params) {
         typeParams = params;
     }
 
@@ -215,6 +197,11 @@ class AstComponent : public AstNode {
     std::vector<AstComponentType> baseComponents;
 
     /**
+     * A list of types declared in this component.
+     */
+    std::vector<std::unique_ptr<AstType>> types;
+
+    /**
      * A list of relations declared in this component.
      */
     std::vector<std::unique_ptr<AstRelation>> relations;
@@ -266,6 +253,14 @@ public:
         baseComponents.push_back(component);
     }
 
+    void addType(std::unique_ptr<AstType> t) {
+    	types.push_back(std::move(t));
+    }
+
+    std::vector<AstType*> getTypes() const {
+    	return toPtrVector(types);
+    }
+
     void addRelation(std::unique_ptr<AstRelation> r) {
         relations.push_back(std::move(r));
     }
@@ -315,6 +310,7 @@ public:
 
         for(const auto& cur : components)       res->components.push_back(std::unique_ptr<AstComponent>(cur->clone()));
         for(const auto& cur : instantiations)   res->instantiations.push_back(std::unique_ptr<AstComponentInit>(cur->clone()));
+        for(const auto& cur : types)            res->types.push_back(std::unique_ptr<AstType>(cur->clone()));
         for(const auto& cur : relations)        res->relations.push_back(std::unique_ptr<AstRelation>(cur->clone()));
         for(const auto& cur : clauses)          res->clauses.push_back(std::unique_ptr<AstClause>(cur->clone()));
         for(const auto& cur : overrideRules)    res->overrideRules.insert(cur);
@@ -328,6 +324,7 @@ public:
         // apply mapper to all sub-nodes
         for(auto& cur : components)       cur = mapper(std::move(cur));
         for(auto& cur : instantiations)   cur = mapper(std::move(cur));
+        for(auto& cur : types)            cur = mapper(std::move(cur));
         for(auto& cur : relations)        cur = mapper(std::move(cur));
         for(auto& cur : clauses)          cur = mapper(std::move(cur));
 
@@ -340,6 +337,7 @@ public:
 
         for(const auto& cur : components)       res.push_back(cur.get());
         for(const auto& cur : instantiations)   res.push_back(cur.get());
+        for(const auto& cur : types)            res.push_back(cur.get());
         for(const auto& cur : relations)        res.push_back(cur.get());
         for(const auto& cur : clauses)          res.push_back(cur.get());
 
@@ -357,6 +355,7 @@ public:
 
         if (!components.empty())        os << join(components, "\n", print_deref<std::unique_ptr<AstComponent>>()) << "\n";
         if (!instantiations.empty())    os << join(instantiations, "\n", print_deref<std::unique_ptr<AstComponentInit>>()) << "\n";
+        if (!types.empty())             os << join(types, "\n", print_deref<std::unique_ptr<AstType>>()) << "\n";
         if (!relations.empty())         os << join(relations, "\n", print_deref<std::unique_ptr<AstRelation>>()) << "\n";
         for (const auto &cur : overrideRules) { 
             os << ".override " << cur << "\n"; 
@@ -375,6 +374,7 @@ protected:
 
         // compare all fields
         return type == other.type && baseComponents == other.baseComponents &&
+        	   equal_targets(types, other.types) &&
                equal_targets(relations, other.relations) &&
                equal_targets(clauses, other.clauses) &&
                equal_targets(components, other.components) &&
@@ -382,3 +382,6 @@ protected:
     }
 
 };
+
+} // end of namespace souffle
+
