@@ -23,6 +23,6 @@ fi
 if [ $TRAVIS_OS_NAME == osx ]
 then
    brew update
-   brew install md5sha1sum bison boost
+   brew install md5sha1sum bison
    brew link bison --force
 fi
