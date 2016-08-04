@@ -39,7 +39,7 @@ int main(int argc, char **argv)
    if(argc != 2) error("wrong number of arguments!"); 
 
    // create instance of program "load_print"
-   if(Program *prog = ProgramFactory::newInstance("load_print")) {
+   if(SouffleProgram *prog = ProgramFactory::newInstance("load_print")) {
 
       // load all input relations from current directory
       prog->loadAll(argv[1]);

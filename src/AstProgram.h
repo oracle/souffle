@@ -48,6 +48,7 @@ class AstProgram : public AstNode {
       // TODO: Check whether this is needed
       friend class ParserDriver;
       friend class ComponentInstantiationTransformer;
+      friend class AstBuilder;
 
       /** Program types  */
       std::map<AstTypeIdentifier, std::unique_ptr<AstType>> types;

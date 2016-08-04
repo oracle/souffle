@@ -35,6 +35,7 @@
 #include "AstVisitor.h"
 #include "RuleScheduler.h"
 #include "TypeSystem.h"
+#include "RamData.h"
 
 namespace souffle {
 
@@ -508,7 +509,7 @@ namespace {
     }
 
 
-    void run(const RamExecutorConfig& config, const QueryExecutionStrategy& executor, std::ostream* report, std::ostream* profile, const RamStatement& stmt, RamEnvironment& env) {
+    void run(const RamExecutorConfig& config, const QueryExecutionStrategy& executor, std::ostream* report, std::ostream* profile, const RamStatement& stmt, RamEnvironment& env, RamData* data) {
 
         class Interpreter : public RamVisitor<bool> {
 
@@ -517,15 +518,17 @@ namespace {
             const QueryExecutionStrategy& queryExecutor;
             std::ostream* report;
             std::ostream* profile;
+            RamData* data;
 
         public:
 
             Interpreter(
                     const RamExecutorConfig& config, RamEnvironment& env,
                     const QueryExecutionStrategy& executor, std::ostream* report,
-                    std::ostream* profile
+                    std::ostream* profile,
+                    RamData* data
             )
-                : config(config), env(env), queryExecutor(executor), report(report), profile(profile) {}
+                : config(config), env(env), queryExecutor(executor), report(report), profile(profile), data(data) {}
 
 
             // -- Statements -----------------------------
@@ -604,6 +607,15 @@ namespace {
             }
 
             bool visitLoad(const RamLoad& load) {
+                if (load.getRelation().isData()) {
+                  // Load from mem
+                  env.getRelation(load.getRelation()).load(data->getTuples(
+                  load.getRelation().getName()), 
+                  env.getSymbolTable(), 
+                  load.getRelation().getSymbolMask());
+                  return true;
+                }
+
                 // load facts from file
                 std::ifstream csvfile;
                 std::string fname = config.getFactFileDir() + "/" + load.getFileName();
@@ -613,7 +625,7 @@ namespace {
                     std::cerr << "Cannot open fact file " << baseName(fname) << "\n";
                     return false; 
                 }
-                if(env.getRelation(load.getRelation()).load(csvfile, env.getSymbolTable(), load.getSymbolMask())) {
+                if(env.getRelation(load.getRelation()).load(csvfile, env.getSymbolTable(), load.getRelation().getSymbolMask())) {
                     char *bname = strdup(fname.c_str());
                     std::string simplename = basename(bname);
                     std::cerr << "Wrong arity of fact file " << simplename << "!\n";
@@ -623,15 +635,19 @@ namespace {
             }
 
             bool visitStore(const RamStore& store) {
+                if(store.getRelation().isData()){
+                  return true;
+                }
+
                 auto& rel = env.getRelation(store.getRelation());
                 if (config.getOutputDir() == "-") {
                     std::cout << "---------------\n" << rel.getName() << "\n===============\n";
-                    rel.store(std::cout, env.getSymbolTable(), store.getSymbolMask());
+                    rel.store(std::cout, env.getSymbolTable(), store.getRelation().getSymbolMask());
                     std::cout << "===============\n";
                     return true;
                 }
                 std::ofstream fout(config.getOutputDir() + "/" + store.getFileName());
-                rel.store(fout, env.getSymbolTable(), store.getSymbolMask());
+                rel.store(fout, env.getSymbolTable(), store.getRelation().getSymbolMask());
                 return true;
             }
 
@@ -678,13 +694,13 @@ namespace {
         };
 
         // create and run interpreter
-        Interpreter(config, env, executor, report, profile).visit(stmt);
+        Interpreter(config, env, executor, report, profile, data).visit(stmt);
     }
 
 }
 
 
-void RamGuidedInterpreter::applyOn(const RamStatement& stmt, RamEnvironment& env) const {
+void RamGuidedInterpreter::applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const {
 
     if (getConfig().isLogging()) {
         std::string fname = getConfig().getProfileName();
@@ -695,9 +711,9 @@ void RamGuidedInterpreter::applyOn(const RamStatement& stmt, RamEnvironment& env
             std::cerr << "Cannot open fact file " << fname << " for profiling\n";
         }
         os << "@start-debug\n";
-        run(getConfig(), queryStrategy, report, &os, stmt, env);
+        run(getConfig(), queryStrategy, report, &os, stmt, env, data);
     } else {
-        run(getConfig(), queryStrategy, report, nullptr, stmt, env);
+        run(getConfig(), queryStrategy, report, nullptr, stmt, env, data);
     }
 
 }
@@ -1817,7 +1833,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "using namespace ram;\n";
 
     // print wrapper for regex
-    os << "class " << classname << " : public Program {\n";
+    os << "class " << classname << " : public SouffleProgram {\n";
     os << "private:\n";
     os << "static bool regex_wrapper(const char *pattern, const char *text) {\n";
     os << "   bool result = false; \n";
@@ -1966,7 +1982,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
             os << ",symTable";
 
             // add format parameters
-            const SymbolMask& mask = store->getSymbolMask();
+            const SymbolMask& mask = store->getRelation().getSymbolMask();
             for(size_t i=0; i<store->getRelation().getArity(); i++) {
                 os << ((mask.isSymbol(i)) ? ",1" : ",0");
             }
@@ -1993,7 +2009,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         os << load.getFileName() << "\"";
         os << ",symTable";
         for(size_t i=0;i<load.getRelation().getArity();i++) {
-            os << (load.getSymbolMask().isSymbol(i) ? ",1" : ",0");
+            os << (load.getRelation().getSymbolMask().isSymbol(i) ? ",1" : ",0");
         }
         os << ");\n";
     });
@@ -2024,7 +2040,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 	os << "void dumpInputs(std::ostream& out = std::cout) {\n";
 	visitDepthFirst(stmt, [&](const RamLoad& load) {
 		auto& name = load.getRelation().getName();
-		auto& mask = load.getSymbolMask();
+		auto& mask = load.getRelation().getSymbolMask();
 		size_t arity = load.getRelation().getArity();
 		dumpRelation(name,mask,arity);
 	});
@@ -2035,7 +2051,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 	os << "void dumpOutputs(std::ostream& out = std::cout) {\n";
 	visitDepthFirst(stmt, [&](const RamStore& store) {
 		auto& name = store.getRelation().getName();
-		auto& mask = store.getSymbolMask();
+		auto& mask = store.getRelation().getSymbolMask();
 		size_t arity = store.getRelation().getArity();
 		dumpRelation(name,mask,arity);
 	});
@@ -2049,13 +2065,13 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "};\n"; // end of class declaration
 
     // hidden hooks
-    os << "Program *newInstance_" << simplename << "(){return new " << classname << ";}\n";
-    os << "SymbolTable *getST_" << simplename << "(Program *p){return &reinterpret_cast<"
+    os << "SouffleProgram *newInstance_" << simplename << "(){return new " << classname << ";}\n";
+    os << "SymbolTable *getST_" << simplename << "(SouffleProgram *p){return &reinterpret_cast<"
         << classname << "*>(p)->symTable;}\n";
 
     os << "#ifdef __EMBEDDED_SOUFFLE__\n";
     os << "class factory_" << classname << ": public souffle::ProgramFactory {\n";
-    os << "Program *newInstance() {\n";
+    os << "SouffleProgram *newInstance() {\n";
     os << "return new " << classname << "();\n";
     os << "};\n";
     os << "public:\n";
@@ -2112,6 +2128,27 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 
 }
 
+std::string RamCompiler::compileToLibrary(const SymbolTable& symTable, const RamStatement& stmt, const std::string& name) const {
+
+    std::string source = generateCode(symTable, stmt, name + ".cpp");
+
+    // execute shell script that compiles the generated C++ program
+    std::string cmd = "./compilelib.sh " + name;
+
+    // separate souffle output form executable output
+    if (getConfig().isLogging()) {
+        std::cout.flush();
+    }
+
+    // run executable
+    if(system(cmd.c_str()) != 0) {
+        std::cerr << "failed to compile C++ source " << name << "\n";
+    }
+
+    // done
+    return name;
+}
+
 std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamStatement& stmt) const {
 
     // ---------------------------------------------------------------
@@ -2151,7 +2188,7 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     return binary;
 }
 
-void RamCompiler::applyOn(const RamStatement& stmt, RamEnvironment& env) const {
+void RamCompiler::applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const {
 
     // compile statement
     std::string binary = compileToBinary(env.getSymbolTable(), stmt);

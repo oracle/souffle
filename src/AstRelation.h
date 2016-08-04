@@ -45,6 +45,8 @@
 /* Rules of a relation defined in a component can be overwritten by sub-component */ 
 #define OVERRIDABLE_RELATION (0x8)
 
+#define DATA_RELATION (0x10)
+
 namespace souffle {
 
 /*!
@@ -111,6 +113,9 @@ public:
     /** Check whether relation is an input relation */
     bool isInput() const { return (qualifier & INPUT_RELATION) != 0; }
 
+    /** Check whether relation is to/from memory */
+    bool isData() const { return (qualifier & DATA_RELATION) != 0; }
+
     /** Check whether relation is an input relation */
     bool isPrintSize() const { return (qualifier & PRINTSIZE_RELATION) != 0; }
 
@@ -135,6 +140,9 @@ public:
             os << "input "; 
         } 
         if (isOutput()) { 
+            os << "output "; 
+        } 
+        if (isData()) { 
             os << "output "; 
         } 
         if (isPrintSize()) { 

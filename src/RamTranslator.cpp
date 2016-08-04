@@ -30,6 +30,21 @@ namespace souffle {
 
 namespace {
 
+
+    SymbolMask getSymbolMask(const AstRelation& rel, const TypeEnvironment &typeEnv) {
+        auto arity = rel.getArity();
+        SymbolMask res(arity);
+
+        for(size_t i = 0; i<arity; i++) {
+            res.setSymbol(i, isSymbolType(typeEnv.getType(rel.getAttribute(i)->getTypeName())));
+        }
+
+        return res;
+    }
+
+
+
+
     /**
      * Converts the given relation identifier into a relation name.
      */
@@ -37,7 +52,9 @@ namespace {
         return toString(join(id.getNames(), "_"));
     }
 
-    RamRelationIdentifier getRamRelationIdentifier(const std::string& name, unsigned arity, const AstRelation *rel, const TypeEnvironment *typeEnv) {
+    RamRelationIdentifier getRamRelationIdentifier(const std::string& name, unsigned arity, const AstRelation *rel, 
+                                                   const TypeEnvironment *typeEnv) {
+
     	if (!rel) {
     		return RamRelationIdentifier(name, arity);
     	}
@@ -50,8 +67,11 @@ namespace {
                 attributeTypeQualifiers.push_back(getTypeQualifier(typeEnv->getType(rel->getAttribute(i)->getTypeName())));
             }
         }
-		return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers, rel->isInput(),
-				  rel->isComputed(), rel->isOutput());
+
+        return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers, 
+                                     getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), 
+                                     rel->isOutput(), rel->isData());
+
     }
 
 }
@@ -983,22 +1003,6 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
     return nullptr;
 }
 
-namespace {
-
-    SymbolMask getSymbolMask(const AstRelation& rel, const TypeEnvironment &typeEnv) {
-
-        auto arity = rel.getArity();
-        SymbolMask res(arity);
-
-        for(size_t i = 0; i<arity; i++) {
-            res.setSymbol(i, isSymbolType(typeEnv.getType(rel.getAttribute(i)->getTypeName())));
-        }
-
-        return res;
-    }
-
-}
-
 /** translates the given datalog program into an equivalent RAM program  */
 std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslationUnit& translationUnit) {
 
@@ -1026,7 +1030,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
 
         // optional: load inputs
         if (rel->isInput())
-            appendStmt(res, std::unique_ptr<RamStatement>(new RamLoad(rrel, getSymbolMask(*rel, typeEnv))));
+            appendStmt(res, std::unique_ptr<RamStatement>(new RamLoad(rrel)));
 
         // create delta-relations if necessary
         if (relationSchedule->isRecursive(rel)) {
@@ -1066,7 +1070,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
     for(AstRelation *rel : rels) {
         RamRelationIdentifier rrel = getRamRelationIdentifier(getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv);
         if (rel->isOutput()) {
-            appendStmt(res, std::unique_ptr<RamStatement>(new RamStore(rrel, getSymbolMask(*rel, typeEnv))));
+            appendStmt(res, std::unique_ptr<RamStatement>(new RamStore(rrel)));
         }
         if (rel->isPrintSize()) {
             appendStmt(res, std::unique_ptr<RamStatement>(new RamPrintSize(rrel)));

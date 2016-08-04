@@ -210,7 +210,7 @@ public:
 /**
  * Abstract base class for generated Datalog programs 
  */
-class Program 
+class SouffleProgram 
 {
 private:
     // define a relation map for external access
@@ -235,7 +235,7 @@ protected:
     }
 
 public:
-    virtual ~Program() {}
+    virtual ~SouffleProgram() {}
 
     // execute Datalog program 
     virtual void run() = 0;
@@ -329,7 +329,7 @@ protected:
    /**
     * Create new instance (abstract)
     */ 
-   virtual Program *newInstance() = 0; 
+   virtual SouffleProgram *newInstance() = 0; 
       
 public:
    virtual ~ProgramFactory() {}
@@ -337,7 +337,7 @@ public:
    /**
     * Create instance 
     */ 
-   static Program* newInstance(const std::string &name) { 
+   static SouffleProgram* newInstance(const std::string &name) { 
       ProgramFactory *factory = find(name); 
       if (factory != nullptr) { 
           return factory->newInstance();
