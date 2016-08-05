@@ -46,7 +46,7 @@ void RamRelation::store(std::ostream &os, const SymbolTable& symTable, const Sym
             std::string s = symTable.resolve(tuple[0]);
             os << s ;
         } else {
-            os << tuple[0];
+            os << (int32_t) tuple[0];
         }
         for(size_t col=1;col < cols;col++) {
             if (mask.isSymbol(col)) {
@@ -57,6 +57,39 @@ void RamRelation::store(std::ostream &os, const SymbolTable& symTable, const Sym
             }
         }
         os << "\n";
+    }
+}
+
+/* print table in memory */ 
+void RamRelation::store(std::vector<std::vector<std::string>>& result, const SymbolTable& symTable, 
+  const SymbolMask& mask) const {
+    size_t cols = getArity(); 
+    if (cols == 0 && !empty()) {
+        std::vector<std::string> vec;
+        vec.push_back("()");
+        result.push_back(vec);
+        return;
+    }
+
+    for(iterator it=begin(); it!=end(); ++it) {
+        std::vector<std::string> vec;
+        const RamDomain *tuple = (*it);
+        if (mask.isSymbol(0)) {
+            std::string s = symTable.resolve(tuple[0]);
+            vec.push_back(s);
+        } else {
+            vec.push_back(""+tuple[0]);
+        }
+        for(size_t col=1;col < cols;col++) {
+            if (mask.isSymbol(col)) {
+                std::string s = symTable.resolve(tuple[col]);
+                vec.push_back(s);
+            } else {
+                vec.push_back(""+tuple[col]);
+            }
+        }
+
+        result.push_back(vec);
     }
 }
 
@@ -97,6 +130,30 @@ bool RamRelation::load(std::istream &is, SymbolTable& symTable, const SymbolMask
         if (end != line.length()) {
             error = true; 
         } 
+        if (!exists(tuple)) { 
+            insert(tuple);
+        }
+    }
+    return error;
+}
+
+/* input table from memory */ 
+bool RamRelation::load(std::vector<std::vector<std::string>> data, 
+  SymbolTable& symTable, const SymbolMask& mask) {
+    bool error = false; 
+    auto arity = getArity();
+    for (std::vector<std::string> vec : data) {
+        std::string line;
+        RamDomain tuple[arity];
+        uint32_t col=0;
+        for(std::string elem : vec) { 
+            if (mask.isSymbol(col)) {
+                tuple[col] = symTable.lookup(elem.c_str());
+            } else {
+                tuple[col] = atoi(elem.c_str());
+            }
+            col++;
+        }
         if (!exists(tuple)) { 
             insert(tuple);
         }

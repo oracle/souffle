@@ -23,6 +23,7 @@
 #include <functional>
 
 #include "RamRelation.h"
+#include "RamData.h"
 
 namespace souffle {
 
@@ -191,14 +192,25 @@ public:
      */
     RamEnvironment execute(SymbolTable& table, const RamStatement& stmt) const {
         RamEnvironment env(table);
-        applyOn(stmt, env);
+        applyOn(stmt, env, nullptr);
+        return env;
+    }
+
+    /**
+     * Runs the given RAM statement on an empty environment and input data and returns
+     * this environment after the completion of the execution.
+     */
+    RamEnvironment* execute(SymbolTable& table, const RamStatement& stmt, RamData* data) const {
+        // Ram env managed by the interface
+        RamEnvironment* env = new RamEnvironment(table);
+        applyOn(stmt, *env, data);
         return env;
     }
 
     /**
      * Runs the given statement on the given environment.
      */
-    virtual void applyOn(const RamStatement& stmt, RamEnvironment& env) const = 0;
+    virtual void applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const = 0;
 
 };
 
@@ -297,7 +309,7 @@ public:
      * The implementation of the interpreter applying the given program
      * on the given environment.
      */
-    virtual void applyOn(const RamStatement& stmt, RamEnvironment& env) const;
+    virtual void applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const;
 
 };
 
@@ -356,6 +368,13 @@ public:
     std::string generateCode(const SymbolTable& symTable, const RamStatement& stmt, const std::string& filename = "") const;
 
     /**
+     * Generates the code for the given ram statement.The target file
+     * name is either set by the corresponding member field or will
+     * be determined randomly. The chosen file-name will be returned.
+     */
+    std::string compileToLibrary(const SymbolTable& symTable, const RamStatement& stmt, const std::string& filename = "default") const;
+
+    /**
      * Compiles the given statement to a binary file. The target file
      * name is either set by the corresponding member field or will
      * be determined randomly. The chosen file-name will be returned.
@@ -366,7 +385,7 @@ public:
      * The actual implementation of this executor encoding the given
      * program into a source file, compiling and executing it.
      */
-    virtual void applyOn(const RamStatement& stmt, RamEnvironment& env) const;
+    virtual void applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const;
 
 private:
 

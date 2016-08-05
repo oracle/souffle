@@ -38,15 +38,47 @@ class RamEnvironment;
 class RamRelation;
 
 
+class SymbolMask {
+    std::vector<bool> mask;
+public:
+    SymbolMask(size_t arity) : mask(arity) {}
+
+    size_t getArity() const {
+        return mask.size();
+    }
+
+    bool isSymbol(size_t index) const {
+        return index < getArity() && mask[index];
+    }
+
+    void setSymbol(size_t index, bool value = true) {
+        mask[index] = value;
+    }
+
+    void print(std::ostream& out) const {
+        out << mask << "\n";
+    }
+
+    friend std::ostream& operator<<(std::ostream& out, const SymbolMask& mask) {
+        mask.print(out);
+        return out;
+    }
+};
+
+
+
+
 class RamRelationIdentifier {
 
     std::string name;
     unsigned arity;
     std::vector<std::string> attributeNames;
     std::vector<std::string> attributeTypeQualifiers;
+    SymbolMask mask;
     bool input;
     bool computed;
     bool output;
+    bool isdata;
 
     // allow the ram environment to cache lookup results
     friend class RamEnvironment;
@@ -55,15 +87,16 @@ class RamRelationIdentifier {
 
 public:
 
-    RamRelationIdentifier() : arity(0), input(false), computed(false), output(false), last(nullptr), rel(nullptr) {
+    RamRelationIdentifier() : arity(0), mask(arity), input(false), computed(false), output(false), 
+      isdata(false), last(nullptr), rel(nullptr) {
     }
 
     RamRelationIdentifier(const std::string& name, unsigned arity,
             std::vector<std::string> attributeNames = {},
-            std::vector<std::string> attributeTypeQualifiers = {},
-            bool input = false, bool computed = false, bool output = false)
+            std::vector<std::string> attributeTypeQualifiers = {}, const SymbolMask& mask = SymbolMask(0),
+            bool input = false, bool computed = false, bool output = false, bool isdata = false)
         : name(name), arity(arity), attributeNames(attributeNames), attributeTypeQualifiers(attributeTypeQualifiers),
-          input(input), computed(computed), output(output), last(nullptr), rel(nullptr)  {
+          mask(mask), input(input), computed(computed), output(output), isdata(isdata), last(nullptr), rel(nullptr)   {
         assert(this->attributeNames.size() == arity || this->attributeNames.empty());
         assert(this->attributeTypeQualifiers.size() == arity || this->attributeTypeQualifiers.empty());
     }
@@ -88,8 +121,14 @@ public:
     	return (i < attributeTypeQualifiers.size()) ? attributeTypeQualifiers[i] : "";
     }
 
+    const SymbolMask& getSymbolMask() const { return mask; }
+
     bool isInput() const {
         return input;
+    }
+
+    bool isData() const {
+        return isdata;
     }
 
     bool isComputed() const {
@@ -132,39 +171,6 @@ public:
     }
 
 };
-
-
-class SymbolMask {
-
-    std::vector<bool> mask;
-
-public:
-
-    SymbolMask(size_t arity) : mask(arity) {}
-
-    size_t getArity() const {
-        return mask.size();
-    }
-
-    bool isSymbol(size_t index) const {
-        return index < getArity() && mask[index];
-    }
-
-    void setSymbol(size_t index, bool value = true) {
-        mask[index] = value;
-    }
-
-    void print(std::ostream& out) const {
-        out << mask << "\n";
-    }
-
-    friend std::ostream& operator<<(std::ostream& out, const SymbolMask& mask) {
-        mask.print(out);
-        return out;
-    }
-
-};
-
 
 class RamRelation {
 
@@ -378,8 +384,17 @@ public:
     /** input table in csv format from file */ 
     bool load(std::istream &is, SymbolTable& symTable, const SymbolMask& mask);
 
+    /** input table as memory */ 
+    bool load(std::vector<std::vector<std::string>> data, SymbolTable& symTable, 
+      const SymbolMask& mask);
+
+
     /** print table in csv formt to file */
     void store(std::ostream &os, const SymbolTable& symTable, const SymbolMask& mask) const;
+
+    /** store data to vectors */
+    void store(std::vector<std::vector<std::string>>& result, const SymbolTable& symTable, 
+      const SymbolMask& mask) const;
 
 
     // --- iterator ---

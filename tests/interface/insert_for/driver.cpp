@@ -36,7 +36,7 @@ void error(std::string txt)
 int main(int argc, char **argv)
 {
    // create an instance of program "insert_for"
-   if(Program *prog = ProgramFactory::newInstance("insert_for")) {
+   if(SouffleProgram *prog = ProgramFactory::newInstance("insert_for")) {
       // get input relation "edge" 
       if(Relation *edge = prog->getRelation("edge")) {
          // load data into relation "edge" 

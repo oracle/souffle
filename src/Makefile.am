@@ -69,6 +69,7 @@ souffle_sources = \
               RamStatement.h                            \
               RamMaxMatching.cpp    RamMaxMatching.h    \
               RamNode.h                                 \
+              RamData.h                                 \
               RamAutoIndex.cpp      RamAutoIndex.h      \
               RamOperation.cpp      RamOperation.h      \
               RamRecords.cpp        RamRecords.h        \

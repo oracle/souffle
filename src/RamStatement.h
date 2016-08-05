@@ -126,17 +126,10 @@ public:
 /** Loads data from a file into a relation */
 class RamLoad : public RamRelationStatement {
 
-    SymbolMask mask;
-
 public:
 
     RamLoad(const RamRelationIdentifier& relation)
-        : RamRelationStatement(RN_Load, relation), mask(relation.getArity()) {}
-
-    RamLoad(const RamRelationIdentifier& relation, const SymbolMask& mask)
-        : RamRelationStatement(RN_Load, relation), mask(mask) {
-        assert(relation.getArity() == mask.getArity());
-    }
+      : RamRelationStatement(RN_Load, relation){}
 
     /** Pretty print statement */
     virtual void print(std::ostream &os, int tabpos) const {
@@ -148,32 +141,15 @@ public:
     std::string getFileName() const {
         return getRelation().getName() + ".facts";
     }
-
-    void setSymbolMask(const SymbolMask& m) {
-        assert(m.getArity() == getRelation().getArity());
-        mask = m;
-    }
-
-    const SymbolMask& getSymbolMask() const {
-        return mask;
-    }
-
 };
 
 /** Dumps all data from a relation into file */
 class RamStore : public RamRelationStatement {
 
-    SymbolMask mask;
-
 public:
 
     RamStore(const RamRelationIdentifier& relation)
-        : RamRelationStatement(RN_Store, relation), mask(relation.getArity()) {}
-
-    RamStore(const RamRelationIdentifier& relation, const SymbolMask& mask)
-        : RamRelationStatement(RN_Store, relation), mask(mask) {
-        assert(relation.getArity() == mask.getArity());
-    }
+      : RamRelationStatement(RN_Store, relation) {}
 
     /** Pretty print statement */
     virtual void print(std::ostream &os, int tabpos) const {
@@ -185,16 +161,6 @@ public:
     std::string getFileName() const {
         return getRelation().getName() + ".csv";
     }
-
-    void setSymbolMask(const SymbolMask& m) {
-        assert(m.getArity() == getRelation().getArity());
-        mask = m;
-    }
-
-    const SymbolMask& getSymbolMask() const {
-        return mask;
-    }
-
 };
 
 

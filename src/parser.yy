@@ -88,6 +88,7 @@
 %token <std::string> RELOP       "relational operator"
 %token OUTPUT_QUALIFIER          "relation qualifier output"
 %token INPUT_QUALIFIER           "relation qualifier input"
+%token DATA_QUALIFIER            "relation qualifier data"
 %token PRINTSIZE_QUALIFIER       "relation qualifier printsize"
 %token OVERRIDABLE_QUALIFIER     "relation qualifier overidable"
 %token TMATCH                    "match predicate"
@@ -276,6 +277,7 @@ attributes: non_empty_attributes { $$ = $1; }
 
 qualifiers: qualifiers OUTPUT_QUALIFIER { if($1 & OUTPUT_RELATION) driver.error(@2, "output qualifier already set"); $$ = $1 | OUTPUT_RELATION; }
           | qualifiers INPUT_QUALIFIER { if($1 & INPUT_RELATION) driver.error(@2, "input qualifier already set"); $$ = $1 | INPUT_RELATION; }
+          | qualifiers DATA_QUALIFIER { if($1 & DATA_RELATION) driver.error(@2, "input qualifier already set"); $$ = $1 | DATA_RELATION; }
           | qualifiers PRINTSIZE_QUALIFIER { if($1 & PRINTSIZE_RELATION) driver.error(@2, "printsize qualifier already set"); $$ = $1 | PRINTSIZE_RELATION; }
           | qualifiers OVERRIDABLE_QUALIFIER { if($1 & OVERRIDABLE_RELATION) driver.error(@2, "overridable qualifier already set"); $$ = $1 | OVERRIDABLE_RELATION; }
           | { $$ = 0; }
