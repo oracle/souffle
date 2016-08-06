@@ -31,9 +31,9 @@ ParserDriver::ParserDriver() : trace_scanning(false), trace_parsing(false) { }
 
 ParserDriver::~ParserDriver() { }
 
-std::unique_ptr<AstTranslationUnit> ParserDriver::parse(const std::string &f, FILE *in) {
+std::unique_ptr<AstTranslationUnit> ParserDriver::parse(const std::string &f, FILE *in, bool nowarn) {
     translationUnit = std::unique_ptr<AstTranslationUnit>(
-            new AstTranslationUnit(std::unique_ptr<AstProgram>(new AstProgram())));
+            new AstTranslationUnit(std::unique_ptr<AstProgram>(new AstProgram()), nowarn));
     yyscan_t scanner;
     scanner_data data;
     data.yyfilename = f.c_str();
@@ -51,9 +51,9 @@ std::unique_ptr<AstTranslationUnit> ParserDriver::parse(const std::string &f, FI
     return std::move(translationUnit);
 }
 
-std::unique_ptr<AstTranslationUnit> ParserDriver::parse(const std::string &code) {
+std::unique_ptr<AstTranslationUnit> ParserDriver::parse(const std::string &code, bool nowarn) {
     translationUnit = std::unique_ptr<AstTranslationUnit>(
-            new AstTranslationUnit(std::unique_ptr<AstProgram>(new AstProgram())));
+            new AstTranslationUnit(std::unique_ptr<AstProgram>(new AstProgram()), nowarn));
 
     scanner_data data;
     data.yyfilename = "<in-memory>";
@@ -71,14 +71,14 @@ std::unique_ptr<AstTranslationUnit> ParserDriver::parse(const std::string &code)
     return std::move(translationUnit);
 }
 
-std::unique_ptr<AstTranslationUnit> ParserDriver::parseTranslationUnit(const std::string &f, FILE *in) {
+std::unique_ptr<AstTranslationUnit> ParserDriver::parseTranslationUnit(const std::string &f, FILE *in, bool nowarn) {
     ParserDriver parser;
-    return parser.parse(f, in);
+    return parser.parse(f, in, nowarn);
 }
 
-std::unique_ptr<AstTranslationUnit> ParserDriver::parseTranslationUnit(const std::string &code) {
+std::unique_ptr<AstTranslationUnit> ParserDriver::parseTranslationUnit(const std::string &code, bool nowarn) {
     ParserDriver parser;
-    return parser.parse(code);
+    return parser.parse(code, nowarn);
 }
 
 void ParserDriver::addRelation(AstRelation *r) {
