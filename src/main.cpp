@@ -79,6 +79,7 @@ void helpPage(bool error, int argc, char**argv)
     std::cerr << "    -c, --compile                  Compile datalog (translating to C++)\n";
     std::cerr << "    --auto-schedule                Switch on automated clause scheduling for compiler\n";
     std::cerr << "    -g <FILE>                      Only generate sources of compilable analysis and write it to <FILE>\n";
+    std::cerr << "    -w                             Disable warnings\n";
     std::cerr << "    -o <FILE>, --dl-program=<FILE> Write executable program to <FILE> (without executing it)\n";
     std::cerr << "\n";
     std::cerr << "    -p<FILE>, --profile=<FILE>     Enable profiling and write profile data to <FILE>\n";
@@ -115,7 +116,6 @@ static void wrapPassesForDebugReporting(std::vector<std::unique_ptr<AstTransform
 
 int main(int argc, char **argv)
 {
-
     /* Time taking for overall runtime */
     auto souffle_start = std::chrono::high_resolution_clock::now();
 
@@ -129,6 +129,7 @@ int main(int argc, char **argv)
 
     std::string outputHeaderFileName = "";
 
+    bool nowarn  = false;        /* flag for disabled warnings */
     bool verbose  = false;        /* flag for verbose output */
     bool compile = false;         /* flag for enabling compilation */
     bool tune = false;            /* flag for enabling / disabling the rule scheduler */
@@ -148,6 +149,7 @@ int main(int argc, char **argv)
         { "jobs", true, nullptr, 'j' },
         //
         { "compile", false, nullptr, 'c' },
+        { "nowarn", false, nullptr, 'w' },
         { "auto-schedule", false, nullptr, optAutoSchedule },
         { "dl-program", true, nullptr, 'o' },
         //
@@ -164,7 +166,7 @@ int main(int argc, char **argv)
 
     static unsigned num_threads = 1;	  /* the number of threads to use for execution, 0 system-choice, 1 sequential */
     int c;     /* command-line arguments processing */
-    while ((c = getopt_long(argc, argv, "cj:D:F:I:p:o:g:hvd", longOptions, nullptr)) != EOF) {
+    while ((c = getopt_long(argc, argv, "cj:D:F:I:p:o:g:hvwd", longOptions, nullptr)) != EOF) {
         switch(c) {
                 /* Print debug / profiling information */
             case 'v':
@@ -175,7 +177,9 @@ int main(int argc, char **argv)
             case 'c':
                 compile = true;
                 break;
-
+            case 'w':
+                nowarn = true;
+                break;
                 /* Set number of jobs */
             case 'j':
                 if (std::string(optarg) == "auto") {
@@ -308,7 +312,7 @@ int main(int argc, char **argv)
     // ------- parse program -------------
 
     // parse file
-    std::unique_ptr<AstTranslationUnit> translationUnit = ParserDriver::parseTranslationUnit("<stdin>", in);
+    std::unique_ptr<AstTranslationUnit> translationUnit = ParserDriver::parseTranslationUnit("<stdin>", in, nowarn);
 
     // close input pipe
     int preprocessor_status = pclose(in);
@@ -456,7 +460,7 @@ int main(int argc, char **argv)
 } // end of namespace souffle
 
 int main(int argc, char **argv) {
-	return souffle::main(argc, argv);
+    return souffle::main(argc, argv);
 }
 
 
