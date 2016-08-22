@@ -111,7 +111,7 @@ public:
     /** 
      * get filename of profile 
      */ 
-    const std::string &getProfileName() { return output_dir; }
+    const std::string &getProfileName() { return profile_name; }
 
     /** 
      * get number of jobs  
