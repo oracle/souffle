@@ -43,7 +43,7 @@ private:
 
 
 public:
-    AstTranslationUnit(std::unique_ptr<AstProgram> program) : program(std::move(program)) { }
+    AstTranslationUnit(std::unique_ptr<AstProgram> program, bool nowarn = false) : program(std::move(program)), errorReport(nowarn) { }
 
     virtual ~AstTranslationUnit() { }
 

@@ -121,11 +121,12 @@ public:
 
 class ErrorReport {
     std::set<Diagnostic> diagnostics;
+    bool nowarn;
 public:
 
-    ErrorReport() { }
+    ErrorReport(bool nowarn = false) : nowarn(nowarn) { }
 
-    ErrorReport(const ErrorReport &other) : diagnostics(other.diagnostics) { }
+    ErrorReport(const ErrorReport &other) : diagnostics(other.diagnostics), nowarn(other.nowarn) { }
 
     unsigned getNumErrors() const {
         return std::count_if(diagnostics.begin(), diagnostics.end(), [](Diagnostic d) -> bool { return d.getType() == Diagnostic::ERROR; });
@@ -146,7 +147,9 @@ public:
 
     /** Adds a warning with the given message and location */
     void addWarning(const std::string &message, AstSrcLocation location) {
-        diagnostics.insert(Diagnostic(Diagnostic::WARNING, DiagnosticMessage(message, location)));
+        if(!nowarn) {
+          diagnostics.insert(Diagnostic(Diagnostic::WARNING, DiagnosticMessage(message, location)));
+        }
     }
 
     void addDiagnostic(Diagnostic diagnostic) {
