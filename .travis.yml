@@ -1,2 +1,6 @@
+sudo: required
 language: cpp
+before_install: 
+  - sudo apt-get -qq update
+  - sudo apt-get -y install bison
 script: ./bootstrap && ./configure && make && make check
