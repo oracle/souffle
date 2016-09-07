@@ -25,6 +25,7 @@
     #include <sstream>
     #include <assert.h>
     #include <unistd.h>
+    #include <cstring>
 
     #include "AstProgram.h"
     #include "StringPool.h"
@@ -112,6 +113,28 @@
 ">"                              { return yy::parser::make_GT(yylloc); }
 ":-"                             { return yy::parser::make_IF(yylloc); }
 (!=|>=|<=)                       { return yy::parser::make_RELOP(SLOOKUP(yytext), yylloc); }
+[0-9]+"."[0-9]+"."[0-9]+"."[0-9]+  { try {
+                                    char *token = std::strtok(yytext, ".");
+                                    int i = 0;
+                                    int vals[4];
+                                    while (token != NULL) {
+                                      vals[i] = std::stoi(token); 
+                                      if(vals[i] > 255) { 
+                                         driver.error(yylloc, "IP out of range");
+                                         return yy::parser::make_NUMBER(0, yylloc); 
+                                      }
+                                      token = std::strtok(NULL, ".");
+                                      ++i;
+                                    }
+                                    int ipnumber = (vals[0]*2^24) + (vals[1]*2^16) + (vals[2]*2^8) + vals[3];
+                                    
+                                    return yy::parser::make_NUMBER(ipnumber, yylloc); 
+
+                                   } catch(...) {
+                                     driver.error(yylloc, "IP out of range");
+                                     return yy::parser::make_NUMBER(0, yylloc); 
+                                   }                                                        }
+
 0b[0-1][0-1]*                    { try {
                                      return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 2), yylloc); 
                                    } catch(...) {
