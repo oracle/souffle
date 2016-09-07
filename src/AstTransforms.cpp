@@ -322,8 +322,6 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
 
         // #4:   v occurs in t
         if (occurs(v, t)) {
-            std::cout << "v=" << v << " occurs in " << t << "\n";
-            assert(false && "Handle non-unifiable case!");
             continue;
         }
 
