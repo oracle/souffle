@@ -83,7 +83,7 @@ namespace util {
         struct tm *tb = 0;
 
             if (tt != (time_t)-1) {
-            char buffer[sizeof("\"Oct 11 1347\"")+1];
+            char buffer[sizeof("\"Oct 11 1347\"")+2];
 
                 tb = localtime (&tt);
                 sprintf (buffer, "\"%s %2d %4d\"",
@@ -104,7 +104,7 @@ namespace util {
         struct tm *tb = 0;
 
             if (tt != (time_t)-1) {
-            char buffer[sizeof("\"12:34:56\"")+1];
+            char buffer[sizeof("\"12:34:56\"")+2];
 
                 tb = localtime (&tt);
                 sprintf (buffer, "\"%02d:%02d:%02d\"", tb->tm_hour, 
@@ -118,7 +118,7 @@ namespace util {
 
         void reset_version()
         {
-        char buffer[sizeof("0x00000000")+1];
+        char buffer[sizeof("0x00000000")+2];
 
         // for some systems sprintf, time_t etc. is in namespace std
             using namespace std;
@@ -172,7 +172,7 @@ namespace util {
     // __SPIRIT_PP__/__WAVE__
         string_type get_version() const
         {
-            char buffer[sizeof("0x0000")+1];
+            char buffer[sizeof("0x0000")+2];
 
             using namespace std;    // for some systems sprintf is in namespace std
             sprintf(buffer, "0x%02d%1d%1d", BOOST_WAVE_VERSION_MAJOR, 
@@ -183,7 +183,7 @@ namespace util {
     // __WAVE_CONFIG__
         string_type get_config() const
         {
-            char buffer[sizeof("0x00000000")+1];
+            char buffer[sizeof("0x00000000")+2];
 
             using namespace std;     // for some systems sprintf is in namespace std
             sprintf(buffer, "0x%08x", BOOST_WAVE_CONFIG);
