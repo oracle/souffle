@@ -78,14 +78,14 @@ void RamRelation::store(std::vector<std::vector<std::string>>& result, const Sym
             std::string s = symTable.resolve(tuple[0]);
             vec.push_back(s);
         } else {
-            vec.push_back(""+tuple[0]);
+            vec.push_back(std::to_string(tuple[0]));
         }
         for(size_t col=1;col < cols;col++) {
             if (mask.isSymbol(col)) {
                 std::string s = symTable.resolve(tuple[col]);
                 vec.push_back(s);
             } else {
-                vec.push_back(""+tuple[col]);
+                vec.push_back(std::to_string(tuple[col]));
             }
         }
 
@@ -97,12 +97,14 @@ void RamRelation::store(std::vector<std::vector<std::string>>& result, const Sym
 bool RamRelation::load(std::istream &is, SymbolTable& symTable, const SymbolMask& mask) {
     bool error = false; 
     auto arity = getArity();
+    size_t lineno = 0; 
     while (!is.eof()) {
         std::string line;
         RamDomain tuple[arity];
 
         getline(is,line);
         if (is.eof()) break;
+        lineno ++; 
 
         size_t start = 0, end = 0;
         for(uint32_t col=0;col<arity;col++) { 
@@ -117,18 +119,31 @@ bool RamRelation::load(std::istream &is, SymbolTable& symTable, const SymbolMask
                     element = "n/a";
                 }
             } else {
-                error = true; 
+                if(!error) { 
+                    std::cerr << "Value missing in column " << col + 1 << " in line " << lineno << "; ";
+                    error = true; 
+                } 
                 element = "n/a";
             }
             if (mask.isSymbol(col)) {
                 tuple[col] = symTable.lookup(element.c_str());
             } else {
-                tuple[col] = atoi(element.c_str());
+                try { 
+                    tuple[col] = std::stoi(element.c_str());
+                } catch(...) { 
+                    if(!error) { 
+                        std::cerr << "Error converting number in column " << col + 1 << " in line " << lineno << "; ";
+                        error = true;
+                    } 
+                } 
             }
             start = end+1;
         }
         if (end != line.length()) {
-            error = true; 
+            if(!error) { 
+                std::cerr << "Too many cells in line " << lineno << "; ";
+                error = true;
+            } 
         } 
         if (!exists(tuple)) { 
             insert(tuple);
@@ -150,7 +165,11 @@ bool RamRelation::load(std::vector<std::vector<std::string>> data,
             if (mask.isSymbol(col)) {
                 tuple[col] = symTable.lookup(elem.c_str());
             } else {
-                tuple[col] = atoi(elem.c_str());
+                try { 
+                    tuple[col] = std::stoi(elem.c_str());
+                } catch(...) { 
+                    error = true; 
+                } 
             }
             col++;
         }

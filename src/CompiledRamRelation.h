@@ -1449,10 +1449,10 @@ struct RelationBase {
         }
 
         // and parse it
-        if(loadCSV(in, symbolTable, format)) {
+        if(!loadCSV(in, symbolTable, format)) {
             char *bname = strdup(fn);
             std::string simplename = basename(bname);
-            std::cerr << "Wrong arity of fact file " << simplename << "!\n";
+            std::cerr << "cannot parse fact file " << simplename << "!\n";
             exit(1);
         }
     }
@@ -1460,6 +1460,7 @@ struct RelationBase {
     /* Loads the tuples form the given file into this relation. */
     bool loadCSV(std::istream& in, SymbolTable& symbolTable, const SymbolMask& format) {
         bool error = false;
+        size_t lineno = 0;
 
         // for all the content
         while(!in.eof()) {
@@ -1469,6 +1470,7 @@ struct RelationBase {
 
             getline(in,line);
             if (in.eof()) break;
+            lineno++;
 
             int start = 0, end = 0;
             for(uint32_t col=0;col<arity;col++) {
@@ -1484,21 +1486,34 @@ struct RelationBase {
                     }
                 } else {
                     element = "n/a";
-                    error = true;
+                    if(!error) { 
+                        std::cerr << "Value missing in column " << col + 1 << " in line " << lineno << "; ";
+                        error = true;
+                    } 
                 }
                 if (format.isSymbol(col)) {
                     tuple[col] = symbolTable.lookup(element.c_str());
                 } else {
-                    tuple[col] = atoi(element.c_str());
+                    try { 
+                       tuple[col] = std::stoi(element.c_str());
+                    } catch (...) { 
+                       if(!error) { 
+                           std::cerr << "Error converting number in column " << col + 1 << " in line " << lineno << "; ";
+                           error = true;
+                       } 
+                    } 
                 }
                 start = end+1;
             }
             if ((size_t)end != line.length()) {
-                error = true;
+                if(!error) { 
+                    std::cerr << "Too many cells in line " << lineno << "; ";
+                    error = true;
+                } 
             }
             insert(tuple);
         }
-        return error;
+        return !error;
     }
 
     /**
