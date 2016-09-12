@@ -89,7 +89,8 @@ EXTRA_DIST = parser.yy scanner.ll  test/test.h
 soufflepublicdir = $(includedir)/souffle
 
 soufflepublic_HEADERS = CompiledRamOptions.h CompiledRamRelation.h CompiledRamTuple.h CompiledRamRecord.h CompiledSouffle.h \
-				  SouffleInterface.h ParallelUtils.h RamTypes.h BTree.h Trie.h Table.h Util.h IterUtils.h SymbolTable.h RamLogger.h 
+				  SouffleInterface.h ParallelUtils.h RamTypes.h BTree.h Trie.h Table.h Util.h IterUtils.h SymbolTable.h RamLogger.h \
+				  SqliteRelationWriter.h
 
 souffle_CPPFLAGS = -DBUILDDIR='"@abs_top_builddir@/src/"' -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\"" -DSOUFFLECPP="\"${SOUFFLECPP}\""
 

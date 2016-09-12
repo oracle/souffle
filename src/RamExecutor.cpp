@@ -1886,6 +1886,12 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     });
     os << "}\n";  // end of loadAll() method
 
+    // issue dumpDB() method
+    os << "public:\n";
+    os << "void dumpDB(std::string filename, bool outputRelationsOnly) {\n";
+    os << "writeRelationsToSqlite(filename, this, outputRelationsOnly);\n";
+    os << "}\n"; // end of dumpDB() method
+
     os << "public:\n";
     os << "const SymbolTable &getSymbolTable() const {\n";
     os << "return symTable;\n";
@@ -1940,6 +1946,8 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     os << "obj.loadAll(opt.input_dir);\n";
     os << "obj.run();\n";
     os << "if (!opt.output_dir.empty()) obj.printAll(opt.output_dir);\n";
+    os << "if (!opt.dbFilename.empty()) obj.dumpDB(opt.dbFilename, " << !getConfig().isDebug() << ");\n";
+
 
     os << "return 0;\n";
     os << "}\n";
