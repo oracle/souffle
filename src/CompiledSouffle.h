@@ -47,6 +47,7 @@
 #include "ParallelUtils.h"
 #include "SouffleInterface.h"
 #include "SymbolTable.h"
+#include "SqliteRelationWriter.h"
 #if defined(_OPENMP) 
 #include <omp.h>
 #endif

@@ -67,6 +67,9 @@ AS_IF([test -z "$BISON"], [AC_MSG_ERROR([bison not found.])])
 dnl Enable pthread library
 AC_CHECK_LIB(pthread, pthread_create,,
           [AC_MSG_ERROR([required library pthread missing])])
+AC_CHECK_HEADER(sqlite3.h,,[AC_MSG_ERROR([required library sqlite3 missing])])
+AC_CHECK_LIB(sqlite3, sqlite3_open,,
+          [AC_MSG_ERROR([required library sqlite3 missing])])
 
 dnl Enables OpenMP in the souffle compiler and interpreter
 AC_OPENMP
@@ -97,6 +100,7 @@ AC_CONFIG_LINKS([include/souffle/IterUtils.h:src/IterUtils.h])
 AC_CONFIG_LINKS([include/souffle/Util.h:src/Util.h])
 AC_CONFIG_LINKS([include/souffle/RamLogger.h:src/RamLogger.h])
 AC_CONFIG_LINKS([include/souffle/SymbolTable.h:src/SymbolTable.h])
+AC_CONFIG_LINKS([include/souffle/SqliteRelationWriter.h:src/SqliteRelationWriter.h])
 AC_CONFIG_LINKS([prof/souffle-profile:prof/souffle-profile])
 
 AM_MISSING_PROG([AUTOM4TE], [autom4te])

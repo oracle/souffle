@@ -84,6 +84,11 @@ struct CmdOptions {
      */
     bool debug_enabled;
 
+    /**
+     * The name of the sqlite database file to write to.
+     */
+    std::string dbFilename;
+
     // default constructor
     CmdOptions(bool pe = false, bool de = false)
         : analysis_src("-unknown-"),
@@ -91,7 +96,8 @@ struct CmdOptions {
           output_dir("."), 
           profile_fname(""), 
           profiling_enabled(pe),
-          debug_enabled(de) {}
+          debug_enabled(de),
+          dbFilename("") {}
 
     /**
      * Parses the given command line parameters, handles -h help requests or errors
@@ -115,6 +121,7 @@ struct CmdOptions {
             { "facts", true, nullptr, 'F' },
             { "output", true, nullptr, 'D' },
             { "profile", true, nullptr, 'p' },
+            { "output-db", true, nullptr, 'o' },
 #ifdef _OPENMP
             { "jobs", true, nullptr, 'j' },
 #endif
@@ -152,6 +159,13 @@ struct CmdOptions {
                         exit(1);
                     }
                     profile_fname = optarg;
+                    break;
+                case 'o':
+                    if (existFile(optarg)) {
+                        printf("Database file %s already exists!\n", optarg);
+                        ok = false;
+                    }
+                    dbFilename = optarg;
                     break;
 #ifdef _OPENMP
                 case 'j': {
@@ -200,6 +214,7 @@ private:
         std::cerr << "                                    (suppress output with \"\")\n";
         std::cerr << "    -F <DIR>, --facts=<DIR>      -- directory for fact files\n";
         std::cerr << "                                    (default: " << input_dir << ")\n";
+        std::cerr << "    -o <file>, --output-db <file> -- output relations to database\n";
         if (profiling_enabled) {
             std::cerr << "    -p <file>, --profile=<file>  -- Specify filename for profile, default: " << profile_fname << "\n";
         }
