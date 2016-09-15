@@ -521,22 +521,16 @@ public class ProgramRun implements Serializable{
         Object[][] new_table = new Object[table.length][table[0].length];
         for (int i = 0; i < table.length; i++) {
             for (int j = 0; j < table[0].length; j++) {
-                if (j<4 || j == table.length-2) {
+                if (table[i][j] == null) continue;
+                if (table[i][j].getClass() == Double.class) {
                     new_table[i][j] = formatTime((Double)table[i][j]);
-                } else if (j == 4) {
-                    new_table[i][4] = formatNum(precision, (Long)table[i][4]);
+                } else if (table[i][j].getClass() == Long.class) {
+                    new_table[i][j] = formatNum(precision, (Long)table[i][j]);
                 } else {
                     new_table[i][j] = table[i][j];
                 }
             }
         }
-        //        for (Object[] row : new_table) {
-        //            row[0] = run.formatTime((Double)row[0]);
-        //            row[1] = run.formatTime((Double)row[1]);
-        //            row[2] = run.formatTime((Double)row[2]);
-        //            row[3] = run.formatTime((Double)row[3]);
-        //            row[4] = run.formatNum(precision, (Long)row[4]);
-        //        }
         return new_table;
     }
 
