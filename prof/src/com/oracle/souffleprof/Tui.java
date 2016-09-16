@@ -127,13 +127,8 @@ public class Tui {
                 } else {
                     loadMenu();
                 }
-            }
-
-            if (!loaded) {
                 continue;
-            }
-
-            if (c[0].equals("stop") && alive) {
+            } else if (c[0].equals("stop") && alive) {
                 live_reader.stopRead();
                 this.alive = false;
             } else if (c[0].equals("ser")) {

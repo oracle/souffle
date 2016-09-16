@@ -522,9 +522,9 @@ public class ProgramRun implements Serializable{
         for (int i = 0; i < table.length; i++) {
             for (int j = 0; j < table[0].length; j++) {
                 if (table[i][j] == null) continue;
-                if (table[i][j].getClass() == Double.class) {
+                if (table[i][j] instanceof Double) {
                     new_table[i][j] = formatTime((Double)table[i][j]);
-                } else if (table[i][j].getClass() == Long.class) {
+                } else if (table[i][j] instanceof Long) {
                     new_table[i][j] = formatNum(precision, (Long)table[i][j]);
                 } else {
                     new_table[i][j] = table[i][j];
