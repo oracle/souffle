@@ -1,4 +1,10 @@
 #!/bin/sh -e
+if [ "$(uname -s)" == "Darwin" ]; then
+	glibtoolize
+else
+	libtoolize
+fi
+
 aclocal
 autoheader
 automake --gnu --add-missing

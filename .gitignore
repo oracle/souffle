@@ -15,7 +15,7 @@ compile
 depcomp
 install-sh
 missing
-include
+/include
 test-driver
 prof/build
 prof/com

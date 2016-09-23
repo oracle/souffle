@@ -10,6 +10,10 @@ AC_PREREQ(2.68)
 AC_COPYRIGHT(['2013-15 Oracle and/or its affiliates'])
 AC_CONFIG_MACRO_DIRS([m4])
 
+
+LT_PREREQ([2.2])
+LT_INIT([dlopen])
+
 AC_CANONICAL_TARGET # target_cpu, target_vendor, and target_os
 AC_CANONICAL_BUILD  # build_cpu, build_vendor, and build_os
 AC_CANONICAL_HOST   # host_cpu, host_vendor, and host_os
@@ -17,6 +21,16 @@ AC_CANONICAL_HOST   # host_cpu, host_vendor, and host_os
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AM_MAINTAINER_MODE
 AC_CONFIG_HEADERS(config.h)
+
+AC_ARG_ENABLE([java],
+[  --enable-java    Turn on java interface],
+[case "${enableval}" in
+  yes) java=true ;;
+  no)  java=false ;;
+  *) AC_MSG_ERROR([bad value ${enableval} for --enable-java]) ;;
+esac],[java=false])
+AM_CONDITIONAL([JAVAI], [test x$java = xtrue])
+
 
 dnl Do not set default CFLAGS and CXXFLAGS
 CXXFLAGS=" -Wall -std=c++11  $CXXFLAGS"
@@ -28,6 +42,27 @@ else
     CXXFLAGS="$CXXFLAGS -O3"
 fi
 
+
+#AC_CANONICAL_HOST
+# Detect the target system
+#case "${host_os}" in
+#    linux*)
+#        ;;
+#
+#    darwin*)
+#	JNIFLAGS="$JNIFLAGS -I$(/usr/libexec/java_home)/include -I$(/usr/libexec/java_home)/include/darwin"
+#        ;;
+#    *)
+#        ;;
+#esac	
+#AX_JNI_INCLUDE_DIR
+
+#for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
+#do
+#	JNIFLAGS="$JNIFLAGS -I$JNI_INCLUDE_DIR"
+#done
+
+
 AC_ISC_POSIX
 AC_PROG_CPP
 AC_PROG_CC
@@ -37,6 +72,7 @@ AC_PROG_MAKE_SET
 AM_PROG_CC_STDC
 AC_PROG_RANLIB
 AX_PROG_JAVAC
+AX_PROG_JAVAH
 AX_PROG_JAVA
 AX_PROG_JAR
 
@@ -159,6 +195,7 @@ AC_CONFIG_FILES([
     Makefile
     src/Makefile
     src/wavelib/Makefile
+    interfaces/Makefile
     prof/Makefile
     tests/Makefile
     tests/atlocal
@@ -211,6 +248,7 @@ AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([dup2 fchdir getcwd getpagesize gettimeofday isascii memset mkdir munmap pow regcomp rmdir setenv socket strcasecmp strchr strdup strerror strrchr strstr strtol strtoull])
 
 AC_OUTPUT(
-    [ src/souffle-compile src/souffle-config debian/changelog ],
-    [ chmod +x src/souffle-compile src/souffle-config ]
+    [ src/souffle-compile src/souffle-config interfaces/souffle-compilelib debian/changelog ],
+    [ chmod +x src/souffle-compile src/souffle-config interfaces/souffle-compilelib ]
 )
+

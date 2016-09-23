@@ -20,7 +20,6 @@
 #include <regex>
 #include <map>
 #include <array>
-#include <cmath>
 #include "CompiledRamRelation.h"
 #include "CompiledRamRecord.h"
 #include "CompiledRamOptions.h"
@@ -33,6 +32,10 @@
 #endif
 
 namespace souffle {
+
+extern "C" {
+  souffle::SouffleProgram* getInstance(const char* p) { return souffle::ProgramFactory::newInstance(p); }
+}
 
 /**
  * Relation wrapper used internally in the generated Datalog program 

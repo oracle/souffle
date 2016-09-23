@@ -1,0 +1,13 @@
+com_soufflelang_souffle_*.h
+*.jar
+*.la
+*.class
+/com/
+.*
+!/.gitignore
+*.o
+*.Plo
+*.Po
+*.lo
+
+
