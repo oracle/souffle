@@ -1,4 +1,4 @@
-# Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2013, 2015, 2016 Oracle and/or its affiliates. All rights reserved.
 #
 # The Universal Permissive License (UPL), Version 1.0
 #
@@ -48,7 +48,7 @@ m4_define([SAME_FILES],[
  AT_CHECK([diff "$1" "$2"],[],[],[])
 ])
 
-dnl Check whether the contents of two files are identical 
+dnl Check whether two files have the same number of lines 
 dnl $1 -- first file
 dnl $2 -- second file
 m4_define([SAME_LINE_COUNT],[
@@ -121,7 +121,7 @@ m4_define([PROFILE_COMMANDS],[dnl
 [help]dnl
 ])
 
-dnl Execute a test case with profiling, and check the profile info can be read
+dnl Execute a test case with profiling, and check the profile generated is as expected
 dnl $1 -- test case
 dnl $2 -- category
 dnl $3 -- command
@@ -139,7 +139,7 @@ m4_define([TEST_PROFILE_COMMAND],[
  SAME_LINE_COUNT([TESTNAME.prof.out],[EXPECTED_OUTPUT])
 ])
 
-dnl Execute a test case with profiling, and check the profile info can be read
+dnl Execute a set of tests on the profiler
 dnl $1 -- test case
 dnl $2 -- category
 m4_define([PROFILE_TEST],[
