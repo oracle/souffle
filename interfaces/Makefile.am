@@ -34,6 +34,8 @@ JSRC = $(wildcard ./jni/java/*.java)
 
 $(java_jni_classes): $(JSRC)
 	$(JAVAC) -d $(DIR) $(JSRC)
+
+com.soufflelang.souffle.jar : $(java_jni_classes)
 	$(JAR) -cf com.soufflelang.souffle.jar ./com/soufflelang/souffle/*.class
 
 com_soufflelang_souffle_Result.h: $(java_jni_classes)

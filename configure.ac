@@ -11,7 +11,7 @@ AC_COPYRIGHT(['2013-15 Oracle and/or its affiliates'])
 AC_CONFIG_MACRO_DIRS([m4])
 
 
-LT_PREREQ([2.2])
+LT_PREREQ([2.4.6])
 LT_INIT([dlopen])
 
 AC_CANONICAL_TARGET # target_cpu, target_vendor, and target_os
@@ -29,6 +29,7 @@ AC_ARG_ENABLE([java],
   no)  java=false ;;
   *) AC_MSG_ERROR([bad value ${enableval} for --enable-java]) ;;
 esac],[java=false])
+
 AM_CONDITIONAL([JAVAI], [test x$java = xtrue])
 
 
