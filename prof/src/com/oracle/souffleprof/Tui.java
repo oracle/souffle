@@ -227,10 +227,10 @@ public class Tui {
                 "graph the relation by type(tot_t/copy_t/tuples).")));
         System.out.print((String.format("  %-30s%-5s %-10s\n",
                 "graph <rule id> <type>", "-",
-                "graph the rule by type(tot_t/tuples).")));
+                "graph the rule (C rules only)  by type(tot_t/tuples).")));
         System.out.print((String.format("  %-30s%-5s %-10s\n",
                 "graph ver <rule id> <type>", "-",
-                "graph the rule versions by type(tot_t/tuples).")));
+                "graph the rule versions (C rules only) by type(tot_t/tuples).")));
         System.out.print((String.format("  %-30s%-5s %-10s\n", "top", "-",
                 "display top-level summary of program run.")));
         System.out.print((String.format("  %-30s%-5s %-10s\n", "help", "-",
