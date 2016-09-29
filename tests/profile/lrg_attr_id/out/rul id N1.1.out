@@ -1,8 +1,4 @@
-  ----- Rule Table -----
-   TOT_T  NREC_T   REC_T  COPY_T         TUPLES    ID RELATION
+     ID  NAME                     
 
-       �    .000    .000       �              0    C1.1 rel                      
-    .000    .000    .000    .000              1    N1.1 rel                      
-    .000    .000    .000    .000              1    N1.2 rel                      
-    .000    .000    .000    .000              1    N1.3 rel                      
+   N1.1  rel(0,1).                
 

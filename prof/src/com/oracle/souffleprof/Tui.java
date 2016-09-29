@@ -49,8 +49,10 @@ public class Tui {
         } else if (c[0].equals("rel")) {
             if (c.length == 2) {
                 relRul(c[1]);
-            } else {
+            } else if (c.length == 1) {
                 rel(c[0]);
+            } else {
+                System.out.println("Invalid parameters to rel command");
             }
         } else if (c[0].equals("rul")) {
             if (c.length > 1) {
@@ -61,6 +63,8 @@ public class Tui {
                     id("0");
                 } else if (c.length == 2) {
                     verRul(c[1]);
+                } else {
+                    System.out.println("Invalid parameters to rul command");
                 }
             } else {
                 rul(c[0]);
@@ -73,12 +77,13 @@ public class Tui {
             } else if (c.length == 4 && c[1].equals("ver")
                     && c[2].charAt(0) == 'C') {
                 verGraph(c[2], c[3]);
+            } else {
+                System.out.println("Invalid parameters to graph command");
             }
         } else if (c[0].equals("help")) {
             help();
         } else {
-            System.out.println("unknown command"); 
-            help();
+            System.out.println("Unknown command. For more information try the \"help\" command."); 
         }
     }
 
@@ -131,15 +136,17 @@ public class Tui {
             } else if (c[0].equals("stop") && alive) {
                 live_reader.stopRead();
                 this.alive = false;
-            } else if (c[0].equals("ser")) {
-                ser();
-            } else if (c[0].equals("unser")) {
-                unser();
             } else if (c[0].equals("save")) {
                 if (c.length == 1) {
                     System.out.println("Enter file name to save.");
                 } else if (c.length == 2) {
                     save(c[1]);
+                }
+            } else if (c[0].equals("sort")) {
+                if (c.length == 2 && Integer.parseInt(c[1]) < 7) {
+                    sort_col = Integer.parseInt(c[1]);
+                } else {
+                    System.out.println("Invalid parameters to sort command");
                 }
             } else {
                 runCommand(c);
@@ -164,38 +171,6 @@ public class Tui {
     public void quit() {
         if (alive && loaded) {
             live_reader.stopRead();
-        }
-    }
-
-    private void unser() {
-        ProgramRun runser = null;
-        try {
-            FileInputStream fileIn = new FileInputStream("/tmp/employee.ser");
-            ObjectInputStream in = new ObjectInputStream(fileIn);
-            runser = (ProgramRun) in.readObject();
-            in.close();
-            fileIn.close();
-            this.run = runser;
-        } catch (IOException i) {
-            i.printStackTrace();
-            return;
-        } catch (ClassNotFoundException c) {
-            System.out.println("Class not found");
-            return;
-        }
-    }
-
-    private void ser() {
-        try {
-            FileOutputStream fileOut
-            = new FileOutputStream("/tmp/employee.ser");
-            ObjectOutputStream out = new ObjectOutputStream(fileOut);
-            out.writeObject(run);
-            out.close();
-            fileOut.close();
-            System.out.printf("Serialized data is saved in /tmp/employee.ser");
-        } catch (IOException i) {
-            i.printStackTrace();
         }
     }
 
@@ -234,8 +209,8 @@ public class Tui {
 
     private void help() {
         System.out.println("SouffleProf Alpha3 (2 Feb 2015)");
-        System.out.println("Available commands:");
-        System.out.print((String.format("\n  %-30s%-5s %-10s\n", "rel", "-",
+        System.out.println("\nAvailable profiling commands:");
+        System.out.print((String.format("  %-30s%-5s %-10s\n", "rel", "-",
                 "display relation table.")));
         System.out.print((String.format("  %-30s%-5s %-10s\n", "rel <relation id>",
                 "-", "display all rules of given relation.")));
@@ -247,8 +222,6 @@ public class Tui {
                 "display all rules names and ids.")));
         System.out.print((String.format("  %-30s%-5s %-10s\n", "rul id <rule id>",
                 "-", "display the rule name for the given rule id.")));
-        System.out.print((String.format("  %-30s%-5s %-10s\n", "sort <col name>",
-                "-", "sorts by given column.")));
         System.out.print((String.format("  %-30s%-5s %-10s\n",
                 "graph <relation id> <type>", "-",
                 "graph the relation by type(tot_t/copy_t/tuples).")));
@@ -260,6 +233,10 @@ public class Tui {
                 "graph the rule versions by type(tot_t/tuples).")));
         System.out.print((String.format("  %-30s%-5s %-10s\n", "top", "-",
                 "display top-level summary of program run.")));
+        System.out.print((String.format("  %-30s%-5s %-10s\n", "help", "-",
+                "print this.")));
+
+        System.out.println("\nInteractive mode only commands:");
         System.out.print((String.format("  %-30s%-5s %-10s\n", "load <filename>",
                 "-", "load the given new log file.")));
         System.out.print((String.format("  %-30s%-5s %-10s\n", "open", "-",
@@ -270,8 +247,8 @@ public class Tui {
                 "-", "store a log file.")));
         System.out.print((String.format("  %-30s%-5s %-10s\n", "stop", "-",
                 "stop running live.")));
-        System.out.print((String.format("  %-30s%-5s %-10s\n", "help", "-",
-                "print this.")));
+        System.out.print((String.format("  %-30s%-5s %-10s\n", "sort <col number>",
+                "-", "sets sorting to be by given column number (0 indexed).")));
         System.out.print((String.format("  %-30s%-5s %-10s\n", "q", "-",
                 "exit program.")));
     }
@@ -312,8 +289,10 @@ public class Tui {
             Arrays.sort(rel_table_state, DataComparator.getComparator(sortDir, DataComparator.TUP));
             break;
         case 5:
-            Arrays.sort(rel_table_state,
-                    DataComparator.getComparator(sortDir, DataComparator.NAME));
+            Arrays.sort(rel_table_state, DataComparator.getComparator(sortDir, DataComparator.ID));
+            break;
+        case 6:
+            Arrays.sort(rel_table_state, DataComparator.getComparator(sortDir, DataComparator.NAME));
             break;
         default:
             Arrays.sort(rel_table_state,
@@ -366,8 +345,10 @@ public class Tui {
             Arrays.sort(rul_table_state, DataComparator.getComparator(sortDir, DataComparator.TUP));
             break;
         case 5:
-            Arrays.sort(rul_table_state,
-                    DataComparator.getComparator(sortDir, DataComparator.NAME));
+            Arrays.sort(rul_table_state, DataComparator.getComparator(sortDir, DataComparator.ID));
+            break;
+        case 6:
+            Arrays.sort(rul_table_state, DataComparator.getComparator(sortDir, DataComparator.NAME));
             break;
         default:
             Arrays.sort(rul_table_state,
@@ -428,6 +409,10 @@ public class Tui {
                     DataComparator.getComparator(sortDir, DataComparator.TUP));
             break;
         case 5:
+            Arrays.sort(rul_table_state,
+                    DataComparator.getComparator(sortDir, DataComparator.ID));
+            break;
+        case 6:
             Arrays.sort(rul_table_state,
                     DataComparator.getComparator(sortDir, DataComparator.NAME));
             break;
@@ -504,6 +489,10 @@ public class Tui {
                     DataComparator.getComparator(sortDir, DataComparator.TUP));
             break;
         case 5:
+            Arrays.sort(ver_table,
+                    DataComparator.getComparator(sortDir, DataComparator.ID));
+            break;
+        case 6:
             Arrays.sort(ver_table,
                     DataComparator.getComparator(sortDir, DataComparator.NAME));
             break;
@@ -689,7 +678,7 @@ public class Tui {
             char[] chars = new char[len];
             Arrays.fill(chars, '*');
             String bar = new String(chars);
-            System.out.print((String.format("%4d %6s | %s\n", i++, (time), bar)));
+            System.out.print((String.format("%4d %10.8f | %s\n", i++, (time), bar)));
         }
     }
 

@@ -521,7 +521,6 @@ public class ProgramRun implements Serializable{
         Object[][] new_table = new Object[table.length][table[0].length];
         for (int i = 0; i < table.length; i++) {
             for (int j = 0; j < table[0].length; j++) {
-                if (table[i][j] == null) continue;
                 if (table[i][j] instanceof Double) {
                     new_table[i][j] = formatTime((Double)table[i][j]);
                 } else if (table[i][j] instanceof Long) {
@@ -529,17 +528,25 @@ public class ProgramRun implements Serializable{
                 } else {
                     new_table[i][j] = table[i][j];
                 }
+                if (new_table[i][j] == null) {
+                    new_table[i][j] = "-";
+                }
             }
         }
         return new_table;
     }
 
     public String formatNum(int precision, Object number) {
-
-        if (precision == -1) {
-            return ""+number;
+        Long amount;
+        if (number != null && number instanceof Long) {
+            amount = (Long) number;
+        } else {
+            return "0";
         }
-        long amount = (Long) number;
+        if (precision == -1) {
+            return ""+amount;
+        }
+
         String result;
         DecimalFormat formatter;
         if (amount >= 1000000000) {
@@ -565,8 +572,16 @@ public class ProgramRun implements Serializable{
     }
 
     public String formatTime(Object number) {
+        Double time = null;
+        if (number instanceof Double) {
+            time = (Double) number;
+        }
+        if (time == null || time.isNaN()) {
+            return ".000";
+        }
+
         long val;
-        long sec = Math.round((Double) number);
+        long sec = Math.round(time);
         if (sec >= 100) {
             val = TimeUnit.SECONDS.toMinutes(sec);
             if (val < 100) {
@@ -585,11 +600,13 @@ public class ProgramRun implements Serializable{
             return val + "D";
         } else if (sec >= 10) {
             return sec + "";
-        } else if (Double.compare((Double) number, 1.0) >= 0) {
-            DecimalFormat formatter = new DecimalFormat("0.0");
+        } else if (Double.compare(time, 1.0) >= 0) {
+            DecimalFormat formatter = new DecimalFormat("0.00");
+            return formatter.format(number);
+        } else if (Double.compare(time, 0.001) >= 0) {
+            DecimalFormat formatter = new DecimalFormat(".000");
             return formatter.format(number);
         }
-        DecimalFormat formatter = new DecimalFormat(".000");
-        return formatter.format(number);
+        return ".000";
     }
 }
