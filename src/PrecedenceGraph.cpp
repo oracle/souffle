@@ -272,19 +272,164 @@ void TopologicallySortedSCCGraph::reverseDFS(int sv, std::vector<enum Colour>& v
     }
 }
 
+const int TopologicallySortedSCCGraph::topologicalOrderingCost(const std::vector<int>& currentSCCs) const {
+    // set the current cost to zero, and the max cost to a dummy
+    int cost = 0;
+    int maxCost = -1;
+    // obtain an iterator to the end of the already sorted partition of sccs
+    auto it_k = currentSCCs.begin() + orderedSCCs.size();
+    // for each of the scc's in the ordering, resetting the current cost to zero on each loop
+    for (auto it_i = currentSCCs.begin(); it_i != currentSCCs.end(); ++it_i, cost = 0) {
+        // if the index of the current scc is after the already sorted partition
+        if (it_i >= it_k)
+            // check that the index of all predecessor sccs of are before the index of the current scc
+            for (int scc : sccGraph->getPredecessorSCCs(*it_i))
+                if (std::find(currentSCCs.begin(), it_i, scc) == it_i)
+                    // if not, the sort is invalid
+                    return -1;
+        // otherwise, calculate the cost of the current scc
+        // as the number of sccs with an index before the current scc
+        for (auto it_j = currentSCCs.begin(); it_j != it_i; ++it_j)
+            // having some succssor scc with an index after the current scc
+            for (int scc : sccGraph->getSuccessorSCCs(*it_j))
+                if (std::find(currentSCCs.begin(), it_i, scc) == it_i)
+                      cost++;
+        // and if this cost is greater than the recorded maximum, set the max cost to it
+        if (cost > maxCost)
+            maxCost = cost;
+    }
+    // finally, return the max cost
+    return maxCost;
+}
+
+void TopologicallySortedSCCGraph::bestCostTopologicalOrdering(std::deque<int>& unorderedSCCs) const {
+    // exit early if there is only one unordered scc
+    if (unorderedSCCs.size() == 1)
+        return;
+    // otherwise, copy the ordered sccs into a vector of current sccs, and set the min cost to a dummy value
+    int minCost = -1;
+    std::vector<int> currentSCCs = orderedSCCs;
+    std::deque<int> bestSCCs;
+    // sort the unordered scc's
+    std::sort(unorderedSCCs.begin(), unorderedSCCs.end());
+    // then iterate through all permutations of them
+    do {
+        // erase the previous permutation of unordered scc's from the current sccs, if it exists
+        if (currentSCCs.size() > orderedSCCs.size())
+            currentSCCs.erase(currentSCCs.begin() + orderedSCCs.size(), currentSCCs.end());
+        // then add the next permutation of unordered scc's to the current sccs
+        currentSCCs.insert(currentSCCs.end(), unorderedSCCs.begin(), unorderedSCCs.end());
+        // obtain the cost of the ordering of the current sccs
+        int maxCost = topologicalOrderingCost(currentSCCs);
+        // if the ordering is not topologically valid, do nothing
+        if (maxCost == -1)
+            continue;
+        // otherwise, if this cost is better than the best cost so far
+        if (maxCost < minCost || minCost == -1) {
+            // record it as the best cost and this ordering as the best ordering
+            minCost = maxCost;
+            bestSCCs = unorderedSCCs;
+        }
+    } while (std::next_permutation(unorderedSCCs.begin(), unorderedSCCs.end()));
+    // finally, set the unordered scc's to the best cost ordering
+    unorderedSCCs = bestSCCs;
+}
+
+void TopologicallySortedSCCGraph::khansAlgorithm(std::deque<int>& unorderedSCCs, std::vector<enum Colour>& visitDFS) {
+    // establish lists for the current and next round of sccs
+    // then set the sccs for the current round to be the unordered sccs
+    std::deque<int> currentSCCs = unorderedSCCs;
+    std::deque<int> nextSCCs;
+    // while more sccs remain for the current round
+    while (!currentSCCs.empty()) {
+        // clear the list of unordered sccs
+        unorderedSCCs.clear();
+        // for LOOKAHEAD number of levels
+        for (unsigned int i = 0; i < LOOKAHEAD; ++i) {
+            // clear the list of scc's for the next round
+            nextSCCs.clear();
+            // while scc's remain for the current round
+            while (!currentSCCs.empty()) {
+                // get the last added scc of the current round
+                int scc_i = currentSCCs.back();
+                currentSCCs.pop_back();
+                // give it a permanent mark
+                visitDFS[scc_i] = BLACK;
+                // add it to the list of unordered scc's
+                unorderedSCCs.push_back(scc_i);
+                // and for each successor of that scc
+                for (int scc_j : sccGraph->getSuccessorSCCs(scc_i)) {
+                    // check it has not yet been visited
+                    if (visitDFS[scc_j] != WHITE)
+                        continue;
+                    // check that it has no predecessors which have not been visited
+                    bool hasUnvisitedPredecessor = false;
+                    for (int scc_k : sccGraph->getPredecessorSCCs(scc_j)) {
+                        if (visitDFS[scc_k] != BLACK) {
+                            hasUnvisitedPredecessor = true;
+                            break;
+                        }
+                    }
+                    if (hasUnvisitedPredecessor) continue;
+                    // if it passes, give it a temporary mark
+                    visitDFS[scc_j] = GRAY;
+                    // and add it to the list of scc's for the next round
+                    nextSCCs.push_back(scc_j);
+                }
+            }
+            // set the sccs for the current round to the sccs for the next round
+            currentSCCs = nextSCCs;
+        }
+        // compute the best cost topological ordering over the set of unordered sccs
+        bestCostTopologicalOrdering(unorderedSCCs);
+        // and append it to the final list of ordered sccs
+        orderedSCCs.insert(orderedSCCs.end(), unorderedSCCs.begin(), unorderedSCCs.end());
+    }
+    unorderedSCCs.clear();
+}
+
+void TopologicallySortedSCCGraph::runReverseDFS(std::vector<enum Colour>& visitDFS) {
+    // run reverse DFS for each node in the scc graph
+    for (int su = 0; su < sccGraph->getNumSCCs(); ++su) {
+        reverseDFS(su, visitDFS);
+    }
+}
+
+void TopologicallySortedSCCGraph::runKhansAlgorithm(std::vector<enum Colour>& visitDFS) {
+    std::deque<int> unorderedSCCs;
+    // for each of the sccs in the graph
+    for (int scc = 0; scc < sccGraph->getNumSCCs(); ++scc) {
+        // if that scc has no predecessors
+        if (sccGraph->getPredecessorSCCs(scc).empty()) {
+            // and if the scc has no successors either
+            if (sccGraph->getSuccessorSCCs(scc).empty()) {
+                visitDFS[scc] = BLACK;
+                orderedSCCs.push_back(scc);
+            // otherwise, if the scc only has no predecessors
+            } else {
+                // run khan's algorithm using the current scc as a root
+                visitDFS[scc] = GRAY;
+                unorderedSCCs.push_back(scc);
+                khansAlgorithm(unorderedSCCs, visitDFS);
+            }
+        }
+    }
+    // finally check that all nodes have been visited
+    if (std::find(visitDFS.begin(), visitDFS.end(), WHITE) != visitDFS.end()) {
+        assert("SCC graph is not a DAG");
+    }
+}
+
 void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit) {
     sccGraph = translationUnit.getAnalysis<SCCGraph>();
 
     /* Compute topological sort for the SCC graph */
     orderedSCCs.clear();
     std::vector<enum Colour> visitDFS; // Markers of a SCC for topsort
-    int numSCCs = sccGraph->getNumSCCs();
-    visitDFS.resize(numSCCs, WHITE);
-    for (int su = 0; su < numSCCs; ++su) {
-        reverseDFS(su, visitDFS);
-    }
+    visitDFS.resize(sccGraph->getNumSCCs(), WHITE);
 
-
+    // runReverseDFS(visitDFS); // Topsort using reverse DFS algorithm
+    runKhansAlgorithm(visitDFS); // Topsort using Khan's algorithm
 }
 
 void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream& os) {
@@ -307,8 +452,9 @@ void RelationSchedule::run(const AstTranslationUnit& translationUnit) {
 
     schedule.clear();
     for (int i = 0; i < numSCCs; i++) {
-        const std::set<const AstRelation *> computedRelations = topsortSCCGraph->getSCCGraph()->getRelationsForSCC(topsortSCCGraph->getSCCOrder()[i]);
-        schedule.emplace_back(computedRelations, relationExpirySchedule[i], topsortSCCGraph->getSCCGraph()->isRecursive(i));
+        int scc = topsortSCCGraph->getSCCOrder()[i];
+        const std::set<const AstRelation *> computedRelations = topsortSCCGraph->getSCCGraph()->getRelationsForSCC(scc);
+        schedule.emplace_back(computedRelations, relationExpirySchedule[i], topsortSCCGraph->getSCCGraph()->isRecursive(scc));
     }
 }
 
@@ -338,7 +484,8 @@ std::vector<std::set<const AstRelation *>> RelationSchedule::computeRelationExpi
         alive[orderedSCC].insert(alive[orderedSCC-1].begin(), alive[orderedSCC-1].end());
 
         /* Add predecessors of relations computed in this step */
-        for (const AstRelation *r : topsortSCCGraph->getSCCGraph()->getRelationsForSCC(numSCCs - orderedSCC)) {
+        int scc = topsortSCCGraph->getSCCOrder()[numSCCs - orderedSCC];
+        for (const AstRelation *r : topsortSCCGraph->getSCCGraph()->getRelationsForSCC(scc)) {
             for (const AstRelation *predecessor : precedenceGraph->getPredecessors(r)) {
                 alive[orderedSCC].insert(predecessor);
             }
