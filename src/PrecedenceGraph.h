@@ -174,30 +174,32 @@ private:
     SCCGraph *sccGraph;
     std::vector<int> orderedSCCs;
 
-    /** Depth lookahead for khan's algorithm. */
-    const unsigned int LOOKAHEAD = 2;
+    /** Depth lookahead for khan's algorithm, chosen as a compromise between
+    improvement to the cost of the ordering and increased runtime. */
+    const unsigned int LOOKAHEAD = 3;
 
-    /** Marker type for reverse DFS to compute topsort */
+    /** Marker type for to compute topsort */
     enum Colour {WHITE, GRAY, BLACK};
 
     /** Reverse DFS for computing topological order of SCC graph */
-    void reverseDFS(int su, std::vector<enum Colour> &visitDFS);
+    void reverseDFS(int su, std::vector<enum Colour> &sccMarkers);
 
-    /** Calculate the topological ordering cost of the current SCCs using the ordered SCCs.
-    Returns -1 if the given vector is not a valid topological ordering. */
-    const int topologicalOrderingCost(const std::vector<int>& currentSCCs) const;
+    /** Calculate the topological ordering cost of a permutation of as of yet unordered SCCs
+    using the ordered SCCs. Returns -1 if the given vector is not a valid topological ordering. */
+    const int topologicalOrderingCost(const std::vector<int>& permutationOfSCCs) const;
 
-    /** Compute the best cost topological ordering of the unordered SCCs using the ordered SCCs. */
-    void bestCostTopologicalOrdering(std::deque<int>& unorderedSCCs) const;
+    /** Compute the best cost topological ordering of the as of yet unordered SCCs in the lookahead
+    set using the ordered SCCs. */
+    void bestCostTopologicalOrdering(std::deque<int>& lookaheadSCCs) const;
 
     /** Khan's algorithm to compute the topological ordering, uses an additional lookahead. */
-    void khansAlgorithm(std::deque<int>& unorderedSCCs, std::vector<enum Colour>& visitDFS);
+    void khansAlgorithm(std::deque<int>& lookaheadSCCs, std::vector<enum Colour>& sccMarkers);
 
     /** Run reverse DFS to compute the topsort of the SCC graph. */
-    void runReverseDFS(std::vector<enum Colour>& visitDFS);
+    void runReverseDFS(std::vector<enum Colour>& sccMarkers);
 
     /** Run khan's algorithm to compute the topsort of the SCC graph. */
-    void runKhansAlgorithm(std::vector<enum Colour>& visitDFS);
+    void runKhansAlgorithm(std::vector<enum Colour>& sccMarkers);
 
 public:
     static constexpr const char *name = "topological-scc-graph";
