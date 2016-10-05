@@ -176,7 +176,7 @@ private:
 
     /** Depth lookahead for khan's algorithm, chosen as a compromise between
     improvement to the cost of the ordering and increased runtime. */
-    const unsigned int LOOKAHEAD = 3;
+    const unsigned int LOOKAHEAD = 1;
 
     /** Marker type for to compute topsort */
     enum Colour {WHITE, GRAY, BLACK};
