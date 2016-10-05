@@ -1,6 +1,6 @@
 #!/bin/sh -e
 if [ "$(uname -s)" == "Darwin" ]; then
-	glibtoolize
+	glibtoolize --force
 else
 	libtoolize --force
 fi
