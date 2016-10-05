@@ -235,19 +235,19 @@ m4_define([CONFS], [[], dnl interpreter
 
 dnl Syntactic Tests 
 AT_BANNER([Syntactic])
-#m4_include([syntactic.at])
+m4_include([syntactic.at])
 
 dnl Semantic Tests 
 AT_BANNER([Semantic])
-#m4_include([semantic.at])
+m4_include([semantic.at])
 
 dnl Evaluation 
 AT_BANNER([Evaluation])
-#m4_include([evaluation.at])
+m4_include([evaluation.at])
 
 dnl Interface
 AT_BANNER([Interface])
-#m4_include([interface.at])
+m4_include([interface.at])
 
 dnl Profile
 AT_BANNER([Profile])

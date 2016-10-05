@@ -218,8 +218,6 @@ public class ProgramRun implements Serializable{
     public Object[][] getRulTableGui() {
         Map<String, Object[]> rule_map = new HashMap<String, Object[]>();
 
-
-
         for (Relation rel : relation_map.values()) {
             for (Rule rul : rel.getRuleMap().values()) {
                 Object[] temp = new Object[11];
@@ -232,8 +230,6 @@ public class ProgramRun implements Serializable{
                 temp[7] = rul.getLocator();
                 temp[9] = 0;
                 temp[10] = rel.getName();
-
-
                 rule_map.put(rul.getName(), temp);
             }
 
@@ -263,10 +259,11 @@ public class ProgramRun implements Serializable{
             }
             for (Object[] t : rule_map.values()) {
                 if (((String) t[6]).charAt(0) == 'C') {
-
-                    Long d2 = (Long) t[4];
-                    Double rec_tup = d2.doubleValue();
-                    t[3] = (tot_copy_time / (Double) tot_rec_tup) * rec_tup;
+                    if (getTotNumRecTuples() != 0) {
+                        t[3] = (getTotCopyTime() / getTotNumRecTuples()) * (Long) t[4];
+                    } else {
+                        t[3] = 0.0;
+                    }
                 }
                 t[0] = (Double) t[1] + (Double) t[2] + (Double) t[3];
 
@@ -301,8 +298,6 @@ public class ProgramRun implements Serializable{
      */
     public Object[][] getRulTable() {
         Map<String, Object[]> rule_map = new HashMap<String, Object[]>();
-        tot_rec_tup = getTotNumRecTuples().doubleValue();
-        tot_copy_time = getTotCopyTime();
 
         for (Relation rel : relation_map.values()) {
             for (Rule rul : rel.getRuleMap().values()) {
@@ -342,13 +337,17 @@ public class ProgramRun implements Serializable{
                     rule_map.put(rul.getName(), temp);
                 }
             }
+
             for (Object[] t : rule_map.values()) {
                 if (((String) t[6]).charAt(0) == 'C') {
-                    Long d2 = (Long) t[4];
-                    Double rec_tup = d2.doubleValue();
-                    t[3] = (tot_copy_time / (Double) tot_rec_tup) * rec_tup;
+                    if (getTotNumRecTuples() != 0) {
+                        t[3] = (getTotCopyTime() / getTotNumRecTuples()) * (Long) t[4];
+                    } else {
+                        t[3] = 0.0;
+                    }
                 }
                 t[0] = (Double) t[1] + (Double) t[2] + (Double) t[3];
+
                 if ((Double)t[0] != 0.0) {
                     t[9] = (Double)((Long)t[4]/(Double)t[0]);
                 } else {
@@ -414,10 +413,12 @@ public class ProgramRun implements Serializable{
                     }
                 }
                 for (Object[] t : rule_map.values()) {
-                    Double d = tot_rec_tup;
-                    Long d2 = (Long) t[4];
-                    Double d3 = d2.doubleValue();
-                    t[3] = (tot_copy_time / (Double) d) * d3;
+                    if (tot_rec_tup != 0) {
+                        Double rec_tup = (Double) t[4];
+                        t[3] = (tot_copy_time / tot_rec_tup) * rec_tup;
+                    } else {
+                        t[3] = 0.0;
+                    }
                     t[0] = (Double) t[1] + (Double) t[2] + (Double) t[3];
                     if ((Double) t[0] != 0.0) {
                         t[9] = (Double) ((Long) t[4] / (Double) t[0]);
@@ -452,8 +453,6 @@ public class ProgramRun implements Serializable{
      */
     public Object[][] getVersions(String strRel, String strRul) {
         Map<String, Object[]> rule_map = new HashMap<String, Object[]>();
-        tot_rec_tup = getTotNumRecTuples().doubleValue();
-        tot_copy_time = getTotCopyTime();
 
         for (Relation rel : relation_map.values()) {
             if (rel.getId().equals(strRel)) {
@@ -488,10 +487,11 @@ public class ProgramRun implements Serializable{
                     }
                 }
                 for (Object[] t : rule_map.values()) {
-                    Double d = tot_rec_tup;
-                    Long d2 = (Long) t[4];
-                    Double d3 = d2.doubleValue();
-                    t[3] = (tot_copy_time / (Double) d) * d3;
+                    if (getTotNumRecTuples() != 0) {
+                        t[3] = (getTotCopyTime() / getTotNumRecTuples()) * (Long) t[4];
+                    } else {
+                        t[3] = 0.0;
+                    }
                     t[0] = (Double) t[1] + (Double) t[2] + (Double) t[3];
                 }
                 break;
@@ -517,18 +517,17 @@ public class ProgramRun implements Serializable{
         return null;
     }
 
-    public Object[][] formatTable(Object[][] table, int precision) {
-        Object[][] new_table = new Object[table.length][table[0].length];
+    public String[][] formatTable(Object[][] table, int precision) {
+        String[][] new_table = new String[table.length][table[0].length];
         for (int i = 0; i < table.length; i++) {
             for (int j = 0; j < table[0].length; j++) {
                 if (table[i][j] instanceof Double) {
                     new_table[i][j] = formatTime((Double)table[i][j]);
                 } else if (table[i][j] instanceof Long) {
                     new_table[i][j] = formatNum(precision, (Long)table[i][j]);
+                } else if (table[i][j] != null) {
+                    new_table[i][j] = table[i][j].toString();
                 } else {
-                    new_table[i][j] = table[i][j];
-                }
-                if (new_table[i][j] == null) {
                     new_table[i][j] = "-";
                 }
             }
@@ -544,7 +543,7 @@ public class ProgramRun implements Serializable{
             return "0";
         }
         if (precision == -1) {
-            return ""+amount;
+            return Long.toString(amount);
         }
 
         String result;
@@ -577,7 +576,7 @@ public class ProgramRun implements Serializable{
             time = (Double) number;
         }
         if (time == null || time.isNaN()) {
-            return ".000";
+            return "-";
         }
 
         long val;

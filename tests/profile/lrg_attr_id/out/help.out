@@ -1,4 +1,3 @@
-SouffleProf Alpha3 (2 Feb 2015)
 
 Available profiling commands:
   rel                           -     display relation table.
@@ -21,4 +20,3 @@ Interactive mode only commands:
   stop                          -     stop running live.
   sort <col number>             -     sets sorting to be by given column number (0 indexed).
   q                             -     exit program.
-
