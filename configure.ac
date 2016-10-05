@@ -10,9 +10,8 @@ AC_PREREQ(2.68)
 AC_COPYRIGHT(['2013-15 Oracle and/or its affiliates'])
 AC_CONFIG_MACRO_DIRS([m4])
 
-#LT_PREREQ([2.4.4])
-#LT_INIT([dlopen])
-LT_INIT
+LT_PREREQ([2.4])
+LT_INIT([dlopen])
 
 AC_CANONICAL_TARGET # target_cpu, target_vendor, and target_os
 AC_CANONICAL_BUILD  # build_cpu, build_vendor, and build_os
