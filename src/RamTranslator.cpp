@@ -688,6 +688,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateNonRecursiveRelation(const
             std::string clauseText = toString(*clause);
             replace(clauseText.begin(), clauseText.end(), '"', '\'');
             replace(clauseText.begin(), clauseText.end(), '\n', ' ');
+            replace(clauseText.begin(), clauseText.end(), ';', '|');
 
             std::ostringstream line;
             line << "nonrecursive-rule;" << rel.getName() << ";" << clause->getSrcLoc() << ";" << clauseText << ";";
@@ -915,6 +916,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
                     std::string clauseText = toString(*cl);
                     replace(clauseText.begin(), clauseText.end(), '"', '\'');
                     replace(clauseText.begin(), clauseText.end(), '\n', ' ');
+                    replace(clauseText.begin(), clauseText.end(), ';', '|');
 
                     std::ostringstream line;
                     line << "recursive-rule;" << rel->getName() << ";" << version << ";" << cl->getSrcLoc() << ";" << clauseText << ";";
