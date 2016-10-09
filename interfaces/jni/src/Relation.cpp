@@ -1,18 +1,18 @@
 #include<jni.h>
-#include "com_soufflelang_souffle_Relation.h"
+#include "Jni_Relation.h"
 #include "handle.h"
 #include "AstRelation.h"
 
-/* relation is read from csv file */ 
+/* relation is read from csv file */
 #define INPUT_RELATION (0x1)
 
-/* relation is written to csv file */ 
+/* relation is written to csv file */
 #define OUTPUT_RELATION (0x2)
 
-/* number of tuples are written to stdout */ 
+/* number of tuples are written to stdout */
 #define PRINTSIZE_RELATION (0x4)
 
-/* Rules of a relation defined in a component can be overwritten by sub-component */ 
+/* Rules of a relation defined in a component can be overwritten by sub-component */
 #define OVERRIDABLE_RELATION (0x8)
 
 #define DATA_RELATION (0x10)

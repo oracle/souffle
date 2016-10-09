@@ -1,4 +1,4 @@
-com_soufflelang_souffle_*.h
+jni/include/Jni_*.h
 *.jar
 *.la
 *.class

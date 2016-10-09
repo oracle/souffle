@@ -1,4 +1,4 @@
-#include "com_soufflelang_souffle_Negation.h"
+#include "Jni_Negation.h"
 #include "AstLiteral.h"
 #include "handle.h"
 #include "conversion.h"

@@ -1,7 +1,7 @@
 #include<jni.h>
-#include "com_soufflelang_souffle_Program.h"
+#include "Jni_Program.h"
 #include "handle.h"
- 
+
 #include "AstBuilder.h"
 
 using namespace souffle;
@@ -44,7 +44,7 @@ jstring Java_com_soufflelang_souffle_Program_print(JNIEnv *env, jobject obj1) {
     AstBuilder *prog = getHandle<AstBuilder>(env, obj1);
     std::string res = prog->print();
     LOG(INFO) LEAVEJNI;
-    return env->NewStringUTF(res.c_str());  
+    return env->NewStringUTF(res.c_str());
 }
 
 void Java_com_soufflelang_souffle_Program_compose(JNIEnv *env, jobject obj1, jobject obj2) {

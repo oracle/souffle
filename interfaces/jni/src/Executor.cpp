@@ -1,7 +1,7 @@
 #include<jni.h>
 #include "handle.h"
 
-#include "com_soufflelang_souffle_Executor.h"
+#include "Jni_Executor.h"
 
 #include "Executor.h"
 #include "InterfaceResult.h"
@@ -74,7 +74,7 @@ jobject Java_com_soufflelang_souffle_Executor_executeCompiler(JNIEnv* env, jobje
     }
 
     jmethodID cnstrctr = env->GetMethodID(c, "<init>", "(J)V");
-    if (cnstrctr == 0){ 
+    if (cnstrctr == 0){
       LOG(ERR) PRE << "Find method <init> failed!\n";
       assert(false && "Find method init failed!\n");
     }
@@ -87,7 +87,7 @@ void Java_com_soufflelang_souffle_Executor_compile(JNIEnv* env, jobject obj1, js
     const char *nname = env->GetStringUTFChars(jname, 0);
     std::string name = std::string(nname);
     LOG(INFO) PRE << "Project name is "  << name <<"\n";
-    assert(name != "" && "name is empty!!\n"); 
+    assert(name != "" && "name is empty!!\n");
 
     Executor* souffle = getHandle<Executor>(env, obj1);
     LOG(MEM) PRE << "Got executor "  << souffle <<"\n";

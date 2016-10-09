@@ -1,5 +1,5 @@
 #include<jni.h>
-#include "com_soufflelang_souffle_Atom.h"
+#include "Jni_Atom.h"
 #include "handle.h"
 #include "AstLiteral.h"
 #include "AstRelationIdentifier.h"
@@ -11,7 +11,7 @@ void Java_com_soufflelang_souffle_Atom_init(JNIEnv* env, jobject obj, jstring st
     if (NULL == cStr) return;
 
     AstAtom* atom = new AstAtom(AstRelationIdentifier(std::string(cStr)));
-    
+
     setHandle(env, obj, atom);
 }
 

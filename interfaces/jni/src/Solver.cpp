@@ -1,7 +1,7 @@
 #include<jni.h>
 #include "handle.h"
 
-#include "com_soufflelang_souffle_Solver.h"
+#include "Jni_Solver.h"
 
 #include "Interfaces.h"
 #include "InterfaceResult.h"
@@ -42,14 +42,14 @@ jobject Java_com_soufflelang_souffle_Solver_parse(JNIEnv* env, jobject obj1, job
 
     // Return Executer
     jclass c = env->FindClass("com/soufflelang/souffle/Executor");
-    if (c == 0) { 
-      printf("Find class failed.\n"); 
+    if (c == 0) {
+      printf("Find class failed.\n");
       LOG(ERR) PRE << "Cant find class Executor!!!\n";
       assert( false && "Cant find class Executor!!");
     }
 
     jmethodID cnstrctr = env->GetMethodID(c, "<init>", "(J)V");
-    if (cnstrctr == 0){ 
+    if (cnstrctr == 0){
       LOG(ERR) PRE << "Cant find method  Executor <init>!!!\n";
       assert( false && "Cant find method Executor <init>!!");
     }

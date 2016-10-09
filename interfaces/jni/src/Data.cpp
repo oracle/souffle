@@ -1,4 +1,4 @@
-#include "com_soufflelang_souffle_Data.h"
+#include "Jni_Data.h"
 #include "handle.h"
 #include "conversion.h"
 #include "RamData.h"

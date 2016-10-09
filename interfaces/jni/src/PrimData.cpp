@@ -1,4 +1,4 @@
-#include "com_soufflelang_souffle_PrimData.h"
+#include "Jni_PrimData.h"
 #include "handle.h"
 #include <iostream>
 #include <jni.h>
