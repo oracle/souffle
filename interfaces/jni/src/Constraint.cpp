@@ -1,4 +1,4 @@
-#include "com_soufflelang_souffle_Constraint.h"
+#include "Jni_Constraint.h"
 #include "handle.h"
 #include "conversion.h"
 #include "AstLiteral.h"

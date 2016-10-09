@@ -1,4 +1,4 @@
-#include "com_soufflelang_souffle_Result.h"
+#include "Jni_Result.h"
 #include "handle.h"
 #include "InterfaceResult.h"
 #include <iostream>
@@ -29,9 +29,9 @@ jobject Java_com_soufflelang_souffle_Result_getRelationNames(JNIEnv* env, jobjec
     std::vector<std::string> vec = intres->getRelationNames();
     LOG(INFO) PRE << "Got Relation names. Size of names is : " << vec.size() << "\n";
 
-    jclass java_util_ArrayList2 = 
+    jclass java_util_ArrayList2 =
       static_cast<jclass>(env->NewGlobalRef(env->FindClass("java/util/ArrayList")));
- 
+
     if (java_util_ArrayList2 == 0){
       LOG(MEM) PRE << "Cannot find class java.util.ArrayList\n";
       assert(false);
@@ -43,14 +43,14 @@ jobject Java_com_soufflelang_souffle_Result_getRelationNames(JNIEnv* env, jobjec
       assert(false);
     }
 
-    jmethodID java_util_ArrayList_add2 = 
+    jmethodID java_util_ArrayList_add2 =
       env->GetMethodID(java_util_ArrayList2, "add", "(Ljava/lang/Object;)Z");
     if (java_util_ArrayList_add2 == 0){
       LOG(ERR) PRE << "Cannot find method java.util.ArrayList add\n";
       assert(false);
     }
 
-    jobject result = 
+    jobject result =
       env->NewObject(java_util_ArrayList2, java_util_ArrayList_2, (jint)vec.size());
 
     for (auto &v: vec) {
@@ -99,12 +99,12 @@ jobject Java_com_soufflelang_souffle_Result_getRelationRows(JNIEnv* env, jobject
       LOG(WARN) PRE << "Prim data is null\n";
     }
 
-    jclass java_util_ArrayList2 = 
+    jclass java_util_ArrayList2 =
       static_cast<jclass>(env->NewGlobalRef(env->FindClass("java/util/ArrayList")));
 
     jmethodID java_util_ArrayList_2 = env->GetMethodID(java_util_ArrayList2,"<init>", "(I)V");
 
-    jmethodID java_util_ArrayList_add2 = 
+    jmethodID java_util_ArrayList_add2 =
       env->GetMethodID(java_util_ArrayList2, "add", "(Ljava/lang/Object;)Z");
 
     if (pdata == NULL) {
@@ -113,7 +113,7 @@ jobject Java_com_soufflelang_souffle_Result_getRelationRows(JNIEnv* env, jobject
        return result;
     }
 
-    jobject result2 = 
+    jobject result2 =
       env->NewObject(java_util_ArrayList2, java_util_ArrayList_2, (jint)pdata->data.size());
 
     for (std::vector<std::string>v: pdata->data) {

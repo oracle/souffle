@@ -1,5 +1,5 @@
 #include<jni.h>
-#include "com_soufflelang_souffle_Clause.h"
+#include "Jni_Clause.h"
 
 #include "handle.h"
 #include "AstClause.h"

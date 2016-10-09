@@ -4,7 +4,6 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-
 AC_INIT(souffle, m4_esyscmd([git describe --tags --abbrev=0 | tr -d '\n']), [souffle-talk@googlegroups.com])
 AC_PREREQ(2.68)
 AC_COPYRIGHT(['2013-15 Oracle and/or its affiliates'])
@@ -31,7 +30,6 @@ esac],[java=false])
 
 AM_CONDITIONAL([JAVAI], [test x$java = xtrue])
 
-
 dnl Do not set default CFLAGS and CXXFLAGS
 CXXFLAGS=" -Wall -std=c++11  $CXXFLAGS"
 if test "$BUILD_TYPE" == "Debug" ; then
@@ -42,27 +40,6 @@ else
     CXXFLAGS="$CXXFLAGS -O3"
 fi
 
-
-#AC_CANONICAL_HOST
-# Detect the target system
-#case "${host_os}" in
-#    linux*)
-#        ;;
-#
-#    darwin*)
-#	JNIFLAGS="$JNIFLAGS -I$(/usr/libexec/java_home)/include -I$(/usr/libexec/java_home)/include/darwin"
-#        ;;
-#    *)
-#        ;;
-#esac	
-#AX_JNI_INCLUDE_DIR
-
-#for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
-#do
-#	JNIFLAGS="$JNIFLAGS -I$JNI_INCLUDE_DIR"
-#done
-
-
 AC_ISC_POSIX
 AC_PROG_CPP
 AC_PROG_CC
@@ -70,12 +47,19 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AM_PROG_CC_STDC
-AC_PROG_RANLIB
+
+# Java
 AX_PROG_JAVAC
 AX_PROG_JAVAH
 AX_PROG_JAVA
 AX_PROG_JAR
 
+if test -z $JAVA_HOME; then
+AX_CHECK_JAVA_HOME
+fi
+AC_SUBST(JAVA_HOME)
+
+# Check for flex and bison
 AM_PROG_LEX
 AC_PROG_YACC
 

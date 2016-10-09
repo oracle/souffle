@@ -1,5 +1,5 @@
 #include<jni.h>
-#include "com_soufflelang_souffle_PrimType.h"
+#include "Jni_PrimType.h"
 #include "handle.h"
 #include "AstType.h"
 

@@ -1,5 +1,5 @@
 #include<jni.h>
-#include "com_soufflelang_souffle_Const.h"
+#include "Jni_Const.h"
 #include "handle.h"
 #include "AstRelation.h"
 

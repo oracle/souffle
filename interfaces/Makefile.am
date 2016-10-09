@@ -6,123 +6,74 @@
 
 SUFFIXES = .cpp .h .cc .o .a .class .java
 
-DIR = @abs_top_srcdir@/interfaces
-GENDIR = @abs_top_srcdir@/interfaces/jni/include/generated
-dist_bin_SCRIPTS = com.soufflelang.souffle.jar souffle-compilelib
+souffle_jar = com.soufflelang.souffle.jar
+dist_bin_SCRIPTS = souffle-compilelib
 
-java_jni_classes = com/soufflelang/souffle/Result.class \
-	com/soufflelang/souffle/Data.class \
-	com/soufflelang/souffle/PrimData.class \
-	com/soufflelang/souffle/Arg.class \
-	com/soufflelang/souffle/SConst.class \
-	com/soufflelang/souffle/Const.class \
-	com/soufflelang/souffle/Var.class \
-	com/soufflelang/souffle/Executor.class \
-	com/soufflelang/souffle/BinOp.class \
-	com/soufflelang/souffle/Atom.class \
-	com/soufflelang/souffle/Literal.class \
-	com/soufflelang/souffle/Negation.class \
-	com/soufflelang/souffle/Constraint.class \
-	com/soufflelang/souffle/Clause.class \
-	com/soufflelang/souffle/Program.class \
-	com/soufflelang/souffle/Relation.class \
-	com/soufflelang/souffle/PrimType.class \
-	com/soufflelang/souffle/Solver.class
+# Java source files
+java_sources = $(wildcard $(srcdir)/jni/java/*.java)
 
-JSRC = $(wildcard ./jni/java/*.java)
+# Distribute the Java sources
+EXTRA_DIST = examples $(java_sources)
 
-$(java_jni_classes): $(JSRC)
-	$(JAVAC) -d $(DIR) $(JSRC)
+# C++ source files
+cpp_sources  = \
+  jni/src/Arg.cpp \
+  jni/src/Clause.cpp \
+  jni/src/Data.cpp \
+  jni/src/PrimData.cpp \
+  jni/src/Relation.cpp \
+  jni/src/Solver.cpp \
+  jni/src/Atom.cpp \
+  jni/src/Const.cpp \
+  jni/src/Executor.cpp \
+  jni/src/PrimType.cpp \
+  jni/src/Result.cpp \
+  jni/src/Var.cpp \
+  jni/src/BinOp.cpp \
+  jni/src/Constraint.cpp \
+  jni/src/Negation.cpp \
+  jni/src/Program.cpp \
+  jni/src/SConst.cpp
 
-com.soufflelang.souffle.jar : $(java_jni_classes)
-	$(JAR) -cf com.soufflelang.souffle.jar ./com/soufflelang/souffle/*.class
+# Heades generated from the Java class files
+cpp_headers = $(patsubst jni/src/%.cpp, $(builddir)/jni/include/Jni_%.h, $(cpp_sources))
 
-com_soufflelang_souffle_Result.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.Result
+BUILT_SOURCES = $(cpp_headers)
 
-com_soufflelang_souffle_Data.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.Data
+$(souffle_jar): $(java_sources)
+	$(JAVAC) -d $(builddir) $?
+	$(JAR) -cf $@ $(builddir)/com/soufflelang/souffle/*.class
 
-com_soufflelang_souffle_PrimData.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.PrimData
+all-local: $(souffle_jar)
 
-com_soufflelang_souffle_Arg.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.Arg
+$(cpp_headers): jni/include/Jni_%.h : jni/src/%.cpp $(souffle_jar)
+	$(JAVAH) -jni -o $@ com.soufflelang.souffle.$(basename $(notdir $<))
 
-com_soufflelang_souffle_SConst.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.SConst
+# libsoufflejni.a library
+lib_LIBRARIES = libsoufflejni.a
+libsoufflejni_a_SOURCES = $(cpp_sources) \
+  include/AstBuilder.h \
+  include/Executor.h \
+  include/InterfaceResult.h \
+  include/Interfaces.h \
+  include/Logger.h \
+  jni/include/conversion.h  \
+  jni/include/handle.h
 
-com_soufflelang_souffle_Const.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.Const
+libsoufflejni_a_CXXFLAGS = $(JNIFLAGS) \
+  -I@JAVA_HOME@/include \
+  -I@JAVA_HOME@/include/darwin \
+  -I./include \
+  -I./jni/include \
+  -I./jni/include/generated \
+  -I@abs_top_srcdir@/src \
+  -I@abs_top_srcdir@ \
+  -I@abs_top_srcdir@/include
 
-com_soufflelang_souffle_Var.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.Var
+libsoufflejni_a_LIBADD = @abs_top_srcdir@/src/libsouffle.a
 
-com_soufflelang_souffle_Executor.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.Executor
+# Cleanup
+CLEANFILES = $(souffle_jar) $(BUILT_SOURCES)
 
-com_soufflelang_souffle_BinOp.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.BinOp
-
-com_soufflelang_souffle_Atom.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.Atom
-
-com_soufflelang_souffle_Literal.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.Literal
-
-com_soufflelang_souffle_Negation.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.Negation
-
-com_soufflelang_souffle_Constraint.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.Constraint
-
-com_soufflelang_souffle_Clause.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.Clause
-
-com_soufflelang_souffle_Program.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.Program
-
-com_soufflelang_souffle_Relation.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.Relation
-
-com_soufflelang_souffle_PrimType.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.PrimType
-
-com_soufflelang_souffle_Solver.h: $(java_jni_classes)
-	$(JAVAH) -jni -d $(DIR) com.soufflelang.souffle.Solver
-
-nodist_libsoufflejni_la_SOURCES = com_soufflelang_souffle_Arg.h com_soufflelang_souffle_Const.h com_soufflelang_souffle_Literal.h com_soufflelang_souffle_Program.h com_soufflelang_souffle_Solver.h com_soufflelang_souffle_Atom.h com_soufflelang_souffle_Constraint.h com_soufflelang_souffle_Negation.h com_soufflelang_souffle_Relation.h com_soufflelang_souffle_Var.h com_soufflelang_souffle_BinOp.h com_soufflelang_souffle_Data.h com_soufflelang_souffle_PrimData.h com_soufflelang_souffle_Result.h com_soufflelang_souffle_Clause.h com_soufflelang_souffle_Executor.h com_soufflelang_souffle_PrimType.h com_soufflelang_souffle_SConst.h
-
-CLEANFILES = com_soufflelang_souffle_Arg.h com_soufflelang_souffle_Const.h com_soufflelang_souffle_Literal.h com_soufflelang_souffle_Program.h com_soufflelang_souffle_Solver.h com_soufflelang_souffle_Atom.h com_soufflelang_souffle_Constraint.h com_soufflelang_souffle_Negation.h com_soufflelang_souffle_Relation.h com_soufflelang_souffle_Var.h com_soufflelang_souffle_BinOp.h com_soufflelang_souffle_Data.h com_soufflelang_souffle_PrimData.h com_soufflelang_souffle_Result.h com_soufflelang_souffle_Clause.h com_soufflelang_souffle_Executor.h com_soufflelang_souffle_PrimType.h com_soufflelang_souffle_SConst.h
-
-BUILT_SOURCES = com_soufflelang_souffle_Arg.h com_soufflelang_souffle_Const.h com_soufflelang_souffle_Literal.h com_soufflelang_souffle_Program.h com_soufflelang_souffle_Solver.h com_soufflelang_souffle_Atom.h com_soufflelang_souffle_Constraint.h com_soufflelang_souffle_Negation.h com_soufflelang_souffle_Relation.h com_soufflelang_souffle_Var.h com_soufflelang_souffle_BinOp.h com_soufflelang_souffle_Data.h com_soufflelang_souffle_PrimData.h com_soufflelang_souffle_Result.h com_soufflelang_souffle_Clause.h com_soufflelang_souffle_Executor.h com_soufflelang_souffle_PrimType.h com_soufflelang_souffle_SConst.h
-
-# cpp files
-libsoufflejni_la_SOURCES = ./jni/src/Negation.cpp \
-				./jni/src/Constraint.cpp \
-				./jni/src/Data.cpp  \
-				./jni/src/Arg.cpp \
-				./jni/src/PrimData.cpp \
-				./jni/src/Result.cpp \
-				./jni/src/Var.cpp \
-				./jni/src/BinOp.cpp \
-				./jni/src/Const.cpp \
-				./jni/src/Executor.cpp \
-				./jni/src/SConst.cpp \
-				./jni/src/Atom.cpp \
-				./jni/src/Clause.cpp \
-				./jni/src/Program.cpp \
-				./jni/src/Relation.cpp \
-				./jni/src/PrimType.cpp \
-				./jni/src/Solver.cpp \
-				./src/AstBuilder.cpp \
-				./src/Interfaces.cpp
-
-#libsoufflejni_la_CXXFLAGS=-I./jni/include/ -I./jni/include/generated/ -I./include/ -I/usr/lib/jvm/java-8-oracle/include/linux/ -I/usr/lib/jvm/java-8-oracle/include/ -I@abs_top_srcdir@/src/ -I@abs_top_srcdir@/ -I@abs_top_srcdir@/include/ -I./include/ $(JNIFLAGS)
-
-
-libsoufflejni_la_CXXFLAGS= -I$(JAVA_HOME)/include/ -I$(JAVA_HOME)/include/darwin/ -I./jni/include/ -I./jni/include/generated/ -I./include/ -I@abs_top_srcdir@/src/ -I@abs_top_srcdir@/ -I@abs_top_srcdir@/include/ -I./include/ $(JNIFLAGS) 
-
-libsoufflejni_la_LIBADD = @abs_top_srcdir@/src/libsouffle.a
-
-lib_LTLIBRARIES = libsoufflejni.la
+clean-local:
+	rm -rf $(builddir)/com
