@@ -4,7 +4,7 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-EXTRA_DIST =  $(srcdir)/*.at package.m4 $(TESTSUITE) atlocal.in $(srcdir)/evaluation $(srcdir)/semantic $(srcdir)/syntactic $(srcdir)/interface
+EXTRA_DIST =  $(srcdir)/*.at package.m4 $(TESTSUITE) atlocal.in $(srcdir)/evaluation $(srcdir)/semantic $(srcdir)/syntactic $(srcdir)/interface $(srcdir)/profile
 
 package.m4: $(top_srcdir)/configure.ac
 	@{                                      \
@@ -34,6 +34,6 @@ distclean-local:
 	rm -f atconfig
 
 AUTOTEST = $(AUTOM4TE) --language=autotest
-$(TESTSUITE): $(srcdir)/testsuite.at $(srcdir)/syntactic.at $(srcdir)/semantic.at $(srcdir)/evaluation.at $(srcdir)/interface.at package.m4
+$(TESTSUITE): $(srcdir)/testsuite.at $(srcdir)/syntactic.at $(srcdir)/semantic.at $(srcdir)/evaluation.at $(srcdir)/interface.at $(srcdir)/profile.at package.m4
 	$(AUTOTEST) -I '$(srcdir)' -o $@.tmp $@.at
 	mv $@.tmp $@
