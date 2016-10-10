@@ -50,8 +50,8 @@ $(cpp_headers): jni/include/Jni_%.h : jni/src/%.cpp $(souffle_jar)
 	$(JAVAH) -jni -o $@ com.soufflelang.souffle.$(basename $(notdir $<))
 
 # libsoufflejni.a library
-lib_LIBRARIES = libsoufflejni.a
-libsoufflejni_a_SOURCES = $(cpp_sources) \
+lib_LTLIBRARIES = libsoufflejni.la
+libsoufflejni_la_SOURCES = $(cpp_sources) \
   include/AstBuilder.h \
   include/Executor.h \
   include/InterfaceResult.h \
@@ -60,17 +60,11 @@ libsoufflejni_a_SOURCES = $(cpp_sources) \
   jni/include/conversion.h  \
   jni/include/handle.h
 
-libsoufflejni_a_CXXFLAGS = $(JNIFLAGS) \
-  -I@JAVA_HOME@/include \
-  -I@JAVA_HOME@/include/darwin \
-  -I./include \
-  -I./jni/include \
-  -I./jni/include/generated \
-  -I@abs_top_srcdir@/src \
-  -I@abs_top_srcdir@ \
-  -I@abs_top_srcdir@/include
+libsoufflejni_la_CXXFLAGS = $(JNIFLAGS) \
+  -Iinclude -Ijni/include -Ijni/include/generated \
+	-I@abs_top_srcdir@ -I@abs_top_srcdir@/src -I@abs_top_srcdir@/include
 
-libsoufflejni_a_LIBADD = @abs_top_srcdir@/src/libsouffle.a
+libsoufflejni_la_LIBADD = @abs_top_srcdir@/src/libsouffle.la
 
 # Cleanup
 CLEANFILES = $(souffle_jar) $(BUILT_SOURCES)

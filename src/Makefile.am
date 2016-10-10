@@ -82,12 +82,13 @@ souffle_sources = \
               PrecedenceGraph.cpp   PrecedenceGraph.h
 
 # -- build souffle as a library so it can be reused in testing
-noinst_LIBRARIES = libsouffle.a
-libsouffle_a_SOURCES = $(souffle_sources)
-libsouffle_a_CXXFLAGS = $(souffle_CPPFLAGS)
+noinst_LTLIBRARIES = libsouffle.la
+libsouffle_la_SOURCES  = $(souffle_sources)
+libsouffle_la_CXXFLAGS = $(souffle_CPPFLAGS)
+libsouffle_la_LDFLAGS = --static --dlopen --pic
 
 souffle_SOURCES = main.cpp
-souffle_LDADD = libsouffle.a
+souffle_LDADD = libsouffle.la
 
 dist_bin_SCRIPTS = souffle-compile souffle-config
 
@@ -127,109 +128,109 @@ check_PROGRAMS =
 check_PROGRAMS += test/util_test
 test_util_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_util_test_SOURCES = test/util_test.cpp
-test_util_test_LDADD = libsouffle.a
+test_util_test_LDADD = libsouffle.la
 
 # matching test
 check_PROGRAMS += test/matching_test
 test_matching_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_matching_test_SOURCES = test/matching_test.cpp
-test_matching_test_LDADD = libsouffle.a
+test_matching_test_LDADD = libsouffle.la
 
 # table test
 check_PROGRAMS += test/table_test
 test_table_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_table_test_SOURCES = test/table_test.cpp
-test_table_test_LDADD = libsouffle.a
+test_table_test_LDADD = libsouffle.la
 
 # b-tree set test
 check_PROGRAMS += test/btree_set_test
 test_btree_set_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_btree_set_test_SOURCES = test/btree_set_test.cpp
-test_btree_set_test_LDADD = libsouffle.a
+test_btree_set_test_LDADD = libsouffle.la
 
 # b-tree multi-set test
 check_PROGRAMS += test/btree_multiset_test
 test_btree_multiset_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_btree_multiset_test_SOURCES = test/btree_multiset_test.cpp
-test_btree_multiset_test_LDADD = libsouffle.a
+test_btree_multiset_test_LDADD = libsouffle.la
 
 # compiled ram tuple test
 check_PROGRAMS += test/compiled_ram_tuple_test
 test_compiled_ram_tuple_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_compiled_ram_tuple_test_SOURCES = test/compiled_ram_tuple_test.cpp
-test_compiled_ram_tuple_test_LDADD = libsouffle.a
+test_compiled_ram_tuple_test_LDADD = libsouffle.la
 
 # compiled ram relation test
 check_PROGRAMS += test/compiled_ram_relation_test
 test_compiled_ram_relation_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_compiled_ram_relation_test_SOURCES = test/compiled_ram_relation_test.cpp
-test_compiled_ram_relation_test_LDADD = libsouffle.a
+test_compiled_ram_relation_test_LDADD = libsouffle.la
 
 # type system test
 check_PROGRAMS += test/type_system_test
 test_type_system_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_type_system_test_SOURCES = test/type_system_test.cpp
-test_type_system_test_LDADD = libsouffle.a
+test_type_system_test_LDADD = libsouffle.la
 
 # constraints test
 check_PROGRAMS += test/constraints_test
 test_constraints_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_constraints_test_SOURCES = test/constraints_test.cpp
-test_constraints_test_LDADD = libsouffle.a
+test_constraints_test_LDADD = libsouffle.la
 
 # ast program test
 check_PROGRAMS += test/ast_program_test
 test_ast_program_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_ast_program_test_SOURCES = test/ast_program_test.cpp
-test_ast_program_test_LDADD = libsouffle.a
+test_ast_program_test_LDADD = libsouffle.la
 
 # ast utils test
 check_PROGRAMS += test/ast_utils_test
 test_ast_utils_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_ast_utils_test_SOURCES = test/ast_utils_test.cpp
-test_ast_utils_test_LDADD = libsouffle.a
+test_ast_utils_test_LDADD = libsouffle.la
 
 # ast parser utils test
 check_PROGRAMS += test/ast_parser_utils_test
 test_ast_parser_utils_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_ast_parser_utils_test_SOURCES = test/ast_parser_utils_test.cpp
-test_ast_parser_utils_test_LDADD = libsouffle.a
+test_ast_parser_utils_test_LDADD = libsouffle.la
 
 # rule scheduler test
 check_PROGRAMS += test/rule_scheduler_test
 test_rule_scheduler_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_rule_scheduler_test_SOURCES = test/rule_scheduler_test.cpp
-test_rule_scheduler_test_LDADD = libsouffle.a
+test_rule_scheduler_test_LDADD = libsouffle.la
 
 # relation statistics
 check_PROGRAMS += test/ram_relation_stats_test
 test_ram_relation_stats_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
 test_ram_relation_stats_test_SOURCES = test/ram_relation_stats_test.cpp
-test_ram_relation_stats_test_LDADD = libsouffle.a
+test_ram_relation_stats_test_LDADD = libsouffle.la
 
 # symbol table
 check_PROGRAMS += test/symbol_table_test
 test_symbol_table_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
 test_symbol_table_test_SOURCES = test/symbol_table_test.cpp
-test_symbol_table_test_LDADD = libsouffle.a
+test_symbol_table_test_LDADD = libsouffle.la
 
 # graph utils
 check_PROGRAMS += test/graph_utils_test
 test_graph_utils_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
 test_graph_utils_test_SOURCES = test/graph_utils_test.cpp
-test_graph_utils_test_LDADD = libsouffle.a
+test_graph_utils_test_LDADD = libsouffle.la
 
 # trie implementation
 check_PROGRAMS += test/trie_test
 test_trie_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
 test_trie_test_SOURCES = test/trie_test.cpp
-test_trie_test_LDADD = libsouffle.a
+test_trie_test_LDADD = libsouffle.la
 
 # parallel utils implementation
 check_PROGRAMS += test/parallel_utils_test
 test_parallel_utils_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
 test_parallel_utils_test_SOURCES = test/parallel_utils_test.cpp
-test_parallel_utils_test_LDADD = libsouffle.a
+test_parallel_utils_test_LDADD = libsouffle.la
 
 
 
