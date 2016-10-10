@@ -15,7 +15,9 @@ compile
 depcomp
 install-sh
 missing
-include
+libtool
+ltmain.sh
+/include
 test-driver
 prof/build
 prof/com
@@ -27,3 +29,5 @@ build_*
 
 debian/changelog
 souffle-*.*.*
+
+

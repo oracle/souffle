@@ -4,11 +4,13 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-
 AC_INIT(souffle, m4_esyscmd([git describe --tags --abbrev=0 | tr -d '\n']), [souffle-talk@googlegroups.com])
 AC_PREREQ(2.68)
 AC_COPYRIGHT(['2013-15 Oracle and/or its affiliates'])
 AC_CONFIG_MACRO_DIRS([m4])
+
+#LT_PREREQ([2.4])
+LT_INIT([dlopen])
 
 AC_CANONICAL_TARGET # target_cpu, target_vendor, and target_os
 AC_CANONICAL_BUILD  # build_cpu, build_vendor, and build_os
@@ -17,6 +19,16 @@ AC_CANONICAL_HOST   # host_cpu, host_vendor, and host_os
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AM_MAINTAINER_MODE
 AC_CONFIG_HEADERS(config.h)
+
+AC_ARG_ENABLE([java],
+[  --enable-java    Turn on java interface],
+[case "${enableval}" in
+  yes) java=true ;;
+  no)  java=false ;;
+  *) AC_MSG_ERROR([bad value ${enableval} for --enable-java]) ;;
+esac],[java=false])
+
+AM_CONDITIONAL([JAVAI], [test x$java = xtrue])
 
 dnl Do not set default CFLAGS and CXXFLAGS
 CXXFLAGS=" -Wall -std=c++11  $CXXFLAGS"
@@ -35,11 +47,19 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AM_PROG_CC_STDC
-AC_PROG_RANLIB
+
+# Java
 AX_PROG_JAVAC
+AX_PROG_JAVAH
 AX_PROG_JAVA
 AX_PROG_JAR
 
+if test -z $JAVA_HOME; then
+AX_CHECK_JAVA_HOME
+fi
+AC_SUBST(JAVA_HOME)
+
+# Check for flex and bison
 AM_PROG_LEX
 AC_PROG_YACC
 
@@ -159,6 +179,7 @@ AC_CONFIG_FILES([
     Makefile
     src/Makefile
     src/wavelib/Makefile
+    interfaces/Makefile
     prof/Makefile
     tests/Makefile
     tests/atlocal
@@ -211,6 +232,7 @@ AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([dup2 fchdir getcwd getpagesize gettimeofday isascii memset mkdir munmap pow regcomp rmdir setenv socket strcasecmp strchr strdup strerror strrchr strstr strtol strtoull])
 
 AC_OUTPUT(
-    [ src/souffle-compile src/souffle-config debian/changelog ],
-    [ chmod +x src/souffle-compile src/souffle-config ]
+    [ src/souffle-compile src/souffle-config interfaces/souffle-compilelib debian/changelog ],
+    [ chmod +x src/souffle-compile src/souffle-config interfaces/souffle-compilelib ]
 )
+
