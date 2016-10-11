@@ -8,7 +8,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 # directories
-SUBDIRS = src tests prof
+SUBDIRS = src tests interfaces prof
 
 # add doxygen support to the makefile
 include $(top_srcdir)/aminclude.am

@@ -609,11 +609,21 @@ namespace {
             bool visitLoad(const RamLoad& load) {
                 if (load.getRelation().isData()) {
                   // Load from mem
-                  env.getRelation(load.getRelation()).load(data->getTuples(
-                  load.getRelation().getName()), 
+                  std::string name = load.getRelation().getName();
+                  if(data == NULL){
+                    std::cout << "data is null\n";
+                    return false;
+                  }
+                  PrimData* pd = data->getTuples(name);
+                  if (pd == NULL || pd->data.size() == 0) {
+                     std::cout << "relation " << name <<" is empty\n"; 
+                     return true;
+                  }
+
+                  bool err = env.getRelation(load.getRelation()).load(pd->data, 
                   env.getSymbolTable(), 
                   load.getRelation().getSymbolMask());
-                  return true;
+                  return !err;
                 }
 
                 // load facts from file
@@ -2140,7 +2150,7 @@ std::string RamCompiler::compileToLibrary(const SymbolTable& symTable, const Ram
     std::string source = generateCode(symTable, stmt, name + ".cpp");
 
     // execute shell script that compiles the generated C++ program
-    std::string cmd = "./compilelib.sh " + name;
+    std::string cmd = "compilelib.sh " + name;
 
     // separate souffle output form executable output
     if (getConfig().isLogging()) {
@@ -2150,6 +2160,8 @@ std::string RamCompiler::compileToLibrary(const SymbolTable& symTable, const Ram
     // run executable
     if(system(cmd.c_str()) != 0) {
         std::cerr << "failed to compile C++ source " << name << "\n";
+        std::cerr << "Have you installed souffle with java?\n";
+        return "";
     }
 
     // done

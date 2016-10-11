@@ -1,5 +1,13 @@
 #! /bin/sh -e
+
+if [ "$(uname -s)" = "Darwin" ]; then
+	glibtoolize --force
+else
+	libtoolize --force
+fi
+
 aclocal -I m4
 autoheader
 automake --gnu --add-missing
 autoconf
+
