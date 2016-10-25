@@ -15,6 +15,9 @@
  * problem.
  ***********************************************************************/
 
+#include <cstdlib>
+#include <string>
+
 #include "RamAutoIndex.h"
 
 namespace souffle {
@@ -27,36 +30,45 @@ namespace souffle {
 void RamAutoIndex::solve() { 
     if(searches.size() == 0) return;
 
-//    // -- hack to disable indexing --
-//
-//    // every search pattern gets its naive index
-//    for(SearchColumns cur : searches) {
-//
-//        // obtain order
-//        LexicographicalOrder order;
-//        SearchColumns mask = cur;
-//        for(int i=0; mask != 0; i++) {
-//            if (!(1<<i & mask)) continue;
-//            order.push_back(i);
-//            // clear bit
-//            mask &= ~(1<<i);
-//        }
-//
-//        // add new order
-//        orders.push_back(order);
-//
-//        // register pseudo chain
-//        chainToOrder.push_back(Chain());
-//        chainToOrder.back().insert(cur);
-//    }
-//
-//    std::cout << "Orders: " << orders << "\n";
-//    std::cout << "Chains: " << chainToOrder << "\n";
-//
-//    return;
-//
-//    // ------------------------------
 
+    // check whether one of the naive indexers should be used
+    static const char ENV_NAIVE_INDEX[] = "SOUFFLE_USE_NAIVE_INDEX";
+    if (std::getenv(ENV_NAIVE_INDEX)) {
+    	static bool first = true;
+
+    	// print a warning - only the first time
+    	if (first) {
+    		std::cout << "WARNING: auto index selection disabled, naive indexes are utilized!!\n";
+    		first = false;
+    	}
+
+		// every search pattern gets its naive index
+		for(SearchColumns cur : searches) {
+
+			// obtain order
+			LexicographicalOrder order;
+			SearchColumns mask = cur;
+			for(int i=0; mask != 0; i++) {
+				if (!(1<<i & mask)) continue;
+				order.push_back(i);
+				// clear bit
+				mask &= ~(1<<i);
+			}
+
+			// add new order
+			orders.push_back(order);
+
+			// register pseudo chain
+			chainToOrder.push_back(Chain());
+			chainToOrder.back().insert(cur);
+		}
+
+//		std::cout << "Orders: " << orders << "\n";
+//		std::cout << "Chains: " << chainToOrder << "\n";
+
+		return;
+
+    }
 
 
     // Construct the matching poblem
