@@ -1756,13 +1756,13 @@ public:
 template<unsigned arity, typename Primary, typename ... Indices>
 class DirectIndexedRelation : public RelationBase<arity,Relation<arity,Primary,Indices...>> {
 
-    // check validity of indices
-    static_assert(
-            index_utils::check<arity,
-                typename index_utils::extend_to_full_index<arity, Primary>::type,
-                typename index_utils::extend_to_full_index<arity, Indices>::type...
-            >::value,
-            "Warning: invalid indices combination!");
+//    // check validity of indices
+//    static_assert(
+//            index_utils::check<arity,
+//                typename index_utils::extend_to_full_index<arity, Primary>::type,
+//                typename index_utils::extend_to_full_index<arity, Indices>::type...
+//            >::value,
+//            "Warning: invalid indices combination!");
 
     // shortcut for the base class
     typedef RelationBase<arity,Relation<arity,Primary,Indices...>> base;
