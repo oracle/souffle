@@ -6,6 +6,7 @@
 
 dnl Positive test cases for evaluating Datalog programs
 
+POSITIVE_TEST([access1],[evaluation])
 POSITIVE_TEST([cprog1],[evaluation])
 POSITIVE_TEST([cprog2],[evaluation])
 POSITIVE_TEST([cprog3],[evaluation])
