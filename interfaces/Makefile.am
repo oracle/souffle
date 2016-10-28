@@ -15,8 +15,7 @@ java_sources = $(wildcard $(srcdir)/jni/java/*.java)
 # Distribute the Java sources
 EXTRA_DIST = examples $(java_sources)
 
-# C++ source files
-cpp_sources  = \
+jni_sources = \
   jni/src/Arg.cpp \
   jni/src/Clause.cpp \
   jni/src/Data.cpp \
@@ -34,6 +33,11 @@ cpp_sources  = \
   jni/src/Negation.cpp \
   jni/src/Program.cpp \
   jni/src/SConst.cpp
+
+# C++ source files
+cpp_sources  = $(jni_sources)\
+  src/AstBuilder.cpp \
+  src/Interfaces.cpp
 
 # Heades generated from the Java class files
 cpp_headers = $(patsubst jni/src/%.cpp, $(builddir)/jni/include/Jni_%.h, $(cpp_sources))
