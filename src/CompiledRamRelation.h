@@ -2163,12 +2163,14 @@ public:
 
     template<typename I>
     range<iterator> equalRange(const tuple_type& value) const {
+    	static_assert(index_utils::is_compatible_with<I,Index>::value, "Invalid range query!");
         operation_context ctxt;
         return equalRange<I>(value, ctxt);
     }
 
     template<typename I>
     range<iterator> equalRange(const tuple_type& value, operation_context& ctxt) const {
+    	static_assert(index_utils::is_compatible_with<I,Index>::value, "Invalid range query!");
         return data.template equalRange<I>(value, ctxt);
     }
 
