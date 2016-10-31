@@ -1314,6 +1314,97 @@ namespace index_utils {
 
 }
 
+namespace iterator_utils {
+
+	/**
+	 * A generic iterator realizing a range query utilizing a scan, by filtering out invalid
+	 * elements. This iterator is utilized in cases where no index supporting a query is available.
+	 */
+	template<typename Iter, typename Index>
+	class filter_iterator : public std::iterator<std::forward_iterator_tag,typename Iter::value_type> {
+
+		// the type of the tuple visited by this iterator
+		using tuple_type = typename Iter::value_type;
+
+		// the begin of the range to be scanned
+		Iter iter;
+
+		// the end of the range to be scanned
+		Iter end;
+
+		// the comparator realizing the semantic of the Index pattern
+		typename Index::comparator comp;
+
+		// the pattern to be scanned for (in combination with the Index template parameter)
+		tuple_type value;
+
+	public:
+
+		filter_iterator() {}
+
+		filter_iterator(Iter&& begin, Iter&& end, const tuple_type& value)
+			: iter(std::move(begin)), end(std::move(end)), value(value) {
+			// move to first matching element
+			forward();
+		}
+
+		// default copy constructor
+		filter_iterator(const filter_iterator&) = default;
+
+		// a default move-constructor
+		filter_iterator(filter_iterator&&) = default;
+
+        // the default move-assignment operator
+        filter_iterator& operator=(filter_iterator&&) = default;
+
+        // the default copy-assignment operator
+        filter_iterator& operator=(const filter_iterator&) = default;
+
+        // the equality operator as required by the iterator concept
+        bool operator==(const filter_iterator& other) const {
+            return iter == other.iter && comp.equal(value,other.value);
+        }
+
+        // the not-equality operator as required by the iterator concept
+        bool operator!=(const filter_iterator& other) const {
+            return !(*this == other);
+        }
+
+        // the deref operator as required by the iterator concept
+        const tuple_type& operator*() const {
+            return *iter;
+        }
+
+        // support for the pointer operator
+        const tuple_type* operator->() const {
+            return &*iter;
+        }
+
+        // the increment operator as required by the iterator concept
+        filter_iterator& operator++() {
+            // move at least one
+            ++iter;
+            // move to next fitting element
+            forward();
+            // done
+            return *this;
+        }
+
+	private:
+
+        // move iterator forward to next fitting place
+		void forward() {
+			// tests whether the current location is a fitting position
+			while(iter != end && !comp.equal(*iter,value)) {
+				// otherwise move forward
+				++iter;
+			}
+		}
+
+	};
+
+} // end namespace iterator utils
+
 
 /**
  * A base class for partially specialized relation templates following below.
@@ -1937,7 +2028,7 @@ class Relation<arity> : public Relation<arity, typename index_utils::get_full_in
  * A specialization of a 0-ary relation.
  */
 template<>
-struct Relation<0> : public RelationBase<0,Relation<0>> {
+class Relation<0> : public RelationBase<0,Relation<0>> {
 
     typedef RelationBase<0,Relation<0>> base;
 
@@ -2037,16 +2128,19 @@ public:
 
     template<typename Index>
     range<iterator> scan() const {
+    	static_assert(std::is_same<Index,index<>>::value, "Requesting uncovered index!");
         return make_range(begin(), end());
     }
 
     template<typename Index>
     range<iterator> equalRange(const tuple_type& value) const {
+    	static_assert(std::is_same<Index,index<>>::value, "Requesting uncovered index!");
         return make_range(begin(), end());
     }
 
     template<typename Index>
     range<iterator> equalRange(const tuple_type& value, operation_context& ctxt) const {
+    	static_assert(std::is_same<Index,index<>>::value, "Requesting uncovered index!");
         return make_range(begin(), end());
     }
 
@@ -2157,30 +2251,47 @@ public:
 
     template<typename I>
     range<iterator> scan() const {
-        static_assert(std::is_same<Index,I>::value, "Addressing uncovered index!");
+        static_assert(index_utils::is_compatible_with<I,Index>::value, "Addressing uncovered index!");
         return make_range(data.begin(), data.end());
     }
 
+private:
+
     template<typename I>
-    range<iterator> equalRange(const tuple_type& value) const {
-    	static_assert(index_utils::is_compatible_with<I,Index>::value, "Invalid range query!");
+    typename std::enable_if<index_utils::is_compatible_with<I,Index>::value,range<iterator>>::type
+    equalRangeInternal(const tuple_type& value, operation_context& ctxt) const {
+        return data.template equalRange<I>(value, ctxt);
+    }
+
+    template<typename I>
+    typename std::enable_if<!index_utils::is_compatible_with<I,Index>::value,range<iterator_utils::filter_iterator<iterator,I>>>::type
+    equalRangeInternal(const tuple_type& value, operation_context&) const {
+    	return make_range(
+    			iterator_utils::filter_iterator<iterator,I>(begin(),end(),value),
+				iterator_utils::filter_iterator<iterator,I>(end(),end(),value)
+    	);
+    }
+
+public:
+
+    template<typename I>
+    auto equalRange(const tuple_type& value, operation_context& ctxt) const -> decltype(this->equalRangeInternal<I>(value,ctxt)) {
+        return equalRangeInternal<I>(value,ctxt);
+    }
+
+    template<typename I>
+    auto equalRange(const tuple_type& value) const -> decltype(this->equalRangeInternal<I>(value,std::declval<operation_context>())) {
         operation_context ctxt;
         return equalRange<I>(value, ctxt);
     }
 
-    template<typename I>
-    range<iterator> equalRange(const tuple_type& value, operation_context& ctxt) const {
-    	static_assert(index_utils::is_compatible_with<I,Index>::value, "Invalid range query!");
-        return data.template equalRange<I>(value, ctxt);
-    }
-
     template<unsigned ... Columns>
-    range<iterator> equalRange(const tuple_type& value) const {
+    auto equalRange(const tuple_type& value) const -> decltype(this->equalRangeInternal<index<Columns...>>(value,std::declval<operation_context>())) {
         return equalRange<index<Columns...>>(value);
     }
 
     template<unsigned ... Columns, typename Context>
-    range<iterator> equalRange(const tuple_type& value, Context& ctxt) const {
+    auto equalRange(const tuple_type& value, Context& ctxt) const -> decltype(this->equalRangeInternal<index<Columns...>>(value,ctxt)) {
         return equalRange<index<Columns...>>(value,ctxt);
     }
 
