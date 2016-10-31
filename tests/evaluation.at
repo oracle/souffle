@@ -6,13 +6,21 @@
 
 dnl Positive test cases for evaluating Datalog programs
 
+POSITIVE_TEST([access-policy],[evaluation])
 POSITIVE_TEST([access1],[evaluation])
 POSITIVE_TEST([access2],[evaluation])
+POSITIVE_TEST([access3],[evaluation])
 POSITIVE_TEST([cprog1],[evaluation])
 POSITIVE_TEST([cprog2],[evaluation])
 POSITIVE_TEST([cprog3],[evaluation])
 POSITIVE_TEST([cprog4],[evaluation])
 POSITIVE_TEST([cprog5],[evaluation])
+POSITIVE_TEST([po1],[evaluation])
+POSITIVE_TEST([po2],[evaluation])
+POSITIVE_TEST([po3],[evaluation])
+POSITIVE_TEST([po4],[evaluation])
+POSITIVE_TEST([po5],[evaluation])
+POSITIVE_TEST([ranpo],[evaluation])
 POSITIVE_TEST([number_constants],[evaluation])
 POSITIVE_TEST([multiple_heads],[evaluation])
 POSITIVE_TEST([arithm],[evaluation])
