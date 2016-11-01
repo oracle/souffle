@@ -2280,13 +2280,13 @@ public:
     }
 
     template<typename I>
-    auto equalRange(const tuple_type& value) const -> decltype(this->equalRangeInternal<I>(value,std::declval<operation_context>())) {
+    auto equalRange(const tuple_type& value) const -> decltype(this->equalRangeInternal<I>(value,std::declval<operation_context&>())) {
         operation_context ctxt;
         return equalRange<I>(value, ctxt);
     }
 
     template<unsigned ... Columns>
-    auto equalRange(const tuple_type& value) const -> decltype(this->equalRangeInternal<index<Columns...>>(value,std::declval<operation_context>())) {
+    auto equalRange(const tuple_type& value) const -> decltype(this->equalRangeInternal<index<Columns...>>(value,std::declval<operation_context&>())) {
         return equalRange<index<Columns...>>(value);
     }
 
