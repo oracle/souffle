@@ -39,6 +39,17 @@
 
 namespace souffle {
 
+	static const char ENV_NO_INDEX[] = "SOUFFLE_USE_NO_INDEX";
+	bool useNoIndex() {
+		static bool flag = std::getenv(ENV_NO_INDEX);
+		static bool first = true;
+		if (first && flag) {
+			std::cout << "WARNING: indices are ignored!\n";
+			first = false;
+		}
+		return flag;
+	}
+
 namespace {
 
     class EvalContext {
@@ -910,10 +921,12 @@ namespace {
     std::string getRelationType(std::size_t arity, const RamAutoIndex& indices) {
         std::stringstream res;
         res << "ram::Relation<" << arity;
-        for(auto &cur : indices.getAllOrders() ) {
-            res << ",ram::index<";
-            res << join(cur, ",");
-            res << ">";
+        if (!useNoIndex()) {
+			for(auto &cur : indices.getAllOrders() ) {
+				res << ",ram::index<";
+				res << join(cur, ",");
+				res << ">";
+			}
         }
         res << ">";
         return res.str();
