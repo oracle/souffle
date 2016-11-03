@@ -1,19 +1,16 @@
 #!/bin/bash
 #
-# Souffle - A Datalog Compiler
+# souffle-profiler
 # Copyright (c) 2015, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at:
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-#
-# script that compiles a generated C++ program and executes it
-#
 HEADER_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 if [ -f $HEADER_DIR/souffleprof.jar ]
 then
    java -jar $HEADER_DIR/souffleprof.jar "$@"
-else 
+else
    echo "error: souffleprof.jar file is not installed in directory $HEADER_DIR" 1>&2
    exit 1
 fi
