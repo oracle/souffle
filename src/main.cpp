@@ -350,7 +350,9 @@ int main(int argc, char **argv)
     transforms.push_back(std::unique_ptr<AstTransformer>(new ComponentInstantiationTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new UniqueAggregationVariablesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new AstSemanticChecker()));
-    transforms.push_back(std::unique_ptr<AstTransformer>(new ResolveAliasesTransformer()));
+    if (bddbddbOutputFile.empty()) {
+    	transforms.push_back(std::unique_ptr<AstTransformer>(new ResolveAliasesTransformer()));
+    }
     transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRelationCopiesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new MaterializeAggregationQueriesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveEmptyRelationsTransformer()));
