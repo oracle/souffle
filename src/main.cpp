@@ -40,6 +40,7 @@
 #include "AstTransformer.h"
 #include "AstSemanticChecker.h"
 #include "AstTransforms.h"
+#include "BddbddbBackend.h"
 #include "PrecedenceGraph.h"
 #include "Util.h"
 #include "SymbolTable.h"
@@ -84,6 +85,7 @@ void helpPage(bool error, int argc, char**argv)
     std::cerr << "\n";
     std::cerr << "    -p<FILE>, --profile=<FILE>     Enable profiling and write profile data to <FILE>\n";
     std::cerr << "    -d, --debug                    Enable debug mode\n";
+    std::cerr << "    -b<FILE>, --bddbddb=<FILE>     Convert intput into bddbddb file format\n";
     std::cerr << "\n";
     std::cerr << "    --debug-report=<FILE>          Write debugging output to HTML report\n";
     std::cerr << "\n";
@@ -137,6 +139,8 @@ int main(int argc, char **argv)
     bool debug = false;           /* flag for enabling debug mode */
     bool generateHeader = false;  /* flag for enabling code generation mode */
 
+    std::string bddbddbOutputFile = "";  /* the file to write the bdbbdbbd converted input spec to */
+
     enum {optAutoSchedule=1,
           optDebugReportFile=2};
 
@@ -157,7 +161,9 @@ int main(int argc, char **argv)
         //
         { "profile", true, nullptr, 'p' },
         //
-        { "debug", false, nullptr, 'd' },
+		{ "bddbddb", true, nullptr, 'b' },
+		//
+		{ "debug", false, nullptr, 'd' },
         //
         { "verbose", false, nullptr, 'v' },
         // the terminal option -- needs to be null
@@ -166,7 +172,7 @@ int main(int argc, char **argv)
 
     static unsigned num_threads = 1;	  /* the number of threads to use for execution, 0 system-choice, 1 sequential */
     int c;     /* command-line arguments processing */
-    while ((c = getopt_long(argc, argv, "cj:D:F:I:p:o:g:hvwd", longOptions, nullptr)) != EOF) {
+    while ((c = getopt_long(argc, argv, "cj:D:F:I:p:b:o:g:hvwd", longOptions, nullptr)) != EOF) {
         switch(c) {
                 /* Print debug / profiling information */
             case 'v':
@@ -239,6 +245,11 @@ int main(int argc, char **argv)
             case 'p':
                 logging = true;
                 profile = optarg;
+                break;
+
+                /* File-name for bddbddb conversion */
+            case 'b':
+                bddbddbOutputFile = optarg;
                 break;
 
                 /* Enable debug mode */
@@ -370,6 +381,26 @@ int main(int argc, char **argv)
         std::cerr << translationUnit->getErrorReport();
     }
 
+    // ------- (optional) conversions -------------
+
+    // conduct the bddbddb file export
+    if (!bddbddbOutputFile.empty()) {
+    	try {
+			if (bddbddbOutputFile == "-") {
+				// use STD-OUT
+				toBddbddb(std::cout,*translationUnit);
+			} else {
+				// create an output file
+				std::ofstream out(bddbddbOutputFile.c_str());
+				toBddbddb(out,*translationUnit);
+			}
+    	} catch(const UnsupportedConstructException& uce) {
+    		std::cout << "Failed to convert input specification into bddbddb syntax:\n";
+    		std::cout << "Reason: " << uce.what();
+    		return 1;
+    	}
+    	return 0;
+    }
 
     // ------- execution -------------
 

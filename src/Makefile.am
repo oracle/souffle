@@ -53,6 +53,7 @@ souffle_sources = \
               AstAnalysis.h                             \
               AstTransformer.cpp    AstTransformer.h    \
               AstTranslationUnit.h  ErrorReport.h       \
+              BddbddbBackend.h      BddbddbBackend.cpp  \
               DebugReport.cpp       DebugReport.h       \
               ComponentModel.cpp    ComponentModel.h    \
               AstSemanticChecker.cpp                    \
