@@ -251,7 +251,8 @@ public:
     enum Function {
         MAX,
         MIN,
-        COUNT
+        COUNT,
+        SUM
     };
 
 private:

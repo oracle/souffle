@@ -514,6 +514,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(const AstClause& cl
         case AstAggregator::min:   fun = RamAggregate::MIN; break;
         case AstAggregator::max:   fun = RamAggregate::MAX; break;
         case AstAggregator::count: fun = RamAggregate::COUNT; break;
+        case AstAggregator::sum:   fun = RamAggregate::SUM; break;
         }
 
         // translate target expression

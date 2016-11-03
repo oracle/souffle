@@ -649,7 +649,8 @@ public:
     enum Op {
         min,
         max,
-        count
+        count,
+        sum
     };
 
 private:

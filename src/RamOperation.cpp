@@ -218,6 +218,7 @@ void RamAggregate::print(std::ostream &os, int tabpos) const {
     case MIN   : os << "MIN "; break;
     case MAX   : os << "MAX "; break;
     case COUNT : os << "COUNT "; break;
+    case SUM   : os << "SUM "; break;
     }
 
     if (fun != COUNT) {
