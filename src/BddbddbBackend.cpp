@@ -16,6 +16,9 @@
 #include "BddbddbBackend.h"
 
 #include <limits>
+#include <string>
+#include <sstream>
+#include <vector>
 
 #include "AstTranslationUnit.h"
 #include "AstVisitor.h"
@@ -28,7 +31,14 @@ namespace souffle {
 
 		class BddbddbConverter : private AstVisitor<void,std::ostream&> {
 
+			// literals aggregated to be added to the end of a rule while converting
+			std::vector<std::string> extra_literals;
+
+			int varCounter;
+
 		public:
+
+			BddbddbConverter() : varCounter(0) {}
 
 			void convert(std::ostream& out, const AstProgram& program) {
 				visit(program,out);
@@ -79,7 +89,12 @@ namespace souffle {
 			void visitRelation(const AstRelation& rel, std::ostream& out) override {
 
 				visitRelationIdentifier(rel.getName(),out);
+
+				// make nullary relations single-element relations
 				out << "(";
+				if (rel.getAttributes().empty()) {
+					out << "dummy:N0";
+				}
 				int i = 0;
 				out << join(rel.getAttributes(),",",[&](std::ostream& out, AstAttribute* cur){
 					out << cur->getAttributeName() << ":N" << (i++);
@@ -102,6 +117,10 @@ namespace souffle {
 
 				// if it is a fact, that's it
 				if (clause.isFact()) {
+					// there must not be any additons
+					if (!extra_literals.empty()) {
+						throw UnsupportedConstructException("Unsupported fact: " + toString(clause));
+					}
 					out << ".\n";
 					return;
 				}
@@ -111,11 +130,26 @@ namespace souffle {
 				out << join(clause.getBodyLiterals(), ",",  [&](std::ostream& out, AstLiteral* cur){
 					visit(*cur,out);
 				});
+
+				// add extra_literals
+				for(const auto& cur : extra_literals) {
+					out << "," << cur;
+				}
+				extra_literals.clear();
+
+				// done
 				out << ".\n";
 			}
 
 			void visitAtom(const AstAtom& atom, std::ostream& out) override {
 				visitRelationIdentifier(atom.getName(),out);
+
+				// since no nullary-relations are allowed, we add a dummy value
+				if (atom.getArguments().empty()) {
+					out << "(0)";
+					return;
+				}
+
 				out << "(";
 				out << join(atom.getArguments(),",",[&](std::ostream& out, AstArgument* cur) {
 					visit(*cur,out);
@@ -139,9 +173,50 @@ namespace souffle {
 				out << str.getIndex();
 			}
 
-			void visitArgument(const AstArgument& arg, std::ostream& out) override {
-				out << arg;
+			void visitNumberConstant(const AstNumberConstant& num, std::ostream& out) override {
+				out << num;
 			}
+
+			void visitTypeCast(const AstTypeCast& cast, std::ostream& out) override {
+				visit(*cast.getValue(),out);
+			}
+
+			void visitFunctor(const AstFunctor& fun, std::ostream& out) override {
+
+				// create a new variable
+				std::string var = "aux_var_" + toString(varCounter++);
+
+				// write variable
+				out << var;
+
+				// assign variable in extra clause
+				std::stringstream binding;
+				binding << var << "=";
+
+				// process unary operators
+				if (dynamic_cast<const AstUnaryFunctor*>(&fun)) {
+					throw UnsupportedConstructException("Unsupported function: " + toString(fun));
+
+				// and binary operators
+				} else if (const AstBinaryFunctor* binary = dynamic_cast<const AstBinaryFunctor*>(&fun)) {
+					visit(*binary->getLHS(),binding);
+					binding << getSymbolForBinaryOp(binary->getFunction());
+					visit(*binary->getRHS(),binding);
+				} else {
+					assert(false && "Unsupported functor!");
+				}
+
+				extra_literals.push_back(binding.str());
+			}
+
+			void visitVariable(const AstVariable& var, std::ostream& out) override {
+				out << var;
+			}
+
+			void visitUnnamedVariable(const AstUnnamedVariable& var, std::ostream& out) override {
+				out << "_";
+			}
+
 
 			void visitRelationIdentifier(const AstRelationIdentifier& id, std::ostream& out) {
 				out << join(id.getNames(), "_");

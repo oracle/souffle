@@ -604,6 +604,10 @@ public:
 		os << *value << " as " << type;
 	}
 
+	AstArgument* getValue() const {
+		return value.get();
+	}
+
     /** Obtains a list of all embedded child nodes */
     virtual std::vector<const AstNode*> getChildNodes() const {
         auto res = AstArgument::getChildNodes();
