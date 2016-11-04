@@ -87,6 +87,7 @@
 "max"                            { return yy::parser::make_MAX(yylloc); }
 "nil"                            { return yy::parser::make_NIL(yylloc); }
 "count"                          { return yy::parser::make_COUNT(yylloc); }
+"sum"                            { return yy::parser::make_SUM(yylloc); }
 ".strict"                        { return yy::parser::make_STRICT(yylloc); }
 ".plan"                          { return yy::parser::make_PLAN(yylloc); }
 "|"                              { return yy::parser::make_PIPE(yylloc); }

@@ -407,6 +407,7 @@ namespace {
                 case RamAggregate::MIN: res = MAX_RAM_DOMAIN; break;
                 case RamAggregate::MAX: res = MIN_RAM_DOMAIN; break;
                 case RamAggregate::COUNT: res = 0; break;
+                case RamAggregate::SUM: res = 0; break;
                 }
 
                 // init temporary tuple for this level
@@ -464,6 +465,8 @@ namespace {
                     case RamAggregate::MIN: res = std::min(res,cur); break;
                     case RamAggregate::MAX: res = std::max(res,cur); break;
                     case RamAggregate::COUNT: res = 0; break;
+                    case RamAggregate::SUM: res += cur; break;
+                    
                     }
                 }
 
@@ -1314,6 +1317,7 @@ namespace {
                 case RamAggregate::MIN: init = "MAX_RAM_DOMAIN"; break;
                 case RamAggregate::MAX: init = "MIN_RAM_DOMAIN"; break;
                 case RamAggregate::COUNT: init = "0"; break;
+                case RamAggregate::SUM: init = "0"; break;
             }
             out << "RamDomain res = " << init << ";\n";
 
@@ -1363,7 +1367,12 @@ namespace {
                 // count is easy
                 out << "++res\n;";
 
-            } else {
+            } 
+            else if (aggregate.getFunction() == RamAggregate::SUM) {
+                out << "env" << level << " = cur;\n";
+                out << "res += "; visit(*aggregate.getTargetExpression(),out); out << ";\n";
+            }
+            else {
 
                 // pick function
                 std::string fun = "min";
@@ -1371,6 +1380,7 @@ namespace {
                 case RamAggregate::MIN: fun = "std::min"; break;
                 case RamAggregate::MAX: fun = "std::max"; break;
                 case RamAggregate::COUNT: assert(false);
+                case RamAggregate::SUM: assert(false);
                 }
 
                 out << "env" << level << " = cur;\n";
