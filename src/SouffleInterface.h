@@ -246,6 +246,12 @@ public:
     // print all relations 
     virtual void printAll(std::string dirname=".") = 0; 
 
+    // print input relations (for debug purposes)
+    virtual void dumpInputs(std::ostream& out = std::cout) = 0;
+
+    // print output relations (for debug purposes)
+    virtual void dumpOutputs(std::ostream& out = std::cout) = 0;
+
     // export relations to sqlite DB and dump to file
     virtual void dumpDB(std::string filename, bool outputRelationsOnly = true) = 0;
 
