@@ -35,7 +35,7 @@
 namespace souffle {
 
 extern "C" {
-  souffle::SouffleProgram* getInstance(const char* p) { return souffle::ProgramFactory::newInstance(p); }
+  inline souffle::SouffleProgram* getInstance(const char* p) { return souffle::ProgramFactory::newInstance(p); }
 }
 
 /**
