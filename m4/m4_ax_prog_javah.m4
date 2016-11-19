@@ -38,6 +38,8 @@ AS_IF([test -n "$ac_cv_path_JAVAH"],
         AS_CASE([$build_os],
                 [cygwin*|mingw*],
                 [ac_machdep=win32],
+                [darwin*],
+                [_JNIH=`find /Applications//Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/ -name jni.h`;ac_dir=`dirname $_JNIH`]
                 [ac_machdep=`AS_ECHO($build_os) | sed 's,[[-0-9]].*,,'`])
         CPPFLAGS="$ac_save_CPPFLAGS -I$ac_dir -I$ac_dir/$ac_machdep"
         AC_TRY_CPP([#include <jni.h>],

@@ -67,7 +67,9 @@ fi
 
 case "$host_os" in
         darwin*)        _JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[[^/]]*$::'`
-                        _JINC="$_JTOPDIR/Headers";;
+                        _JNIH=`find /Applications//Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/ -name jni.h`
+                        _JINC=`dirname $_JNIH`;;
+   
         *)              _JINC="$_JTOPDIR/include";;
 esac
 _AS_ECHO_LOG([_JTOPDIR=$_JTOPDIR])
