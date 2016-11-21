@@ -113,8 +113,17 @@ private:
       tuple tu = (*it);
       for(size_t i = 0; i < res->getArity(); ++i){
         std::string val1;
-        tu >> val1;
-        vecinner.push_back(val1);
+        RamDomain val2 = 0;
+        if(*res->getAttrType(i) == 'i') {
+            tu >> val2;
+            std::stringstream stream; 
+            stream << std::hex << val2;
+            vecinner.push_back(stream.str());
+        }
+        else {
+            tu >> val1;
+            vecinner.push_back(val1);
+        }
       }
       primData->data.push_back(vecinner);
     }

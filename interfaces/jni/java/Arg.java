@@ -2,11 +2,6 @@ package com.soufflelang.souffle;
 
 public class Arg {
 
-  public Arg(String value) {
-    val = value;
+  public Arg() {
   }
-
-  public String getStrValue() { return val; }
-
-  protected String val;
 }

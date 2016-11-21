@@ -80,7 +80,7 @@ struct Flags {
     bool verbose  = false;        /* flag for verbose output */
     bool compile = false;         /* flag for enabling compilation */
     bool tune = false;            /* flag for enabling / disabling the rule scheduler */
-    bool logging = true;         /* flag for profiling */
+    bool logging = false;         /* flag for profiling */
     bool debug = false;           /* flag for enabling debug mode */
     bool generateHeader = false;  /* flag for enabling code generation mode */
 

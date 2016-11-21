@@ -80,6 +80,10 @@ void AstBuilder::addInstantiation(AstComponentInit *ci) {
     translationUnit->getProgram()->addInstantiation(std::unique_ptr<AstComponentInit>(ci));
 }
 
+AstStringConstant* AstBuilder::makeStringConstant(std::string s) {
+    return new AstStringConstant(translationUnit->getSymbolTable(), s.c_str());
+}
+
 std::string AstBuilder::print() {
    std::stringstream ss;
    translationUnit->getProgram()->print(ss);

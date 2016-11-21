@@ -1,12 +1,9 @@
 package com.soufflelang.souffle;
 
-public class SConst extends Arg
-{
-  public SConst(String value) {
-    super(value);
-    init(value);
+public class SConst extends Arg {
+  public SConst(long nh) {
+    nativeHandle = nh;
   }
 
-  private native void init(String value);
   private long nativeHandle;
 }
