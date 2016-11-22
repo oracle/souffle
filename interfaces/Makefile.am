@@ -31,8 +31,7 @@ jni_sources = \
   jni/src/BinOp.cpp \
   jni/src/Constraint.cpp \
   jni/src/Negation.cpp \
-  jni/src/Program.cpp \
-  jni/src/SConst.cpp
+  jni/src/Program.cpp
 
 # Heades generated from the Java class files
 cpp_headers = $(patsubst jni/src/%.cpp, $(builddir)/jni/include/Jni_%.h, $(jni_sources))
@@ -53,6 +52,7 @@ lib_LTLIBRARIES = libsoufflejni.la
 libsoufflejni_la_SOURCES = $(jni_sources) \
   src/AstBuilder.cpp	\
   src/Interfaces.cpp	\
+  src/Executor.cpp	\
   include/AstBuilder.h \
   include/Executor.h \
   include/InterfaceResult.h \

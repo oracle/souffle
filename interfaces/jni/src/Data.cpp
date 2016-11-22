@@ -72,6 +72,16 @@ void Java_com_soufflelang_souffle_Data_addRelationTuple(JNIEnv* env, jobject obj
     LOG(INFO) LEAVEJNI;
 }
 
+jint Java_com_soufflelang_souffle_Data_size(JNIEnv* env, jobject obj) {
+    LOG(INFO) ENTERJNI("size");
+    RamData* data = getHandle<RamData>(env, obj);
+    LOG(MEM) PRE << "Retrieved RamData " << data << "\n";
+    assert(data != NULL && "Data is null!!\n");
+    return (jint) data->size();
+    LOG(INFO) LEAVEJNI;
+}
+
+
 void Java_com_soufflelang_souffle_Data_addRelationData(JNIEnv* env, jobject obj, jstring str, jobject obj2) {
     LOG(INFO) ENTERJNI("addRelationData");
     std::string name = std::string(env->GetStringUTFChars(str, 0));

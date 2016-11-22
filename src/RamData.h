@@ -70,15 +70,13 @@ class RamData {
       return data_map;
     }
 
+    size_t size() {
+      return data_map.size();
+    }
+
     PrimData* getTuples(std::string name) {
       if (data_map.find(name) == data_map.end()) {
-        std::cout << "name : " << name << " not in data_map\n";
-        for(auto d : data_map){
-            std::cout << " name = " << d.first << " \n";
-            if(d.first == name) { 
-              assert(false && "name is in data_map!!");
-            }
-        }
+        std::cout << "Warning: " << name << " not in data_map\n";
       }
 
       if(data_map[name]->data.size() == 0) {
@@ -92,11 +90,11 @@ class RamData {
       std::stringstream* ss = new std::stringstream();
       std::vector<std::vector<std::string> > reldata = data_map[name]->data;
 
-      for(std::vector<std::string> vec : reldata) {
+      for(std::vector<std::string> vec : data_map[name]->data) {
         for(std::string t : vec) {
-         (*ss) << t << "\t";
+          std::cout << t << "\t";
         }
-        (*ss) << "\n";
+        std::cout << "\n";
       }
 
       return ss;

@@ -28,6 +28,9 @@ Executor* InternalInterface::parse(AstBuilder* driver) {
         LOG(INFO) PRE << "Added Aggregation Queries Transformer\n";
     transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveEmptyRelationsTransformer()));
         LOG(INFO) PRE << "Added Remove Empty Relations Transformer\n";
+    transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRedundantRelationsTransformer()));
+        LOG(INFO) PRE << "Added Remove Redundant Relations Transformer\n";
+    transforms.push_back(std::unique_ptr<AstTransformer>(new AstExecutionPlanChecker()));
    
     for (const auto &transform : transforms) {
         LOG(INFO) PRE << "Applying transformation\n";
@@ -36,7 +39,7 @@ Executor* InternalInterface::parse(AstBuilder* driver) {
 
     /* translate AST to RAM */
     LOG(INFO) PRE << "Translating ram\n";
-    std::unique_ptr<RamStatement> ramProgram = RamTranslator(true).translateProgram(*translationUnit);
+    std::unique_ptr<RamStatement> ramProgram = RamTranslator(flags.logging).translateProgram(*translationUnit);
 
     if(ramProgram == nullptr) {
         LOG(WARN) PRE << "Ram is empty!\n";
@@ -44,6 +47,7 @@ Executor* InternalInterface::parse(AstBuilder* driver) {
     }
 
     LOG(INFO) LEAVECPP;
+
     return new Executor(translationUnit->getSymbolTable(), std::move(ramProgram));
 }
 

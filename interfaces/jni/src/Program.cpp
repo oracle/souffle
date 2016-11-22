@@ -54,3 +54,25 @@ void Java_com_soufflelang_souffle_Program_compose(JNIEnv *env, jobject obj1, job
     prog1->compose(prog2);
     LOG(INFO) LEAVEJNI;
 }
+
+jobject Java_com_soufflelang_souffle_Program_makeSConstant(JNIEnv *env, jobject obj1, jstring str) {
+    LOG(INFO) ENTERJNI("make SConstant");
+    std::string cstr = std::string(env->GetStringUTFChars(str, 0));
+    AstBuilder *prog = getHandle<AstBuilder>(env, obj1);
+    AstStringConstant* sconst = prog->makeStringConstant(cstr);
+
+    jclass c = env->FindClass("com/soufflelang/souffle/SConst");
+    if (c == 0) {
+      LOG(ERR) PRE << "Cannot Find class SConst" << "\n";
+      assert(false);
+    }
+
+    jmethodID cnstrctr = env->GetMethodID(c, "<init>", "(J)V");
+    if (cnstrctr == 0) {
+      LOG(ERR) PRE << "Cannot find method SConst <init>" << "\n";
+      assert(false);
+    }
+
+    LOG(INFO) LEAVEJNI;
+    return env->NewObject(c, cnstrctr, sconst);
+}

@@ -35,7 +35,12 @@
 namespace souffle {
 
 extern "C" {
+#ifdef JNI_INTERFACE
+   souffle::SouffleProgram* getInstance(const char* p) { return souffle::ProgramFactory::newInstance(p); }
+#else
   inline souffle::SouffleProgram* getInstance(const char* p) { return souffle::ProgramFactory::newInstance(p); }
+#endif
+
 }
 
 /**

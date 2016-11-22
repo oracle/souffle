@@ -3,19 +3,8 @@
 #include "handle.h"
 #include "AstRelation.h"
 
-/* relation is read from csv file */
-#define INPUT_RELATION (0x1)
-
-/* relation is written to csv file */
-#define OUTPUT_RELATION (0x2)
-
-/* number of tuples are written to stdout */
-#define PRINTSIZE_RELATION (0x4)
-
-/* Rules of a relation defined in a component can be overwritten by sub-component */
-#define OVERRIDABLE_RELATION (0x8)
-
-#define DATA_RELATION (0x10)
+#define INPUT_DATA (0x11)
+#define OUTPUT_DATA (0x12)
 
 
 using namespace souffle;
@@ -42,17 +31,17 @@ void Java_com_soufflelang_souffle_Relation_addAttribute (JNIEnv* env, jobject ob
 
 void Java_com_soufflelang_souffle_Relation_setAsInputData(JNIEnv* env, jobject obj) {
   AstRelation *r = getHandle<AstRelation>(env, obj);
-  r->setQualifier(INPUT_RELATION | DATA_RELATION);
+  r->setQualifier(INPUT_DATA);
 }
 
 void Java_com_soufflelang_souffle_Relation_setAsOutputData(JNIEnv* env, jobject obj) {
   AstRelation *r = getHandle<AstRelation>(env, obj);
-  r->setQualifier(OUTPUT_RELATION | DATA_RELATION);
+  r->setQualifier(OUTPUT_DATA);
 }
 
 void Java_com_soufflelang_souffle_Relation_setAsInput(JNIEnv* env, jobject obj) {
   AstRelation *r = getHandle<AstRelation>(env, obj);
-  r->setQualifier(INPUT_RELATION | DATA_RELATION);
+  r->setQualifier(INPUT_RELATION);
 }
 
 void Java_com_soufflelang_souffle_Relation_setAsOutput(JNIEnv* env, jobject obj) {
