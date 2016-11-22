@@ -25,6 +25,7 @@ prof/souffleprof.jar
 interfaces/souffle-compilelib
 warn.log
 packaging/*
+m4
 
 build_*
 
