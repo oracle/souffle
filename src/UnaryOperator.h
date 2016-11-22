@@ -20,61 +20,19 @@
 namespace souffle {
 
 /**
- * Unary Relational Operators
- */
-enum class UnaryRelOp {
-    __UNDEFINED__
-};
-
-/**
- * Returns the corresponding symbol for the given relational operator.
- */
-inline std::string getSymbolForUnaryRelOp(UnaryRelOp op) {
-    switch(op) {
-        case UnaryRelOp::__UNDEFINED__: break;
-        // TODO
-    }
-    assert(false && "Unsupported Operator!");
-    return "?";
-}
-
-/**
- * Returns the corresponding relation operator for the given symbol.
- */
-inline UnaryRelOp getUnaryRelOpForSymbol(const std::string &symbol) {
-    std::cout << "Unrecognised operator: " << symbol << "\n";
-    assert(false && "Unsupported Operator!");
-    return UnaryRelOp::__UNDEFINED__;
-}
-
-/**
- * Returns whether the given relational operator has numeric operands.
- */
-inline bool isNumericUnaryRelOp(const UnaryRelOp op) {
-    switch(op) {
-        case UnaryRelOp::__UNDEFINED__: break;
-        // TODO
-    }
-    assert(false && "Uncovered case!");
-    return false;
-}
-
-/**
- * Returns whether the given operator has symbolic operands.
- */
-inline bool isSymbolicUnaryRelOp(const UnaryRelOp op) {
-    return !isNumericUnaryRelOp(op);
-}
-
-/**
  * Unary Operators
  */
 enum class UnaryOp {
     __UNDEFINED__,
+    // used for AstUnaryOp
     ORDINAL,
     NEGATION,
     BNOT,
-    LNOT
+    LNOT,
+    // used for RamUnaryOp
+    COMPLEMENT,
+    NEG,
+    // NUMBER
 };
 
 /**
@@ -87,6 +45,10 @@ inline std::string getSymbolForUnaryOp(UnaryOp op) {
     case UnaryOp::NEGATION : return "-";
     case UnaryOp::BNOT : return "bnot";
     case UnaryOp::LNOT : return "lnot";
+    case UnaryOp::COMPLEMENT : return "complement";
+    case UnaryOp::NEG : return "neg";
+    // case UnaryOp::NUMBER : return "number";
+
     }
     assert(false && "Unsupported Operator!");
     return "?";
@@ -100,6 +62,9 @@ inline UnaryOp getUnaryOpForSymbol(const std::string &symbol) {
     if (symbol == "-") return  UnaryOp::NEGATION;
     if (symbol == "bnot") return  UnaryOp::BNOT;
     if (symbol == "lnot") return  UnaryOp::LNOT;
+    if (symbol == "complement") return UnaryOp::COMPLEMENT;
+    if (symbol == "neg") return UnaryOp::NEG;
+    // if (symbol == "number") return UnaryOp::NUMBER;
     std::cout << "Unrecognised operator: " << symbol << "\n";
     assert(false && "Unsupported Operator!");
     return UnaryOp::__UNDEFINED__;

@@ -287,16 +287,16 @@ namespace {
         } else if (const AstUnaryFunctor *uf = dynamic_cast<const AstUnaryFunctor *>(arg)) {
             switch(uf->getFunction()) {
             case UnaryOp::ORDINAL:
-                val = std::unique_ptr<RamValue>(new RamOrd(translateValue(uf->getOperand(), index)));
+                val = std::unique_ptr<RamValue>(new RamUnaryOperator(RamNodeType::RN_Ord, UnaryOp::ORDINAL, translateValue(uf->getOperand(), index)));
                 break;
             case UnaryOp::NEGATION:
-                val = std::unique_ptr<RamValue>(new RamNegation(translateValue(uf->getOperand(), index)));
+                val = std::unique_ptr<RamValue>(new RamUnaryOperator(RamNodeType::RN_Negation, UnaryOp::NEG, translateValue(uf->getOperand(), index)));
                 break;
             case UnaryOp::BNOT:
-                val = std::unique_ptr<RamValue>(new RamComplement(translateValue(uf->getOperand(), index)));
+                val = std::unique_ptr<RamValue>(new RamUnaryOperator(RamNodeType::RN_Complement, UnaryOp::COMPLEMENT, translateValue(uf->getOperand(), index)));
                 break;
             case UnaryOp::LNOT:
-                val = std::unique_ptr<RamValue>(new RamNot(translateValue(uf->getOperand(), index)));
+                val = std::unique_ptr<RamValue>(new RamUnaryOperator(RamNodeType::RN_Not, UnaryOp::COMPLEMENT, translateValue(uf->getOperand(), index)));
                 break;
             default:
                 ASSERT(false && "unknown unary function");

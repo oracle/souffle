@@ -125,7 +125,11 @@ namespace {
                     return 0;
                 }
             }
-
+            RamDomain visitUnaryOperator(const RamUnaryOperator& op) {
+                switch(op.getOperator()) {
+                case UnaryOp::LOR: return visit(op.getLHS()) || visit(op.getRHS());
+                }
+            }
             RamDomain visitNegation(const RamNegation& op) {
                 return -visit(op.getValue());
             }

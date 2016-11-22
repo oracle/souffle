@@ -312,8 +312,8 @@ protected:
 
 public:
 
-    AstUnaryFunctor(UnaryOp fun, std::unique_ptr<AstArgument> v)
-        : fun(fun), operand(std::move(v)) {}
+    AstUnaryFunctor(UnaryOp fun, std::unique_ptr<AstArgument> o)
+        : fun(fun), operand(std::move(o)) {}
 
     virtual ~AstUnaryFunctor() { }
 
@@ -343,17 +343,10 @@ public:
 
     /** Print argument to the given output stream */
     virtual void print(std::ostream &os) const {
-        if (isNumerical()) {
-            os << "(";
-            os << getSymbolForUnaryOp(fun);
-            operand->print(os);
-            os << ")";
-        } else {
-            os << getSymbolForUnaryOp(fun);
-            os << "(";
-            operand->print(os);
-            os << ")";
-        }
+        os << getSymbolForUnaryOp(fun);
+        os << "(";
+        operand->print(os);
+        os << ")";
     }
 
     /** Creates a clone if this AST sub-structure */
@@ -426,7 +419,7 @@ public:
 
     /** Print argument to the given output stream */
     virtual void print(std::ostream &os) const {
-        if (isNumerical()) {
+        if (isNumericBinaryOp(fun)) {
             os << "(";
             lhs->print(os);
             os << getSymbolForBinaryOp(fun);
