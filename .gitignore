@@ -33,4 +33,4 @@ build_*
 debian/changelog
 souffle-*.*.*
 
-doc/*
+doc
