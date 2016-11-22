@@ -23,21 +23,23 @@ namespace souffle {
  * Binary Relational Operators
  */
 enum class BinaryRelOp {
-    EQ,           // equivalence of two values
-    NE,           // whether two values are different
-    LT,           // less-than
-    LE,           // less-than-or-equal-to
-    GT,           // greater-than
-    GE,           // greater-than-or-equal-to
-    MATCH,        // matching string
-    CONTAINS,     // whether a sub-string is contained in a string
-    NOT_MATCH,    // not matching string
-    NOT_CONTAINS  // whether a sub-string is not contained in a string
+    __UNDEFINED__,    // undefined operator
+    EQ,               // equivalence of two values
+    NE,               // whether two values are different
+    LT,               // less-than
+    LE,               // less-than-or-equal-to
+    GT,               // greater-than
+    GE,               // greater-than-or-equal-to
+    MATCH,            // matching string
+    CONTAINS,         // whether a sub-string is contained in a string
+    NOT_MATCH,        // not matching string
+    NOT_CONTAINS      // whether a sub-string is not contained in a string
 };
 
 inline BinaryRelOp negate(BinaryRelOp op) 
 {
     switch(op) {
+        case BinaryRelOp::__UNDEFINED__: break;
         case BinaryRelOp::EQ : return BinaryRelOp::NE;
         case BinaryRelOp::NE : return BinaryRelOp::EQ;
         case BinaryRelOp::LT : return BinaryRelOp::GE;
@@ -59,6 +61,7 @@ inline BinaryRelOp negate(BinaryRelOp op)
 inline std::string getSymbolForBinaryRelOp(BinaryRelOp op) 
 {
     switch(op) {
+        case BinaryRelOp::__UNDEFINED__: break;
         case BinaryRelOp::EQ : return "=";
         case BinaryRelOp::NE : return "!=";
         case BinaryRelOp::LT : return "<";
@@ -90,7 +93,7 @@ inline BinaryRelOp getBinaryRelOpForSymbol(const std::string &symbol) {
     if (symbol == "not_contains") return BinaryRelOp::NOT_CONTAINS;
     std::cout << "Unrecognised operator: " << symbol << "\n";
     assert(false && "Unsupported Operator!");
-    return BinaryRelOp::EQ;
+    return BinaryRelOp::__UNDEFINED__;
 }
 
 /**
@@ -98,6 +101,7 @@ inline BinaryRelOp getBinaryRelOpForSymbol(const std::string &symbol) {
  */
 inline bool isNumericBinaryRelOp(const BinaryRelOp op) {
     switch(op) {
+    case BinaryRelOp::__UNDEFINED__: break;
     case BinaryRelOp::EQ:
     case BinaryRelOp::NE:
     case BinaryRelOp::LT:
@@ -124,18 +128,19 @@ inline bool isSymbolicBinaryRelOp(const BinaryRelOp op) {
  * Binary Operators
  */
 enum class BinaryOp {
-    ADD,  // addition
-    SUB,  // subtraction
-    MUL,  // multiplication
-    DIV,  // division
-    EXP,  // exponent
-    MOD,  // modulus
-    BAND, // bitwise and
-    BOR,  // bitwise or 
-    BXOR, // bitwise exclusive or 
-    LAND, // logical and
-    LOR,  // logical or 
-    CAT,  // string concatenation
+    __UNDEFINED__,    // undefined operator
+    ADD,              // addition
+    SUB,              // subtraction
+    MUL,              // multiplication
+    DIV,              // division
+    EXP,              // exponent
+    MOD,              // modulus
+    BAND,             // bitwise and
+    BOR,              // bitwise or
+    BXOR,             // bitwise exclusive or
+    LAND,             // logical and
+    LOR,              // logical or
+    CAT,              // string concatenation
 };
 
 /**
@@ -143,6 +148,7 @@ enum class BinaryOp {
  */
 inline std::string getSymbolForBinaryOp(BinaryOp op) {
     switch(op) {
+    case BinaryOp::__UNDEFINED__: break;
     case BinaryOp::ADD : return "+";
     case BinaryOp::SUB : return "-";
     case BinaryOp::MUL : return "*";
@@ -178,7 +184,7 @@ inline BinaryOp getBinaryOpForSymbol(const std::string &symbol) {
     if (symbol == "cat") return BinaryOp::CAT;
     std::cout << "Unrecognised operator: " << symbol << "\n";
     assert(false && "Unsupported Operator!");
-    return BinaryOp::ADD;
+    return BinaryOp::__UNDEFINED__;
 }
 
 /**
@@ -186,6 +192,7 @@ inline BinaryOp getBinaryOpForSymbol(const std::string &symbol) {
  */
 inline bool isNumericBinaryOp(const BinaryOp op) {
     switch(op) {
+    case BinaryOp::__UNDEFINED__: break;
     case BinaryOp::ADD:
     case BinaryOp::SUB:
     case BinaryOp::MUL:

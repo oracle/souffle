@@ -286,16 +286,16 @@ namespace {
             val = std::unique_ptr<RamValue>(new RamNumber(c->getIndex()));
         } else if (const AstUnaryFunctor *uf = dynamic_cast<const AstUnaryFunctor *>(arg)) {
             switch(uf->getFunction()) {
-            case AstUnaryFunctor::ORDINAL:
+            case UnaryOp::ORDINAL:
                 val = std::unique_ptr<RamValue>(new RamOrd(translateValue(uf->getOperand(), index)));
                 break;
-            case AstUnaryFunctor::NEGATION:
+            case UnaryOp::NEGATION:
                 val = std::unique_ptr<RamValue>(new RamNegation(translateValue(uf->getOperand(), index)));
                 break;
-            case AstUnaryFunctor::BNOT:
+            case UnaryOp::BNOT:
                 val = std::unique_ptr<RamValue>(new RamComplement(translateValue(uf->getOperand(), index)));
                 break;
-            case AstUnaryFunctor::LNOT:
+            case UnaryOp::LNOT:
                 val = std::unique_ptr<RamValue>(new RamNot(translateValue(uf->getOperand(), index)));
                 break;
             default:
