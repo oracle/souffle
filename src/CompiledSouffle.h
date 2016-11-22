@@ -20,6 +20,7 @@
 #include <regex>
 #include <map>
 #include <array>
+#include <cmath>
 #include "CompiledRamRelation.h"
 #include "CompiledRamRecord.h"
 #include "CompiledRamOptions.h"
