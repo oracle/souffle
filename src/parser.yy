@@ -41,6 +41,7 @@
     #include "AstArgument.h"
     #include "AstNode.h"
     #include "BinaryOperator.h"
+    #include "UnaryOperator.h"
     #include "AstParserUtils.h"
     
     #include "AstSrcLocation.h"
