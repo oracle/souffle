@@ -8,12 +8,15 @@ SUBDIRS = wavelib
 
 SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 
-bin_PROGRAMS = souffle souffle-wave
+bin_PROGRAMS = souffle souffle-wave souffle-prof
 
 # dependenceis of wave
 
 # ... which should no go to distribution
 nodist_souffle_wave_SOURCES = $(BUILT_SOURCES)
+
+souffle_prof_SOURCES = souffle_prof.cpp
+
 
 souffle_wave_SOURCES = wave.cpp wave_trace_macro_expansion.hpp \
 		wave_stop_watch.hpp
