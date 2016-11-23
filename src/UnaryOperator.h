@@ -27,7 +27,7 @@ enum class UnaryOp {
     ORD,
     NEG,
     BNOT,
-    LNOT,
+    LNOT
 };
 
 /**

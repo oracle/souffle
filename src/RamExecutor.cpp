@@ -30,6 +30,7 @@
 #include "RamAutoIndex.h"
 #include "RamLogger.h"
 #include "AstRelation.h"
+#include "UnaryOperator.h"
 #include "BinaryOperator.h"
 
 #include "AstVisitor.h"
@@ -1654,12 +1655,16 @@ namespace {
                 break;
             case UnaryOp::NEG:
                 out << "(-(" << print(op.getValue()) << "))";
+                break;
             case UnaryOp::BNOT:
                 out << "(~(" << print(op.getValue()) << "))";
+                break;
             case UnaryOp::LNOT:
                 out << "(!(" << print(op.getValue()) << "))";
+                break;
             default:
                 assert(0 && "unsupported operation");
+                break;
 
             }
         }
