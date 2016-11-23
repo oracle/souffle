@@ -365,7 +365,7 @@ arg: STRING {
        $$->setSrcLoc(@$);
      }
    | ORD LPAREN arg RPAREN {
-       $$ = new AstUnaryFunctor(UnaryOp::ORDINAL, std::unique_ptr<AstArgument>($3));
+       $$ = new AstUnaryFunctor(UnaryOp::ORD, std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
    |  arg AS IDENT { 
@@ -373,7 +373,7 @@ arg: STRING {
        $$->setSrcLoc(@$);
      }
    |  MINUS arg %prec NEG { 
-       $$ = new AstUnaryFunctor(UnaryOp::NEGATION, std::unique_ptr<AstArgument>($2));
+       $$ = new AstUnaryFunctor(UnaryOp::NEG, std::unique_ptr<AstArgument>($2));
        $$->setSrcLoc(@$); 
      }
    |  BW_NOT arg { 

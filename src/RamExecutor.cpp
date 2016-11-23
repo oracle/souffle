@@ -127,25 +127,15 @@ namespace {
             }
             RamDomain visitUnaryOperator(const RamUnaryOperator& op) {
                 switch(op.getOperator()) {
-                case UnaryOp::LOR: return visit(op.getLHS()) || visit(op.getRHS());
+                case UnaryOp::NEG: return -visit(op.getValue());
+                case UnaryOp::BNOT: return ~visit(op.getValue());
+                case UnaryOp::LNOT: return !visit(op.getValue());
+                case UnaryOp::ORD: return visit(op.getValue());
+                default:
+                    assert(0 && "unsupported operator");
+                    return 0;
                 }
             }
-            RamDomain visitNegation(const RamNegation& op) {
-                return -visit(op.getValue());
-            }
-
-            RamDomain visitComplement(const RamComplement& op) {
-                return ~visit(op.getValue());
-            }
-
-            RamDomain visitNot(const RamNot& op) {
-                return !visit(op.getValue());
-            }
-
-            RamDomain visitOrd(const RamOrd& op) {
-                return visit(op.getSymbol());
-            }
-
 
             // -- records --
 
@@ -1536,9 +1526,9 @@ namespace {
 				out << "))==std::string::npos)";
 				break;
 			}
-//            default:
-//                assert(0 && "unsupported operation");
-//                break;
+            default:
+                assert(0 && "unsupported operation");
+                break;
             }
         }
 
@@ -1657,20 +1647,21 @@ namespace {
                 << ")";
         }
 
-        void visitOrd(const RamOrd& op, std::ostream& out) {
-            out << print(op.getSymbol());
-        }
+        void visitUnaryOperator(const RamUnaryOperator& op, std::ostream& out) {
+            switch (op.getOperator()) {
+            case UnaryOp::ORD:
+                out << print(op.getValue());
+                break;
+            case UnaryOp::NEG:
+                out << "(-(" << print(op.getValue()) << "))";
+            case UnaryOp::BNOT:
+                out << "(~(" << print(op.getValue()) << "))";
+            case UnaryOp::LNOT:
+                out << "(!(" << print(op.getValue()) << "))";
+            default:
+                assert(0 && "unsupported operation");
 
-        void visitNegation(const RamNegation& op, std::ostream& out) {
-            out << "(-(" << print(op.getValue()) << "))";
-        }
-
-        void visitComplement(const RamComplement& op, std::ostream& out) {
-            out << "(~(" << print(op.getValue()) << "))";
-        }
-
-        void visitNot(const RamNot& op, std::ostream& out) {
-            out << "(!(" << print(op.getValue()) << "))";
+            }
         }
 
         // -- safety net --

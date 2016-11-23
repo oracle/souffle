@@ -24,15 +24,10 @@ namespace souffle {
  */
 enum class UnaryOp {
     __UNDEFINED__,
-    // used for AstUnaryOp
-    ORDINAL,
-    NEGATION,
+    ORD,
+    NEG,
     BNOT,
     LNOT,
-    // used for RamUnaryOp
-    COMPLEMENT,
-    NEG,
-    // NUMBER
 };
 
 /**
@@ -40,15 +35,11 @@ enum class UnaryOp {
  */
 inline std::string getSymbolForUnaryOp(UnaryOp op) {
     switch(op) {
-    case UnaryOp::__UNDEFINED__: break;
-    case UnaryOp::ORDINAL : return "ord";
-    case UnaryOp::NEGATION : return "-";
+    case UnaryOp::ORD : return "ord";
+    case UnaryOp::NEG : return "-";
     case UnaryOp::BNOT : return "bnot";
     case UnaryOp::LNOT : return "lnot";
-    case UnaryOp::COMPLEMENT : return "complement";
-    case UnaryOp::NEG : return "neg";
-    // case UnaryOp::NUMBER : return "number";
-
+    default: break;
     }
     assert(false && "Unsupported Operator!");
     return "?";
@@ -58,13 +49,10 @@ inline std::string getSymbolForUnaryOp(UnaryOp op) {
  * Returns the corresponding operator for the given symbol.
  */
 inline UnaryOp getUnaryOpForSymbol(const std::string &symbol) {
-    if (symbol == "ord") return  UnaryOp::ORDINAL;
-    if (symbol == "-") return  UnaryOp::NEGATION;
+    if (symbol == "ord") return  UnaryOp::ORD;
+    if (symbol == "-") return  UnaryOp::NEG;
     if (symbol == "bnot") return  UnaryOp::BNOT;
     if (symbol == "lnot") return  UnaryOp::LNOT;
-    if (symbol == "complement") return UnaryOp::COMPLEMENT;
-    if (symbol == "neg") return UnaryOp::NEG;
-    // if (symbol == "number") return UnaryOp::NUMBER;
     std::cout << "Unrecognised operator: " << symbol << "\n";
     assert(false && "Unsupported Operator!");
     return UnaryOp::__UNDEFINED__;
@@ -75,11 +63,11 @@ inline UnaryOp getUnaryOpForSymbol(const std::string &symbol) {
  */
 inline bool isNumericUnaryOp(const UnaryOp op) {
     switch(op) {
-    case UnaryOp::__UNDEFINED__: break;
-    case UnaryOp::ORDINAL:
-    case UnaryOp::NEGATION:
+    case UnaryOp::ORD:
+    case UnaryOp::NEG:
     case UnaryOp::BNOT:
     case UnaryOp::LNOT: return true;
+    default: break;
     }
     assert(false && "Uncovered case!");
     return false;
@@ -94,11 +82,11 @@ inline bool isSymbolicUnaryOp(const UnaryOp op) {
 
 inline bool unaryOpAcceptsNumbers(const UnaryOp op) {
     switch (op) {
-    case UnaryOp::__UNDEFINED__: break;
-    case UnaryOp::NEGATION:
+    case UnaryOp::NEG:
     case UnaryOp::BNOT:
     case UnaryOp::LNOT:
-    case UnaryOp::ORDINAL: return false;
+    case UnaryOp::ORD: return false;
+    default: break;
     }
     assert(false && "Unsupported operator encountered!");
     return false;
@@ -106,11 +94,11 @@ inline bool unaryOpAcceptsNumbers(const UnaryOp op) {
 
 inline bool unaryOpAcceptsSymbols(const UnaryOp op) {
     switch (op) {
-    case UnaryOp::__UNDEFINED__: break;
-    case UnaryOp::NEGATION:
+    case UnaryOp::NEG:
     case UnaryOp::BNOT:
     case UnaryOp::LNOT: return false;
-    case UnaryOp::ORDINAL: return true;
+    case UnaryOp::ORD: return true;
+    default: break;
     }
     assert(false && "Unsupported operator encountered!");
     return false;

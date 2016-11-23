@@ -39,7 +39,6 @@ enum class BinaryRelOp {
 inline BinaryRelOp negate(BinaryRelOp op) 
 {
     switch(op) {
-        case BinaryRelOp::__UNDEFINED__: break;
         case BinaryRelOp::EQ : return BinaryRelOp::NE;
         case BinaryRelOp::NE : return BinaryRelOp::EQ;
         case BinaryRelOp::LT : return BinaryRelOp::GE;
@@ -50,6 +49,7 @@ inline BinaryRelOp negate(BinaryRelOp op)
         case BinaryRelOp::NOT_MATCH : return BinaryRelOp::MATCH;
         case BinaryRelOp::CONTAINS     : return BinaryRelOp::NOT_CONTAINS;
         case BinaryRelOp::NOT_CONTAINS : return BinaryRelOp::CONTAINS;
+        default: break;
     }
     assert(false && "Unsupported Operator!");
     return op;
@@ -61,7 +61,6 @@ inline BinaryRelOp negate(BinaryRelOp op)
 inline std::string getSymbolForBinaryRelOp(BinaryRelOp op) 
 {
     switch(op) {
-        case BinaryRelOp::__UNDEFINED__: break;
         case BinaryRelOp::EQ : return "=";
         case BinaryRelOp::NE : return "!=";
         case BinaryRelOp::LT : return "<";
@@ -72,6 +71,7 @@ inline std::string getSymbolForBinaryRelOp(BinaryRelOp op)
         case BinaryRelOp::CONTAINS : return "contains";
         case BinaryRelOp::NOT_MATCH : return "not_match";
         case BinaryRelOp::NOT_CONTAINS : return "not_contains";
+        default: break;
     }
     assert(false && "Unsupported Operator!");
     return "?";
@@ -101,7 +101,6 @@ inline BinaryRelOp getBinaryRelOpForSymbol(const std::string &symbol) {
  */
 inline bool isNumericBinaryRelOp(const BinaryRelOp op) {
     switch(op) {
-    case BinaryRelOp::__UNDEFINED__: break;
     case BinaryRelOp::EQ:
     case BinaryRelOp::NE:
     case BinaryRelOp::LT:
@@ -112,6 +111,7 @@ inline bool isNumericBinaryRelOp(const BinaryRelOp op) {
     case BinaryRelOp::NOT_MATCH:
     case BinaryRelOp::CONTAINS:
     case BinaryRelOp::NOT_CONTAINS: return false;
+    default: break;
     }
     assert(false && "Uncovered case!");
     return false;
@@ -148,7 +148,6 @@ enum class BinaryOp {
  */
 inline std::string getSymbolForBinaryOp(BinaryOp op) {
     switch(op) {
-    case BinaryOp::__UNDEFINED__: break;
     case BinaryOp::ADD : return "+";
     case BinaryOp::SUB : return "-";
     case BinaryOp::MUL : return "*";
@@ -161,6 +160,7 @@ inline std::string getSymbolForBinaryOp(BinaryOp op) {
     case BinaryOp::LAND : return "land";
     case BinaryOp::LOR : return "lor";
     case BinaryOp::CAT : return "cat";
+    default: break;
     }
     assert(false && "Unsupported Operator!");
     return "?";
@@ -192,7 +192,6 @@ inline BinaryOp getBinaryOpForSymbol(const std::string &symbol) {
  */
 inline bool isNumericBinaryOp(const BinaryOp op) {
     switch(op) {
-    case BinaryOp::__UNDEFINED__: break;
     case BinaryOp::ADD:
     case BinaryOp::SUB:
     case BinaryOp::MUL:
@@ -205,6 +204,7 @@ inline bool isNumericBinaryOp(const BinaryOp op) {
     case BinaryOp::LOR:
     case BinaryOp::MOD: return true;
     case BinaryOp::CAT: return false;
+    default: break;
     }
     assert(false && "Uncovered case!");
     return false;

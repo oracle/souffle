@@ -285,22 +285,7 @@ namespace {
         } else if (const AstConstant *c = dynamic_cast<const AstConstant *>(arg)) {
             val = std::unique_ptr<RamValue>(new RamNumber(c->getIndex()));
         } else if (const AstUnaryFunctor *uf = dynamic_cast<const AstUnaryFunctor *>(arg)) {
-            switch(uf->getFunction()) {
-            case UnaryOp::ORDINAL:
-                val = std::unique_ptr<RamValue>(new RamUnaryOperator(RamNodeType::RN_Ord, UnaryOp::ORDINAL, translateValue(uf->getOperand(), index)));
-                break;
-            case UnaryOp::NEGATION:
-                val = std::unique_ptr<RamValue>(new RamUnaryOperator(RamNodeType::RN_Negation, UnaryOp::NEG, translateValue(uf->getOperand(), index)));
-                break;
-            case UnaryOp::BNOT:
-                val = std::unique_ptr<RamValue>(new RamUnaryOperator(RamNodeType::RN_Complement, UnaryOp::COMPLEMENT, translateValue(uf->getOperand(), index)));
-                break;
-            case UnaryOp::LNOT:
-                val = std::unique_ptr<RamValue>(new RamUnaryOperator(RamNodeType::RN_Not, UnaryOp::COMPLEMENT, translateValue(uf->getOperand(), index)));
-                break;
-            default:
-                ASSERT(false && "unknown unary function");
-            }
+            val = std::unique_ptr<RamValue>(new RamUnaryOperator(uf->getFunction(), translateValue(uf->getOperand(), index)));
         } else if (const AstBinaryFunctor *bf = dynamic_cast<const AstBinaryFunctor *>(arg)) {
             val = std::unique_ptr<RamValue>(new RamBinaryOperator(bf->getFunction(),
                     translateValue(bf->getLHS(), index),

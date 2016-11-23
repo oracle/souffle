@@ -60,8 +60,8 @@ private:
 
 public:
 
-    RamUnaryOperator(RamNodeType type, UnaryOp op, std::unique_ptr<RamValue> v)
-        : RamValue(type, v->isConstant()), op(op), value(std::move(v)) {}
+    RamUnaryOperator(UnaryOp op, std::unique_ptr<RamValue> v)
+        : RamValue(RN_UnaryOperator, v->isConstant()), op(op), value(std::move(v)) {}
 
     virtual ~RamUnaryOperator() { }
 
@@ -73,7 +73,6 @@ public:
     }
 
     const RamValue* getValue() const {
-        ASSERT(value != NULL && "no null value expected");
         return value.get();
     }
 
@@ -170,24 +169,6 @@ public:
         return std::vector<const RamNode*>();  // no child nodes
     }
 };
-
-/*
-class RamOrd : public RamValue {
-    RN_Ord, UnaryOp::ORDINAL;
-};
-
-class RamNot : public RamValue {
-    RN_Not, UnaryOp::COMPLEMENT
-};
-
-class RamComplement : public RamValue {
-    RN_Complement, UnaryOp::COMPLEMENT
-};
-
-class RamNegation : public RamValue {
-    RN_Negation, UnaryOp::NEG
-};
-*/
 
 /** Constant value */
 class RamNumber : public RamValue {
