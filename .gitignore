@@ -2,6 +2,8 @@ Makefile
 Makefile.in
 
 aclocal.m4
+libtool.m4
+lt*.m4
 autom4te.cache
 config.*
 configure
@@ -37,4 +39,4 @@ build_*
 debian/changelog
 souffle-*.*.*
 
-
+doc
