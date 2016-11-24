@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "test.h"
-#include <chrono>
 
 #include "AstProgram.h"
 #include <functional>
