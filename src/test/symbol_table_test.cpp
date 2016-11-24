@@ -34,36 +34,39 @@ namespace test {
 
 	    EXPECT_STREQ("Hello", table.resolve(table.lookup(table.resolve(table.lookup("Hello")))));
 
-	    EXPECT_EQ(table.lookup("Hello"), table.lookup(table.resolve(table.lookup(table.resolve(table.lookup("Hello")))));
+	    EXPECT_EQ(table.lookup("Hello"), table.lookup(table.resolve(table.lookup(table.resolve(table.lookup("Hello"))))));
 
 	}
 
 
     TEST(SymbolTable, Copy) {
 
-        /*
         SymbolTable* a = new SymbolTable();
         a->insert("Hello");
 
         SymbolTable* b = new SymbolTable(*a);
 
-        EXPECT_STREQ("Hello", a->resolve((size_t)0));
-        EXPECT_STREQ("Hello", b->resolve((size_t)0));
+        size_t a_idx = a->lookup("Hello");
+        size_t b_idx = b->lookup("Hello");
+
+        // hash should be the same
+        EXPECT_EQ(a_idx, b_idx);
+
+        EXPECT_STREQ("Hello", a->resolve(a_idx));
+        EXPECT_STREQ("Hello", b->resolve(b_idx));
 
         // should be different strings
-        EXPECT_NE(a->resolve((size_t)0),b->resolve((size_t)0));
+        EXPECT_NE(a->resolve(a_idx),b->resolve(b_idx));
 
         // b should survive
         delete a;
-        EXPECT_STREQ("Hello", b->resolve((size_t)0));
+        EXPECT_STREQ("Hello", b->resolve(b_idx));
 
         delete b;
-        */
     }
 
     TEST(SymbolTable, Assign) {
 
-        /*
         SymbolTable* a = new SymbolTable();
         a->insert("Hello");
 
@@ -72,20 +75,27 @@ namespace test {
 
         c = *a;
 
-        EXPECT_STREQ("Hello", a->resolve((size_t)0));
-        EXPECT_STREQ("Hello", b.resolve((size_t)0));
-        EXPECT_STREQ("Hello", c.resolve((size_t)0));
+        size_t a_idx = a->lookup("Hello");
+        size_t b_idx = b.lookup("Hello");
+        size_t c_idx = c.lookup("Hello");
+
+        // hash should be the same
+        EXPECT_EQ(a_idx, b_idx);
+        EXPECT_EQ(b_idx, c_idx);
+
+        EXPECT_STREQ("Hello", a->resolve(a_idx));
+        EXPECT_STREQ("Hello", b.resolve(b_idx));
+        EXPECT_STREQ("Hello", c.resolve(c_idx));
 
         // should be different strings
-        EXPECT_NE(a->resolve((size_t)0),b.resolve((size_t)0));
-        EXPECT_NE(a->resolve((size_t)0),c.resolve((size_t)0));
-        EXPECT_NE(b.resolve((size_t)0),c.resolve((size_t)0));
+        EXPECT_NE(a->resolve(a_idx),b.resolve(b_idx));
+        EXPECT_NE(a->resolve(a_idx),c.resolve(c_idx));
+        EXPECT_NE(b.resolve(b_idx),c.resolve(c_idx));
 
         // b and c should survive
         delete a;
-        EXPECT_STREQ("Hello", b.resolve((size_t)0));
-        EXPECT_STREQ("Hello", c.resolve((size_t)0));
-        */
+        EXPECT_STREQ("Hello", b.resolve(b_idx));
+        EXPECT_STREQ("Hello", c.resolve(c_idx));
 
     }
 

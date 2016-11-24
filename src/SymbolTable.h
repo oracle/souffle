@@ -40,34 +40,27 @@ namespace souffle {
  */
 class SymbolTable {
 
-    /** String pointer comparison class for SymbolTable */
-    /***
-    struct StringCmp {
-        bool operator()(const char* lhs, const char* rhs) const  {
-            return strcmp(lhs, rhs) < 0;
-        }
-    };
-    */
-
-    /** Map integer to string */
-    /***
-    std::vector<char *> numToStr;
-    */
-
-    /** Map strings kept in the pool to numbers */
-    /***
-    std::map<const char *, size_t, StringCmp> strToNum;
-    */
-
     /** A lock to synchronize parallel accesses */
     mutable Lock access;
 
+private:
 
-    std::unordered_map<size_t, const char*> symbolTable;
+    class HashFunction {
+        public:
+            std::size_t operator() (const std::size_t &hash) const { return hash; }
+    };
+
+    class HashEqual {
+        public:
+            bool operator() (const std::size_t & h1, const std::size_t & h2) const { return h1 == h2; }
+    };
+
+    std::unordered_map<size_t, const char*, HashFunction, HashEqual> symbolTable;
 
     size_t newSymbolTableEntry(const char* str) {
         size_t hash = getHashForString(str);
         symbolTable[hash] = str;
+        symbolTable[hash] = strdup(str);
         return hash;
     }
 
@@ -81,64 +74,42 @@ class SymbolTable {
         return symbolTable.find(hash)->second;
     }
 
+    void copyAll() { for (auto symbol : symbolTable) symbol.second = strdup(symbol.second); }
+
+    void freeAll() { for(auto symbol : symbolTable) free((void*)symbol.second); }
+
 public:
 
     SymbolTable() { }
 
     SymbolTable(const SymbolTable& other)
         : symbolTable(other.symbolTable) {
-    /***
-        : numToStr(other.numToStr), strToNum(other.strToNum) {
-        // clone all contained strings
-        for(auto& cur : numToStr) cur = strdup(cur);
-        for(auto& cur : strToNum) const_cast<char*&>(cur.first) = numToStr[cur.second];
-    */
+        copyAll();
     }
 
-    /***
     SymbolTable(SymbolTable&& other) {
-        numToStr.swap(other.numToStr);
-        strToNum.swap(other.strToNum);
+        symbolTable.swap(other.symbolTable);
     }
-    */
 
     /** Destructor cleaning up strings */
-    /***
     ~SymbolTable() {
-        for(auto cur : numToStr) free(cur);
+        freeAll();
     }
-    */
 
     /** Add support for an assignment operator */
     SymbolTable& operator=(const SymbolTable& other) {
         if (this == &other) return *this;
+        freeAll();
         symbolTable = other.symbolTable;
-
-    /***
-
-        // delete this content
-        for(auto cur : numToStr) free(cur);
-
-        // copy in other content
-        numToStr = other.numToStr;
-        strToNum = other.strToNum;
-        for(auto& cur : numToStr) cur = strdup(cur);
-        for(auto& cur : strToNum) const_cast<char*&>(cur.first) = numToStr[cur.second];
-
-        // done
-    */
+        copyAll();
         return *this;
     }
 
     /** Add support for assignments from r-value references */
-    /***
     SymbolTable& operator=(SymbolTable&& other) {
-        // steal content of other
-        numToStr.swap(other.numToStr);
-        strToNum.swap(other.strToNum);
+        symbolTable.swap(other.symbolTable);
         return *this;
     }
-    */
 
     /** Look-up a string given by a pointer to @p std::string in the pool and convert it to an index */
     size_t lookup(const char *p) {
@@ -147,30 +118,15 @@ public:
             auto lease = access.acquire();
             (void) lease; // avoid warning;
             result = newSymbolTableEntry(p);
-
-            /***
-            auto it = strToNum.find(p);
-            if (it != strToNum.end()) {
-                result = (*it).second;
-            } else {
-                result = numToStr.size();
-                char *str = strdup(p);  // generate a new string
-                strToNum[str] = result;
-                numToStr.push_back(str);
-            }
-            */
         }
         return result;
     }
 
     /** Lookup an index and convert it to a string */
-    const char* resolve(size_t i) const {
+    const char* resolve(size_t hash) const {
         auto lease = access.acquire();
         (void) lease; // avoid warning;
-        return getStringForHash(i);
-        /***
-        return numToStr[i];
-        */
+        return getStringForHash(hash);
     }
 
     /* return size */
@@ -183,14 +139,6 @@ public:
         auto lease = access.acquire();
         (void) lease; // avoid warning;
         for(size_t idx=0; idx < n; idx++) newSymbolTableEntry(symbols[idx]);
-        /***
-        {
-            const char *p = symbols[idx];
-            char *str = strdup(p);
-            strToNum[str] = numToStr.size();
-            numToStr.push_back(str);
-        }
-        */
     }
 
     /** inserts a single symbol into this table */
@@ -211,13 +159,5 @@ public:
         return out;
     }
 
-    /***
-    template<class Function>
-    Function map(Function fn) const {
-        for (size_t i = 0; i < numToStr.size(); ++i)
-            fn(i, numToStr[i]);
-        return std::move(fn);
-    }
-    */
 };
 }
