@@ -1,8 +1,14 @@
 
+#ifndef RELATION_H
+#define RELATION_H
 
 #include <vector>
-#include <unordere>
+#include <unordered_map>
 #include <string>
+
+#include "Rule.hpp"
+#include "Iteration.hpp"
+
 
 class Relation {
 private:
@@ -16,162 +22,168 @@ private:
     int rec_id = 0;
 
     std::vector<Iteration> iterations;
-    std::unordered_map<String, Rule> ruleMap;
+    std::unordered_map<std::string, Rule> ruleMap;
 
     bool ready = true;
 
 public:
-    Relation(String name, String id) {
-        this.name = name;
-        ruleMap = new HashMap<String, Rule>();
-        iterations = new ArrayList<Iteration>();
-        this.id = id;
+    Relation(std::string name, std::string id) :
+    name(name),
+    id(id) {
+        ruleMap = std::unordered_map<std::string, Rule>();
+        iterations = std::vector<Iteration>();
     }
 
     std::string createID() {
         rul_id++;
-        return "N" + this.id.substr(1) + "." + rul_id;
+        return "N" + id.substr(1) + "." + std::to_string(rec_id);
     }
 
     std::string createRecID(std::string name) {
-        for (Iteration iter : iterations) {
-            for (Rule rul : iter.getRul_rec().values()) {
-                if (rul.getName().equals(name)) {
-                    return rul.getId();
+        for (auto &iter : iterations) {
+            for (auto &rul : iter.getRul_rec()) {
+                if (rul.second.getName().compare(name)==0) {
+                    return rul.second.getId();
                 }
             }
         }
-        this.rec_id++;
-        return "C" + this.id.substr(1) + "." + this.rec_id;
+        rec_id++;
+        return "C" + id.substr(1) + "." + std::to_string(rec_id);
     }
 
-    public double getNonRecTime() {
-        return this.runtime;
+    double getNonRecTime() {
+        return runtime;
     }
 
-    public double getRecTime() {
+    double getRecTime() {
         double result = 0;
-        for (Iteration iter : iterations) {
+        for (auto &iter : iterations) {
             result += iter.getRuntime();
         }
         return result;
     }
 
-    public double getCopyTime() {
+    double getCopyTime() {
         double result = 0;
-        for (Iteration iter : iterations) {
+        for (auto &iter : iterations) {
             result += iter.getCopy_time();
         }
         return result;
     }
 
-    public long getNum_tuplesRel() {
-        Long result = 0L;
-        for (Iteration iter : iterations) {
+    long getNum_tuplesRel() {
+        long result = 0L;
+        for (auto &iter : iterations) {
             result += iter.getNum_tuples();
         }
-        return this.num_tuples + result;
+        return num_tuples + result;
     }
 
-    public long getNum_tuplesRul() {
-        Long result = 0L;
-        for (Rule rul : ruleMap.values()) {
-            result += rul.getNum_tuples();
+    long getNum_tuplesRul() {
+        long result = 0L;
+        for (auto &rul : ruleMap) {
+            result += rul.second.getNum_tuples();
         }
-        for (Iteration iter : iterations) {
-            for (Rule rul : iter.getRul_rec().values()) {
-                result += rul.getNum_tuples();
+        for (auto &iter : iterations) {
+            for (auto &rul : iter.getRul_rec()) {
+                result += rul.second.getNum_tuples();
             }
         }
         return result;
     }
 
-    public Long getTotNum_tuples() {
+    long getTotNum_tuples() {
         return getNum_tuplesRel();
     }
 
-    public Long getTotNumRec_tuples() {
-        Long result = 0L;
-        for (Iteration iter : iterations) {
-            for (Rule rul : iter.getRul_rec().values()) {
-                result += rul.getNum_tuples();
+    long getTotNumRec_tuples() {
+        long result = 0L;
+        for (auto &iter : iterations) {
+            for (auto &rul : iter.getRul_rec()) {
+                result += rul.second.getNum_tuples();
             }
         }
         return result;
     }
 
-    public void setRuntime(double runtime) {
-        this.runtime = runtime;
+    void setRuntime(double runtime) {
+        this->runtime = runtime;
     }
 
-    public void setNum_tuples(long num_tuples) {
-        this.num_tuples = num_tuples;
+    void setNum_tuples(long num_tuples) {
+        this->num_tuples = num_tuples;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder result = new StringBuilder();
-        result.append("{\n" + name + ":" + runtime + ";" + num_tuples
-                + "\n\nonRecRules:\n");
-        for (Rule rul : ruleMap.values()) {
-            result.append(rul.toString());
+    
+    std::string toString() {
+        std::ostringstream output;
+        output << "{\n" << name << ":" << runtime << ";" << num_tuples
+                << "\n\nonRecRules:\n";
+        for (auto &rul : ruleMap) {
+            output << rul.second.toString();
         }
-        result.append("\n\niterations:\n");
-        result.append(iterations.toString());
-        result.append("\n}");
-        return result.toString();
+        output << "\n\niterations:\n";
+        output << "[";
+        for (auto &iter : iterations) {
+        	output << iter.toString();
+        	output << " ,";
+    	} // TODO: remove last comma
+    	output << "]";
+        output << "\n}";
+        return output.str();
     }
 
-    public String getName() {
-        return this.name;
+    std::string getName() {
+        return name;
     }
 
     /**
      * @return the ruleMap
      */
-    public Map<String, Rule> getRuleMap() {
-        return this.ruleMap;
+    std::unordered_map<std::string, Rule> getRuleMap() {
+        return ruleMap;
     }
 
-    public List<Rule> getRuleRecList() {
-        List<Rule> temp = new ArrayList<Rule>();
-        for (Iteration iter : iterations) {
-            for (Rule rul : iter.getRul_rec().values()) {
-                temp.add(rul);
+    std::vector<Rule> getRuleRecList() {
+        std::vector<Rule> temp = std::vector<Rule>();
+        for (auto &iter : iterations) {
+            for (auto &rul : iter.getRul_rec()) {
+                temp.push_back(rul.second);
             }
         }
         return temp;
     }
 
-    public List<Iteration> getIterations() {
+    std::vector<Iteration> getIterations() {
         return iterations;
     }
 
-    public String getId() {
+    std::string getId() {
         return id;
     }
 
-    public String getLocator() {
+    std::string getLocator() {
         return locator;
     }
 
-    public void setLocator(String locator) {
-        this.locator = locator;
+    void setLocator(std::string locator) {
+        this->locator = locator;
     }
 
-	public boolean isReady() {
+	bool isReady() {
 		return ready;
 	}
 
-	public void setReady(boolean ready) {
-		this.ready = ready;
+	void setReady(bool ready) {
+		this->ready = ready;
 	}
 
-	public long getPrev_num_tuples() {
+	long getPrev_num_tuples() {
 		return prev_num_tuples;
 	}
 
-	public void setPrev_num_tuples(long prev_num_tuples) {
-		this.prev_num_tuples = prev_num_tuples;
+	void setPrev_num_tuples(long prev_num_tuples) {
+		this->prev_num_tuples = prev_num_tuples;
 	}
-}
+};
+#endif

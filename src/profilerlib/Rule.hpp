@@ -1,3 +1,5 @@
+#ifndef RULE_H
+#define RULE_H
 
 #include <string>
 #include <sstream>
@@ -95,9 +97,4 @@ public:
 	}
 };
 
-
-
-
-
-
-
+#endif
