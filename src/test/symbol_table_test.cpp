@@ -100,16 +100,34 @@ namespace test {
 
     }
 
-   TEST(SymbolTable, Time) {
-       SymbolTable a;
+    TEST(SymbolTable, Time) {
 
-       for (unsigned long i = 0; i < 1000000; ++i) {
-           const char* s = std::to_string(i).c_str();
-           a.insert(s);
-           a.resolve(a.lookup(s));
-       }
-   }
+        unsigned long long totalTime = 0;
+        unsigned int numberOfRuns = 10;
+        unsigned long operationsPerRun = 1000000;
 
+        for (unsigned int i = 0; i < numberOfRuns; ++i) {
+
+            SymbolTable a;
+
+            // start the timer
+            time_point start = now();
+
+            for (unsigned long i = 0; i < operationsPerRun; ++i) {
+                a.insert(reinterpret_cast<const char*>(&i));
+            }
+
+            // stop the timer
+            time_point end = now();
+
+            totalTime += duration_in_ns(start, end);
+        }
+
+        long averageTime = totalTime / numberOfRuns;
+
+        std::cout << averageTime << " ns \n";
+
+    }
 
 } // end namespace test
 
