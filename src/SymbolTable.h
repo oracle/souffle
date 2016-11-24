@@ -59,8 +59,10 @@ private:
 
     size_t newSymbolTableEntry(const char* str) {
         size_t hash = getHashForString(str);
-        symbolTable[hash] = str;
-        symbolTable[hash] = strdup(str);
+        if (symbolTable.find(hash) == symbolTable.end()) {
+            char* newstr = strdup(str);
+            symbolTable[hash] = newstr;
+        }
         return hash;
     }
 
@@ -74,9 +76,15 @@ private:
         return symbolTable.find(hash)->second;
     }
 
-    void copyAll() { for (auto symbol : symbolTable) symbol.second = strdup(symbol.second); }
+    /** Copy the referenced strings into the table. */
+    void copyAll() {
+        for (auto & symbol : symbolTable) symbol.second = strdup(symbol.second);
+    }
 
-    void freeAll() { for(auto symbol : symbolTable) free((void*)symbol.second); }
+    /** Free all the strings referenced in the table. */
+    void freeAll() {
+        for(auto symbol : symbolTable) free((void*) symbol.second);
+    }
 
 public:
 
@@ -92,7 +100,7 @@ public:
     }
 
     /** Destructor cleaning up strings */
-    ~SymbolTable() {
+    virtual ~SymbolTable() {
         freeAll();
     }
 

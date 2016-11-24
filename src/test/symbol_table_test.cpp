@@ -55,8 +55,9 @@ namespace test {
         EXPECT_STREQ("Hello", a->resolve(a_idx));
         EXPECT_STREQ("Hello", b->resolve(b_idx));
 
-        // should be different strings
-        EXPECT_NE(a->resolve(a_idx),b->resolve(b_idx));
+        // should be different string references but the same actual string
+        EXPECT_STREQ(a->resolve(a_idx), b->resolve(b_idx));
+        EXPECT_NE(a->resolve(a_idx), b->resolve(b_idx));
 
         // b should survive
         delete a;
@@ -98,6 +99,16 @@ namespace test {
         EXPECT_STREQ("Hello", c.resolve(c_idx));
 
     }
+
+   TEST(SymbolTable, Time) {
+       SymbolTable a;
+
+       for (unsigned long i = 0; i < 1000000; ++i) {
+           const char* s = std::to_string(i).c_str();
+           a.insert(s);
+           a.resolve(a.lookup(s));
+       }
+   }
 
 } // end namespace test
 
