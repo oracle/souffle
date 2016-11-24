@@ -280,7 +280,7 @@ namespace detail {
     /**
      * A auxiliary class to be returned by the join function aggregating the information
      * required to print a list of elements as well as the implementation of the printing
-     * itsefl.
+     * itself.
      */
     template<typename Iter, typename Printer>
     class joined_sequence {
