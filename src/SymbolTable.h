@@ -67,9 +67,8 @@ private:
     }
 
     inline size_t getHashForString(const char* ch) const {
-        std::string str = std::string(ch);
         std::hash<std::string> hashFunction;
-        return hashFunction(str);
+        return hashFunction(ch);
     }
 
     inline const char* getStringForHash(size_t hash) const {

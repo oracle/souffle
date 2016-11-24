@@ -17,6 +17,7 @@
 #include "test.h"
 
 #include "AstProgram.h"
+#include <functional>
 
 using namespace souffle;
 
