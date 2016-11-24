@@ -26,24 +26,15 @@ namespace test {
 
 	    SymbolTable table;
 
-        char* s1, s2, s3;
-        size_t h1, h2, h3;
+	    table.insert("Hello");
 
-        s1 = "Hello";
+	    EXPECT_STREQ("Hello", table.resolve(table.lookup(table.resolve(table.lookup("Hello")))));
 
-	    table.insert(s1);
+	    EXPECT_EQ(table.lookup("Hello"), table.lookup(table.resolve(table.lookup("Hello"))));
 
-	    h1 = table.lookup(s1);
-	    s2 = table.resolve(h1);
-	    h2 = table.lookup(s2);
-	    s3 = table.resolve(h2);
-	    h3 = table.lookup(s3);
+	    EXPECT_STREQ("Hello", table.resolve(table.lookup(table.resolve(table.lookup("Hello")))));
 
-	    EXPECT_EQ(h1, h2);
-	    EXPECT_EQ(h2, h3);
-
-	    EXPECT_STREQ(s1, s2);
-	    EXPECT_STREQ(s2, s3);
+	    EXPECT_EQ(table.lookup("Hello"), table.lookup(table.resolve(table.lookup(table.resolve(table.lookup("Hello")))));
 
 	}
 
