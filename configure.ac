@@ -76,13 +76,6 @@ DX_PDF_FEATURE(OFF)
 DX_PS_FEATURE(OFF)
 DX_INIT_DOXYGEN([$PACKAGE_NAME],[doxygen.cfg],[doc])
 
-dnl add boost configuration for c-preprocessor
-AX_BOOST_BASE([1.54],, [AC_MSG_ERROR([Souffle needs Boost, but it was not found.])])
-AX_BOOST_SYSTEM
-AX_BOOST_FILESYSTEM
-AX_BOOST_THREAD
-AX_BOOST_DATE_TIME
-
 # Check for flex
 AC_CHECK_PROG(FLEX, flex, flex)
 AS_IF([test -z "$FLEX"], [AC_MSG_ERROR([flex not found.])])
@@ -181,7 +174,6 @@ AC_CONFIG_TESTDIR([tests])
 AC_CONFIG_FILES([
   Makefile
   src/Makefile
-  src/wavelib/Makefile
   interfaces/Makefile
   prof/Makefile
   tests/Makefile

@@ -4,28 +4,11 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-SUBDIRS = wavelib
 
 SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 
-bin_PROGRAMS = souffle souffle-wave
+bin_PROGRAMS = souffle
 
-# dependenceis of wave
-
-# ... which should no go to distribution
-nodist_souffle_wave_SOURCES = $(BUILT_SOURCES)
-
-souffle_wave_SOURCES = wave.cpp wave_trace_macro_expansion.hpp \
-		wave_stop_watch.hpp
-
-souffle_wave_CPPFLAGS = $(BOOST_CPPFLAGS) -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\""
-souffle_wave_LDFLAGS =
-souffle_wave_LDADD = $(BOOST_LDFLAGS) \
-             $(BOOST_FILESYSTEM_LIB) \
-             wavelib/libwave.a \
-             $(BOOST_SYSTEM_LIB) \
-             $(BOOST_THREAD_LIB) \
-             $(BOOST_DATE_TIME_LIB)
 
 # ... which should no go to distribution
 nodist_souffle_SOURCES = $(BUILT_SOURCES)
