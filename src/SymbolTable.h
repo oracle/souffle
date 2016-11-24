@@ -57,7 +57,7 @@ private:
 
     std::unordered_map<size_t, const char*, HashFunction, HashEqual> symbolTable;
 
-    size_t newSymbolTableEntry(const char* str) {
+    inline size_t newSymbolTableEntry(const char* str) {
         size_t hash = getHashForString(str);
         if (symbolTable.find(hash) == symbolTable.end()) {
             char* newstr = strdup(str);
@@ -66,23 +66,23 @@ private:
         return hash;
     }
 
-    size_t getHashForString(const char* ch) const {
+    inline size_t getHashForString(const char* ch) const {
         std::string str = std::string(ch);
         std::hash<std::string> hashFunction;
         return hashFunction(str);
     }
 
-    const char* getStringForHash(size_t hash) const {
+    inline const char* getStringForHash(size_t hash) const {
         return symbolTable.find(hash)->second;
     }
 
     /** Copy the referenced strings into the table. */
-    void copyAll() {
+    inline void copyAll() {
         for (auto & symbol : symbolTable) symbol.second = strdup(symbol.second);
     }
 
     /** Free all the strings referenced in the table. */
-    void freeAll() {
+    inline void freeAll() {
         for(auto symbol : symbolTable) free((void*) symbol.second);
     }
 
