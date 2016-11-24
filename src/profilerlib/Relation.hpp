@@ -27,6 +27,8 @@ private:
     bool ready = true;
 
 public:
+    Relation() {}; // TODO: is this ok for setting variables in scope?
+
     Relation(std::string name, std::string id) :
     name(name),
     id(id) {

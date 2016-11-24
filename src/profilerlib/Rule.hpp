@@ -18,6 +18,8 @@ private:
 	int version;
 
 public:
+	Rule() {}; // TODO: is this ok for setting variables in scope? or have to use pointers?
+
 	Rule(std::string name, std::string id) 
 	: name(name),
 	  identifier(id) { }

@@ -22,7 +22,7 @@ public:
 		rul_rec_map = std::unordered_map<std::string, Rule>();
 	}
 
-	void addRule(std::string data[], std::string rec_id) {
+	void addRule(std::vector<std::string> data, std::string rec_id) {
 		std::string strTemp = data[4] + data[3] + data[2];
 		if (data[0].at(0) == 't') {
 			// TODO important: ensure same result as java
