@@ -1,0 +1,15 @@
+Warning: Variable xv only occurs once in file circuit_records.dl at line 70
+    l = [[x,xv],tail].
+------------^----------
+Warning: Variable tail only occurs once in file circuit_records.dl at line 70
+    l = [[x,xv],tail].
+----------------^------
+Warning: Variable xv only occurs once in file circuit_records.dl at line 76
+    l = [[x,xv],tail],
+------------^----------
+Warning: Variable tail only occurs once in file circuit_records.dl at line 76
+    l = [[x,xv],tail],
+----------------^------
+Warning: Record types in output relations are not printed verbatim: attribute conf has record type Wire_list in file circuit_records.dl at line 117
+.decl sat_print(var : Wire, val : number, conf : Wire_list) output
+-------------------------------------------------^-----------------
