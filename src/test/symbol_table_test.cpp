@@ -15,6 +15,7 @@
  ***********************************************************************/
 
 #include "test.h"
+#include <chrono>
 
 #include "AstProgram.h"
 #include <functional>
@@ -98,6 +99,35 @@ namespace test {
         delete a;
         EXPECT_STREQ("Hello", b.resolve(b_idx));
         EXPECT_STREQ("Hello", c.resolve(c_idx));
+
+    }
+
+    TEST(SymbolTable, Time) {
+
+        unsigned long long totalTime = 0;
+        unsigned int numberOfRuns = 10;
+        unsigned long operationsPerRun = 1000000;
+
+        for (unsigned int i = 0; i < numberOfRuns; ++i) {
+
+            SymbolTable a;
+
+            // start the timer
+            time_point start = now();
+
+            for (unsigned long i = 0; i < operationsPerRun; ++i) {
+                a.insert(reinterpret_cast<const char*>(&i));
+            }
+
+            // stop the timer
+            time_point end = now();
+
+            totalTime += duration_in_ns(start, end);
+        }
+
+        long averageTime = totalTime / numberOfRuns;
+
+        std::cout << averageTime << " ns \n";
 
     }
 
