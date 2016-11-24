@@ -86,7 +86,7 @@ namespace test {
     TEST(SymbolTable, Time) {
         SymbolTable a;
 
-        for (unsigned long i = 0; i < 1000000; ++i) {
+        for (unsigned long i = 0; i < 10000000; ++i) {
             const char* s = std::to_string(i).c_str();
             a.insert(s);
             a.resolve(a.lookup(s));
