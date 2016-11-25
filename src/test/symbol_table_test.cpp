@@ -103,61 +103,26 @@ namespace test {
 
     TEST(SymbolTable, Time) {
 
-        unsigned long long totalTime = 0;
-        unsigned int numberOfRuns = 10;
-        unsigned long operationsPerRun = 1000000;
+        typedef unsigned long long T;
 
-        for (unsigned int i = 0; i < numberOfRuns; ++i) {
+        T n = 0;
+        T N = 10000000;
 
-            SymbolTable a;
+        SymbolTable X;
+        char* x;
 
-            // start the timer
+        for (T i = 0; i < N; ++i) {
+            x = reinterpret_cast<char*>(&i);
             time_point start = now();
-
-            for (unsigned long i = 0; i < operationsPerRun; ++i) {
-                a.insert(reinterpret_cast<const char*>(&i));
-            }
-
-            // stop the timer
+            X.insert(x);
             time_point end = now();
-
-            totalTime += duration_in_ns(start, end);
+            n += duration_in_ns(start, end);
         }
 
-        long averageTime = totalTime / numberOfRuns;
-
-        std::cout << averageTime << " ns \n";
+        std::cout << n / N << " ns \n";
 
     }
 
-    TEST(SymbolTable, Time) {
-
-        unsigned long long totalTime = 0;
-        unsigned int numberOfRuns = 10;
-        unsigned long operationsPerRun = 1000000;
-
-        for (unsigned int i = 0; i < numberOfRuns; ++i) {
-
-            SymbolTable a;
-
-            // start the timer
-            time_point start = now();
-
-            for (unsigned long i = 0; i < operationsPerRun; ++i) {
-                a.insert(reinterpret_cast<const char*>(&i));
-            }
-
-            // stop the timer
-            time_point end = now();
-
-            totalTime += duration_in_ns(start, end);
-        }
-
-        long averageTime = totalTime / numberOfRuns;
-
-        std::cout << averageTime << " ns \n";
-
-    }
 
 } // end namespace test
 
