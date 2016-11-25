@@ -55,14 +55,9 @@ private:
 
     std::unordered_map<size_t, const char*, HashFunction, HashEqual> symbolTable;
 
-    inline size_t newSymbolTableEntry(const char* str) {
-        std::hash<std::string> hashFunction;
-        size_t hash hashFunction(str);
-        if (symbolTable.find(hash) == symbolTable.end()) {
-            char* newstr = strdup(str);
-            symbolTable[hash] = newstr;
-        }
-        return hash;
+    static inline const size_t symbolTableHash(const char* str) {
+        const std::hash<std::string> hashFunction;
+        return hashFunction(str);
     }
 
     /** Copy the referenced strings into the table. */
@@ -109,14 +104,19 @@ public:
     }
 
     /** Look-up a string given by a pointer to @p std::string in the pool and convert it to an index */
-    size_t lookup(const char *p) {
+    size_t lookup(const char *str) {
         auto lease = access.acquire();
         (void) lease; // avoid warning;
-        return newSymbolTableEntry(p);
+        const size_t hash = symbolTableHash(str);
+        if (symbolTable.find(hash) == symbolTable.end()) {
+            const char* newstr = strdup(str);
+            symbolTable[hash] = newstr;
+        }
+        return hash;
     }
 
     /** Lookup an index and convert it to a string */
-    const char* resolve(size_t hash) const {
+    const char* resolve(const size_t hash) const {
         auto lease = access.acquire();
         (void) lease; // avoid warning;
         return symbolTable.find(hash)->second;
@@ -128,15 +128,30 @@ public:
     }
 
     /** insert symbols from a constant string table */ 
-    void insert(const char **symbols, size_t n) {
+    void insert(const char **symbols, const size_t n) {
         auto lease = access.acquire();
         (void) lease; // avoid warning;
-        for(size_t idx=0; idx < n; idx++) newSymbolTableEntry(symbols[idx]);
+        size_t hash;
+        char* newstr;
+        symbolTable.reserve(symbolTable.size() + n);
+        for(size_t idx=0; idx < n; idx++) {
+            const char* str = symbols[idx];
+            hash = symbolTableHash(str);
+            if (symbolTable.find(hash) == symbolTable.end()) {
+                newstr = strdup(str);
+                symbolTable[hash] = newstr;
+            }
+        }
     }
 
     /** inserts a single symbol into this table */
-    void insert(const char* symbol) {
-        insert(&symbol, 1);
+    void insert(const char* str) {
+       auto lease = access.acquire();
+       const size_t hash = symbolTableHash(str);
+       if (symbolTable.find(hash) == symbolTable.end()) {
+           const char* newstr = strdup(str);
+           symbolTable[hash] = newstr;
+       }
     }
 
     void print(std::ostream& out) const {

@@ -111,15 +111,29 @@ namespace test {
         SymbolTable X;
         char* x;
 
+        char** A = new char*[N];
+
         for (T i = 0; i < N; ++i) {
             x = reinterpret_cast<char*>(&i);
             time_point start = now();
             X.insert(x);
             time_point end = now();
             n += duration_in_ns(start, end);
+            A[i] = x;
         }
 
+        // time per operation for single element insert
         std::cout << n / N << " ns \n";
+
+        time_point start = now();
+        X.insert((const char**) A, N);
+        time_point end = now();
+        n = duration_in_ns(start, end);
+
+        // time of N element insert from char* array
+        std::cout << n << " ns \n";
+
+        delete[] A;
 
     }
 
