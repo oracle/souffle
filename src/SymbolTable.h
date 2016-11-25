@@ -53,7 +53,7 @@ private:
     std::unordered_map<size_t, const char*, HashFunction, HashEqual> symbolTable;
 
     static inline const size_t symbolTableHash(const char* str) {
-        const std::hash<std::string> hashFunction;
+        std::hash<std::string> hashFunction;
         return hashFunction(str);
     }
 
