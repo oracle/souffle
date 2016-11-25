@@ -105,7 +105,7 @@ namespace test {
 
         // whether to print the recorded times to stdout
         // should be false unless developing
-        const bool ECHO_TIME = true;
+        const bool ECHO_TIME = false;
 
         // type for very big number
         typedef unsigned long long T;
