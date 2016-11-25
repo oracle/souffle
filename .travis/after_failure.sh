@@ -41,9 +41,9 @@ pretty_print () {
 pretty_print "Showing git info"
 git tag
 git remote -v
-git describe --tags --abbrev=1 --always
-git describe --all --abbrev=1 --always
-git describe --tags --abbrev=1
+git describe --tags --abbrev=0 --always
+git describe --all --abbrev=0 --always
+git describe --tags --abbrev=0
 
 # Find the test case that we will be displaying
 CANDIDATE=`ls $TEST_ROOT | head -1`

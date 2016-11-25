@@ -5,9 +5,6 @@
 set -e
 set -x
 
-# for some reason travis doesnt automatically get the tags
-git fetch --all --tags --prune
-
 #########
 # Linux #
 #########
