@@ -104,6 +104,7 @@ namespace test {
     TEST(SymbolTable, Time) {
 
         typedef unsigned long long T;
+        time_point start, end;
 
         T n = 0;
         T N = 10000000;
@@ -115,9 +116,9 @@ namespace test {
 
         for (T i = 0; i < N; ++i) {
             x = reinterpret_cast<char*>(&i);
-            time_point start = now();
+            start = now();
             X.insert(x);
-            time_point end = now();
+            end = now();
             n += duration_in_ns(start, end);
             A[i] = x;
         }
@@ -125,9 +126,23 @@ namespace test {
         // time per operation for single element insert
         std::cout << n / N << " ns \n";
 
-        time_point start = now();
+        // test insert for existing elements
+
+        start = now();
         X.insert((const char**) A, N);
-        time_point end = now();
+        end = now();
+        n = duration_in_ns(start, end);
+
+        // time of N element insert from char* array
+        std::cout << n << " ns \n";
+
+        // test insert for elements that don't exist yet
+
+        SymbolTable Y;
+
+        start = now();
+        Y.insert((const char**) A, N);
+        end = now();
         n = duration_in_ns(start, end);
 
         // time of N element insert from char* array
