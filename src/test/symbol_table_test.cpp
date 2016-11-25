@@ -125,6 +125,20 @@ namespace test {
         // time per operation for single element insert
         std::cout << n / N << " ns \n";
 
+        // test insert for existing elements
+
+        time_point start = now();
+        X.insert((const char**) A, N);
+        time_point end = now();
+        n = duration_in_ns(start, end);
+
+        // time of N element insert from char* array
+        std::cout << n << " ns \n";
+
+        // test insert for elements that don't exist yet
+
+        SymbolTable X;
+
         time_point start = now();
         X.insert((const char**) A, N);
         time_point end = now();
