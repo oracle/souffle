@@ -101,52 +101,58 @@ namespace test {
 
     }
 
-    TEST(SymbolTable, Time) {
+    TEST(SymbolTable, Inserts) {
 
+        // whether to print the recorded times to stdout
+        // should be false unless developing
+        const bool ECHO_TIME = true;
+
+        // type for very big number
         typedef unsigned long long T;
         time_point start, end;
 
-        T n = 0;
-        T N = 10000000;
+        T n = 0; // counter
+        T N = 10000000; // number of symbols to insert
 
         SymbolTable X;
         char* x;
 
-        char** A = new char*[N];
+        char** A = new char*[N]; // create an array of symbols
 
         for (T i = 0; i < N; ++i) {
             x = reinterpret_cast<char*>(&i);
             start = now();
-            X.insert(x);
+            X.insert(x); // insert one at a time
             end = now();
-            n += duration_in_ns(start, end);
-            A[i] = x;
+            n += duration_in_ns(start, end); // record the time
+            A[i] = x; // also put in the array
         }
 
-        // time per operation for single element insert
-        std::cout << n / N << " ns \n";
+        if (ECHO_TIME)
+            std::cout << "Time to insert single element: "
+            << n / N << " ns" << std::endl; // average the times for the single elements
 
-        // test insert for existing elements
-
+        // try inserting all the elements that were just inserted
         start = now();
         X.insert((const char**) A, N);
         end = now();
         n = duration_in_ns(start, end);
 
-        // time of N element insert from char* array
-        std::cout << n << " ns \n";
-
-        // test insert for elements that don't exist yet
+        if (ECHO_TIME)
+            std::cout << "Time to insert " << N << " new elements: "
+            << n << " ns" << std::endl;
 
         SymbolTable Y;
 
+        // test insert for elements that don't exist yet
         start = now();
         Y.insert((const char**) A, N);
         end = now();
         n = duration_in_ns(start, end);
 
-        // time of N element insert from char* array
-        std::cout << n << " ns \n";
+        if (ECHO_TIME)
+            std::cout << "Time to insert " << N << " existing elements: "
+            << n << " ns" << std::endl;
 
         delete[] A;
 
