@@ -57,10 +57,3 @@ for EXTENSION in $RELEVANT_EXTENSIONS; do
         echo
     done
 done
-
-echo "BEGIN CUSTOM"
-
-# print out git version number
-git describe --tags --abbrev=0 --always
-
-echo "END CUSTOM"
