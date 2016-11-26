@@ -1,5 +1,5 @@
-#ifndef RULE_H
-#define RULE_H
+#pragma once
+
 
 #include <string>
 #include <sstream>
@@ -18,7 +18,6 @@ private:
 	int version;
 
 public:
-	Rule() {}; // TODO: is this ok for setting variables in scope? or have to use pointers?
 
 	Rule(std::string name, std::string id) 
 	: name(name),
@@ -31,72 +30,32 @@ public:
 		  version(version) { }
 	
 
-	std::string getId() {
-		return identifier;
-	}
+	inline std::string getId() { return identifier; }
 
-	double getRuntime() {
-		return runtime;
-	}
+	inline double const getRuntime() { return runtime; }
 
-	long getNum_tuples() {
-		return num_tuples;
-	}
+	inline long getNum_tuples() { return num_tuples; }
 
-	void setRuntime(double runtime) {
-		this->runtime = runtime;
-	}
+	inline void setRuntime(double runtime) { this->runtime = runtime; }
 
-	void setNum_tuples(long num_tuples) {
-		this->num_tuples = num_tuples;
-	}
+	inline void setNum_tuples(long num_tuples) { this->num_tuples = num_tuples; }
 
-	std::string getName() {
-		return name;
-	}
+	inline std::string getName() { return name; }
 
-	void setId(std::string id) {
-		identifier = id;
-	}
+	inline void setId(std::string id) { identifier = id; }
 
-	std::string getLocator() {
-		return locator;
-	}
+	inline std::string getLocator() { return locator; }
 
-	void setLocator(std::string locator) {
-		if (this->locator.empty()) {
-			this->locator = locator;
-		} else {
-			this->locator += " " + locator;
-		}
-	}
+	void setLocator(std::string locator);
 
-	bool isRecursive() {
-		return recursive;
-	}
+	inline bool isRecursive() { return recursive; }
 
-	void setRecursive(bool recursive) {
-		this->recursive = recursive;
-	}
+	inline void setRecursive(bool recursive) { this->recursive = recursive; }
 
-	int getVersion() {
-		return version;
-	}
+	inline int getVersion() { return version; }
 
-	void setVersion(int version) {
-		this->version = version;
-	}
+	inline void setVersion(int version) { this->version = version; }
 
-	std::string toString() {
-		std::ostringstream output;
-		if (recursive) {
-			output << "{" << name << "," << version << ":";
-		} else {
-			output << "{" << name << ":";
-		}
-		output << "[" << runtime << "," << num_tuples << "]}";
-		return output.str();
-	}
+	std::string toString();
 };
 
-#endif

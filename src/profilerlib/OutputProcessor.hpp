@@ -1,4 +1,4 @@
-
+#pragma once
 
 #include "ProgramRun.hpp"
 

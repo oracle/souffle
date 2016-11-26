@@ -1,10 +1,10 @@
 
-#ifndef RELATION_H
-#define RELATION_H
+#pragma once
 
 #include <vector>
 #include <unordered_map>
 #include <string>
+#include <memory>
 
 #include "Rule.hpp"
 #include "Iteration.hpp"
@@ -21,171 +21,68 @@ private:
     int rul_id = 0;
     int rec_id = 0;
 
-    std::vector<Iteration> iterations;
-    std::unordered_map<std::string, Rule> ruleMap;
+    std::vector<std::shared_ptr<Iteration>> iterations;
+
+    std::unordered_map<std::string, std::shared_ptr<Rule>> ruleMap;
 
     bool ready = true;
 
 public:
-    Relation() {}; // TODO: is this ok for setting variables in scope?
 
     Relation(std::string name, std::string id) :
     name(name),
     id(id) {
-        ruleMap = std::unordered_map<std::string, Rule>();
-        iterations = std::vector<Iteration>();
+        ruleMap = std::unordered_map<std::string, std::shared_ptr<Rule>>();
+        iterations = std::vector<std::shared_ptr<Iteration>>();
     }
 
-    std::string createID() {
-        rul_id++;
-        return "N" + id.substr(1) + "." + std::to_string(rec_id);
-    }
+    std::string createID() { return "N" + id.substr(1) + "." + std::to_string(++rec_id); }
 
-    std::string createRecID(std::string name) {
-        for (auto &iter : iterations) {
-            for (auto &rul : iter.getRul_rec()) {
-                if (rul.second.getName().compare(name)==0) {
-                    return rul.second.getId();
-                }
-            }
-        }
-        rec_id++;
-        return "C" + id.substr(1) + "." + std::to_string(rec_id);
-    }
+    std::string createRecID(std::string name);
 
-    double getNonRecTime() {
-        return runtime;
-    }
+    inline double getNonRecTime() { return runtime; }
 
-    double getRecTime() {
-        double result = 0;
-        for (auto &iter : iterations) {
-            result += iter.getRuntime();
-        }
-        return result;
-    }
+    double getRecTime();
 
-    double getCopyTime() {
-        double result = 0;
-        for (auto &iter : iterations) {
-            result += iter.getCopy_time();
-        }
-        return result;
-    }
+    double getCopyTime();
 
-    long getNum_tuplesRel() {
-        long result = 0L;
-        for (auto &iter : iterations) {
-            result += iter.getNum_tuples();
-        }
-        return num_tuples + result;
-    }
+    long getNum_tuplesRel();
 
-    long getNum_tuplesRul() {
-        long result = 0L;
-        for (auto &rul : ruleMap) {
-            result += rul.second.getNum_tuples();
-        }
-        for (auto &iter : iterations) {
-            for (auto &rul : iter.getRul_rec()) {
-                result += rul.second.getNum_tuples();
-            }
-        }
-        return result;
-    }
+    long getNum_tuplesRul();
 
-    long getTotNum_tuples() {
-        return getNum_tuplesRel();
-    }
+    inline long getTotNum_tuples() { return getNum_tuplesRel(); }
 
-    long getTotNumRec_tuples() {
-        long result = 0L;
-        for (auto &iter : iterations) {
-            for (auto &rul : iter.getRul_rec()) {
-                result += rul.second.getNum_tuples();
-            }
-        }
-        return result;
-    }
+    long getTotNumRec_tuples();
 
-    void setRuntime(double runtime) {
-        this->runtime = runtime;
-    }
+    inline void setRuntime(double runtime) { this->runtime = runtime; }
 
-    void setNum_tuples(long num_tuples) {
-        this->num_tuples = num_tuples;
-    }
+    inline void setNum_tuples(long num_tuples) { this->num_tuples = num_tuples; }
 
-    
-    std::string toString() {
-        std::ostringstream output;
-        output << "{\n" << name << ":" << runtime << ";" << num_tuples
-                << "\n\nonRecRules:\n";
-        for (auto &rul : ruleMap) {
-            output << rul.second.toString();
-        }
-        output << "\n\niterations:\n";
-        output << "[";
-        for (auto &iter : iterations) {
-        	output << iter.toString();
-        	output << " ,";
-    	} // TODO: remove last comma
-    	output << "]";
-        output << "\n}";
-        return output.str();
-    }
 
-    std::string getName() {
-        return name;
-    }
+    std::string toString();
+
+    inline std::string getName() { return name; }
 
     /**
      * @return the ruleMap
      */
-    std::unordered_map<std::string, Rule> getRuleMap() {
-        return ruleMap;
-    }
+    inline std::unordered_map<std::string, std::shared_ptr<Rule>>& getRuleMap() { return this->ruleMap; }
 
-    std::vector<Rule> getRuleRecList() {
-        std::vector<Rule> temp = std::vector<Rule>();
-        for (auto &iter : iterations) {
-            for (auto &rul : iter.getRul_rec()) {
-                temp.push_back(rul.second);
-            }
-        }
-        return temp;
-    }
+    std::vector<std::shared_ptr<Rule>> getRuleRecList();
 
-    std::vector<Iteration> getIterations() {
-        return iterations;
-    }
+    inline std::vector<std::shared_ptr<Iteration>>& getIterations() { return this->iterations; }
+    
+    inline std::string getId() { return id; }
 
-    std::string getId() {
-        return id;
-    }
+    inline std::string getLocator() { return locator; }
 
-    std::string getLocator() {
-        return locator;
-    }
+    inline void setLocator(std::string locator) { this->locator = locator; }
 
-    void setLocator(std::string locator) {
-        this->locator = locator;
-    }
+	inline bool isReady() { return this->ready; }
 
-	bool isReady() {
-		return ready;
-	}
+	inline void setReady(bool ready) { this->ready = ready; }
 
-	void setReady(bool ready) {
-		this->ready = ready;
-	}
+	inline long getPrev_num_tuples() { return prev_num_tuples; }
 
-	long getPrev_num_tuples() {
-		return prev_num_tuples;
-	}
-
-	void setPrev_num_tuples(long prev_num_tuples) {
-		this->prev_num_tuples = prev_num_tuples;
-	}
+	inline void setPrev_num_tuples(long prev_num_tuples) { this->prev_num_tuples = prev_num_tuples; }
 };
-#endif

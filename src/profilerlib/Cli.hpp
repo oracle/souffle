@@ -1,4 +1,4 @@
-
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -27,7 +27,7 @@ public:
 	std::vector<std::string> args;
 
 	Cli(int argc, char* argv[]) {
-		args = std::vector<std::string>(argv, argv + argc);
+		args = std::vector<std::string>(std::begin(argv), std::end(argv));
 	}
 
 	void error() {

@@ -18,7 +18,5 @@ public:
 	Tui(std::string filename, bool live) {
 		out = OutputProcessor();
 		ProgramRun run = out.getProgramRun();
-
-
 	}
 };
