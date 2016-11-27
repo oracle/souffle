@@ -139,10 +139,14 @@ public:
         auto lease = access.acquire();
         (void) lease; // avoid warning;
         for(size_t idx=0; idx < n; idx++) {
-            const char *p = symbols[idx];
-            char *str = strdup(p);
-            strToNum[str] = numToStr.size();
-            numToStr.push_back(str);
+            // insert only if not already exists
+            const char* p = symbols[idx];
+            auto it = strToNum.find(p);
+            if (it == strToNum.end()) {
+                char *str = strdup(p);  // generate a new string
+                strToNum[str] = numToStr.size();
+                numToStr.push_back(str);
+            }
         }
     }
 
@@ -164,11 +168,5 @@ public:
         return out;
     }
 
-    template<class Function>
-    Function map(Function fn) const {
-        for (size_t i = 0; i < numToStr.size(); ++i)
-            fn(i, numToStr[i]);
-        return std::move(fn);
-    }
 };
 }
