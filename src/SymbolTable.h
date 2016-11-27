@@ -16,8 +16,9 @@
 
 #pragma once
 
-#include <unordered_map>
-#include <functional>
+#include <map>
+#include <vector>
+#include <set>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -37,124 +38,123 @@ namespace souffle {
  */
 class SymbolTable {
 
+    /** String pointer comparison class for SymbolTable */
+    struct StringCmp {
+        bool operator()(const char* lhs, const char* rhs) const  {
+            return strcmp(lhs, rhs) < 0; 
+        }
+    };
+
+    /** Map integer to string */ 
+    std::vector<char *> numToStr;
+
+    /** Map strings kept in the pool to numbers */
+    std::map<const char *, size_t, StringCmp> strToNum;
+
     /** A lock to synchronize parallel accesses */
     mutable Lock access;
 
-private:
-
-    struct HashFunction {
-            std::size_t operator() (const std::size_t &hash) const { return hash; }
-    };
-
-    struct HashEqual {
-            bool operator() (const std::size_t & h1, const std::size_t & h2) const { return h1 == h2; }
-    };
-
-    std::unordered_map<size_t, const char*, HashFunction, HashEqual> symbolTable;
-
-    static inline const size_t symbolTableHash(const char* str) {
-        std::hash<std::string> hashFunction;
-        return hashFunction(str);
-    }
-
-    /** Copy the referenced strings into the table. */
-    inline void copyAll() {
-        for (auto & symbol : symbolTable) symbol.second = strdup(symbol.second);
-    }
-
-    /** Free all the strings referenced in the table. */
-    inline void freeAll() {
-        for(auto symbol : symbolTable) free((void*) symbol.second);
-    }
-
 public:
 
+    /** Private constructor */
     SymbolTable() { }
 
     SymbolTable(const SymbolTable& other)
-        : symbolTable(other.symbolTable) {
-        copyAll();
+        : numToStr(other.numToStr), strToNum(other.strToNum) {
+        // clone all contained strings
+        for(auto& cur : numToStr) cur = strdup(cur);
+        for(auto& cur : strToNum) const_cast<char*&>(cur.first) = numToStr[cur.second];
     }
 
     SymbolTable(SymbolTable&& other) {
-        symbolTable.swap(other.symbolTable);
+        numToStr.swap(other.numToStr);
+        strToNum.swap(other.strToNum);
     }
 
     /** Destructor cleaning up strings */
-    virtual ~SymbolTable() {
-        freeAll();
+    ~SymbolTable() {
+        for(auto cur : numToStr) free(cur);
     }
 
     /** Add support for an assignment operator */
     SymbolTable& operator=(const SymbolTable& other) {
+        // shortcut
         if (this == &other) return *this;
-        freeAll();
-        symbolTable = other.symbolTable;
-        copyAll();
+
+        // delete this content
+        for(auto cur : numToStr) free(cur);
+
+        // copy in other content
+        numToStr = other.numToStr;
+        strToNum = other.strToNum;
+        for(auto& cur : numToStr) cur = strdup(cur);
+        for(auto& cur : strToNum) const_cast<char*&>(cur.first) = numToStr[cur.second];
+
+        // done
         return *this;
     }
 
     /** Add support for assignments from r-value references */
     SymbolTable& operator=(SymbolTable&& other) {
-        symbolTable.swap(other.symbolTable);
+        // steal content of other
+        numToStr.swap(other.numToStr);
+        strToNum.swap(other.strToNum);
         return *this;
     }
 
     /** Look-up a string given by a pointer to @p std::string in the pool and convert it to an index */
-    size_t lookup(const char *str) {
-        auto lease = access.acquire();
-        (void) lease; // avoid warning;
-        const size_t hash = symbolTableHash(str);
-        if (symbolTable.find(hash) == symbolTable.end()) {
-            const char* newstr = strdup(str);
-            symbolTable[hash] = newstr;
+    size_t lookup(const char *p) {
+        size_t result;
+        {
+            auto lease = access.acquire();
+            (void) lease; // avoid warning;
+
+            auto it = strToNum.find(p);
+            if (it != strToNum.end()) {
+                result = (*it).second;
+            } else {
+                result = numToStr.size();
+                char *str = strdup(p);  // generate a new string
+                strToNum[str] = result;
+                numToStr.push_back(str);
+            }
         }
-        return hash;
+        return result;
     }
 
     /** Lookup an index and convert it to a string */
-    const char* resolve(const size_t hash) const {
+    const char* resolve(size_t i) const {
         auto lease = access.acquire();
         (void) lease; // avoid warning;
-        return symbolTable.find(hash)->second;
+        return numToStr[i];
     }
 
-    /* return size */
+    /* return size */ 
     size_t size() const {
-        return symbolTable.size();
+        return numToStr.size();
     }
 
     /** insert symbols from a constant string table */ 
-    void insert(const char **symbols, const size_t n) {
+    void insert(const char **symbols, size_t n) {
         auto lease = access.acquire();
         (void) lease; // avoid warning;
-        size_t hash;
-        char* newstr;
-        symbolTable.reserve(symbolTable.size() + n);
         for(size_t idx=0; idx < n; idx++) {
-            const char* str = symbols[idx];
-            hash = symbolTableHash(str);
-            if (symbolTable.find(hash) == symbolTable.end()) {
-                newstr = strdup(str);
-                symbolTable[hash] = newstr;
-            }
+            const char *p = symbols[idx];
+            char *str = strdup(p);
+            strToNum[str] = numToStr.size();
+            numToStr.push_back(str);
         }
     }
 
     /** inserts a single symbol into this table */
-    void insert(const char* str) {
-       auto lease = access.acquire();
-       const size_t hash = symbolTableHash(str);
-       if (symbolTable.find(hash) == symbolTable.end()) {
-           const char* newstr = strdup(str);
-           symbolTable[hash] = newstr;
-       }
+    void insert(const char* symbol) {
+        insert(&symbol, 1);
     }
 
     void print(std::ostream& out) const {
         out << "SymbolTable: {\n\t";
-        out << join(symbolTable, "\n\t", [](std::ostream& out, const std::pair<std::size_t,const char*>& entry) {
-            out << entry.second << "\t => " << entry.first;
+        out << join(strToNum, "\n\t", [](std::ostream& out, const std::pair<const char*,std::size_t>& entry) {
+            out << entry.first << "\t => " << entry.second;
         }) << "\n";
         out << "}\n";
     }
@@ -164,6 +164,11 @@ public:
         return out;
     }
 
+    template<class Function>
+    Function map(Function fn) const {
+        for (size_t i = 0; i < numToStr.size(); ++i)
+            fn(i, numToStr[i]);
+        return std::move(fn);
+    }
 };
-
 }
