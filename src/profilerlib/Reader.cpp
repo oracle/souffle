@@ -15,7 +15,7 @@ void Reader::readFile() {
 
         std::string str;
         while (getline(file, str)) {
-            std::cout << str << "\n";
+//            std::cout << str << "\n";
             if (!str.empty() && str.at(0) == '@') {
                 if (str.compare("@start-debug") == 0) {
                     continue;
@@ -28,11 +28,11 @@ void Reader::readFile() {
                     part = splitOnStr(str, ";");
 
                 }
-                std::cout << "\nLINE SPLIT: [(";
-                for (auto &i : part) {
-                    std::cout << i << "),(";
-                }
-                std::cout << ")]\n";
+//                std::cout << "\nLINE SPLIT: [(";
+//                for (auto &i : part) {
+//                    std::cout << i << "),(";
+//                }
+//                std::cout << ")]\n";
 
                 process(part);
             }
@@ -91,15 +91,11 @@ void Reader::addIteration(std::shared_ptr<Relation> rel, std::vector<std::string
         std::string temp = rel->createRecID(data[4]);
         iter->addRule(data, temp);
     } else if (data[0].at(0) == 't' && data[0].find("relation") != std::string::npos) {
-        std::cerr << "t start";
         iter->setRuntime(std::stod(data[3]));
         iter->setLocator(data[2]);
         rel->setLocator(data[2]);
-        std::cerr << "t end";
     } else if (data[0].at(0) == 'n' && data[0].find("relation") != std::string::npos) {
-        std::cerr << "n start";
         iter->setNum_tuples(std::stol(data[3]));
-        std::cerr << "n end";
     } else if (data[0].at(0) == 'c' && data[0].find("relation") != std::string::npos) {
         iter->setCopy_time(std::stod(data[3]));
         rel->setReady(true);
@@ -176,8 +172,8 @@ std::vector<std::string> Reader::splitOnStr(std::string str, std::string split) 
 }
 
 std::vector<std::string> Reader::replace(std::string str) {
-    // ignore semicolons from strings, then cut where remaining semicolons are
-    // then insert semicolons back
+    // ignore semicolons from inside strings, then cut where remaining semicolons are
+    // then insert semicolons back into strings
     bool ignore = false;
     std::string temp1 = "";
     if (str.find("\'")!=std::string::npos) {
