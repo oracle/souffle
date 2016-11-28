@@ -15,24 +15,29 @@ void Reader::readFile() {
 
         std::string str;
         while (getline(file, str)) {
-//            std::cout << str << "\n";
+//            std::cout << "\n" << str ;
             if (!str.empty() && str.at(0) == '@') {
                 if (str.compare("@start-debug") == 0) {
                     continue;
                 }
-                std::vector<std::string> part;
-                if (str.find("\'") != std::string::npos ||
-                    str.find("\"") != std::string::npos) {
-                    part = replace(str);
-                } else {
-                    part = splitOnStr(str, ";");
-
-                }
-//                std::cout << "\nLINE SPLIT: [(";
-//                for (auto &i : part) {
-//                    std::cout << i << "),(";
+//                std::vector<std::string> part;
+//                if (str.find("\'") != std::string::npos ||
+//                    str.find("\"") != std::string::npos) {
+//                    part = replace(str);
+//                } else {
+//                    part = split(str, "\\s*;\\s*");
+//
 //                }
-//                std::cout << ")]\n";
+                // one regex split, instead of unnecessary function
+                // From: http://markmintoff.com/2013/03/regex-split-by-comma-not-surrounded-by-quotes/
+                std::vector<std::string> part = split(str.substr(1), "\\s*;(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)\\s*");
+
+//                std::string teststr = "";
+//                teststr += "\nLINE SPLIT: [(";
+//                for (auto &i : part) {
+//                    teststr+= i + "),(";
+//                }
+//                std::cout << teststr.substr(0, teststr.size()-2) + "]\n";
 
                 process(part);
             }
@@ -128,96 +133,71 @@ void Reader::addRule(std::shared_ptr<Relation> rel, std::vector<std::string> dat
 
 
 
-std::vector<std::string> Reader::splitOnStr(std::string str, std::string split) {
-    std::vector<std::string> out = std::vector<std::string>();
+std::vector<std::string> Reader::split(std::string str, std::string split_reg) {
+    std::vector<std::string> elems;
 
-    size_t i = 0;
-    size_t last_i = 0;
-    bool breakout = false;
-    while((i=str.find(split, i+1))) {
-        if (i==std::string::npos) {
-            i = str.size();
-            breakout = true;
-        }
-        std::string temp_part = "";
+    std::regex rgx(split_reg);
+    std::sregex_token_iterator iter(str.begin(),
+                                    str.end(),
+                                    rgx,
+                                    -1);
 
-        // // ignore starting whitespace
-        // while (str.at(last_i) == ' ' || str.at(last_i) == '\t') {
-        // 	last_i++;
-        // }
-
-        for (last_i++;last_i<i;last_i++) {
-            // // ignore trailing whitespace
-            // size_t temp_last_i = last_i;
-            // while (str.at(temp_last_i) == ' ' || str.at(temp_last_i) == '\t') {
-            // 	temp_last_i++;
-            // 	if (temp_last_i >= i) {
-            // 		break;
-            // 	}
-            // }
-            // if (temp_last_i == i) {
-            // 	last_i = i;
-            // } else {
-            temp_part += str.at(last_i);
-            // }
-        }
-
-        out.push_back(temp_part);
-        if (breakout) {
-            break;
-        }
+    std::sregex_token_iterator end;
+    for ( ; iter != end; ++iter) {
+        elems.push_back(*iter);
     }
-    return out;
+
+    return elems;
 
 }
 
-std::vector<std::string> Reader::replace(std::string str) {
-    // ignore semicolons from inside strings, then cut where remaining semicolons are
-    // then insert semicolons back into strings
-    bool ignore = false;
-    std::string temp1 = "";
-    if (str.find("\'")!=std::string::npos) {
-        for (auto &c : str) {
-            if (c == '\'') {
-                ignore = !ignore;
-            }
-            if (ignore && c==';') {
-                temp1 += '\b';
-            } else {
-                temp1 += c;
-            }
-        }
-    } else {
-        temp1 = str;
-    }
-    ignore = false;
-    std::string temp2 = "";
-    if (temp1.find("\"")!=std::string::npos) {
-        for (auto &c : temp1) {
-            if (c == '\"') {
-                ignore = !ignore;
-            }
-            if (ignore && c==';') {
-                temp2 += '\t';
-            } else {
-                temp2 += c;
-            }
-        }
-    } else {
-        temp2 = temp1;
-    }
-    temp2 = temp2.substr(1);
-    std::vector<std::string> part = splitOnStr(temp2, ";");
-    // go through each string and put semicolons back in where needed
-    for (auto& i : part) {
-        for (auto& c : i) {
-            if (c == '\b' || c == '\t') {
-                c = ';';
-            }
-        }
-    }
-    return part;
-}
+//std::vector<std::string> Reader::replace(std::string str) {
+//    // ignore semicolons from inside strings, then cut where remaining semicolons are
+//    // then insert semicolons back into strings
+//    bool ignore = false;
+//    std::string temp1 = "";
+//    if (str.find("\'")!=std::string::npos) {
+//        for (auto &c : str) {
+//            if (c == '\'') {
+//                ignore = !ignore;
+//            }
+//            if (ignore && c==';') {
+//                temp1 += '\b';
+//            } else {
+//                temp1 += c;
+//            }
+//        }
+//    } else {
+//        temp1 = str;
+//    }
+//    ignore = false;
+//    std::string temp2 = "";
+//    if (temp1.find("\"")!=std::string::npos) {
+//        for (auto &c : temp1) {
+//            if (c == '\"') {
+//                ignore = !ignore;
+//            }
+//            if (ignore && c==';') {
+//                temp2 += '\t';
+//            } else {
+//                temp2 += c;
+//            }
+//        }
+//    } else
+//        temp2 = temp1;
+//    }
+//    temp2 = temp2.substr(1);
+//    std::vector<std::string> part = split(str.substr(1), "\\s*;\\s*");
+//    // go through each string and put semicolons back in where needed
+//    for (auto& i : part) {
+//        for (auto& c : i) {
+//            if (c == '\b' || c == '\t') {
+//                c = ';';
+//            }
+//        }
+//    }
+//    return part;
+//}
 
 std::string Reader::createId() {
     return "R" + std::to_string(++rel_id);

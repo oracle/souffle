@@ -4,15 +4,15 @@
 #include <iostream>
 #include <string>
 
-// #include "profilerlib/Cli.hpp"
+#include "profilerlib/Cli.hpp"
 
 
-// int main(int argc, char* argv[]) {
-//    Cli cli_obj = Cli(argc, argv);
-//    cli_obj.parse();
-//    std::cout << "clean exit.\n";
-//    return 0;
-// }
+ int main(int argc, char* argv[]) {
+    Cli cli_obj = Cli(argc, argv);
+    cli_obj.parse();
+    //std::cout << "clean exit.\n";
+    return 0;
+ }
 
 
 // #include "profilerlib/Rule.hpp"
@@ -45,17 +45,17 @@
 #include "profilerlib/Relation.hpp"
 #include "profilerlib/Reader.hpp"
 
-
-int main() {
-	ProgramRun x = ProgramRun();
-    Reader read = Reader("/Users/Dom/souffle_test/prof1.prof", x, false, false);
-    read.readFile();
-
-    std::unordered_map<std::string, std::shared_ptr<Relation>> rel_map = read.retRelationMap();
-
-    std::cout <<"\nRelation map:\n";
-    for (auto it = rel_map.begin(); it != rel_map.end(); ++it) {
-    	std::cout << it->first << ":" << it->second->toString() << "\n";
-    }
-
-}
+//
+//int main() {
+//	ProgramRun x = ProgramRun();
+//    Reader read = Reader("/Users/Dom/souffle_test/prof1.prof", x, false, false);
+//    read.readFile();
+//
+//    std::unordered_map<std::string, std::shared_ptr<Relation>> rel_map = read.retRelationMap();
+//
+//    std::cout <<"\nReader Relation map:\n";
+//    for (auto it = rel_map.begin(); it != rel_map.end(); ++it) {
+//    	std::cout << it->first << ":" << it->second->toString() << "\n";
+//    }
+//
+//}

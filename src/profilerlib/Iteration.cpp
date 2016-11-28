@@ -30,12 +30,21 @@ void Iteration::addRule(std::vector<std::string> data, std::string rec_id) {
 }
 
 std::string Iteration::toString() {
+//    std::ostringstream output;
+//
+//    output << std::fixed << std::setprecision(1) << std::scientific << runtime << "," << num_tuples << "," << copy_time << ",";
+//    output << " recRule:";
+//    for (auto &rul : rul_rec_map)
+//        output << rul.second->toString();
+//    output << "\n";
+//    return output.str();
+
     std::ostringstream output;
-    // dont think "" is necessary, but left it to make it the same as java code
-    output << "" << runtime << "," << num_tuples << "," << copy_time << ",";
-    output << " recRule:";
+
+    output << std::fixed << std::setprecision(2) << std::scientific << runtime << "," << num_tuples << "," << copy_time << ",";
+    output << " [\"recRule\",";
     for (auto &rul : rul_rec_map)
         output << rul.second->toString();
-    output << "\n";
+    output << "]\n";
     return output.str();
 }

@@ -14,6 +14,6 @@ set(SOURCE_FILES
     src/profilerlib/Tui.hpp
     src/Makefile.am
     src/souffle_prof.cpp
-    Makefile.am src/profilerlib/Reader.cpp src/profilerlib/Relation.cpp src/profilerlib/Rule.cpp src/profilerlib/Iteration.cpp)
+    Makefile.am src/profilerlib/Reader.cpp src/profilerlib/Relation.cpp src/profilerlib/Rule.cpp src/profilerlib/Iteration.cpp src/profilerlib/Cli.cpp src/profilerlib/ProgramRun.cpp)
 
 add_executable(cpp_prof_souffle ${SOURCE_FILES})

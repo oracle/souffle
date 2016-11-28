@@ -6,6 +6,7 @@
 #include <cassert>
 #include <exception>
 #include <memory>
+#include <regex>
 
 #include "Relation.hpp"
 #include "ProgramRun.hpp"
@@ -16,11 +17,11 @@ class Reader {
 private:
 	std::ifstream file;
 
-	static long filepointer;
+//	static long filepointer;
 	bool loaded = false;
 	bool online;
 	// Thread for live mode
-	std::string mes;
+//	std::string mes;
 
 	double runtime;
 	std::unordered_map<std::string, std::shared_ptr<Relation>> relation_map;
@@ -65,9 +66,9 @@ public:
 	inline std::unordered_map<std::string, std::shared_ptr<Relation>> retRelationMap() { return this->relation_map; }
 
 
-    std::vector<std::string> splitOnStr(std::string str, std::string split);
+    std::vector<std::string> split(std::string str, std::string split);
 
-	std::vector<std::string> replace(std::string str);
+//	std::vector<std::string> replace(std::string str);
 
     std::string RelationcreateId() { return "R" + std::to_string(++rel_id); }
 
