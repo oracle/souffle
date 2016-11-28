@@ -1,3 +1,0 @@
-[submodule "mcpp"]
-	path = mcpp
-	url = git@github.com:souffle-lang/mcpp.git
