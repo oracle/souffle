@@ -174,6 +174,7 @@ AC_CONFIG_TESTDIR([tests])
 AC_CONFIG_FILES([
   Makefile
   src/Makefile
+  src/mcpp/Makefile
   interfaces/Makefile
   prof/Makefile
   tests/Makefile

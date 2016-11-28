@@ -4,10 +4,22 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
+SUBDIRS = mcpp
 
 SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 
-bin_PROGRAMS = souffle
+bin_PROGRAMS = souffle souffle-mcpp
+
+
+# mcpp dependencies
+nodist_souffle_mcpp_SOURCES = $(BUILT_SOURCES)
+
+souffle_mcpp_SOURCES = system.H configed.H internal.H main.c directive.c eval.c \
+					      expand.c mbchar.c support.c system.c mcpp_out.h
+souffle_mcpp_CFLAGS = 
+souffle_mcpp_LDFLAGS = 
+souffle_mcpp_LDADD = 
+#
 
 
 # ... which should no go to distribution
