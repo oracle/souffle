@@ -88,7 +88,7 @@ public:
         strToNum.swap(other.strToNum);
     }
 
-    ~SymbolTable() {
+    virtual ~SymbolTable() {
         freeAll();
     }
 
