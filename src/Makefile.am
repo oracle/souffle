@@ -8,19 +8,7 @@ SUBDIRS = mcpp
 
 SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 
-bin_PROGRAMS = souffle souffle-mcpp
-
-
-# mcpp dependencies
-nodist_souffle_mcpp_SOURCES = $(BUILT_SOURCES)
-
-souffle_mcpp_SOURCES = system.H configed.H internal.H main.c directive.c eval.c \
-					      expand.c mbchar.c support.c system.c mcpp_out.h
-souffle_mcpp_CFLAGS = 
-souffle_mcpp_LDFLAGS = 
-souffle_mcpp_LDADD = 
-#
-
+bin_PROGRAMS = souffle
 
 # ... which should no go to distribution
 nodist_souffle_SOURCES = $(BUILT_SOURCES)
@@ -87,7 +75,7 @@ libsouffle_la_LDFLAGS = --static --dlopen --pic
 souffle_SOURCES = main.cpp
 souffle_LDADD = libsouffle.la
 
-dist_bin_SCRIPTS = souffle-compile souffle-config
+dist_bin_SCRIPTS = souffle-compile souffle-config souffle-mcpp
 
 EXTRA_DIST = parser.yy scanner.ll  test/test.h
 

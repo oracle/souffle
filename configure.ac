@@ -174,7 +174,6 @@ AC_CONFIG_TESTDIR([tests])
 AC_CONFIG_FILES([
   Makefile
   src/Makefile
-  src/mcpp/Makefile
   interfaces/Makefile
   prof/Makefile
   tests/Makefile
@@ -197,6 +196,8 @@ AC_CONFIG_LINKS([include/souffle/RamLogger.h:src/RamLogger.h])
 AC_CONFIG_LINKS([include/souffle/SymbolTable.h:src/SymbolTable.h])
 AC_CONFIG_LINKS([include/souffle/SqliteRelationWriter.h:src/SqliteRelationWriter.h])
 AC_CONFIG_LINKS([prof/souffle-profile:prof/souffle-profile])
+# mcpp linkage	
+AC_CONFIG_LINKS([src/souffle-mcpp:src/mcpp/src/mcpp])
 
 AM_MISSING_PROG([AUTOM4TE], [autom4te])
 
