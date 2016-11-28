@@ -197,7 +197,7 @@ AC_CONFIG_LINKS([include/souffle/SymbolTable.h:src/SymbolTable.h])
 AC_CONFIG_LINKS([include/souffle/SqliteRelationWriter.h:src/SqliteRelationWriter.h])
 AC_CONFIG_LINKS([prof/souffle-profile:prof/souffle-profile])
 # mcpp linkage	
-AC_CONFIG_LINKS([src/souffle-mcpp:src/mcpp/src/mcpp])
+# AC_CONFIG_LINKS([src/souffle-mcpp:src/mcpp/src/mcpp])
 
 AM_MISSING_PROG([AUTOM4TE], [autom4te])
 

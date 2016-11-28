@@ -88,7 +88,10 @@ soufflepublic_HEADERS = CompiledRamOptions.h CompiledRamRelation.h CompiledRamTu
 souffle_CPPFLAGS = -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\""
 
 # files to clean
-CLEANFILES = $(BUILT_SOURCES)  parser.cc scanner.cc parser.hh stack.hh
+CLEANFILES = $(BUILT_SOURCES)  parser.cc scanner.cc parser.hh stack.hh souffle-mcpp
+
+souffle-mcpp: $(srcdir)/mcpp/src/mcpp
+	cp $(srcdir)/mcpp/src/mcpp $(builddir)/souffle-mcpp
 
 # run Bison
 $(builddir)/parser.hh $(builddir)/parser.cc $(builddir)/stack.hh: $(srcdir)/parser.yy
