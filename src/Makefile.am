@@ -9,6 +9,7 @@ SUBDIRS = mcpp
 SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 
 bin_PROGRAMS = souffle
+# bin_PROGRAMS = souffle souffle-mcpp
 
 # ... which should no go to distribution
 nodist_souffle_SOURCES = $(BUILT_SOURCES)
@@ -88,10 +89,11 @@ soufflepublic_HEADERS = CompiledRamOptions.h CompiledRamRelation.h CompiledRamTu
 souffle_CPPFLAGS = -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\""
 
 # files to clean
-CLEANFILES = $(BUILT_SOURCES)  parser.cc scanner.cc parser.hh stack.hh souffle-mcpp
+CLEANFILES = $(BUILT_SOURCES)  parser.cc scanner.cc parser.hh stack.hh
+# CLEANFILES = $(BUILT_SOURCES)  parser.cc scanner.cc parser.hh stack.hh
 
-souffle-mcpp: $(srcdir)/mcpp/src/mcpp
-	cp $(srcdir)/mcpp/src/mcpp $(builddir)/souffle-mcpp
+$(builddir)/souffle-mcpp: $(srcdir)/mcpp/src/souffle-mcpp
+	ln -sf $(srcdir)/mcpp/src/souffle-mcpp $(builddir)/souffle-mcpp
 
 # run Bison
 $(builddir)/parser.hh $(builddir)/parser.cc $(builddir)/stack.hh: $(srcdir)/parser.yy
