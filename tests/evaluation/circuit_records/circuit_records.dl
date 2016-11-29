@@ -113,6 +113,13 @@ satisfy(conf, [var, val]) :-
 	required_out([var, val]),
 	evaluate(conf, [var, val]).
 	
-// print the required inputs to reach the configuration
-.decl sat_print(var : Wire, val : number, conf : Wire_list) output
-sat_print(var, val, conf) :- satisfy(conf,_), get_by_key(var, val, _, conf).
+// print the required inputs to reach the configuration (turned off atm, as the souffle tester cannot handle the output of records)
+.decl sat_print(var : Wire, val : number, conf : Wire_list)
+sat_print(var, val, conf) :- 
+	satisfy(conf,_), get_by_key(var, val, _, conf).
+
+// print the count of total circuits configurations mul inputs
+.decl print_states(val : number) output
+print_states(val) :- 
+	val = count : { sat_print(_, _, _) }.
+	
