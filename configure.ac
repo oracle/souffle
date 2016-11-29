@@ -169,6 +169,161 @@ AC_CHECK_LIB(sqlite3, sqlite3_open,,
 dnl Enables OpenMP in the souffle compiler and interpreter
 AC_OPENMP
 AS_VAR_APPEND(CXXFLAGS, [" $OPENMP_CFLAGS "])
+AC_MSG_CHECKING( for target cpu)
+
+## These are not predefined macros of MCPP.  MCPP will define predefined macros
+## on compile time based on the CPU macro, and possibly redefine them at an
+## execution time.
+
+case $target_cpu in
+x86_64|amd64)
+    Target_Cpu=x86_64
+    ;;
+i?86*)
+    Target_Cpu=i386
+    ;;
+powerpc64|ppc64)
+    Target_Cpu=ppc64
+    ;;
+powerpc|ppc|ppc7400)
+    Target_Cpu=ppc
+    ;;
+*)
+    Target_Cpu=$target_cpu
+    ;;
+esac
+
+AC_MSG_RESULT( $Target_Cpu)
+AC_DEFINE_UNQUOTED( [CPU], "$Target_Cpu", [Define the cpu-specific-macro.])
+
+AC_DEFINE_UNQUOTED( [OBJEXT], ["$ac_cv_objext"],
+				       [Define the suffix of object file.])
+
+if test x$ac_cv_c_compiler_gnu = xyes; then
+
+    AC_DEFINE( [HOST_COMPILER], [GNUC], [Define the host compiler.])
+
+    AC_DEFINE( [HOST_CMP_NAME], "GCC", [Define the host compiler name.])
+
+    AC_MSG_CHECKING( for value of __GNUC__)
+    gcc_maj_ver=`echo '__GNUC__' | $CPP - | sed 's/^ *//' | $EGREP -v '^#|^$' | sed 's/ *//'`
+    AC_MSG_RESULT( $gcc_maj_ver)
+    AC_DEFINE_UNQUOTED( [GCC_MAJOR_VERSION], "$gcc_maj_ver",
+        [Define gcc major version.])
+    AC_MSG_CHECKING( for value of __GNUC_MINOR__)
+    gcc_min_ver=`echo __GNUC_MINOR__ | $CPP - | sed 's/^ *//' | $EGREP -v '^#|^$' | sed 's/ *//'`
+    AC_MSG_RESULT( $gcc_min_ver)
+    AC_DEFINE_UNQUOTED( [GCC_MINOR_VERSION], "$gcc_min_ver",
+        [Define gcc minor version.])
+
+    cw=`pwd`
+    if test x$srcdir = "x." || test x$srcdir = x; then
+        src_dir=$cw
+    else
+        src_dir=$srcdir
+    fi
+    if test $ac_c_define_HOST_SYSTEM = SYS_CYGWIN; then
+        AC_CACHE_CHECK( the root directory,
+            ac_cv_cygwin_root,
+            [ac_cv_cygwin_root=`$src_dir/config/cygwin_root`]
+        )
+        AC_DEFINE_UNQUOTED( [CYGWIN_ROOT_DIRECTORY], "$ac_cv_cygwin_root",
+            [Define root directory of CYGWIN.])
+    fi
+    if test $ac_c_define_HOST_SYSTEM = SYS_MINGW; then
+        AC_CACHE_CHECK( the root directory,
+            ac_cv_msys_root,
+            cd /tmp
+            cat > getcwd.c <<\_EOF
+#include <stdio.h>
+#include <unistd.h>
+#include <limits.h>
+int main( int argc, char ** argv)
+{   char    buf@<:@ PATH_MAX@:>@;
+    getcwd( buf, PATH_MAX);
+    puts( buf);
+    return 0;
+}
+_EOF
+            $CC getcwd.c
+            cd /
+            [ac_cv_msys_root=`$src_dir/config/mingw_root`]
+        )
+        AC_CACHE_CHECK( the /mingw directory,
+            ac_cv_mingw_dir,
+            cd /mingw
+            [ac_cv_mingw_dir=`$src_dir/config/mingw_root`]
+        )
+        cd $cw
+        rm -f /tmp/getcwd.c /tmp/a.exe
+        AC_DEFINE_UNQUOTED( [MSYS_ROOT_DIRECTORY], "$ac_cv_msys_root",
+            [Define root directory of MSYS.])
+        AC_DEFINE_UNQUOTED( [MINGW_DIRECTORY], "$ac_cv_mingw_dir",
+            [Define /mingw directory.])
+    fi
+
+else    # not gcc
+
+# mcpp_AC_C_DEFINE( SYSTEM | CPU | COMPILER, STD | OLD, $enableval)
+# Specify the target-specific predefined macro.
+AC_DEFUN([mcpp_AC_C_DEFINE], [
+    name=`echo $3 | sed 's/=.*//'`
+    mcpp_macro=$1_SP_$2
+    stripped_mcpp_macro=`echo $mcpp_macro | sed 's/STD//'`
+    if test x$stripped_mcpp_macro != x$mcpp_macro; then
+        stripped_name=`echo $name | sed 's/^_//'`
+        if test x$stripped_name = x$name; then
+            AC_MSG_ERROR( The macro name '$name' should begin with '_'.)
+        fi
+    else
+        stripped_name=`echo $name | sed 's/^@<:@A-Za-z@:>@//'`
+        if test x$stripped_name = x$name; then
+            AC_MSG_ERROR( The macro name '$name' should begin with an alphabetic letter.)
+        fi
+    fi
+    if test x$name = x$3; then
+        [replace=1]
+    else
+        [replace=`echo $3 | sed 's/^.*=//'`]
+    fi
+    AC_DEFINE_UNQUOTED( [$mcpp_macro], "$name")
+    AC_DEFINE_UNQUOTED( [${mcpp_macro}_VAL], "$replace")
+    mcpp_ac_c_define_$1_$2=$name
+])
+
+# mcpp_AC_C_PREDEF( SYSTEM | CPU | COMPILER, STD | OLD, additional description)
+# Specify the target-specific predefined macro via mcpp_AC_C_DEFINE.
+AC_DEFUN([mcpp_AC_C_PREDEF], [
+    AC_ARG_ENABLE( $1-$2-macro,
+        AC_HELP_STRING( --enable-$1-$2-macro=name@<:@=replace@:>@,
+            [specify the $1-specific $2-style predefined macro.  $3]),
+        if test x$enableval = xyes || test x$enableval = xno; then
+            AC_MSG_ERROR( This option requires an argument as 'name@<:@=replace@:>@'.)
+        fi
+        mcpp_AC_C_DEFINE( $1, $2, $enableval)
+        AH_TEMPLATE( [$1_SP_$2],
+            [Define the name of $1-specific $2-style predefined macro.])
+        AH_TEMPLATE( [$1_SP_$2_VAL],
+            [Define the value of $1-specific $2-style predefined macro.])
+    )
+])
+
+mcpp_AC_C_PREDEF( [SYSTEM], [STD],
+    [In all this and the following 5 options,
+    'STD'-style name begins with an '_',
+    'OLD'-style name begins with an alphabetic and
+    if '=replace' is missing the macro is defined as 1.]
+)
+mcpp_AC_C_PREDEF( [SYSTEM], [OLD])
+mcpp_AC_C_PREDEF( [CPU], [STD])
+mcpp_AC_C_PREDEF( [CPU], [OLD])
+mcpp_AC_C_PREDEF( [COMPILER], [STD])
+mcpp_AC_C_PREDEF( [COMPILER], [OLD])
+
+fi
+
+# END MCPP CPU CHECK
+
 
 AC_CONFIG_TESTDIR([tests])
 AC_CONFIG_FILES([
@@ -196,8 +351,6 @@ AC_CONFIG_LINKS([include/souffle/RamLogger.h:src/RamLogger.h])
 AC_CONFIG_LINKS([include/souffle/SymbolTable.h:src/SymbolTable.h])
 AC_CONFIG_LINKS([include/souffle/SqliteRelationWriter.h:src/SqliteRelationWriter.h])
 AC_CONFIG_LINKS([prof/souffle-profile:prof/souffle-profile])
-# mcpp linkage	
-# AC_CONFIG_LINKS([src/souffle-mcpp:src/mcpp/src/mcpp])
 
 AM_MISSING_PROG([AUTOM4TE], [autom4te])
 
@@ -232,4 +385,5 @@ AC_OUTPUT(
   [ src/souffle-compile src/souffle-config interfaces/souffle-compilelib debian/changelog ],
   [ chmod +x src/souffle-compile src/souffle-config interfaces/souffle-compilelib ]
 )
+
 
