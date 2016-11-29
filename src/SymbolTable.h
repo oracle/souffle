@@ -59,7 +59,7 @@ private:
         for(auto cur : numToStr) free(cur);
     }
 
-    inline size_t newSymbol(const char* symbol) {
+    inline const size_t newSymbol(const char* symbol) {
         size_t idx;
         auto it = strToNum.find(symbol);
         if (it == strToNum.end()) {
@@ -110,14 +110,14 @@ public:
     }
 
     /** Look-up a string given by a pointer to @p std::string in the pool and convert it to an index */
-    size_t lookup(const char *symbol) {
+    const size_t lookup(const char *symbol) {
         auto lease = access.acquire();
         (void) lease; // avoid warning;
         return newSymbol(symbol);
     }
 
     /** Lookup an index and convert it to a string */
-    const char* resolve(size_t idx) const {
+    const char* resolve(const size_t idx) const {
         auto lease = access.acquire();
         (void) lease; // avoid warning;
         if (idx >= size()) {
@@ -134,15 +134,13 @@ public:
     }
 
     /** insert symbols from a constant string table */ 
-    void insert(const char **symbols, size_t n) {
+    void insert(const char **symbols, const size_t n) {
         auto lease = access.acquire();
         (void) lease; // avoid warning;
         strToNum.reserve(size() + n);
         numToStr.reserve(size() + n);
-        for (size_t idx = 0; idx < n; idx++) {
-            const char *symbol = symbols[idx];
-            newSymbol(symbol);
-        }
+        for (size_t idx = 0; idx < n; idx++)
+            newSymbol(symbols[idx]);
     }
 
     /** inserts a single symbol into this table */
@@ -163,16 +161,6 @@ public:
     friend std::ostream& operator<<(std::ostream& out, const SymbolTable& table) {
         table.print(out);
         return out;
-    }
-
-    /* Allow the lock to be accessed externally, useful for iteration over the raw symbols. */
-    Lock & obtainLock() const {
-        return access;
-    }
-
-    /* Get a vector of the raw symbols as c-strings, note that it is probably necessary to obtain the lock before using this method. */
-    const std::vector<char*> & rawSymbols() const {
-        return numToStr;
     }
 
 };
