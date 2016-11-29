@@ -139,7 +139,7 @@ namespace test {
         n = duration_in_ns(start, end);
 
         if (ECHO_TIME)
-            std::cout << "Time to insert " << N << " new elements: "
+            std::cout << "Time to insert " << N << " existing elements: "
             << n << " ns" << std::endl;
 
         SymbolTable Y;
@@ -151,7 +151,7 @@ namespace test {
         n = duration_in_ns(start, end);
 
         if (ECHO_TIME)
-            std::cout << "Time to insert " << N << " existing elements: "
+            std::cout << "Time to insert " << N << " new elements: "
             << n << " ns" << std::endl;
 
         delete[] A;
