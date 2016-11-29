@@ -44,22 +44,25 @@ class SymbolTable {
 
 private:
 
-    /** Map integer to string */
+    /** Map indices to strings. */
     std::vector<char *> numToStr;
 
-    /** Map strings kept in the pool to numbers */
+    /** Map strings to indices. */
     std::unordered_map<std::string, size_t> strToNum;
 
+    /** Convenience method to copy strings between symbol tables and resolve their references. */
     inline void copyAll() {
         for(auto& cur : numToStr) cur = strdup(cur);
         for(auto& cur : strToNum) const_cast<std::string&>(cur.first) = numToStr[cur.second];
     }
 
+    /** Convenience method to free memory allocated for strings. */
     inline void freeAll() {
         for(auto cur : numToStr) free(cur);
     }
 
-    inline const size_t newSymbol(const char* symbol) {
+    /** Convenience method to place a new symbol in the table, if it does not exist, and return the index of it. */
+    inline const size_t newSymbolOfIndex(const char* symbol) {
         size_t idx;
         auto it = strToNum.find(symbol);
         if (it == strToNum.end()) {
@@ -73,26 +76,39 @@ private:
         return idx;
     }
 
+    /** Convenience method to place a new symbol in the table, if it does not exist. */
+    inline void newSymbol(const char* symbol) {
+        if (strToNum.find(symbol) == strToNum.end()) {
+            char *str = strdup(symbol);
+            strToNum[str] = numToStr.size();
+            numToStr.push_back(str);
+        }
+    }
+
 public:
 
+    /** Empty constructor. */
     SymbolTable() { }
 
+    /** Copy constructor, performs a deep copy. */
     SymbolTable(const SymbolTable& other)
         : numToStr(other.numToStr)
         , strToNum(other.strToNum) {
         copyAll();
     }
 
+    /** Copy constructor for r-value reference. */
     SymbolTable(SymbolTable&& other) {
         numToStr.swap(other.numToStr);
         strToNum.swap(other.strToNum);
     }
 
+    /** Destructor, frees memory allocated for all strings. */
     virtual ~SymbolTable() {
         freeAll();
     }
 
-    /** Add support for an assignment operator */
+    /** Assignment operator, performs a deep copy and frees memory allocated for all strings. */
     SymbolTable& operator=(const SymbolTable& other) {
         if (this == &other) return *this;
         freeAll();
@@ -102,38 +118,38 @@ public:
         return *this;
     }
 
-    /** Add support for assignments from r-value references */
+    /** Assignment operator for r-value references. */
     SymbolTable& operator=(SymbolTable&& other) {
         numToStr.swap(other.numToStr);
         strToNum.swap(other.strToNum);
         return *this;
     }
 
-    /** Look-up a string given by a pointer to @p std::string in the pool and convert it to an index */
+    /** Find the index of a symbol in the table, inserting a new symbol if it does not exist there already. */
     const size_t lookup(const char *symbol) {
         auto lease = access.acquire();
         (void) lease; // avoid warning;
-        return newSymbol(symbol);
+        return newSymbolOfIndex(symbol);
     }
 
-    /** Lookup an index and convert it to a string */
+    /** Find a symbol in the table by its index, note that this gives an error if the index is out of bounds. */
     const char* resolve(const size_t idx) const {
         auto lease = access.acquire();
         (void) lease; // avoid warning;
         if (idx >= size()) {
             // TODO: use different error reporting here!!
-            std::cerr << "Error: Symbol table index out of bounds.";
+            std::cerr << "Error index out of bounds in call to SymbolTable::resolve.";
             exit(1);
         }
         return numToStr[idx];
     }
 
-    /* return size */ 
+    /* Return the size of the symbol table, being the number of symbols it currently holds. */
     const size_t size() const {
         return numToStr.size();
     }
 
-    /** insert symbols from a constant string table */ 
+    /** Bulk insert symbols into the table, note that this operation is more efficient than repeated inserts of single symbols. */
     void insert(const char **symbols, const size_t n) {
         auto lease = access.acquire();
         (void) lease; // avoid warning;
@@ -143,13 +159,14 @@ public:
             newSymbol(symbols[idx]);
     }
 
-    /** inserts a single symbol into this table */
+    /** Insert a single symbol into the table, not that this operation should not be used if inserting symbols in bulk. */
     void insert(const char* symbol) {
         auto lease = access.acquire();
         (void) lease; // avoid warning;
         newSymbol(symbol);
     }
 
+    /** Print the symbol table to the given stream. */
     void print(std::ostream& out) const {
         out << "SymbolTable: {\n\t";
         out << join(strToNum, "\n\t", [](std::ostream& out, const std::pair<std::string, std::size_t>& entry) {
@@ -158,6 +175,7 @@ public:
         out << "}\n";
     }
 
+    /** Stream operator, used as a convenience for print. */
     friend std::ostream& operator<<(std::ostream& out, const SymbolTable& table) {
         table.print(out);
         return out;
