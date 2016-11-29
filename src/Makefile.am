@@ -4,12 +4,20 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-SUBDIRS = mcpp
-
 SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 
-bin_PROGRAMS = souffle
-# bin_PROGRAMS = souffle souffle-mcpp
+#bin_PROGRAMS = souffle
+bin_PROGRAMS = souffle souffle-mcpp
+
+ nodist_souffle_mcpp_SOURCES = $(BUILT_SOURCES)
+ 
+souffle_mcpp_SOURCES = system.H configed.H internal.H mcpp-main.c directive.c eval.c \
+ 					   expand.c mbchar.c support.c system.c mcpp_out.h
+ 
+mcpp-main.o directive.o eval.o expand.o mbohar.o support.o system.o	:	\
+ 	system.H internal.H mcpp_out.h
+ system.H	: configed.H
+ 
 
 # ... which should no go to distribution
 nodist_souffle_SOURCES = $(BUILT_SOURCES)
@@ -76,7 +84,7 @@ libsouffle_la_LDFLAGS = --static --dlopen --pic
 souffle_SOURCES = main.cpp
 souffle_LDADD = libsouffle.la
 
-dist_bin_SCRIPTS = souffle-compile souffle-config souffle-mcpp
+dist_bin_SCRIPTS = souffle-compile souffle-config
 
 EXTRA_DIST = parser.yy scanner.ll  test/test.h
 
@@ -90,10 +98,6 @@ souffle_CPPFLAGS = -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\""
 
 # files to clean
 CLEANFILES = $(BUILT_SOURCES)  parser.cc scanner.cc parser.hh stack.hh
-# CLEANFILES = $(BUILT_SOURCES)  parser.cc scanner.cc parser.hh stack.hh
-
-$(builddir)/souffle-mcpp: $(srcdir)/mcpp/src/souffle-mcpp
-	ln -sf $(srcdir)/mcpp/src/souffle-mcpp $(builddir)/souffle-mcpp
 
 # run Bison
 $(builddir)/parser.hh $(builddir)/parser.cc $(builddir)/stack.hh: $(srcdir)/parser.yy
