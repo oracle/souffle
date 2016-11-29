@@ -351,6 +351,211 @@
 #define HOST_HAVE_STPCPY        HAVE_STPCPY
 
 /*
+ * defaults
+ */
+
+#ifdef  SYSTEM_EXT
+#ifndef SYSTEM_EXT_VAL
+#define SYSTEM_EXT_VAL      "1"
+#endif
+#endif
+#ifdef  SYSTEM_EXT2
+#ifndef SYSTEM_EXT2_VAL
+#define SYSTEM_EXT2_VAL     "1"
+#endif
+#endif
+#ifdef  COMPILER_STD1
+#ifndef COMPILER_STD1_VAL
+#define COMPILER_STD1_VAL   "1"
+#endif
+#endif
+#ifdef  COMPILER_STD2
+#ifndef COMPILER_STD2_VAL
+#define COMPILER_STD2_VAL   "1"
+#endif
+#endif
+#ifdef  COMPILER_EXT
+#ifndef COMPILER_EXT_VAL
+#define COMPILER_EXT_VAL    "1"
+#endif
+#endif
+#ifdef  COMPILER_EXT2
+#ifndef COMPILER_EXT2_VAL
+#define COMPILER_EXT2_VAL   "1"
+#endif
+#endif
+#ifdef  COMPILER_CPLUS
+#ifndef COMPILER_CPLUS_VAL
+#define COMPILER_CPLUS_VAL  "1"
+#endif
+#endif
+
+#ifndef LINE_PREFIX
+#define LINE_PREFIX         "#line "
+#define STD_LINE_PREFIX     TRUE    /* C source format              */
+#else
+#ifndef STD_LINE_PREFIX
+#define STD_LINE_PREFIX     FALSE   /* Compiler-dependent format    */
+#endif
+#endif
+
+#ifndef HAVE_DIGRAPHS
+#define HAVE_DIGRAPHS       FALSE
+#endif
+
+#ifndef ENV_C_INCLUDE_DIR
+#define ENV_C_INCLUDE_DIR   "INCLUDE"
+#endif
+#ifndef ENV_CPLUS_INCLUDE_DIR
+#define ENV_CPLUS_INCLUDE_DIR   "CPLUS_INCLUDE"
+#endif
+
+#ifndef ENV_SEP
+#if     SYS_FAMILY == SYS_WIN
+#define ENV_SEP             ';'
+#else
+#define ENV_SEP             ':'
+#endif
+#endif
+
+#ifndef ONE_PASS
+#define ONE_PASS            FALSE
+#endif
+
+#ifndef FNAME_FOLD
+#define FNAME_FOLD          TRUE
+#endif
+
+#ifndef SEARCH_INIT
+#define SEARCH_INIT         CURRENT
+#endif
+
+/*
+ * CHARBIT, UCHARMAX are respectively CHAR_BIT, UCHAR_MAX of target compiler.
+ * CHARBIT should be defined to the number of bits per character.
+ * It is needed only for processing of multi-byte character constants.
+ * UCHARMAX should be defined to the maximum value of type unsigned char
+ * or maximum value of unsigned int which is converted from type (signed)
+ * char.
+ *
+ * LONGMAX      should be defined to the LONG_MAX in <limits.h>.
+ * ULONGMAX     should be defined to the ULONG_MAX in <limits.h> or LONG_MAX
+ *              for the compiler which does not have unsigned long.
+ */
+
+#ifndef CHARBIT
+#define CHARBIT             8
+#endif
+#ifndef UCHARMAX
+#define UCHARMAX            0xFF
+#endif
+#ifndef LONGMAX
+#define LONGMAX             0x7FFFFFFFL
+#endif
+#ifndef ULONGMAX
+#define ULONGMAX            0xFFFFFFFFUL
+#endif
+
+/*
+ * Define MBCHAR (multi-byte character encoding) to SJIS, EUC_JP or other.
+ */
+#ifndef MBCHAR
+#define MBCHAR              0
+#endif
+
+/*
+ * SJIS_IS_ESCAPE_FREE means the compiler does not escape '0x5c' ('\\') in
+ * shift-JIS encoded multi-byte character.  SJIS_IS_ESCAPE_FREE == FALSE 
+ * enables cpp to insert * '\\' before '\\' of the 2nd byte of SJIS code in
+ * literal.  This insertion is for the compiler-proper which can't recognize
+ * SJIS literal.
+ * BIGFIVE_IS_ESCAPE_FREE means similar case on BIGFIVE encoding.
+ * ISO2022_JP_IS_ESCAPE_FREE means similar case on ISO2022_JP encoding.
+ */
+#ifndef SJIS_IS_ESCAPE_FREE
+#define SJIS_IS_ESCAPE_FREE     FALSE   /* or TRUE following your compiler  */
+#endif
+#ifndef BIGFIVE_IS_ESCAPE_FREE
+#define BIGFIVE_IS_ESCAPE_FREE  FALSE   /* or TRUE following your compiler  */
+#endif
+#ifndef ISO2022_JP_IS_ESCAPE_FREE
+#define ISO2022_JP_IS_ESCAPE_FREE   FALSE   /* or TRUE following compiler   */
+#endif
+
+/*
+ *      P A R T   2     Configurations for host-compiler.
+ *
+ *      WARNING: In case of HOST_COMPILER differs from COMPILER, you must
+ *          edit here and there of this part.
+ */
+#if     HOST_COMPILER == GNUC
+#if     __GNUC__ >= 3
+#define HAVE_INTMAX_T               TRUE
+#define HAVE_INTTYPES_H             TRUE
+#define HAVE_STDINT_H               TRUE
+#endif
+#define HOST_HAVE_LONG_LONG         TRUE 
+#if     HOST_SYSTEM == SYS_LINUX
+#define HOST_HAVE_STPCPY            TRUE
+#endif
+#if     HOST_SYSTEM == SYS_MAC
+#define HOST_HAVE_STPCPY            TRUE
+#endif
+
+#elif   HOST_COMPILER == LCC
+#define HOST_HAVE_LONG_LONG         TRUE 
+
+#elif   HOST_COMPILER == MSC
+#define HOST_HAVE_LONG_LONG         TRUE 
+
+#elif   HOST_COMPILER == BORLANDC
+#if     __BORLANDC__ >= 0x550
+#define HOST_HAVE_LONG_LONG         TRUE 
+#endif
+#define HOST_HAVE_STPCPY            TRUE
+#if     __STDC__
+#define stpcpy( dest, src)  __stpcpy__( dest, src)
+#endif
+#endif
+
+#ifndef HAVE_INTMAX_T
+#define HAVE_INTMAX_T               FALSE
+#endif
+
+/* The host compiler has the type long long int ?   */
+#ifndef HOST_HAVE_LONG_LONG
+#define HOST_HAVE_LONG_LONG         FALSE
+#endif
+
+/*
+ * This definitions should be set TRUE, if *both* of the target
+ * and the host compilers have long long type.
+ */
+#if TARGET_HAVE_LONG_LONG && HOST_HAVE_LONG_LONG
+#define HAVE_LONG_LONG      TRUE
+#endif
+
+/*
+ * Define the format specifier of intmax_t or long long for
+ * fprintf( fp_debug,).
+ * Both of target COMPILER and HOST_COMPILER should have long long.
+ */
+#if     HAVE_LONG_LONG
+#if     HOST_COMPILER == BORLANDC   \
+        || (HOST_COMPILER == MSC && _MSC_VER < 1400)    \
+        || HOST_SYSTEM == SYS_MINGW
+#define LL_FORM             "I64"   /* Format specifier for __int64 */
+#endif
+#ifndef LL_FORM
+#define LL_FORM             "ll"    /* C99: for long long, "j" for intmax_t */
+#endif
+#endif
+
+#ifndef HOST_HAVE_STPCPY
+#define HOST_HAVE_STPCPY            FALSE
+#endif
+
+/*
  * Declaration of standard library functions and macros.
  */
 
