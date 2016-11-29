@@ -78,7 +78,7 @@ public:
 
     /** Pretty print statement */
     virtual void print(std::ostream &os, int tabpos) const {
-        for (int i = 0; i < tabpos; ++i) os << '\t';;
+        for (int i = 0; i < tabpos; ++i) os << '\t';
         os << "CREATE " << getRelation().getName() << "(";
         os << getRelation().getArg(0); 
         for(size_t i=1;i<getRelation().getArity();i++) { 
@@ -110,7 +110,7 @@ public:
 
     /** Pretty print statement */
     virtual void print(std::ostream &os, int tabpos) const {
-        for (int i = 0; i < tabpos; ++i) os << '\t';;
+        for (int i = 0; i < tabpos; ++i) os << '\t';
         os << "INSERT (" << join(values, ",", print_deref<std::unique_ptr<const RamValue>>()) << ") INTO " << getRelation().getName();
     };
 
@@ -133,7 +133,7 @@ public:
 
     /** Pretty print statement */
     virtual void print(std::ostream &os, int tabpos) const {
-        for (int i = 0; i < tabpos; ++i) os << '\t';;
+        for (int i = 0; i < tabpos; ++i) os << '\t';
         os << "LOAD DATA FOR " << getRelation().getName();
     };
 
@@ -153,7 +153,7 @@ public:
 
     /** Pretty print statement */
     virtual void print(std::ostream &os, int tabpos) const {
-        for (int i = 0; i < tabpos; ++i) os << '\t';;
+        for (int i = 0; i < tabpos; ++i) os << '\t';
         os << "STORE DATA FOR " << getRelation().getName();
     };
 
@@ -172,7 +172,7 @@ public:
         : RamRelationStatement(RN_Clear, rel) {}
 
     virtual void print(std::ostream &os, int tabpos) const {
-        for (int i = 0; i < tabpos; ++i) os << '\t';;
+        for (int i = 0; i < tabpos; ++i) os << '\t';
         os << "CLEAR ";
         os << getRelation().getName();
     }
@@ -353,16 +353,18 @@ public:
 
     /* print parallel statement */ 
     virtual void print(std::ostream &os, int tabpos) const {
-        auto tabs = times('\t', tabpos);
-        os << tabs << "PARALLEL\n";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "PARALLEL\n";
         for(uint32_t i=0;i<stmts.size();i++) { 
            stmts[i]->print(os, tabpos+1);
            if (i < stmts.size() -1 ) {
-              os << "\n" << tabs << " ||";
+              os << "\n";
+              for (int i = 0; i < tabpos; ++i) os << '\t';
+              os << " ||";
            }
            os << "\n";
         }
-        os << tabs << "END PARALLEL";
+        os << "END PARALLEL";
     } 
 
     /** Obtains a list of child nodes */
@@ -390,10 +392,12 @@ public:
     }
 
     virtual void print(std::ostream &os, int tabpos) const {
-        auto tabs = times('\t', tabpos);
-        os << tabs << "LOOP\n";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "LOOP\n";
         body->print(os, tabpos+1);
-        os << "\n" << tabs << "END LOOP";
+        os << "\n";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "END LOOP";
     } 
 
     /** Obtains a list of child nodes */
@@ -448,10 +452,12 @@ public:
     }
 
     virtual void print(std::ostream& os, int tabpos) const {
-        auto tabs = times('\t', tabpos);
-        os << tabs << "START_TIMER \"" << label << "\"\n";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "START_TIMER \"" << label << "\"\n";
         nested->print(os,tabpos + 1);
-        os << "\n" << tabs << "END_TIMER \"" << label << "\"";
+        os << "\n";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "END_TIMER \"" << label << "\"";
     }
 
     /** Obtains a list of child nodes */
