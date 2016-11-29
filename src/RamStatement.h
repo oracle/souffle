@@ -78,7 +78,7 @@ public:
 
     /** Pretty print statement */
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos);
+        for (int i = 0; i < tabpos; ++i) os << '\t';;
         os << "CREATE " << getRelation().getName() << "(";
         os << getRelation().getArg(0); 
         for(size_t i=1;i<getRelation().getArity();i++) { 
@@ -110,7 +110,7 @@ public:
 
     /** Pretty print statement */
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos);
+        for (int i = 0; i < tabpos; ++i) os << '\t';;
         os << "INSERT (" << join(values, ",", print_deref<std::unique_ptr<const RamValue>>()) << ") INTO " << getRelation().getName();
     };
 
@@ -133,7 +133,7 @@ public:
 
     /** Pretty print statement */
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos);
+        for (int i = 0; i < tabpos; ++i) os << '\t';;
         os << "LOAD DATA FOR " << getRelation().getName();
     };
 
@@ -153,7 +153,7 @@ public:
 
     /** Pretty print statement */
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos);
+        for (int i = 0; i < tabpos; ++i) os << '\t';;
         os << "STORE DATA FOR " << getRelation().getName();
     };
 
@@ -172,7 +172,7 @@ public:
         : RamRelationStatement(RN_Clear, rel) {}
 
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos);
+        for (int i = 0; i < tabpos; ++i) os << '\t';;
         os << "CLEAR ";
         os << getRelation().getName();
     }
@@ -187,7 +187,8 @@ public:
         : RamRelationStatement(RN_Drop, rel) {}
 
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos) << "DROP " << getRelation().getName();
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "DROP " << getRelation().getName();
     }
 };
 
@@ -203,7 +204,8 @@ public:
     }
 
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos) << "LOGSIZE " << getRelation().getName() << " TEXT ";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "LOGSIZE " << getRelation().getName() << " TEXT ";
         os << "\"" << txt << "\"";
     } 
 };
@@ -220,7 +222,8 @@ public:
     }
 
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos) << "PRINTSIZE " << getRelation().getName() << " TEXT ";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "PRINTSIZE " << getRelation().getName() << " TEXT ";
         os << "\"" << txt << "\"";
     } 
 };
@@ -248,7 +251,8 @@ public:
     }
 
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos) << "INSERT \n";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "INSERT \n";
         operation->print(os, tabpos+1);
     }
 
@@ -272,7 +276,8 @@ public:
     const RamRelationIdentifier& getTargetRelation() const { return dest; }
 
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos) << "MERGE ";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "MERGE ";
         os << src.getName() << " INTO " << dest.getName();
     }
 
@@ -411,7 +416,8 @@ public:
     }
 
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos) << "EXIT ";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "EXIT ";
         condition->print(os); 
     } 
 
