@@ -165,6 +165,16 @@ public:
         return out;
     }
 
+    /* Allow the lock to be accessed externally, useful for iteration over the raw symbols. */
+    Lock & obtainLock() const {
+        return access;
+    }
+
+    /* Get a vector of the raw symbols as c-strings, note that it is probably necessary to obtain the lock before using this method. */
+    const std::vector<char*> & rawSymbols() const {
+        return numToStr;
+    }
+
 };
 
 }
