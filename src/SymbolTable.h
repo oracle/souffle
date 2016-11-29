@@ -129,7 +129,7 @@ public:
     }
 
     /* return size */ 
-    size_t size() const {
+    const size_t size() const {
         return numToStr.size();
     }
 
