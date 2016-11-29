@@ -63,4 +63,3 @@ for EXTENSION in $RELEVANT_EXTENSIONS; do
         echo
     done
 done
-

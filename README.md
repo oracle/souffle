@@ -81,11 +81,13 @@ See [LICENSE](https://github.com/souffle-lang/souffle/blob/master/licenses/SOUFF
 ## For souffle developers
 
 ### Multiple builds
+
 Souffle supports out-of-source builds, to enable multipe builds using e.g. different compilers or debug options based on the same source base. 
 
 The configure script uses the compiler specified by an `CXX` environment variable as the compiler to be used. Furthermore, the environment variable `BUILD_TYPE` may be set to "Debug" to create a debug build, instead of the default release build.
 
 The following commands create a gcc 5 debug, a gcc 5 release, and a clang build:
+
 ```
 # basic setup
 git clone git://github.com/souffle-lang/souffle.git souffle
@@ -115,34 +117,37 @@ cd ..
 ```
 
 ### Parallel Testing
+
 The unit tests in the source directory can be executed in parallel using the `-j` option of make. For instance,
+
 ```
 cd src
 make -j4 check
 ```
+
 will run the unit tests of the current build directory using 4 threads.
 
 By exporting the following environment variable
+
 ```
 export TESTSUITEFLAGS=-j4
 ```
+
 the integration test script will also process tests in parallel.
 
 
 ### Selective Testing
+
 To run an individual integration test, the script `tests/testsuite` can be used. The command
+
 ```
 testsuite -l
 ```
+
 lists all the test cases, with their associated number. To run an individual test,
+
 ```
 testsuite <case_nr>
 ```
+
 can be used.
-
-
-
-
-
-
-
