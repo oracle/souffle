@@ -165,10 +165,6 @@ public:
         return out;
     }
 
-    const std::vector<char*> & rawSymbols() const {
-        return numToStr;
-    }
-
 };
 
 }
