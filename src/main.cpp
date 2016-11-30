@@ -309,7 +309,7 @@ int main(int argc, char **argv)
         fail("error: failed to determine souffle executable path");
 
     /* Create the pipe to establish a communication between cpp and souffle */
-    std::string cmd = ::findTool("souffle-wave", programName, ".");
+    std::string cmd = ::findTool("souffle-mcpp", programName, ".");
 
     if (!isExecutable(cmd))
         fail("error: failed to locate souffle preprocessor");
