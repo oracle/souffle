@@ -2,8 +2,8 @@
 
 #pragma MCPP preprocess
 
-#include    "system.H"
-#include    "internal.H"
+#include    "mcpp-system.H"
+#include    "mcpp-internal.H"
 
 #pragma MCPP put_defines
 

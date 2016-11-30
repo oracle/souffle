@@ -38,8 +38,8 @@
 #if PREPROCESSED
 #include    "mcpp.H"
 #else
-#include    "system.H"
-#include    "internal.H"
+#include    "mcpp-system.H"
+#include    "mcpp-internal.H"
 #endif
 
 /*

@@ -322,6 +322,52 @@ mcpp_AC_C_PREDEF( [COMPILER], [OLD])
 
 fi
 
+dnl Check which header file CPP includes,
+dnl relative to CURRENT or SOURCE directory.
+
+# AC_C_INCLUDE_PREF( CURRENT | SOURCE | NEXT)
+# Check the include preference ('NEXT' means CURRENT & SOURCE)
+AC_DEFUN([AC_C_INCLUDE_PREF], [
+    AC_EGREP_CPP( $1, [
+#include "../next/header.h"
+],
+        [ac_cv_c_include_pref=$1],
+    )
+])
+
+AC_CACHE_CHECK( include preference - relative to current or source directory,
+    ac_cv_c_include_pref,
+    mkdir mcpp-tmp
+    cd mcpp-tmp
+    mkdir dir ../next ../next/dir
+    echo '#include "dir/what.h"'    > ../next/header.h
+    echo '#include "next.h"'        >> ../next/header.h
+    echo 'CURRENT'  > dir/what.h
+    echo 'SOURCE'   > ../next/dir/what.h
+    echo 'NEXT'     > ../next/next.h
+    AC_C_INCLUDE_PREF( [SOURCE])
+    if test x$ac_cv_c_include_pref != xSOURCE; then
+        AC_C_INCLUDE_PREF( [CURRENT])
+        if test x$ac_cv_c_include_pref = xCURRENT; then
+            AC_C_INCLUDE_PREF( [NEXT])
+            if test x$ac_cv_c_include_pref = xNEXT; then
+                [ac_cv_c_include_pref="(CURRENT & SOURCE)"]
+            fi
+        else
+            AC_MSG_ERROR( Failed to include header file.)
+        fi
+    fi
+    cd ..
+    rm -rf mcpp-tmp next
+    if test $ac_c_define_HOST_SYSTEM = SYS_CYGWIN \
+            || test $ac_c_define_HOST_SYSTEM = SYS_MINGW; then
+        sleep 1         # wait for cleanup
+    fi
+)
+AC_DEFINE_UNQUOTED( [SEARCH_INIT], $ac_cv_c_include_pref,
+    [Define include preference.])
+
+
 # END MCPP CPU CHECK
 
 

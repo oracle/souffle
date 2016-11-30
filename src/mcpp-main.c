@@ -38,8 +38,8 @@
 #if PREPROCESSED                /* Use "pre-preprocessed" header    */
 #include    "mcpp.H"
 #else
-#include    "system.H"
-#include    "internal.H"
+#include    "mcpp-system.H"
+#include    "mcpp-internal.H"
 #endif
 
     /* Function pointer to expand_macro() functions.    */

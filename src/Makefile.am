@@ -9,14 +9,14 @@ SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 #bin_PROGRAMS = souffle
 bin_PROGRAMS = souffle souffle-mcpp
 
- nodist_souffle_mcpp_SOURCES = $(BUILT_SOURCES)
+nodist_souffle_mcpp_SOURCES = $(BUILT_SOURCES)
  
-souffle_mcpp_SOURCES = system.H configed.H internal.H mcpp-main.c directive.c eval.c \
- 					   expand.c mbchar.c support.c system.c mcpp_out.h
+souffle_mcpp_SOURCES = mcpp-system.H mcpp-configed.H mcpp-internal.H mcpp-main.c mcpp-directive.c mcpp-eval.c \
+ 					   mcpp-expand.c mcpp-mbchar.c mcpp-support.c mcpp-system.c mcpp_out.h
  
-mcpp-main.o directive.o eval.o expand.o mbohar.o support.o system.o	:	\
- 	system.H internal.H mcpp_out.h
- system.H	: configed.H
+mcpp-main.o mcpp-directive.o mcpp-eval.o mcpp-expand.o mcpp-mbchar.o mcpp-support.o mcpp-system.o	:	\
+ 	mcpp-system.H mcpp-internal.H mcpp_out.h
+mcpp-system.H	: mcpp-configed.H
  
 
 # ... which should no go to distribution

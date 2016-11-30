@@ -42,9 +42,9 @@
 #define SYSTEM_H
 
 #if     HAVE_CONFIG_H
-#include    "configed.H"
+#include    "mcpp-configed.H"
 #else
-#include    "noconfig.H"
+#include    "mcpp-noconfig.H"
 #endif
 
 /* Some system has a wrong definition of UCHAR_MAX.  See cpp-test.html#5.1.3 */
