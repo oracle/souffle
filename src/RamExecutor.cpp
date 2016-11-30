@@ -625,7 +625,7 @@ namespace {
                   }
                   PrimData* pd = data->getTuples(name);
                   if (pd == NULL || pd->data.size() == 0) {
-                     std::cout << "relation " << name <<" is empty\n"; 
+                     std::cout << "relation " << name <<" is empty\n";
                      return true;
                   }
 
@@ -926,7 +926,7 @@ namespace {
 				res << ">";
 			}
         }
-        res << ">" << "*";
+        res << ">";
         return res.str();
     }
 
@@ -1885,6 +1885,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 
     // print relation definitions
     std::string initCons; // initialization of constructor
+    std::string deleteForNew; // matching deletes for each new, used in the destructor
     std::string registerRel; // registration of relations
     int relCtr=0;
     visitDepthFirst(stmt, [&](const RamCreate& create) {
@@ -1897,7 +1898,12 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 
         // defining table
         os << "// -- Table: " << raw_name << "\n";
-        os << type << " rel_" << name << ";\n";
+        os << type << "*" << " rel_" << name << ";\n";
+        if (initCons.size() > 0) {
+            initCons += ",\n";
+        }
+        initCons += "rel_" + name + "(new " + type + "())";
+        deleteForNew += "delete rel_" + name + ";\n";
         bool isTemp = (name.find("_temp1_")==0) || (name.find("_temp2_")==0);
         if ((rel.isInput() || rel.isComputed() || getConfig().isDebug()) && !isTemp) {
            os << "souffle::RelationWrapper<";
@@ -1927,10 +1933,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
            tupleType += "}";
            tupleName += "}";
 
-           if (initCons.size() > 0) {
-               initCons += ",\n";
-           }
-           initCons += "wrapper_" + name + "(" + "*" + "rel_" + name + ",symTable,\"" + raw_name + "\"," + tupleType + "," + tupleName + ")";
+           initCons += ",\nwrapper_" + name + "(" + "*" + "rel_" + name + ",symTable,\"" + raw_name + "\"," + tupleType + "," + tupleName + ")";
            registerRel += "addRelation(\"" + raw_name + "\",&wrapper_" + name + "," + std::to_string(rel.isInput()) + "," + std::to_string(rel.isOutput()) + ");\n";
         }
     });
@@ -1964,6 +1967,12 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         os << "\n";
     }
 
+    os << "}\n";
+
+    // -- destructor --
+
+    os << "~" << classname << "() {\n";
+    os << deleteForNew;
     os << "}\n";
 
 
