@@ -40,3 +40,11 @@ debian/changelog
 souffle-*.*.*
 
 doc
+
+.idea/
+CMakeCache.txt
+CMakeFiles/
+cmake-build-debug/
+cmake_install.cmake
+cpp_prof_souffle
+cpp_prof_souffle.cbp

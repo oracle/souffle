@@ -28,9 +28,9 @@ private:
 	int rel_id = 0;
 
 public:
-	ProgramRun run;
+	std::shared_ptr<ProgramRun> run;
 
-	Reader(std::string arg, ProgramRun run, bool vFlag, bool online) :
+	Reader(std::string arg, std::shared_ptr<ProgramRun> run, bool vFlag, bool online) :
             run(run), file(std::ifstream(arg)), online(online),
             relation_map(std::unordered_map<std::string,std::shared_ptr<Relation>>()),
             runtime(-1.0){ }

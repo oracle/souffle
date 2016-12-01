@@ -73,8 +73,8 @@ void Reader::process(const std::vector<std::string>& data) {
         }
     }
 
-    run.SetRuntime(this->runtime);
-    run.setRelation_map(this->relation_map);
+    run->SetRuntime(this->runtime);
+    run->setRelation_map(this->relation_map);
 }
 
 

@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <string>
 #include "Relation.hpp"
+#include "StringUtils.hpp"
+
 
 class ProgramRun {
 private:
@@ -22,11 +24,31 @@ public:
 		this->relation_map = relation_map;
 	}
 
-//    inline void update() {
-//        //TODO: is (double) ok?
-//        tot_rec_tup = (double)getTotNumRecTuples();
-//        tot_copy_time = getTotCopyTime();
-//    };
+    inline void update() {
+        tot_rec_tup = (double)getTotNumRecTuples();
+        tot_copy_time = getTotCopyTime();
+    };
 
     std::string toString();
+
+	inline std::unordered_map<std::string, std::shared_ptr<Relation>>& getRelation_map() { return relation_map; }
+
+
+    std::string getRuntime() {
+        if (runtime == -1.0) {
+            return "--";
+        }
+        return formatTime(runtime);
+    }
+
+    long getTotNumTuples();
+    long getTotNumRecTuples();
+    double getTotCopyTime();
+    double getTotTime();
+    Relation getRelation(std::string name);
+
+    inline std::string formatTime(double runtime) {return Tools::formatTime(runtime);}
+    inline std::string formatNum(int precision, long number) {return Tools::formatNum(precision, number);}
+    inline std::vector<std::vector<std::string>> formatTable(Table table, int precision) {return Tools::formatTable(table, precision);}
+
 };

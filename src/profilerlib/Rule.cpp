@@ -1,5 +1,3 @@
-
-#include <iomanip>
 #include "Rule.hpp"
 
 
