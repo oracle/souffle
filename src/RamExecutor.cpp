@@ -1125,7 +1125,7 @@ namespace {
             out << "{ auto lease = getOutputLock().acquire(); \n";
             out << "profile << R\"(" << print.getLabel() << ")\" <<  ";
             out << getRelationName(print.getRelation());
-            out << ".size() << \"\\n\";\n" << "}";
+            out << "->" << "size() << \"\\n\";\n" << "}";
         }
 
         // -- control flow statements --
@@ -1218,7 +1218,7 @@ namespace {
                     out << "pfor(auto it = part.begin(); it<part.end(); ++it) \n";
                     out << "for(const auto& env0 : *it) {\n";
                 } else {
-                    out << "for(const auto& env" << level << " : " << relName << ") {\n";
+                    out << "for(const auto& env" << level << " : " << "*" << relName << ") {\n";
                 }
                 visitSearch(scan, out);
                 out << "}\n";
@@ -1323,7 +1323,7 @@ namespace {
             if (keys == 0) {
 
                 // no index => use full relation
-                out << "auto& range = " << relName << ";\n";
+                out << "auto& range = " << "*" << relName << ";\n";
 
             } else {
 
@@ -2047,11 +2047,11 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     visitDepthFirst(stmt, [&](const RamLoad& load) {
         // get some table details
         os << "rel_" <<  CPPIdentifierMap::getIdentifier(load.getRelation().getName());
-        os << ".loadCSV(dirname + \"/";
+        os << "->" << "loadCSV(dirname + \"/";
         os << load.getFileName() << "\"";
-        os << ",symTable";
+        os << ", symTable";
         for(size_t i=0;i<load.getRelation().getArity();i++) {
-            os << (load.getRelation().getSymbolMask().isSymbol(i) ? ",1" : ",0");
+            os << (load.getRelation().getSymbolMask().isSymbol(i) ? ", 1" : ", 0");
         }
         os << ");\n";
     });
@@ -2068,7 +2068,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 
 		// add format parameters
 		for(size_t i=0; i<arity; i++) {
-			os << ((mask.isSymbol(i)) ? ",1" : ",0");
+			os << ((mask.isSymbol(i)) ? ", 1" : ", 0");
 		}
 
 		os << ");\n";
