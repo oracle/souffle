@@ -50,8 +50,6 @@ namespace ram {
 template<unsigned arity, typename ... Indices>
 class Relation;
 
-
-
 /**
  * A namespace enclosing template-meta-programming utilities for handling
  * parameter lists for templates.
@@ -1405,7 +1403,6 @@ namespace iterator_utils {
 
 } // end namespace iterator utils
 
-
 /**
  * A base class for partially specialized relation templates following below.
  * This base class provides generic interfaces and adapters forwarding requests
@@ -1656,7 +1653,6 @@ private:
     }
 
 };
-
 
 /**
  * The most generic implementation of a relation supporting arbitrary arities > 0 and
@@ -2016,7 +2012,6 @@ class Relation<5,First,Second,Rest...> : public DirectIndexedRelation<5,First,Se
 template<typename First, typename Second, typename ... Rest>
 class Relation<6,First,Second,Rest...> : public DirectIndexedRelation<6,First,Second,Rest...> {};
 
-
 /**
  * A specialization of a relation for which no indices are required.
  * Such a relation is mapped to a relation is mapped to a single-index relation
@@ -2030,8 +2025,25 @@ class Relation<arity> : public Relation<arity, typename index_utils::get_full_in
     public:
 
         // TODO
+
         Relation() {}
-        template<typename Derived> Relation(Relation<arity, Derived>*&) { }
+
+        Relation(Relation*&) {}
+
+        template<typename Derived>
+        Relation(Relation<arity, Derived>*&) {}
+
+        template<typename Derived>
+        Relation(RelationBase<arity, Derived>*&) {}
+
+        template<typename ... Indices>
+        Relation(Relation<arity, Indices...>*&) {}
+
+        template<typename Primary, typename ... Indices>
+        Relation(DirectIndexedRelation<arity, Primary, Indices...>*&) {}
+
+        template<typename First, typename Second, typename ... Rest>
+        Relation(Relation<arity,First,Second,Rest...>*&) {}
 
 };
 
@@ -2188,7 +2200,6 @@ public:
 
 };
 
-
 /**
  * A specialization of the relation requesting a single index.
  */
@@ -2225,9 +2236,6 @@ public:
     using base::contains;
 
     typedef typename table_t::operation_hints operation_context;
-
-    Relation() {}
-    Relation(Relation<arity>*&) {}
 
     // --- most general implementation ---
 
@@ -2334,5 +2342,6 @@ public:
 };
 
 } // end of namespace ram
+
 } // end of namespace souffle
 
