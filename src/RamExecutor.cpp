@@ -701,6 +701,13 @@ namespace {
                 return true;
             }
 
+            bool visitSwap(const RamSwap& swap) {
+                std::swap(
+                    env.getRelation(swap.getFirstRelation()),
+                    env.getRelation(swap.getSecondRelation())
+                );
+                return true;
+            }
 
             // -- safety net --
 
@@ -1167,6 +1174,26 @@ namespace {
 
         void visitLoop(const RamLoop& loop, std::ostream& out) {
             out << "for(;;) {\n" << print(loop.getBody()) << "}\n";
+        }
+
+        void visitSwap(const RamSwap& swap, std::ostream& out) {
+
+            // TODO
+            const RamRelationIdentifier& firstRelation = swap.getFirstRelation();
+            const RamRelationIdentifier& secondRelation = swap.getSecondRelation();
+            std::string zerothName = "rel__temp0";
+            std::string firstName = getRelationName(firstRelation);
+            std::string secondName = getRelationName(secondRelation);
+            std::string firstType = getRelationType(firstRelation.getArity(), indices[firstRelation]);
+            std::string secondType = getRelationType(secondRelation.getArity(), indices[secondRelation]);
+            std::string typeOfCast = "static_pointer";
+
+            out << "{\nauto "
+            << zerothName << " = " << firstName << ";\n"
+            << firstName << " = std::" << typeOfCast << "_cast<" << firstType << ">("<< secondName << ");\n"
+            << secondName << " = std::" << typeOfCast << "_cast<" << secondType << ">("<< zerothName << ");\n"
+            << "}\n";
+
         }
 
         void visitExit(const RamExit& exit, std::ostream& out) {

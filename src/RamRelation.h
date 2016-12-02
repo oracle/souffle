@@ -228,7 +228,21 @@ public:
     ~RamRelation() { }
 
     RamRelation& operator=(const RamRelation& other) = delete;
-    RamRelation& operator=(RamRelation&& other) = delete;
+
+    RamRelation& operator=(RamRelation&& other) {
+        pthread_mutex_init(&lock, NULL);
+
+        id = other.id;
+        num_tuples = other.num_tuples;
+        tail = other.tail;
+        totalIndex = other.totalIndex;
+
+        // take over ownership
+        head.swap(other.head);
+        indices.swap(other.indices);
+
+        return *this;
+    }
 
     /** Obtains the identifier of this relation */
     const RamRelationIdentifier& getID() const {

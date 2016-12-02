@@ -407,6 +407,35 @@ public:
     }
 };
 
+/** Swap operation for temporary relations. */
+class RamSwap : public RamStatement {
+
+    RamRelationIdentifier first;
+    RamRelationIdentifier second;
+
+public:
+
+    RamSwap(const RamRelationIdentifier& f, const RamRelationIdentifier& s)
+        : RamStatement(RN_Swap), first(f), second(s) {
+        assert(first.getArity() == second.getArity());
+    }
+
+    ~RamSwap() { }
+
+    virtual void print(std::ostream &os, int tabpos) const {
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "SWAP (" << first.getName() << ", " << second.getName() << ")";
+    };
+
+    const RamRelationIdentifier& getFirstRelation() const { return first; }
+    const RamRelationIdentifier& getSecondRelation() const { return second; }
+
+    /** Obtains a list of child nodes */
+    virtual std::vector<const RamNode*> getChildNodes() const {
+        return std::vector<const RamNode*>(); // no child nodes
+    }
+
+};
 
 /** exit the body if condition holds */ 
 class RamExit: public RamStatement {

@@ -2025,7 +2025,16 @@ class Relation<6,First,Second,Rest...> : public DirectIndexedRelation<6,First,Se
  * TODO: consider using a hash table since no range or equality queries are needed
  */
 template<unsigned arity>
-class Relation<arity> : public Relation<arity, typename index_utils::get_full_index<arity>::type> {};
+class Relation<arity> : public Relation<arity, typename index_utils::get_full_index<arity>::type> {
+
+    public:
+
+        // TODO
+        Relation() {}
+        template<typename Derived> Relation(Relation<arity, Derived>*&) { }
+        template<typename Derived> Relation(Relation<arity, Derived>&) { }
+
+};
 
 /**
  * A specialization of a 0-ary relation.
@@ -2217,6 +2226,11 @@ public:
     using base::contains;
 
     typedef typename table_t::operation_hints operation_context;
+
+    // TODO
+    Relation() {}
+    Relation(Relation<arity>*&) {}
+    Relation(Relation<arity>&) {}
 
     // --- most general implementation ---
 
