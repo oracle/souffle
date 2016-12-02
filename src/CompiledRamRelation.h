@@ -2032,7 +2032,6 @@ class Relation<arity> : public Relation<arity, typename index_utils::get_full_in
         // TODO
         Relation() {}
         template<typename Derived> Relation(Relation<arity, Derived>*&) { }
-        template<typename Derived> Relation(Relation<arity, Derived>&) { }
 
 };
 
@@ -2227,10 +2226,8 @@ public:
 
     typedef typename table_t::operation_hints operation_context;
 
-    // TODO
     Relation() {}
     Relation(Relation<arity>*&) {}
-    Relation(Relation<arity>&) {}
 
     // --- most general implementation ---
 

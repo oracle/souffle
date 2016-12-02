@@ -1186,12 +1186,12 @@ namespace {
             std::string secondName = getRelationName(secondRelation);
             std::string firstType = getRelationType(firstRelation.getArity(), indices[firstRelation]);
             std::string secondType = getRelationType(secondRelation.getArity(), indices[secondRelation]);
-            std::string typeOfCast = "static_pointer";
+            std::string typeOfCast = "static";
 
             out << "{\nauto "
             << zerothName << " = " << firstName << ";\n"
-            << firstName << " = std::" << typeOfCast << "_cast<" << firstType << ">("<< secondName << ");\n"
-            << secondName << " = std::" << typeOfCast << "_cast<" << secondType << ">("<< zerothName << ");\n"
+            << firstName << " = " << typeOfCast << "_cast<" << firstType << "*>("<< secondName << ");\n"
+            << secondName << " = " << typeOfCast << "_cast<" << secondType << "*>("<< zerothName << ");\n"
             << "}\n";
 
         }
