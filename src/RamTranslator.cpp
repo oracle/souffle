@@ -766,7 +766,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
 
     // initialize sections
     std::unique_ptr<RamStatement> preamble;
-    std::unique_ptr<RamParallel> updateTable1(new RamParallel());
+    std::unique_ptr<RamSequence> updateTable1(new RamSequence());
     std::unique_ptr<RamStatement> postamble;
 
 
@@ -794,7 +794,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
         appendStmt(updateRelTable1, std::unique_ptr<RamStatement>(new RamSequence(
             std::unique_ptr<RamStatement>(new RamMerge(rrel[rel], temp2[rel])),
             std::unique_ptr<RamStatement>(new RamSwap(temp1[rel], temp2[rel])),
-            std::unique_ptr<RamStatement>(new RamClear(temp1[rel])))
+            std::unique_ptr<RamStatement>(new RamClear(temp2[rel])))
         ));
 
         /* measure update time for each relation */

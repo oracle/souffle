@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -222,10 +223,10 @@ namespace {
 
                 // obtain index
                 auto idx = ne.getIndex();
-                if (!idx) {
+//                if (!idx) {			// TODO: remove caching of indexes if acceptable performance wise or implement new mechanism
                     idx = rel.getIndex(ne.getKey());
                     ne.setIndex(idx);
-                }
+//                }
 
                 auto range = idx->lowerUpperBound(low,high);
                 return range.first == range.second;     // if there are none => done
@@ -349,10 +350,10 @@ namespace {
 
                 // obtain index
                 auto idx = scan.getIndex();
-                if (!idx) {
+//                if (!idx) { // TODO: remove caching of indexes if acceptable performance wise or implement new mechanism
                     idx = rel.getIndex(scan.getRangeQueryColumns());
                     scan.setIndex(idx);
-                }
+//                }
 
                 // get iterator range
                 auto range = idx->lowerUpperBound(low,hig);
@@ -425,10 +426,10 @@ namespace {
 
                 // obtain index
                 auto idx = aggregate.getIndex();
-                if (!idx) {
+//                if (!idx) { // TODO: remove caching of indexes if acceptable performance wise or implement new mechanism
                     idx = rel.getIndex(aggregate.getRangeQueryColumns());
                     aggregate.setIndex(idx);
-                }
+//                }
 
                 // get iterator range
                 auto range = idx->lowerUpperBound(low,hig);
@@ -543,7 +544,14 @@ namespace {
             // -- Statements -----------------------------
 
             bool visitSequence(const RamSequence& seq) {
-                return visit(seq.getFirst()) && visit(seq.getSecond());
+
+                // process all statements in sequence
+                for(const auto& cur : seq.getStatements()) {
+                	if (!visit(cur)) return false;
+                }
+
+                // all processed successfully
+                return true;
             }
 
             bool visitParallel(const RamParallel& parallel) {
@@ -660,7 +668,7 @@ namespace {
 
                 auto& rel = env.getRelation(store.getRelation());
                 if (config.getOutputDir() == "-") {
-                    std::cout << "---------------\n" << rel.getName() << "\n===============\n";
+                    std::cout << "---------------\n" << store.getRelation() << "\n===============\n";
                     rel.store(std::cout, env.getSymbolTable(), store.getRelation().getSymbolMask());
                     std::cout << "===============\n";
                     return true;
@@ -1140,8 +1148,9 @@ namespace {
         // -- control flow statements --
 
         void visitSequence(const RamSequence& seq, std::ostream& out) {
-            out << print(seq.getFirst());
-            out << print(seq.getSecond());
+        	for(const auto& cur : seq.getStatements()) {
+        		out << print(cur);
+        	}
         }
 
         void visitParallel(const RamParallel& parallel, std::ostream& out) {
