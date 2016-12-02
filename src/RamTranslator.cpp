@@ -34,16 +34,11 @@ namespace {
     SymbolMask getSymbolMask(const AstRelation& rel, const TypeEnvironment &typeEnv) {
         auto arity = rel.getArity();
         SymbolMask res(arity);
-
         for(size_t i = 0; i<arity; i++) {
             res.setSymbol(i, isSymbolType(typeEnv.getType(rel.getAttribute(i)->getTypeName())));
         }
-
         return res;
     }
-
-
-
 
     /**
      * Converts the given relation identifier into a relation name.

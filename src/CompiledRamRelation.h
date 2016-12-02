@@ -1416,7 +1416,10 @@ namespace iterator_utils {
  * @tparam Derived .. the type of the derived relation
  */
 template<unsigned arity, typename Derived>
-struct RelationBase {
+class RelationBase {
+
+public:
+
     using SymbolTable = souffle::SymbolTable; // XXX pending namespace cleanup
 
 	// the type of tuple maintained by this relation

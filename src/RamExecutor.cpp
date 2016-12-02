@@ -970,6 +970,8 @@ namespace {
 
         const RamExecutorConfig& config;
 
+        const IndexMap& indices;
+
         std::function<void(std::ostream&,const RamNode*)> rec;
 
         struct printer {
@@ -985,8 +987,8 @@ namespace {
 
     public:
 
-        Printer(const RamExecutorConfig& config, const IndexMap&)
-            : config(config) {
+        Printer(const RamExecutorConfig& config, const IndexMap& indices)
+            : config(config), indices(indices) {
             rec = [&](std::ostream& out, const RamNode* node) {
               this->visit(*node, out);
             };

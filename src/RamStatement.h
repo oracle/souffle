@@ -364,6 +364,7 @@ public:
            }
            os << "\n";
         }
+        for (int i = 0; i < tabpos; ++i) os << '\t';
         os << "END PARALLEL";
     } 
 
