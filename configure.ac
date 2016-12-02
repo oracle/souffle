@@ -92,6 +92,7 @@ AC_ARG_ENABLE(
   [unset SOUFFLE_PACKAGING]
 )
 
+AC_DEFINE( [COMPILER], [INDEPENDENT], [Define the target compiler.])
 # Get the name of the distribution
 if test -n "$SOUFFLE_PACKAGING"; then
   case $host_os in
