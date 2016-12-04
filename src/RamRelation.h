@@ -191,8 +191,8 @@ class RamRelation {
     };
 
 
-    /** The name / arity of this relation */
-    RamRelationIdentifier id;
+    /** The arity of this relation */
+    unsigned arity;
 
     size_t num_tuples;
 
@@ -210,14 +210,14 @@ public:
     using SymbolTable = souffle::SymbolTable; // XXX pending namespace cleanup
 
     RamRelation(const RamRelationIdentifier& id)
-        : id(id), num_tuples(0), head(std::unique_ptr<Block>(new Block())), tail(head.get()), totalIndex(nullptr) {
+        : arity(id.getArity()), num_tuples(0), head(std::unique_ptr<Block>(new Block())), tail(head.get()), totalIndex(nullptr) {
         pthread_mutex_init(&lock, NULL);
     }
 
     RamRelation(const RamRelation& other) = delete;
 
     RamRelation(RamRelation&& other)
-        : id(other.id), num_tuples(other.num_tuples), tail(other.tail), totalIndex(other.totalIndex) {
+        : arity(other.arity), num_tuples(other.num_tuples), tail(other.tail), totalIndex(other.totalIndex) {
         pthread_mutex_init(&lock, NULL);
 
         // take over ownership
@@ -230,9 +230,8 @@ public:
     RamRelation& operator=(const RamRelation& other) = delete;
 
     RamRelation& operator=(RamRelation&& other) {
-        pthread_mutex_init(&lock, NULL);
+        ASSERT(arity == other.arity);
 
-        id = other.id;
         num_tuples = other.num_tuples;
         tail = other.tail;
         totalIndex = other.totalIndex;
@@ -244,19 +243,9 @@ public:
         return *this;
     }
 
-    /** Obtains the identifier of this relation */
-    const RamRelationIdentifier& getID() const {
-        return id;
-    }
-
-    /** get name of relation */
-    const std::string& getName() const {
-        return id.getName();
-    }
-
     /** get arity of relation */
     size_t getArity() const {
-        return id.getArity();
+        return arity;
     }
 
     /** determines whether this relation is empty */
