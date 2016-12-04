@@ -1188,6 +1188,7 @@ namespace {
         void visitSwap(const RamSwap& swap, std::ostream& out) {
 
             // TODO
+            /*
             const RamRelationIdentifier& firstRelation = swap.getFirstRelation();
             const RamRelationIdentifier& secondRelation = swap.getSecondRelation();
             std::string zerothName = "rel__temp0";
@@ -1202,6 +1203,7 @@ namespace {
             << firstName << " = " << typeOfCast << "_cast<" << firstType << "*>("<< secondName << ");\n"
             << secondName << " = " << typeOfCast << "_cast<" << secondType << "*>("<< zerothName << ");\n"
             << "}\n";
+            */
 
         }
 

@@ -2020,32 +2020,7 @@ class Relation<6,First,Second,Rest...> : public DirectIndexedRelation<6,First,Se
  * TODO: consider using a hash table since no range or equality queries are needed
  */
 template<unsigned arity>
-class Relation<arity> : public Relation<arity, typename index_utils::get_full_index<arity>::type> {
-
-    public:
-
-        // TODO
-
-        Relation() {}
-
-        Relation(Relation*&) {}
-
-        template<typename Derived>
-        Relation(Relation<arity, Derived>*&) {}
-
-        template<typename Derived>
-        Relation(RelationBase<arity, Derived>*&) {}
-
-        template<typename ... Indices>
-        Relation(Relation<arity, Indices...>*&) {}
-
-        template<typename Primary, typename ... Indices>
-        Relation(DirectIndexedRelation<arity, Primary, Indices...>*&) {}
-
-        template<typename First, typename Second, typename ... Rest>
-        Relation(Relation<arity,First,Second,Rest...>*&) {}
-
-};
+class Relation<arity> : public Relation<arity, typename index_utils::get_full_index<arity>::type> { }
 
 /**
  * A specialization of a 0-ary relation.
