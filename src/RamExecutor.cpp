@@ -223,10 +223,10 @@ namespace {
 
                 // obtain index
                 auto idx = ne.getIndex();
-//                if (!idx) {			// TODO: remove caching of indexes if acceptable performance wise or implement new mechanism
+                if (!idx) {
                     idx = rel.getIndex(ne.getKey());
                     ne.setIndex(idx);
-//                }
+                }
 
                 auto range = idx->lowerUpperBound(low,high);
                 return range.first == range.second;     // if there are none => done
@@ -350,10 +350,10 @@ namespace {
 
                 // obtain index
                 auto idx = scan.getIndex();
-//                if (!idx) { // TODO: remove caching of indexes if acceptable performance wise or implement new mechanism
+                if (!idx) {
                     idx = rel.getIndex(scan.getRangeQueryColumns());
                     scan.setIndex(idx);
-//                }
+                }
 
                 // get iterator range
                 auto range = idx->lowerUpperBound(low,hig);
@@ -426,10 +426,10 @@ namespace {
 
                 // obtain index
                 auto idx = aggregate.getIndex();
-//                if (!idx) { // TODO: remove caching of indexes if acceptable performance wise or implement new mechanism
+                if (!idx) {
                     idx = rel.getIndex(aggregate.getRangeQueryColumns());
                     aggregate.setIndex(idx);
-//                }
+                }
 
                 // get iterator range
                 auto range = idx->lowerUpperBound(low,hig);
