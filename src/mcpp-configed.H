@@ -491,8 +491,6 @@
 #if     HOST_COMPILER == GNUC
 #if     __GNUC__ >= 3
 #define HAVE_INTMAX_T               TRUE
-#define HAVE_INTTYPES_H             TRUE
-#define HAVE_STDINT_H               TRUE
 #endif
 #define HOST_HAVE_LONG_LONG         TRUE 
 #if     HOST_SYSTEM == SYS_LINUX
