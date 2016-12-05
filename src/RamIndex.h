@@ -88,7 +88,7 @@ public:
     }
 
     /** Tests whether this order is a prefix of the given order. */
-    bool isPrefixOf(const RamIndexOrder& other) {
+    bool isPrefixOf(const RamIndexOrder& other) const {
         // this one must not be longer
         if (columns.size() > other.columns.size()) return false;
         for(unsigned i = 0; i<columns.size(); i++) {
@@ -102,10 +102,9 @@ public:
      * order A is compatible with an order B if the first |A| elements
      * of B are a permutation of A.
      */
-    bool isCompatible(const RamIndexOrder& other) {
+    bool isCompatible(const RamIndexOrder& other) const {
         // this one must be shorter
         if (columns.size() > other.columns.size()) return false;
-
         // check overlapping prefix
         for(unsigned i = 0; i < columns.size(); ++i) {
             if (!contains(columns, other.columns[i])) return false;
@@ -133,7 +132,7 @@ protected:
     /* lexicographical comparison operation on two tuple pointers */ 
     struct comparator {
 
-        RamIndexOrder order;
+        const RamIndexOrder& order;
 
         /* constructor to initialize state */ 
         comparator(const RamIndexOrder& order) : order(order) {}
@@ -171,11 +170,14 @@ public:
 
 private:
 
-    index_set set;         // set storing tuple pointers of table 
+    const RamIndexOrder indexOrder;    // retain the index order used to construct an object of this class
+    index_set set;                     // set storing tuple pointers of table
 
 public:
 
-    RamIndex(const RamIndexOrder& order): set(comparator(order)) {}
+    RamIndex(const RamIndexOrder& order): indexOrder(order), set(comparator(indexOrder)) {}
+
+    const RamIndexOrder& order() const { return indexOrder; }
 
     /**
      * add tuple to the index 

@@ -352,8 +352,8 @@ namespace {
                 auto idx = scan.getIndex();
                 const std::string& name = rel.getName();
                 const bool isTemp = (name.find("_temp1_") == 0 || name.find("_temp2_") == 0);
-                if (!idx || (isTemp && !rel.hasIndex(scan.getRangeQueryColumns(), idx))) {
-                    idx = rel.getIndex(scan.getRangeQueryColumns()); // <= rel.getIndex is the culprit!
+                if (!idx || isTemp) {
+                    idx = rel.getIndex(scan.getRangeQueryColumns(), idx);
                     scan.setIndex(idx);
                 }
 
@@ -1190,7 +1190,7 @@ namespace {
             const std::string& one = getRelationName(swap.getFirstRelation());
             const std::string& two = getRelationName(swap.getSecondRelation());
 
-            // perform a simple triangular swap of pointers
+            // perform a triangular swap of pointers
             out << "{\nauto "
             << tmp << " = " << one << ";\n"
             << one << " = " << two << ";\n"

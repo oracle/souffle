@@ -329,16 +329,27 @@ public:
         num_tuples = 0;
     }
 
-    /** check if this relation has the given index for the set of keys */
-    const bool hasIndex(const SearchColumns& key, RamIndex* index) const {
-        // TODO: implement this method efficiently and the runtime will improve significantly
-        // return (getIndex(key) == index)
-        return false;
+    /** get index for a given set of keys using a cached index as a helper. Keys are encoded as bits for each column */
+    RamIndex* getIndex(const SearchColumns& key, RamIndex* cachedIndex) const {
+
+        // TODO:
+        // This must return and have the same side effects as a call to getIndex with the search columns only,
+        // however have improved efficiency as a result of considering the cached index.
+
+        const RamIndexOrder order = getOrder(key);
+        // TODO: if uncommented, this causes a segfault on line 107 of RamIndex.h
+        // return (order.isCompatible(cachedIndex->order()))
+        return false
+                ? cachedIndex : getIndexByOrder(order);
+
     }
 
     /** get index for a given set of keys. Keys are encoded as bits for each column */
     RamIndex* getIndex(const SearchColumns& key) const {
+        return getIndexByOrder(getOrder(key));
+    }
 
+    const RamIndexOrder getOrder(const SearchColumns& key) const {
         // convert to order
         RamIndexOrder order;
         for(size_t k=1,i=0; i<getArity(); i++,k*=2) {
@@ -346,6 +357,10 @@ public:
                 order.append(i);
             }
         }
+        return order;
+    }
+
+    RamIndex* getIndexByOrder(const RamIndexOrder& order) const {
 
         // see whether there is an order with a matching prefix
         RamIndex* res = nullptr;
@@ -358,14 +373,16 @@ public:
         // if found, use compatible index
         if (res) return res;
 
+        RamIndexOrder& newOrder = const_cast<RamIndexOrder&>(order);
         // extend index to full index
         for(size_t i=0; i<getArity(); i++) {
-            if (!order.covers(i)) order.append(i);
+            if (!newOrder.covers(i)) newOrder.append(i);
         }
-        assert(order.isComplete());
+        assert(newOrder.isComplete());
 
         // get a new index
-        return getIndex(order);
+        return getIndex(newOrder);
+
     }
 
     /** get index for a given order. Keys are encoded as bits for each column */
