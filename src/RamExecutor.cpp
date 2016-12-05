@@ -733,7 +733,6 @@ namespace {
 
 }
 
-
 void RamGuidedInterpreter::applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const {
 
     if (getConfig().isLogging()) {
@@ -751,7 +750,6 @@ void RamGuidedInterpreter::applyOn(const RamStatement& stmt, RamEnvironment& env
     }
 
 }
-
 
 namespace {
 
@@ -845,7 +843,6 @@ namespace {
 
 }
 
-
 /** With this strategy queries will be processed as they are stated by the user */
 const QueryExecutionStrategy DirectExecution =
         [](const RamExecutorConfig& config, const RamInsert& insert, RamEnvironment& env, std::ostream*)->ExecutionSummary {
@@ -936,7 +933,7 @@ namespace {
         res << "ram::Relation<" << arity;
         if (!useNoIndex()) {
 			for(auto &cur : indices.getAllOrders() ) {
-				res << ",ram::index<";
+				res << ", ram::index<";
 				res << join(cur, ",");
 				res << ">";
 			}
@@ -985,7 +982,7 @@ namespace {
 
         const RamExecutorConfig& config;
 
-        const IndexMap& indices;
+        // const IndexMap& indices;
 
         std::function<void(std::ostream&,const RamNode*)> rec;
 
@@ -1002,8 +999,8 @@ namespace {
 
     public:
 
-        Printer(const RamExecutorConfig& config, const IndexMap& indices)
-            : config(config), indices(indices) {
+        Printer(const RamExecutorConfig& config, const IndexMap&) //indices)
+            : config(config) { // , indices(indices) {
             rec = [&](std::ostream& out, const RamNode* node) {
               this->visit(*node, out);
             };
@@ -1188,22 +1185,16 @@ namespace {
         void visitSwap(const RamSwap& swap, std::ostream& out) {
 
             // TODO
-            /*
-            const RamRelationIdentifier& firstRelation = swap.getFirstRelation();
-            const RamRelationIdentifier& secondRelation = swap.getSecondRelation();
-            std::string zerothName = "rel__temp0";
-            std::string firstName = getRelationName(firstRelation);
-            std::string secondName = getRelationName(secondRelation);
-            std::string firstType = getRelationType(firstRelation.getArity(), indices[firstRelation]);
-            std::string secondType = getRelationType(secondRelation.getArity(), indices[secondRelation]);
-            std::string typeOfCast = "static";
+
+            const std::string tmp = "rel__temp0";
+            const std::string& one = getRelationName(swap.getFirstRelation());
+            const std::string& two = getRelationName(swap.getSecondRelation());
 
             out << "{\nauto "
-            << zerothName << " = " << firstName << ";\n"
-            << firstName << " = " << typeOfCast << "_cast<" << firstType << "*>("<< secondName << ");\n"
-            << secondName << " = " << typeOfCast << "_cast<" << secondType << "*>("<< zerothName << ");\n"
+            << tmp << " = " << one << ";\n"
+            << one << " = " << two << ";\n"
+            << two << " = " << tmp << ";\n"
             << "}\n";
-            */
 
         }
 
@@ -1744,7 +1735,6 @@ namespace {
 
 }
 
-
 CPPIdentifierMap* CPPIdentifierMap::instance = 0;
 
 CPPIdentifierMap& CPPIdentifierMap::getInstance() {
@@ -1753,7 +1743,6 @@ CPPIdentifierMap& CPPIdentifierMap::getInstance() {
     }
     return *instance;
 }
-
 
 std::string CPPIdentifierMap::getIdentifier(std::string rel_name) {
     return getInstance().identifier(rel_name);
@@ -1811,7 +1800,6 @@ std::string RamCompiler::resolveFileName() const {
 	}
 	return getBinaryFile();
 }
-
 
 std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStatement& stmt, const std::string& filename) const {
 
@@ -1928,23 +1916,28 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     std::string deleteForNew; // matching deletes for each new, used in the destructor
     std::string registerRel; // registration of relations
     int relCtr=0;
+    std::string tempType; // string to hold the type of the temporary relations
     visitDepthFirst(stmt, [&](const RamCreate& create) {
+
         // get some table details
         const auto& rel = create.getRelation();
-        auto type = getRelationType(rel.getArity(), indices[rel]);
         int arity = rel.getArity();
         const std::string &raw_name = rel.getName();
         const std::string &name = CPPIdentifierMap::getIdentifier(raw_name);
 
+        // find types for relations
+        bool isTemp1 = name.find("_temp1_") == 0;
+        bool isTemp2 = name.find("_temp2_") == 0;
+        bool isTemp = (isTemp1 || isTemp2);
+        tempType = (isTemp1) ? getRelationType(rel.getArity(), indices[rel]) : tempType;
+        const std::string& type = (isTemp) ? tempType : getRelationType(rel.getArity(), indices[rel]);
+
         // defining table
         os << "// -- Table: " << raw_name << "\n";
         os << type << "*" << " rel_" << name << ";\n";
-        if (initCons.size() > 0) {
-            initCons += ",\n";
-        }
+        if (initCons.size() > 0) initCons += ",\n";
         initCons += "rel_" + name + "(new " + type + "())";
         deleteForNew += "delete rel_" + name + ";\n";
-        bool isTemp = (name.find("_temp1_")==0) || (name.find("_temp2_")==0);
         if ((rel.isInput() || rel.isComputed() || getConfig().isDebug()) && !isTemp) {
            os << "souffle::RelationWrapper<";
            os << relCtr++ << ",";

@@ -2020,7 +2020,7 @@ class Relation<6,First,Second,Rest...> : public DirectIndexedRelation<6,First,Se
  * TODO: consider using a hash table since no range or equality queries are needed
  */
 template<unsigned arity>
-class Relation<arity> : public Relation<arity, typename index_utils::get_full_index<arity>::type> { }
+class Relation<arity> : public Relation<arity, typename index_utils::get_full_index<arity>::type> { };
 
 /**
  * A specialization of a 0-ary relation.
