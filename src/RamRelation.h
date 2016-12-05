@@ -329,8 +329,15 @@ public:
         num_tuples = 0;
     }
 
+    /** check if this relation has the given index for the set of keys */
+    const bool hasIndex(const SearchColumns& key, RamIndex* index) const {
+        // TODO: implement this method efficiently and the runtime will improve significantly
+        // return (getIndex(key) == index)
+        return false;
+    }
+
     /** get index for a given set of keys. Keys are encoded as bits for each column */
-    RamIndex* getIndex(SearchColumns key) const {
+    RamIndex* getIndex(const SearchColumns& key) const {
 
         // convert to order
         RamIndexOrder order;
