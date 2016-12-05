@@ -92,6 +92,96 @@ AC_ARG_ENABLE(
   [unset SOUFFLE_PACKAGING]
 )
 
+##
+## START PART 1 MCPP DEFS
+##
+
+
+dnl Define host system and target system
+
+case $host_os in
+linux*)
+    AC_DEFINE( [HOST_SYSTEM], [SYS_LINUX], [Define the host system.])
+    ac_c_define_HOST_SYSTEM=[SYS_LINUX]
+    ;;
+freebsd*)
+    AC_DEFINE( [HOST_SYSTEM], [SYS_FREEBSD])
+    ac_c_define_HOST_SYSTEM=[SYS_FREEBSD]
+    ;;
+darwin*)
+    AC_DEFINE( [HOST_SYSTEM], [SYS_MAC])
+    ac_c_define_HOST_SYSTEM=[SYS_MAC]
+    ;;
+cygwin*)
+    AC_DEFINE( [HOST_SYSTEM], [SYS_CYGWIN])
+    ac_c_define_HOST_SYSTEM=[SYS_CYGWIN]
+    ;;
+mingw*)
+    AC_DEFINE( [HOST_SYSTEM], [SYS_MINGW])
+    ac_c_define_HOST_SYSTEM=[SYS_MINGW]
+    ;;
+*)
+    AC_MSG_WARN( [Unsupported host OS, assuming to be an UNIX variant])
+    AC_DEFINE( [HOST_SYSTEM], [SYS_UNIX])
+    ac_c_define_HOST_SYSTEM=[SYS_UNIX]
+    ;;
+esac
+host_system=$ac_c_define_HOST_SYSTEM
+
+case $target_os in
+linux*)
+    AC_DEFINE( [SYSTEM], [SYS_LINUX], [Define the target system.])
+    ;;
+freebsd*)
+    AC_DEFINE( [SYSTEM], [SYS_FREEBSD])
+    ;;
+darwin*)
+    AC_DEFINE( [SYSTEM], [SYS_MAC])
+    ;;
+cygwin*)
+    AC_DEFINE( [SYSTEM], [SYS_CYGWIN])
+    ;;
+mingw*)
+    AC_DEFINE( [SYSTEM], [SYS_MINGW])
+    ;;
+*)
+    AC_MSG_WARN( Unsupported target OS, assuming to be an UNIX variant)
+    AC_DEFINE( [SYSTEM], [SYS_UNIX])
+    ;;
+esac
+
+AC_DEFINE( [COMPILER], [INDEPENDENT], [Define the target compiler.])
+AC_MSG_CHECKING( for target cpu)
+
+## These are not predefined macros of MCPP.  MCPP will define predefined macros
+## on compile time based on the CPU macro, and possibly redefine them at an
+## execution time.
+
+case $target_cpu in
+x86_64|amd64)
+    Target_Cpu=x86_64
+    ;;
+i?86*)
+    Target_Cpu=i386
+    ;;
+powerpc64|ppc64)
+    Target_Cpu=ppc64
+    ;;
+powerpc|ppc|ppc7400)
+    Target_Cpu=ppc
+    ;;
+*)
+    Target_Cpu=$target_cpu
+    ;;
+esac
+
+AC_MSG_RESULT( $Target_Cpu)
+AC_DEFINE_UNQUOTED( [CPU], "$Target_Cpu", [Define the cpu-specific-macro.])
+
+##
+## END PART 1 MCPP DEFS
+##
+
 # Get the name of the distribution
 if test -n "$SOUFFLE_PACKAGING"; then
   case $host_os in
