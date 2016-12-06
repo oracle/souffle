@@ -386,7 +386,17 @@ public:
             for(const auto& cur : *this) newIndex->insert(cur);
             res = newIndex.get();
             if (index != nullptr) { // i.e. this has been called from a cached index
-                // TODO: call this for 1672 and 1673 and see what happens
+
+                // TODO
+                // - 1672 passes if the cached index is returned as is, while 1673 fails
+                // - I called this for 1672 and 1673, then looked at the b-trees of the
+                // cached index and the newly constructed one
+                // - I was expecting them to be the same for 1672 and different for 1673
+                // but to my surprise they both differed
+                // - this is weird, as it means that sometimes even when the cached and a
+                // new index have different binary trees you can use the cached version
+                // - the key to the massive speedup lies in finding out when this is possible
+
                 std::cerr << "BREAKPOINT" << std::endl;
                 order.print(std::cerr); std::cerr << " "; res->order().print(std::cerr); std::cerr << std::endl;
                 index->print(std::cerr); std::cerr << " "; res->print(std::cerr); std::cerr << std::endl;
