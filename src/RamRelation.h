@@ -332,7 +332,7 @@ public:
     /** get index for a given set of keys using a cached index as a helper. Keys are encoded as bits for each column */
     RamIndex* getIndex(const SearchColumns& key, RamIndex* cachedIndex) const {
         if (!cachedIndex) return getIndex(key);
-        return getIndex(cachedIndex->order());
+        return getIndex(cachedIndex->order(), /* TODO */ cachedIndex);
     }
 
     /** get index for a given set of keys. Keys are encoded as bits for each column */
@@ -372,8 +372,10 @@ public:
 
     }
 
+    // TODO
+    RamIndex* getIndex(const RamIndexOrder& order) const { return getIndex(order, nullptr); }
     /** get index for a given order. Keys are encoded as bits for each column */
-    RamIndex* getIndex(const RamIndexOrder& order) const {
+    RamIndex* getIndex(const RamIndexOrder& order, /*TODO*/ const RamIndex* index) const {
         // TODO: improve index usage by re-using indices with common prefix
         RamIndex* res;
         // pthread_mutex_lock(&lock); // Tests seem to pass without acquiring lock...
@@ -383,6 +385,12 @@ public:
             newIndex = std::unique_ptr<RamIndex>(new RamIndex(order));
             for(const auto& cur : *this) newIndex->insert(cur);
             res = newIndex.get();
+            if (index != nullptr) { // i.e. this has been called from a cached index
+                // TODO: call this for 1672 and 1673 and see what happens
+                std::cerr << "BREAKPOINT" << std::endl;
+                order.print(std::cerr); std::cerr << " "; res->order().print(std::cerr); std::cerr << std::endl;
+                index->print(std::cerr); std::cerr << " "; res->print(std::cerr); std::cerr << std::endl;
+            }
         }  else {
             res = pos->second.get();
         }

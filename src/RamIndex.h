@@ -198,6 +198,13 @@ public:
         set.clear();
     }
 
+    /** enables the index to be printed */
+    void print(std::ostream& out) const {
+        set.printStats(out);
+        out << "\n";
+        set.printTree(out);
+    }
+
     /* return start and end iterator of an equal range */
     inline std::pair<iterator, iterator> equalRange(const RamDomain *value) const {
         return lowerUpperBound(value,value);
