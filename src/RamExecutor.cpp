@@ -350,9 +350,7 @@ namespace {
 
                 // obtain index
                 auto idx = scan.getIndex();
-                const std::string& name = rel.getName();
-                const bool isTemp = (name.find("_temp1_") == 0 || name.find("_temp2_") == 0);
-                if (!idx || isTemp) {
+                if (!idx || (rel.getName().find("_temp") == 0)) {
                     idx = rel.getIndex(scan.getRangeQueryColumns(), idx);
                     scan.setIndex(idx);
                 }

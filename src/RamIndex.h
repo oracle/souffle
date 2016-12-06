@@ -170,14 +170,14 @@ public:
 
 private:
 
-    const RamIndexOrder indexOrder;    // retain the index order used to construct an object of this class
-    index_set set;                     // set storing tuple pointers of table
+    const RamIndexOrder theOrder; // retain the index order used to construct an object of this class
+    index_set set;                // set storing tuple pointers of table
 
 public:
 
-    RamIndex(const RamIndexOrder& order): indexOrder(order), set(comparator(indexOrder)) {}
+    RamIndex(const RamIndexOrder& order): theOrder(order), set(comparator(theOrder)) {}
 
-    const RamIndexOrder& order() const { return indexOrder; }
+    const RamIndexOrder& order() const { return theOrder; }
 
     /**
      * add tuple to the index 
