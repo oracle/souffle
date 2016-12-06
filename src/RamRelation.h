@@ -388,6 +388,8 @@ public:
             if (index != nullptr) { // i.e. this has been called from a cached index
 
                 // TODO
+                // - to reproduce the event, run
+                // cd ~/Workspace/souffle && make -j4 && cd tests && ./testsuite 1672-1673 -d
                 // - 1672 passes if the cached index is returned as is, while 1673 fails
                 // - I called this for 1672 and 1673, then looked at the b-trees of the
                 // cached index and the newly constructed one
