@@ -332,29 +332,25 @@ public:
     /** get index for a given set of keys using a cached index as a helper. Keys are encoded as bits for each column */
     RamIndex* getIndex(const SearchColumns& key, RamIndex* cachedIndex) const {
         if (!cachedIndex) return getIndex(key);
-        const RamIndexOrder order = getOrder(key);
-        const RamIndexOrder& cachedOrder = cachedIndex->order();
-        // TODO: improve the efficiency of this method, must return the same index as would be returned by a call to getIndex with only the key but here using the cached index
-        return getIndexByOrder(order);
+        return getIndex(cachedIndex->order());
     }
 
     /** get index for a given set of keys. Keys are encoded as bits for each column */
     RamIndex* getIndex(const SearchColumns& key) const {
-        return getIndexByOrder(getOrder(key));
-    }
 
-    const RamIndexOrder getOrder(const SearchColumns& key) const {
+        // suffix for order, if no matching prefix exists
+        std::vector<unsigned char> suffix;
+        suffix.reserve(getArity());
+
         // convert to order
         RamIndexOrder order;
         for(size_t k=1,i=0; i<getArity(); i++,k*=2) {
             if(key & k) {
                 order.append(i);
+            } else {
+                suffix.push_back(i);
             }
         }
-        return order;
-    }
-
-    RamIndex* getIndexByOrder(const RamIndexOrder& order) const {
 
         // see whether there is an order with a matching prefix
         RamIndex* res = nullptr;
@@ -367,15 +363,12 @@ public:
         // if found, use compatible index
         if (res) return res;
 
-        RamIndexOrder& newOrder = const_cast<RamIndexOrder&>(order);
         // extend index to full index
-        for(size_t i=0; i<getArity(); i++) {
-            if (!newOrder.covers(i)) newOrder.append(i);
-        }
-        assert(newOrder.isComplete());
+        for (auto cur : suffix) order.append(cur);
+        assert(order.isComplete());
 
         // get a new index
-        return getIndex(newOrder);
+        return getIndex(order);
 
     }
 
