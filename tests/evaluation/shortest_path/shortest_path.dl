@@ -1,0 +1,13 @@
+// Find the shortest paths between all nodes, the slow way
+.type Node
+
+.decl Edge(n:Node, m:Node, w:number) input
+
+// Find all paths
+.decl Length   (n:Node, m:Node, l:number)
+Length(x,y,t)  :- t=l, Edge(x,y,l).
+Length(x,y,t+l)  :- Edge(x,z,l), Length(z,y,t).
+
+// Filter out the longest path
+.decl ShortestPath(n:Node, m:Node, l:number) output
+ShortestPath(x, y, a) :- Length(x, y, _), a = min Z : Length(x, y, Z).
