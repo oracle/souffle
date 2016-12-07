@@ -326,9 +326,9 @@ public:
 
     /** get index for a given set of keys using a cached index as a helper. Keys are encoded as bits for each column */
     RamIndex* getIndex(const SearchColumns& key, RamIndex* cachedIndex) const {
-        // TODO: find out when generation/lookup of an index is unnecessary and just the cached index can be returned
+        // TODO: find out when generation/lookup of an index is unnecessary and the cached index can simply be returned
         if (!cachedIndex) return getIndex(key);
-        return getIndex(cachedIndex->order(), /* TODO: remove this in merge with upstream */ cachedIndex);
+        return getIndex(cachedIndex->order());
     }
 
     /** get index for a given set of keys. Keys are encoded as bits for each column */
@@ -368,10 +368,8 @@ public:
 
     }
 
-    // TODO: remove this in merge with upstream
-    RamIndex* getIndex(const RamIndexOrder& order) const { return getIndex(order, nullptr); }
     /** get index for a given order. Keys are encoded as bits for each column */
-    RamIndex* getIndex(const RamIndexOrder& order, /* TODO: remove this in merge with upstream */ const RamIndex* index) const {
+    RamIndex* getIndex(const RamIndexOrder& order) const {
         // TODO: improve index usage by re-using indices with common prefix
         RamIndex* res;
         auto pos = indices.find(order);
@@ -380,12 +378,6 @@ public:
             newIndex = std::unique_ptr<RamIndex>(new RamIndex(order));
             newIndex->insert(this->begin(), this->end());
             res = newIndex.get();
-            // TODO: remove this in merge with upstream
-            if (index != nullptr) { // i.e. this has been called from a cached index
-                std::cerr << "BREAKPOINT" << std::endl;
-                order.print(std::cerr); std::cerr << " "; res->order().print(std::cerr); std::cerr << std::endl;
-                index->print(std::cerr); std::cerr << " "; res->print(std::cerr); std::cerr << std::endl;
-            }
         }  else {
             res = pos->second.get();
         }
