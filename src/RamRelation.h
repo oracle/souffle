@@ -37,7 +37,6 @@ namespace souffle {
 class RamEnvironment;
 class RamRelation;
 
-
 class SymbolMask {
     std::vector<bool> mask;
 public:
@@ -64,9 +63,6 @@ public:
         return out;
     }
 };
-
-
-
 
 class RamRelationIdentifier {
 
@@ -189,7 +185,6 @@ class RamRelation {
             return size - used;
         }
     };
-
 
     /** The name / arity of this relation */
     RamRelationIdentifier id;
@@ -331,8 +326,9 @@ public:
 
     /** get index for a given set of keys using a cached index as a helper. Keys are encoded as bits for each column */
     RamIndex* getIndex(const SearchColumns& key, RamIndex* cachedIndex) const {
+        // TODO: find out when generation/lookup of an index is unnecessary and just the cached index can be returned
         if (!cachedIndex) return getIndex(key);
-        return getIndex(cachedIndex->order(), /* TODO */ cachedIndex);
+        return getIndex(cachedIndex->order(), /* TODO: remove this in merge with upstream */ cachedIndex);
     }
 
     /** get index for a given set of keys. Keys are encoded as bits for each column */
@@ -372,33 +368,20 @@ public:
 
     }
 
-    // TODO
+    // TODO: remove this in merge with upstream
     RamIndex* getIndex(const RamIndexOrder& order) const { return getIndex(order, nullptr); }
     /** get index for a given order. Keys are encoded as bits for each column */
-    RamIndex* getIndex(const RamIndexOrder& order, /*TODO*/ const RamIndex* index) const {
+    RamIndex* getIndex(const RamIndexOrder& order, /* TODO: remove this in merge with upstream */ const RamIndex* index) const {
         // TODO: improve index usage by re-using indices with common prefix
         RamIndex* res;
-        // pthread_mutex_lock(&lock); // Tests seem to pass without acquiring lock...
         auto pos = indices.find(order);
         if (pos == indices.end()) {
             std::unique_ptr<RamIndex> &newIndex = indices[order];
             newIndex = std::unique_ptr<RamIndex>(new RamIndex(order));
-            for(const auto& cur : *this) newIndex->insert(cur);
+            newIndex->insert(this->begin(), this->end());
             res = newIndex.get();
+            // TODO: remove this in merge with upstream
             if (index != nullptr) { // i.e. this has been called from a cached index
-
-                // TODO
-                // - to reproduce the event, run
-                // cd ~/Workspace/souffle && make -j4 && cd tests && ./testsuite 1672-1673 -d
-                // - 1672 passes if the cached index is returned as is, while 1673 fails
-                // - I called this for 1672 and 1673, then looked at the b-trees of the
-                // cached index and the newly constructed one
-                // - I was expecting them to be the same for 1672 and different for 1673
-                // but to my surprise they both differed
-                // - this is weird, as it means that sometimes even when the cached and a
-                // new index have different binary trees you can use the cached version
-                // - the key to the massive speedup lies in finding out when this is possible
-
                 std::cerr << "BREAKPOINT" << std::endl;
                 order.print(std::cerr); std::cerr << " "; res->order().print(std::cerr); std::cerr << std::endl;
                 index->print(std::cerr); std::cerr << " "; res->print(std::cerr); std::cerr << std::endl;
@@ -406,7 +389,6 @@ public:
         }  else {
             res = pos->second.get();
         }
-        // pthread_mutex_unlock(&lock); // ...or releasing it.
         return res;
     }
 
