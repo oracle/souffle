@@ -17,9 +17,9 @@
  *
  ***********************************************************************/
 
-#include <stdio.h>
-#include <stdarg.h>
 #include <memory.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <iostream>
@@ -27,6 +27,7 @@
 
 #include "RamIndex.h"
 #include "RamRelation.h"
+#include "SymbolMask.h"
 #include "SymbolTable.h"
 #include "StringPool.h"
 

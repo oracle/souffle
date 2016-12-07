@@ -483,6 +483,7 @@ AC_CONFIG_LINKS([include/souffle/Table.h:src/Table.h])
 AC_CONFIG_LINKS([include/souffle/IterUtils.h:src/IterUtils.h])
 AC_CONFIG_LINKS([include/souffle/Util.h:src/Util.h])
 AC_CONFIG_LINKS([include/souffle/RamLogger.h:src/RamLogger.h])
+AC_CONFIG_LINKS([include/souffle/SymbolMask.h:src/SymbolMask.h])
 AC_CONFIG_LINKS([include/souffle/SymbolTable.h:src/SymbolTable.h])
 AC_CONFIG_LINKS([include/souffle/SqliteRelationWriter.h:src/SqliteRelationWriter.h])
 

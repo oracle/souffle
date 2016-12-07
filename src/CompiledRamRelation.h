@@ -17,19 +17,21 @@
 
 #pragma once
 
-#include <iterator>
-#include <type_traits>
-#include <mutex>
 #include <libgen.h>
 
-#include "Util.h"
-#include "IterUtils.h"
-#include "Table.h"
+#include <iterator>
+#include <mutex>
+#include <type_traits>
+
 #include "BTree.h"
-#include "Trie.h"
 #include "CompiledRamTuple.h"
-#include "SymbolTable.h"
+#include "IterUtils.h"
 #include "ParallelUtils.h"
+#include "SymbolMask.h"
+#include "SymbolTable.h"
+#include "Table.h"
+#include "Trie.h"
+#include "Util.h"
 
 namespace souffle {
 
@@ -1449,15 +1451,6 @@ struct RelationBase {
     }
 
     // -- IO --
-
-    /* a utility struct for load/print operations */
-    struct SymbolMask {
-        int mask[arity];
-        bool isSymbol(unsigned x) const {
-            assert(x < arity);
-            return mask[x] != 0;
-        }
-    };
 
     /* prints this relation to the given file in CSV format */
     void printCSV(const char* fn, const SymbolTable& symbolTable, const SymbolMask& format) const {

@@ -21,48 +21,23 @@
 
 #pragma once
 
-#include <string>
-#include <map>
 #include <pthread.h>
 
-#include "Util.h"
-#include "RamTypes.h"
+#include <map>
+#include <string>
+
 #include "RamIndex.h"
-#include "Table.h"
+#include "RamTypes.h"
+#include "SymbolMask.h"
 #include "SymbolTable.h"
+#include "Table.h"
+#include "Util.h"
 
 namespace souffle {
 
 // forward declaration
 class RamEnvironment;
 class RamRelation;
-
-class SymbolMask {
-    std::vector<bool> mask;
-public:
-    SymbolMask(size_t arity) : mask(arity) {}
-
-    size_t getArity() const {
-        return mask.size();
-    }
-
-    bool isSymbol(size_t index) const {
-        return index < getArity() && mask[index];
-    }
-
-    void setSymbol(size_t index, bool value = true) {
-        mask[index] = value;
-    }
-
-    void print(std::ostream& out) const {
-        out << mask << "\n";
-    }
-
-    friend std::ostream& operator<<(std::ostream& out, const SymbolMask& mask) {
-        mask.print(out);
-        return out;
-    }
-};
 
 class RamRelationIdentifier {
 
