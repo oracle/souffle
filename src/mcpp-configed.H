@@ -348,8 +348,6 @@
  *          edit here and there of this part.
  */
 
-#define HOST_HAVE_STPCPY        HAVE_STPCPY
-
 /*
  * defaults
  */

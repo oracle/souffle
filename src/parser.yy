@@ -523,36 +523,36 @@ atom: rel_id LPAREN arg_list RPAREN {
 literal: arg RELOP arg {
             auto* res = new AstConstraint($2, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
             res->setSrcLoc(@$);
-            $$ = new RuleBody(std::move(RuleBody::constraint(res)));
+            $$ = new RuleBody(RuleBody::constraint(res));
           }
        | arg LT arg {
            auto* res = new AstConstraint(BinaryRelOp::LT, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
            res->setSrcLoc(@$);
-           $$ = new RuleBody(std::move(RuleBody::constraint(res)));
+           $$ = new RuleBody(RuleBody::constraint(res));
          }
        | arg GT arg {
     	   auto* res = new AstConstraint(BinaryRelOp::GT, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
            res->setSrcLoc(@$);
-           $$ = new RuleBody(std::move(RuleBody::constraint(res)));
+           $$ = new RuleBody(RuleBody::constraint(res));
          }
        | arg EQUALS arg {
     	   auto* res = new AstConstraint(BinaryRelOp::EQ, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
            res->setSrcLoc(@$);
-           $$ = new RuleBody(std::move(RuleBody::constraint(res)));
+           $$ = new RuleBody(RuleBody::constraint(res));
          }
        | atom {
             $1->setSrcLoc(@$);
-            $$ = new RuleBody(std::move(RuleBody::atom($1)));
+            $$ = new RuleBody(RuleBody::atom($1));
           }
        | TMATCH LPAREN arg COMMA arg RPAREN {
             auto* res = new AstConstraint(BinaryRelOp::MATCH, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
             res->setSrcLoc(@$);
-		    $$ = new RuleBody(std::move(RuleBody::constraint(res)));
+		    $$ = new RuleBody(RuleBody::constraint(res));
           }
        | TCONTAINS LPAREN arg COMMA arg RPAREN {
             auto* res = new AstConstraint(BinaryRelOp::CONTAINS, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
             res->setSrcLoc(@$);
-            $$ = new RuleBody(std::move(RuleBody::constraint(res)));
+            $$ = new RuleBody(RuleBody::constraint(res));
           }
        ;
      

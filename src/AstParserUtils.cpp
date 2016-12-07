@@ -35,7 +35,7 @@ void RuleBody::negate() {
 		for(const literal& lit : cur) {
 			step.dnf.push_back(clause());
 			clause& cl = step.dnf.back();
-			cl.emplace_back(std::move(literal{!lit.negated, std::unique_ptr<AstLiteral>(lit.atom->clone())}));
+			cl.emplace_back(literal{!lit.negated, std::unique_ptr<AstLiteral>(lit.atom->clone())});
 		}
 
 		res.conjunct(std::move(step));
@@ -59,7 +59,7 @@ void RuleBody::conjunct(RuleBody&& other) {
 				cur.emplace_back(lit.clone());
 			}
 			for(const auto& lit : clauseB) {
-				insert(cur,std::move(lit.clone()));
+				insert(cur,lit.clone());
 			}
 
 			insert(res,std::move(cur));
@@ -128,7 +128,7 @@ RuleBody RuleBody::atom(AstAtom* atom) {
 	body.dnf.push_back(clause());
 	auto& clause = body.dnf.back();
 	clause.push_back(literal());
-	clause.back() = std::move(literal{false,std::unique_ptr<AstAtom>(atom)});
+	clause.back() = literal{false,std::unique_ptr<AstAtom>(atom)};
 	return body;
 }
 
@@ -137,7 +137,7 @@ RuleBody RuleBody::constraint(AstConstraint* constraint) {
 	body.dnf.push_back(clause());
 	auto& clause = body.dnf.back();
 	clause.push_back(literal());
-	clause.back() = std::move(literal{false,std::unique_ptr<AstLiteral>(constraint)});
+	clause.back() = literal{false,std::unique_ptr<AstLiteral>(constraint)};
 	return body;
 }
 
