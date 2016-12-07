@@ -137,14 +137,14 @@
                                    }                                                        }
 
 0b[0-1][0-1]*                    { try {
-                                     return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 2), yylloc); 
+                                     return yy::parser::make_NUMBER(std::stoll(yytext+2, NULL, 2), yylloc); 
                                    } catch(...) {
                                      driver.error(yylloc, "bool out of range");
                                      return yy::parser::make_NUMBER(0, yylloc); 
                                    }
                                  }
 0x[a-fA-F0-9]+                   { try {
-                                     return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 16), yylloc);
+                                     return yy::parser::make_NUMBER(std::stoll(yytext+2, NULL, 16), yylloc);
                                    } catch(...) {
                                      driver.error(yylloc, "hex out of range");
                                      return yy::parser::make_NUMBER(0, yylloc);
