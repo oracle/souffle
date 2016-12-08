@@ -166,8 +166,19 @@ bool RamRelation::load(std::vector<std::vector<std::string>> data,
                 tuple[col] = symTable.lookup(elem.c_str());
             } else {
                 try { 
-                    tuple[col] = std::stoi(elem.c_str());
+                    int32_t d;
+                    if (elem.find('X') != std::string::npos || elem.find('x') != std::string::npos) {
+                        d = std::stoll(elem.c_str(), NULL, 16);
+                    }
+                    else if (elem.find('b') != std::string::npos) {
+                        d = std::stoll(elem.c_str(), NULL, 2);
+                    }
+                    else {
+                        d = std::stoi(elem.c_str(), NULL, 10);
+                    }
+                    tuple[col] = d;
                 } catch(...) { 
+                    std::cerr << "Error converting to number\n";
                     error = true; 
                 } 
             }
