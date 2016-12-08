@@ -97,7 +97,7 @@ void Cli::parse() {
                 std::cout << "command: " << commands.at(j) << "\n";
             }
         }
-        Tui(filename, alive);
+        Tui(filename, alive).runCommand(commands);
 
     } else {
         if (DEBUG)
@@ -106,12 +106,12 @@ void Cli::parse() {
             if (DEBUG)
                 std::cout << "json output: true\n";
 
-            Tui(filename, alive);
+            Tui(filename, alive).runProf();
         } else {
             if (DEBUG)
                 std::cout << "json output: false\n";
 
-            Tui(filename, alive);
+            Tui(filename, alive).runProf();
         }
     }
 }

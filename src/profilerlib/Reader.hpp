@@ -12,6 +12,7 @@
 #include "ProgramRun.hpp"
 #include "Rule.hpp"
 #include "Iteration.hpp"
+#include "StringUtils.hpp"
 
 class Reader {
 private:
@@ -66,7 +67,6 @@ public:
 	inline std::unordered_map<std::string, std::shared_ptr<Relation>> retRelationMap() { return this->relation_map; }
 
 
-    std::vector<std::string> split(std::string str, std::string split);
 
 //	std::vector<std::string> replace(std::string str);
 

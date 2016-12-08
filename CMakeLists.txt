@@ -14,6 +14,17 @@ set(SOURCE_FILES
     src/profilerlib/Tui.hpp
     src/Makefile.am
     src/souffle_prof.cpp
-    Makefile.am src/profilerlib/Reader.cpp src/profilerlib/Relation.cpp src/profilerlib/Iteration.cpp src/profilerlib/Cli.cpp src/profilerlib/ProgramRun.cpp src/profilerlib/OutputProcessor.cpp src/profilerlib/StringUtils.cpp src/profilerlib/StringUtils.hpp src/profilerlib/Cell.hpp src/profilerlib/Row.hpp src/profilerlib/Table.hpp src/profilerlib/CellInterface.hpp src/profilerlib/Rule.cpp src/profilerlib/Tui.cpp)
+    Makefile.am
+        src/profilerlib/Reader.cpp
+        src/profilerlib/Relation.cpp
+        src/profilerlib/Iteration.cpp
+        src/profilerlib/Cli.cpp
+        src/profilerlib/ProgramRun.cpp
+        src/profilerlib/OutputProcessor.cpp
+        src/profilerlib/StringUtils.cpp
+        src/profilerlib/StringUtils.hpp
+        src/profilerlib/Cell.hpp
+        src/profilerlib/Row.hpp
+        src/profilerlib/Table.hpp src/profilerlib/CellInterface.hpp src/profilerlib/Rule.cpp src/profilerlib/Tui.cpp src/profilerlib/DataComparator.hpp src/profilerlib/Table.cpp)
 
 add_executable(cpp_prof_souffle ${SOURCE_FILES})

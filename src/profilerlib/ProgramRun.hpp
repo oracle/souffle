@@ -45,7 +45,7 @@ public:
     long getTotNumRecTuples();
     double getTotCopyTime();
     double getTotTime();
-    Relation getRelation(std::string name);
+    Relation* getRelation(std::string name);
 
     inline std::string formatTime(double runtime) {return Tools::formatTime(runtime);}
     inline std::string formatNum(int precision, long number) {return Tools::formatNum(precision, number);}

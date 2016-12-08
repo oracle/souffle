@@ -2,7 +2,7 @@
 // Created by Dominic Romanowski on 30/11/16.
 //
 
-#include <iostream>
+
 #include "StringUtils.hpp"
 
 
@@ -57,15 +57,12 @@ std::string Tools::formatNum(int precision, long amount) {
         result += abbreviations.at(i);
         return result;
     }
-};
+    return NULL;
+}
 
 
 std::string Tools::formatTime(double number) {
-    /**
-     * `number` is float of seconds
-     * maybe ensure output is always 4char?
-     */
-    long sec = (long)std::floor(number);
+    long sec = std::lround(number);
     if (sec >= 100) {
         long min = (long)std::floor(sec/60);
         if (min >= 100) {
@@ -85,38 +82,53 @@ std::string Tools::formatTime(double number) {
     } else if (sec >= 10) {
         return std::to_string(sec)+"s";
     } else if (sec >= 1) {
-        std::string temp = std::to_string(number*100);
+        std::string temp = std::to_string(std::round(number*100));
         return temp.substr(0,1)+"."+temp.substr(1,2);
     } else if (number >= 0.100) {
-        std::string temp = std::to_string(number*1000);
+        std::string temp = std::to_string(std::round(number*1000));
         return "."+temp.substr(0,3);
     } else if (number > 0.010) {
-        std::string temp = std::to_string(number*1000);
+        std::string temp = std::to_string(std::round(number*1000));
         return ".0"+temp.substr(0,2);
     } else if (number > 0.001) {
-        std::string temp = std::to_string(number*1000);
+        std::string temp = std::to_string(std::round(number*1000));
         return ".00"+temp.substr(0,1);
     }
     return ".000";
 }
 
 std::vector<std::vector<std::string>> Tools::formatTable(Table table, int precision) {
-    // TODO: change cases to match actual tuples
     std::vector<std::vector<std::string>> result;
-    std::cout << "\n\nformat table: \n";
-    int i=0,j=0;
     for (auto& row : table.getRows()) {
-        i++;
         std::vector<std::string> result_row;
-        for (auto cell : row->getCells()) {
+        for (auto & cell : row->getCells()) {
             if (cell != nullptr) {
                 result_row.push_back(cell->toString(precision));
             } else {
-                j++;
                 result_row.push_back("-");
             }
         }
+        result.push_back(result_row);
     }
-    std::cout << "\n" << i << ":" << j << "\n";
+    return result;
+
+}
+
+
+std::vector<std::string> Tools::split(std::string str, std::string split_reg) {
+    std::vector<std::string> elems;
+
+    std::regex rgx(split_reg);
+    std::sregex_token_iterator iter(str.begin(),
+                                    str.end(),
+                                    rgx,
+                                    -1);
+
+    std::sregex_token_iterator end;
+    for ( ; iter != end; ++iter) {
+        elems.push_back(*iter);
+    }
+
+    return elems;
 
 }

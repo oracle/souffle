@@ -1,3 +1,5 @@
+#pragma once
+
 
 #include <iostream>
 #include <string>
@@ -36,8 +38,9 @@ public:
     void relRul(std::string str);
     void verRul(std::string str);
     void iterRel(std::string c, std::string col);
-    void iterTul(std::string c, std::string col);
+    void iterRul(std::string c, std::string col);
     void verGraph(std::string c, std::string col);
     void graphD(std::vector<double> list);
     void graphL(std::vector<long> list);
+    static bool string_sort(std::vector<std::string> a, std::vector<std::string> b);
 };

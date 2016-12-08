@@ -42,8 +42,9 @@ double ProgramRun::getTotTime() {
     return result;
 }
 
-Relation ProgramRun::getRelation(std::string name) {
+Relation* ProgramRun::getRelation(std::string name) {
     if(relation_map.find(name) != relation_map.end()) {
-        return *relation_map[name];
+        return &(*relation_map[name]);
     }
+    return nullptr;
 }

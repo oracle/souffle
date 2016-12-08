@@ -28,8 +28,8 @@ Table OutputProcessor::getRelTable() {
         row[3] = std::shared_ptr<CellInterface>(new Cell<double>(r->getCopyTime()));
         row[4] = std::shared_ptr<CellInterface>(new Cell<long>(r->getNum_tuplesRel()));
         row[5] = std::shared_ptr<CellInterface>(new Cell<std::string>(r->getName()));
-        row[6] = std::shared_ptr<CellInterface>(new Cell<std::string>(r->getName()));
-        row[7] = std::shared_ptr<CellInterface>(new Cell<std::string>(r->getName()));
+        row[6] = std::shared_ptr<CellInterface>(new Cell<std::string>(r->getId()));
+        row[7] = std::shared_ptr<CellInterface>(new Cell<std::string>(r->getLocator()));
         if (total_time != 0.0) {
             row[8] = std::shared_ptr<CellInterface>(new Cell<double>(r->getNum_tuplesRel()/total_time));
         } else {
@@ -64,9 +64,7 @@ Table OutputProcessor::getRulTable() {
 
             rule_map.emplace(rul->getName(), std::make_shared<Row>(row));
         }
-
         for (auto& iter : rel.second->getIterations()) {
-
             for (auto& _rul : iter->getRul_rec()) {
                 std::shared_ptr<Rule> rul = _rul.second;
                 if (rule_map.find(rul->getName())!=rule_map.end()) {
@@ -75,7 +73,7 @@ Table OutputProcessor::getRulTable() {
                     row[2] = std::shared_ptr<CellInterface>(new Cell<double>(row[2]->getDoubVal() + rul->getRuntime()));
                     row[4] = std::shared_ptr<CellInterface>(new Cell<long>(row[4]->getLongVal() + rul->getNum_tuples()));
                     row[0] = std::shared_ptr<CellInterface>(new Cell<double>(rul->getRuntime()));
-                    rule_map.emplace(rul->getName(), std::make_shared<Row>(row));
+                    rule_map[rul->getName()] = std::make_shared<Row>(row);
                 } else {
                     Row row(11);
                     row[1] = std::shared_ptr<CellInterface>(new Cell<double>(0.0));
@@ -87,7 +85,7 @@ Table OutputProcessor::getRulTable() {
                     row[7] = std::shared_ptr<CellInterface>(new Cell<std::string>(rel.second->getName()));
                     row[8] = std::shared_ptr<CellInterface>(new Cell<long>(rul->getVersion()));
                     row[0] = std::shared_ptr<CellInterface>(new Cell<double>(rul->getRuntime()));
-                    rule_map.emplace(rul->getName(), std::make_shared<Row>(row));
+                    rule_map[rul->getName()] = std::make_shared<Row>(row);
                 }
             }
         }
@@ -139,7 +137,6 @@ Table OutputProcessor::getVersions(std::string strRel, std::string strRul) {
         std::shared_ptr<Relation> rel = _rel.second;
         if (rel->getId().compare(strRel) == 0) {
             for (auto& iter : rel->getIterations()) {
-
                 for (auto& _rul : iter->getRul_rec()) {
                     std::shared_ptr<Rule> rul = _rul.second;
                     if (rul->getId().compare(strRul) == 0) {
@@ -152,7 +149,7 @@ Table OutputProcessor::getVersions(std::string strRel, std::string strRul) {
                             row[4] = std::shared_ptr<CellInterface>(
                                     new Cell<long>(row[4]->getLongVal() + rul->getNum_tuples()));
                             row[0] = std::shared_ptr<CellInterface>(new Cell<double>(rul->getRuntime()));
-                            rule_map.emplace(rul->getName(), std::make_shared<Row>(row));
+                            rule_map[strTemp] = std::make_shared<Row>(row);
                         } else {
                             Row row(10);
                             row[1] = std::shared_ptr<CellInterface>(new Cell<double>(0.0));
@@ -164,7 +161,7 @@ Table OutputProcessor::getVersions(std::string strRel, std::string strRul) {
                             row[8] = std::shared_ptr<CellInterface>(new Cell<long>(rul->getVersion()));
                             row[9] = std::shared_ptr<CellInterface>(new Cell<std::string>(rul->getLocator()));
                             row[0] = std::shared_ptr<CellInterface>(new Cell<double>(rul->getRuntime()));
-                            rule_map.emplace(strTemp, std::make_shared<Row>(row));
+                            rule_map[strTemp] = std::make_shared<Row>(row);
                         }
                     }
                 }
@@ -175,6 +172,7 @@ Table OutputProcessor::getVersions(std::string strRel, std::string strRul) {
                 long d2 = t[4]->getLongVal();
                 t[3] = std::shared_ptr<CellInterface>(new Cell<double>(d2*tot_copy_time/d));
                 t[0] = std::shared_ptr<CellInterface>(new Cell<double>(t[1]->getDoubVal() + t[2]->getDoubVal() + t[3]->getDoubVal()));
+                rule_map[row.first] = std::make_shared<Row>(t);
             }
             break;
         }

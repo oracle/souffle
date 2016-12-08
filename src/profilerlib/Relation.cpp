@@ -22,8 +22,7 @@ std::string Relation::createRecID(std::string name) {
             }
         }
     }
-    rec_id++;
-    return "C" + id.substr(1) + "." + std::to_string(rec_id);
+    return "C" + id.substr(1) + "." + std::to_string(rec_id++);
 }
 
 

@@ -1,5 +1,4 @@
-#ifndef ITERATION_HPP
-#define ITERATION_HPP
+#pragma once
 
 
 #include <string>
@@ -51,4 +50,3 @@ public:
 
 };
 
-#endif

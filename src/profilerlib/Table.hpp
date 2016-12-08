@@ -6,8 +6,10 @@
 
 #include <vector>
 #include <string>
+#include <Algorithm>
 
 #include "Row.hpp"
+#include "DataComparator.hpp"
 
 class Table {
 public:
@@ -24,4 +26,6 @@ public:
         return rows;
     }
 
+    void sort(int col_num);
 };
+

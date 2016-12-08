@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <cmath>
+#include <regex>
 
 #include "Table.hpp"
 
@@ -21,4 +22,6 @@ namespace Tools {
     std::string formatTime(double number);
 
     std::vector<std::vector<std::string>> formatTable(Table table, int precision);
+
+    std::vector<std::string> split(std::string str, std::string split_reg);
 }
