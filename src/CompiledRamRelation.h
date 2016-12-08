@@ -50,6 +50,8 @@ namespace ram {
 template<unsigned arity, typename ... Indices>
 class Relation;
 
+
+
 /**
  * A namespace enclosing template-meta-programming utilities for handling
  * parameter lists for templates.
@@ -1403,6 +1405,7 @@ namespace iterator_utils {
 
 } // end namespace iterator utils
 
+
 /**
  * A base class for partially specialized relation templates following below.
  * This base class provides generic interfaces and adapters forwarding requests
@@ -1413,10 +1416,7 @@ namespace iterator_utils {
  * @tparam Derived .. the type of the derived relation
  */
 template<unsigned arity, typename Derived>
-class RelationBase {
-
-public:
-
+struct RelationBase {
     using SymbolTable = souffle::SymbolTable; // XXX pending namespace cleanup
 
 	// the type of tuple maintained by this relation
@@ -1653,6 +1653,7 @@ private:
     }
 
 };
+
 
 /**
  * The most generic implementation of a relation supporting arbitrary arities > 0 and
@@ -2012,6 +2013,7 @@ class Relation<5,First,Second,Rest...> : public DirectIndexedRelation<5,First,Se
 template<typename First, typename Second, typename ... Rest>
 class Relation<6,First,Second,Rest...> : public DirectIndexedRelation<6,First,Second,Rest...> {};
 
+
 /**
  * A specialization of a relation for which no indices are required.
  * Such a relation is mapped to a relation is mapped to a single-index relation
@@ -2020,7 +2022,7 @@ class Relation<6,First,Second,Rest...> : public DirectIndexedRelation<6,First,Se
  * TODO: consider using a hash table since no range or equality queries are needed
  */
 template<unsigned arity>
-class Relation<arity> : public Relation<arity, typename index_utils::get_full_index<arity>::type> { };
+class Relation<arity> : public Relation<arity, typename index_utils::get_full_index<arity>::type> {};
 
 /**
  * A specialization of a 0-ary relation.
@@ -2175,6 +2177,7 @@ public:
 
 };
 
+
 /**
  * A specialization of the relation requesting a single index.
  */
@@ -2317,6 +2320,5 @@ public:
 };
 
 } // end of namespace ram
-
 } // end of namespace souffle
 
