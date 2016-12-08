@@ -326,7 +326,6 @@ public:
 
     /** get index for a given set of keys using a cached index as a helper. Keys are encoded as bits for each column */
     RamIndex* getIndex(const SearchColumns& key, RamIndex* cachedIndex) const {
-        // TODO: find out when generation/lookup of an index is unnecessary and the cached index can simply be returned
         if (!cachedIndex) return getIndex(key);
         return getIndex(cachedIndex->order());
     }
@@ -372,6 +371,7 @@ public:
     RamIndex* getIndex(const RamIndexOrder& order) const {
         // TODO: improve index usage by re-using indices with common prefix
         RamIndex* res;
+        pthread_mutex_lock(&lock);
         auto pos = indices.find(order);
         if (pos == indices.end()) {
             std::unique_ptr<RamIndex> &newIndex = indices[order];
@@ -381,6 +381,7 @@ public:
         }  else {
             res = pos->second.get();
         }
+        pthread_mutex_unlock(&lock);
         return res;
     }
 
