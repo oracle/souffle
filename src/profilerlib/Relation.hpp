@@ -36,7 +36,7 @@ public:
         iterations = std::vector<std::shared_ptr<Iteration>>();
     }
 
-    std::string createID() { return "N" + id.substr(1) + "." + std::to_string(++rec_id); }
+    std::string createID() { return "N" + id.substr(1) + "." + std::to_string(++rul_id); }
 
     std::string createRecID(std::string name);
 

@@ -5,16 +5,6 @@
 static bool DEBUG=false;
 
 
-void split(const std::string &s, char delim, std::vector<std::string> &elems) {
-    std::stringstream ss;
-    ss.str(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        elems.push_back(item);
-    }
-}
-
-
 
 void Cli::error() {
     //std::cout << "\nExpected commands/args to run souffle-prof: \n";
@@ -43,14 +33,11 @@ void Cli::parse() {
         } else if (arg.compare("-c")==0) {
             if (i < args.size()) {
                 // split at \s+ and save into commands
-                std::string command_str = args.at(i);
+                std::string& command_str = args.at(i++);
                 // TODO: split on \s+ not \
                 //
-                split(command_str, '\\', commands);
-                // for (int j=0; j<commands.size();j++) {
-                // 	std::string command = commands.at(j);
-                // 	std::cout << "command no. " << j << "\n";
-                // 	std::cout << "command: " << commands.at(j) << "\n";
+                commands = Tools::split(command_str, "\\s+");
+
                 // }
             } else {
                 std::cout << "Parameters for option -c missing!\n";

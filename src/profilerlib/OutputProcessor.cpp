@@ -21,7 +21,7 @@ Table OutputProcessor::getRelTable() {
     for (auto& rel : relation_map) {
         std::shared_ptr<Relation> r = rel.second;
         Row row(9);
-        double total_time = r->getNonRecTime() + r->getRecTime();
+        double total_time = r->getNonRecTime() + r->getRecTime() + r->getCopyTime();
         row[0] = std::shared_ptr<CellInterface>(new Cell<double>(total_time));
         row[1] = std::shared_ptr<CellInterface>(new Cell<double>(r->getNonRecTime()));
         row[2] = std::shared_ptr<CellInterface>(new Cell<double>(r->getRecTime()));
@@ -96,7 +96,10 @@ Table OutputProcessor::getRulTable() {
                 double rec_tup = (double)(t[4]->getLongVal());
                 t[3] = std::shared_ptr<CellInterface>(new Cell<double>(rec_tup*tot_copy_time/tot_rec_tup));
             }
-            t[0] = std::shared_ptr<CellInterface>(new Cell<double>(t[1]->getDoubVal() + t[2]->getDoubVal() + t[3]->getDoubVal()));
+            double val = t[1]->getDoubVal() + t[2]->getDoubVal() + t[3]->getDoubVal();
+
+            t[0] = std::shared_ptr<CellInterface>(new Cell<double>(val));
+
             if (t[0]->getDoubVal() != 0.0) {
                 t[9] = std::shared_ptr<CellInterface>(new Cell<double>(t[4]->getLongVal() / t[0]->getDoubVal()));
             } else {
@@ -161,6 +164,7 @@ Table OutputProcessor::getVersions(std::string strRel, std::string strRul) {
                             row[8] = std::shared_ptr<CellInterface>(new Cell<long>(rul->getVersion()));
                             row[9] = std::shared_ptr<CellInterface>(new Cell<std::string>(rul->getLocator()));
                             row[0] = std::shared_ptr<CellInterface>(new Cell<double>(rul->getRuntime()));
+                            std::cout << rul->getLocator() << "\n";
                             rule_map[strTemp] = std::make_shared<Row>(row);
                         }
                     }

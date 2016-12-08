@@ -52,11 +52,11 @@ void Tui::runCommand(std::vector<std::string> c) {
             rul(c[0]);
         }
     } else if (c[0].compare("graph")==0) {
-        if (c.size() == 3 && c[1].find(".")!=std::string::npos) {
+        if (c.size() == 3 && c[1].find(".")==std::string::npos) {
             iterRel(c[1], c[2]);
         } else if (c.size() == 3 && c[1].at(0)=='C') {
             iterRul(c[1],c[2]);
-        } else if (c.size() == 4 && c[1].compare("ver") &&
+        } else if (c.size() == 4 && c[1].compare("ver")==0 &&
                 c[2].at(0)=='C') {
             verGraph(c[2],c[3]);
         } else {
@@ -92,10 +92,10 @@ void Tui::runProf() {
         std::string input;
         std::cout << "> ";
         getline (std::cin, input);
-        if (input.compare("")==0) {
-            std::cout << "Error reading command.\n";
-            return;
-        }
+        //if (input.compare("")==0) {
+        //    std::cout << "Error reading command.\n";
+        //    return;
+        //}
 
         std::vector<std::string> c = Tools::split(input, "\\s+");
 
@@ -175,7 +175,7 @@ void Tui::load(std::string method, std::string load_file) {
         this->loaded = true;
         this->f_name = f_name;
         if (alive) {
-            std::cout << "Live reader not implemented\n";
+            std::cout << "Live reader not implemented\n" << std::endl;
             throw;
         }
         top();
@@ -304,7 +304,7 @@ void Tui::relRul(std::string str) {
     }
     std::cout << " ---------------------------------------------------------\n";
     for (auto& row : rul_table) {
-        if (row[7].compare(name)) {
+        if (row[7].compare(name)==0) {
             std::printf("%8s%8s%8s%8s%10s%8s %-25s\n",
                         row[0].c_str(), row[1].c_str(),
                         row[2].c_str(), row[3].c_str(),
@@ -365,9 +365,13 @@ void Tui::verRul(std::string str) {
     }
     if (found) {
         if (ver_table.rows.size() > 0) {
-            std::cout << "\nSrc locator: " << (*ver_table.rows[0])[9]->getStringVal() << "\n\n";
+            if (ver_table.rows[0]->cells[9]!=nullptr) {
+                std::cout << "\nSrc locator: " << (*ver_table.rows[0])[9]->getStringVal() << "\n\n";
+            } else {
+                std::cout << "\nSrc locator: -\n\n";
+            }
         } else if (rul_table.size() > 0) {
-            std::cout << "\nSrc locator-: " << rul_table[0][9] << "\n\n";
+            std::cout << "\nSrc locator-: " << rul_table[0][10] << "\n\n";
         }
     }
 
@@ -383,6 +387,7 @@ void Tui::iterRel(std::string c, std::string col) {
     std::vector<std::vector<std::string>> table = out.formatTable(rel_table_state, -1);
     std::vector<std::shared_ptr<Iteration>> iter;
     for (auto& row : table) {
+        std::cout << row[6] << ":" << row[5] << std::endl;
         if (row[6].compare(c) == 0 || row[5].compare(c) == 0) {
             std::printf("%4s%2s%-25s\n\n", row[6].c_str(), "", row[5].c_str());
             std::shared_ptr<ProgramRun>& run = out.getProgramRun();
@@ -438,7 +443,7 @@ void Tui::iterRul(std::string c, std::string col) {
                 }
                 std::printf("%4s   %-6s\n\n", "NO", "RUNTIME");
                 graphD(list);
-            } else if (col.compare("tuples")) {
+            } else if (col.compare("tuples")==0) {
                 std::vector<long> list;
                 for (auto& i : iter) {
                     bool add = false;
@@ -508,13 +513,13 @@ void Tui::graphD(std::vector<double> list) {
     }
     int i=0;
     for (auto& d : list) {
-        int len = (int) (d/(float)max*SCREEN_WIDTH);
+        int len = (int) (67*(d/max));
         // TODO: %4d %10.8f
-        std::cout << i++ << " " << out.formatTime(d) << " | ";
+        std::string bar = "";
         for (int j=0; j<len;j++) {
-            std::cout << "*";
+            bar += "*";
         }
-        std::cout << "\n";
+        std::printf("%4d %10.8f | %s\n", i++, d, bar.c_str());
     }
 }
 
@@ -527,13 +532,12 @@ void Tui::graphL(std::vector<long> list) {
     }
     int i=0;
     for (auto& l : list) {
-        int len = (int) ((float)l/(float)max*SCREEN_WIDTH);
-        // TODO: %4d
-        std::cout << i++ << " " << out.formatNum(precision, l).substr(0,8) << " | ";
+        int len = (int) (64*((double)l/(double)max));
+        std::string bar = "";
         for (int j=0; j<len;j++) {
-            std::cout << "*";
+            bar += "*";
         }
-        std::cout << "\n";
+        std::printf("%4d %8s | %s\n", i++, out.formatNum(precision, l).c_str(), bar.c_str());
     }
 }
 

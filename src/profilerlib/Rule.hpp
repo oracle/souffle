@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <iostream>
 
 class Rule {
 
@@ -22,13 +23,13 @@ public:
 
 	Rule(std::string name, std::string id) 
 	: name(name),
-	  identifier(id) { }
+	  identifier(id) {}
 
 	Rule(std::string name, int version, std::string id)
 		: name(name),
 		  identifier(id),
 		  recursive(true),
-		  version(version) { }
+		  version(version) {}
 	
 
 	inline std::string getId() { return identifier; }

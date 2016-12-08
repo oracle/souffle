@@ -7,6 +7,8 @@
 
 
 std::string Tools::formatNum(int precision, long amount) {
+
+
     // assumes number is < 999*10^12
     if (amount == 0) {
         return "0";
@@ -16,7 +18,7 @@ std::string Tools::formatNum(int precision, long amount) {
     std::string result;
 
     for (int i=0;i<abbreviations.size();++i) {
-        if (amount>std::pow(1000,i+2)) {
+        if (amount > std::pow(1000,i+2)) {
             continue;
         }
 
@@ -62,6 +64,10 @@ std::string Tools::formatNum(int precision, long amount) {
 
 
 std::string Tools::formatTime(double number) {
+    if (isnan(number) || isinf(number)) {
+        return "-";
+    }
+
     long sec = std::lround(number);
     if (sec >= 100) {
         long min = (long)std::floor(sec/60);
