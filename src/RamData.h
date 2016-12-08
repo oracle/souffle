@@ -76,7 +76,7 @@ class RamData {
 
     PrimData* getTuples(std::string name) {
       if (data_map.find(name) == data_map.end()) {
-        std::cout << "Warning: " << name << " not in data_map\n";
+        return NULL;
       }
 
       if(data_map[name]->data.size() == 0) {
