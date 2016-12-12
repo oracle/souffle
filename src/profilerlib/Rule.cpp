@@ -4,11 +4,11 @@
 std::string Rule::toString() {
     std::ostringstream output;
     if (recursive) {
-        output << "{\"" << name << "," << version << "\":";
+        output << "{" << name << "," << version << ":";
     } else {
-        output << "{\"" << name << "\":";
+        output << "{" << name << ":";
     }
-    output << "[" << runtime << "," << num_tuples << "]},";
+    output << "[" << runtime << "," << num_tuples << "]}";
     return output.str();
 }
 

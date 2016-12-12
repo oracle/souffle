@@ -34,11 +34,8 @@ void Cli::parse() {
             if (i < args.size()) {
                 // split at \s+ and save into commands
                 std::string& command_str = args.at(i++);
-                // TODO: split on \s+ not \
-                //
                 commands = Tools::split(command_str, "\\s+");
 
-                // }
             } else {
                 std::cout << "Parameters for option -c missing!\n";
                 error();
@@ -80,7 +77,7 @@ void Cli::parse() {
             std::cout << "commands: true\n";
 
             for (int j=0; j<commands.size();j++) {
-                std::string command = commands.at(j);
+                std::string& command = commands.at(j);
                 std::cout << "command: " << commands.at(j) << "\n";
             }
         }

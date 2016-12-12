@@ -7,6 +7,10 @@
 
 #include "OutputProcessor.hpp"
 #include "Reader.hpp"
+#include "StringUtils.hpp"
+
+
+
 
 class Tui {
 private:

@@ -8,6 +8,21 @@
 #include <vector>
 #include <cmath>
 #include <regex>
+#include <fstream>
+
+#include <sys/types.h> // required for stat.h
+#include <sys/stat.h>
+
+#include <stdio.h>  /* defines FILENAME_MAX */
+
+#ifdef WINDOWS
+#include <direct.h>
+#define GetCurrentDir _getcwd
+#else
+#include <unistd.h>
+#define GetCurrentDir getcwd
+#endif
+
 
 #include "Table.hpp"
 
@@ -24,4 +39,11 @@ namespace Tools {
     std::vector<std::vector<std::string>> formatTable(Table table, int precision);
 
     std::vector<std::string> split(std::string str, std::string split_reg);
+
+    inline bool file_exists (const std::string& name) {
+        std::ifstream f(name.c_str());
+        return f.good();
+    }
+
+    std::string getworkingdir();
 }

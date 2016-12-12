@@ -5,6 +5,9 @@
 #include <dirent.h>
 
 Tui::Tui(std::string filename, bool live) {
+
+    this->f_name = filename;
+
     out = OutputProcessor();
     std::shared_ptr<ProgramRun>& run = out.getProgramRun();
 
@@ -109,8 +112,11 @@ void Tui::runProf() {
                 loadMenu();
             }
         } else if (c[0].compare("save")==0) {
-            std::cerr << "no saving yet\n";
-            throw -1;
+            if (c.size() == 1) {
+                std::cout << "Enter file name to save.\n";
+            } else if (c.size() == 2) {
+                save(c[1]);
+            }
         } else if (c[0].compare("sort")==0) {
             if (c.size() == 2 && std::stoi(c[1]) < 7) {
                 sort_col = std::stoi(c[1]);
@@ -133,7 +139,10 @@ void Tui::loadMenu() {
     struct dirent *ent;
     if ((dir = opendir("./old_runs")) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
-            printf("%s\n", ent->d_name);
+            // if the file doesnt exist in the working directory, it is in old_runs (to remove . and ..)
+            if (!Tools::file_exists(ent->d_name)) {
+                printf("- %s\n", ent->d_name);
+            }
         }
         closedir(dir);
     }
@@ -153,9 +162,7 @@ void Tui::save(std::string save_name) {
     if (loaded) {
         std::shared_ptr<ProgramRun>& run = out.getProgramRun();
         Reader saver(this->f_name, run, false, false);
-        std::cerr << "saver not implemented, Tui::save()->Reader::save()\n";
-        throw -1;
-//        saver.save();
+        saver.save(save_name);
         std::cout << "Save success.\n";
     } else {
         std::cout << "Save failed.\n";
@@ -165,8 +172,9 @@ void Tui::save(std::string save_name) {
 void Tui::load(std::string method, std::string load_file) {
     std::shared_ptr<ProgramRun> new_run = std::make_shared<ProgramRun>(ProgramRun());
     std::string f_name = load_file;
+    // if load, should be a valid filepath
     if (method.compare("open") == 0) {
-        f_name = "old_runs/" + f_name;
+        f_name = Tools::getworkingdir()+"/old_runs/"+load_file;
     }
     Reader loader(f_name, new_run, false, false);
     loader.readFile();
@@ -387,7 +395,6 @@ void Tui::iterRel(std::string c, std::string col) {
     std::vector<std::vector<std::string>> table = out.formatTable(rel_table_state, -1);
     std::vector<std::shared_ptr<Iteration>> iter;
     for (auto& row : table) {
-        std::cout << row[6] << ":" << row[5] << std::endl;
         if (row[6].compare(c) == 0 || row[5].compare(c) == 0) {
             std::printf("%4s%2s%-25s\n\n", row[6].c_str(), "", row[5].c_str());
             std::shared_ptr<ProgramRun>& run = out.getProgramRun();
@@ -467,18 +474,17 @@ void Tui::iterRul(std::string c, std::string col) {
 }
 
 void Tui::verGraph(std::string c, std::string col) {
-    if (c.find('.')!=std::string::npos) {
+    if (c.find('.')==std::string::npos) {
         std::cout << "Rule does not exist";
         return;
     }
 
-    // String[] part = c.split("\\.", 2);
     std::vector<std::string> part = Tools::split(c, "\\.");
     std::string strRel = "R"+part[0].substr(1);
 
     Table ver_table = out.getVersions(strRel, c);
     // std::printf("%6s%2s%-25s\n\n", ver_table[0][6], "", ver_table[0][5])));
-    std::printf("%6s%2s%-25s\n\n", (*ver_table.rows[0])[5]->getStringVal().c_str(), "", (*ver_table.rows[0])[4]->getStringVal().c_str());
+    std::printf("%6s%2s%-25s\n\n", (*ver_table.rows[0])[6]->getStringVal().c_str(), "", (*ver_table.rows[0])[5]->getStringVal().c_str());
     if (col.compare("tot_t") == 0) {
         std::vector<double> list;
         for (auto& row : ver_table.rows) {
@@ -486,17 +492,17 @@ void Tui::verGraph(std::string c, std::string col) {
         }
         std::printf("%4s   %-6s\n\n", "NO", "RUNTIME");
         graphD(list);
-    } else if (col.compare("tot_t") == 0) {
+    } else if (col.compare("copy_t") == 0) {
         std::vector<double> list;
         for (auto& row : ver_table.rows) {
             list.emplace_back((*row)[3]->getDoubVal());
         }
         std::printf("%4s   %-6s\n\n", "NO", "COPYTIME");
         graphD(list);
-    } else if (col.compare("tot_t") == 0) {
+    } else if (col.compare("tuples") == 0) {
         std::vector<long> list;
         for (auto& row : ver_table.rows) {
-            list.emplace_back((*row)[4]->getDoubVal());
+            list.emplace_back((*row)[4]->getLongVal());
         }
         std::printf("%4s   %-6s\n\n", "NO", "TUPLES");
         graphL(list);
@@ -511,6 +517,9 @@ void Tui::graphD(std::vector<double> list) {
             max = d;
         }
     }
+
+    std::sort(list.begin(), list.end());
+    std::reverse(list.begin(), list.end());
     int i=0;
     for (auto& d : list) {
         int len = (int) (67*(d/max));
@@ -530,6 +539,8 @@ void Tui::graphL(std::vector<long> list) {
             max = l;
         }
     }
+    std::sort(list.begin(), list.end());
+    std::reverse(list.begin(), list.end());
     int i=0;
     for (auto& l : list) {
         int len = (int) (64*((double)l/(double)max));

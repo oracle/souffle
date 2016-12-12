@@ -114,4 +114,5 @@ std::string Relation::toString() {
 //    std::string retStr = output.str();
 //    //substring to remove the last comma
 //    return retStr.substr(0, retStr.size()-2) + "]\n}";
+
 }

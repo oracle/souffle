@@ -4,6 +4,8 @@
 
 #include "Reader.hpp"
 
+
+
 void Reader::readFile() {
     if (isLive()) {
         std::cerr << "not implemented";
@@ -29,6 +31,70 @@ void Reader::readFile() {
         }
         file.close();
         loaded = true;
+    }
+}
+
+void Reader::save(std::string f_name) {
+
+
+    std::string workingdir = Tools::getworkingdir();
+    if (workingdir.size()==0) {
+        std::cerr << "could not get working directory\n" << std::endl;
+        throw 1;
+    }
+
+    DIR *dir;
+    struct dirent *ent;
+    bool exists = false;
+
+    if ((dir = opendir((workingdir+std::string("/old_runs")).c_str())) != NULL) {
+        exists = true;
+        closedir(dir);
+    }
+
+    if (!exists) {
+        std::string sPath = workingdir+std::string("/old_runs");
+        mode_t nMode = 0733; // UNIX style permissions
+        int nError = 0;
+        #if defined(WINDOWS)
+                nError = _mkdir(sPath.c_str()); // can be used on Windows
+        #else
+                nError = mkdir(sPath.c_str(),nMode); // can be used on non-Windows
+        #endif
+        if (nError != 0) {
+            std::cerr << "directory ./old_runs/ failed to be created.";
+            exit(2);
+        }
+    }
+
+    std::string new_file = workingdir+std::string("/old_runs/");
+    if (Tools::file_exists(new_file)) {
+        int i = 1;
+        while (Tools::file_exists(new_file + std::to_string(i))){
+            i++;
+        }
+
+        new_file = new_file+std::to_string(i);
+    }
+
+    std::ofstream fout(new_file);
+
+    if (!file.is_open()) {
+        throw std::exception();
+    }
+
+    time_t t = time(0);   // get time now
+    struct tm * now = localtime( & t );
+    fout << this->file_loc << " created on "
+            << (now->tm_year + 1900) << '.'
+         << (now->tm_mon + 1) << '.'
+         <<  now->tm_mday << " at "
+            << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec
+         << std::endl;
+
+    std::string str;
+    while (getline(file, str)) {
+        fout << str << "\n";
     }
 }
 

@@ -138,3 +138,15 @@ std::vector<std::string> Tools::split(std::string str, std::string split_reg) {
     return elems;
 
 }
+
+std::string Tools::getworkingdir() {
+    char cCurrentPath[FILENAME_MAX];
+
+    if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath))) {
+        return std::string();
+    }
+
+    cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
+
+    return std::string(cCurrentPath);
+}
