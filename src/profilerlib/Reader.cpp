@@ -25,10 +25,14 @@ void Reader::readFile() {
                 }
                 // regex to split on ';' where ';' isn't in a string eg. "asdf;asdf", 'asdf;asdf',
                 // TODO: both ' and "
-                std::vector<std::string> part = Tools::split(str.substr(1), "\\s*;(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)\\s*");
+//                std::vector<std::string> part = Tools::split(str.substr(1), "\\s*;(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)\\s*");
+                std::vector<std::string> part = Tools::splitAtSemiColon(str.substr(1));
                 process(part);
             }
         }
+
+
+
         file.close();
         loaded = true;
     }

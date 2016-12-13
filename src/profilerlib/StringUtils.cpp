@@ -14,6 +14,9 @@ std::string Tools::formatNum(int precision, long amount) {
         return "0";
     }
 
+    if (precision == -1) {
+        return std::to_string(amount);
+    }
 
     std::string result;
 
@@ -68,7 +71,8 @@ std::string Tools::formatTime(double number) {
         return "-";
     }
 
-    long sec = std::lround(number);
+
+    long sec = std::lrint(number);
     if (sec >= 100) {
         long min = (long)std::floor(sec/60);
         if (min >= 100) {
@@ -86,20 +90,22 @@ std::string Tools::formatTime(double number) {
         }
         return std::to_string(min) + "m";
     } else if (sec >= 10) {
-        return std::to_string(sec)+"s";
-    } else if (sec >= 1) {
-        std::string temp = std::to_string(std::round(number*100));
+        return std::to_string(sec);
+    } else if (number >= 1.0) {
+        std::string temp = std::to_string(std::lrint(number*100));
         return temp.substr(0,1)+"."+temp.substr(1,2);
-    } else if (number >= 0.100) {
+    } else if (std::lrint(number*1000) >= 100.0) {
         std::string temp = std::to_string(std::round(number*1000));
         return "."+temp.substr(0,3);
-    } else if (number > 0.010) {
+    } else if (std::lrint(number*1000) >= 10.0) {
+
         std::string temp = std::to_string(std::round(number*1000));
         return ".0"+temp.substr(0,2);
-    } else if (number > 0.001) {
+    } else if (number >= .001) {
         std::string temp = std::to_string(std::round(number*1000));
         return ".00"+temp.substr(0,1);
     }
+
     return ".000";
 }
 
@@ -138,6 +144,40 @@ std::vector<std::string> Tools::split(std::string str, std::string split_reg) {
     return elems;
 
 }
+
+std::vector<std::string> Tools::splitAtSemiColon(std::string str) {
+
+    bool in_str = false;
+
+    for (int i=0; i<str.size(); i++) {
+        if (in_str) {
+            if (str[i] == '"' && str[i-1] != '\\') {
+                in_str = false;
+            } else if (str[i] == ';') {
+                str[i] = '\n';
+            }
+        } else {
+            if (str[i] == '"') {
+                in_str = true;
+            }
+        }
+    }
+
+
+
+    std::vector<std::string> result = split(str, ";");
+    for (auto& st : result) {
+        std::string s = st;
+        for (int i=0; i<st.size(); i++) {
+            if (st[i] == '\n') {
+                st[i] = ';';
+            }
+        }
+    }
+    return result;
+}
+
+
 
 std::string Tools::getworkingdir() {
     char cCurrentPath[FILENAME_MAX];

@@ -82,7 +82,7 @@ void Tui::runProf() {
         return;
     }
     if (loaded) {
-        std::cout << "SouffleProf v2.1.8";
+        std::cout << "SouffleProf v2.1.8\n";
         top();
     }
     while (true) {
@@ -241,6 +241,8 @@ void Tui::top() {
     std::shared_ptr<ProgramRun>& run = out.getProgramRun();
     std::string runtime = run->getRuntime();
     std::cout << "\n Total runtime: " <<  runtime << "\n";
+
+
     std::cout << "\n Total number of new tuples: " << run->formatNum(precision, run->getTotNumTuples()) << std::endl;
 }
 
@@ -298,16 +300,30 @@ void Tui::relRul(std::string str) {
     std::printf("%8s%8s%8s%8s%10s%8s %-25s\n\n", "TOT_T",
                 "NREC_T", "REC_T", "COPY_T", "TUPLES", "ID", "NAME");
     std::string name = "";
-
+    bool found = false; // workaround to make it the same as java (row[5] seems to have priority)
     for (auto& row : rel_table) {
-        if (row[5].compare(str) == 0 || row[6].compare(str) == 0) {
+        if (row[5].compare(str) == 0 ) {
             std::printf("%8s%8s%8s%8s%10s%8s %-25s\n",
                         row[0].c_str(), row[1].c_str(),
                         row[2].c_str(), row[3].c_str(),
                         row[4].c_str(), row[6].c_str(),
                         row[5].c_str());
             name = row[5];
+            found = true;
             break;
+        }
+    }
+    if (!found) {
+        for (auto& row : rel_table) {
+            if (row[6].compare(str) == 0) {
+                std::printf("%8s%8s%8s%8s%10s%8s %-25s\n",
+                            row[0].c_str(), row[1].c_str(),
+                            row[2].c_str(), row[3].c_str(),
+                            row[4].c_str(), row[6].c_str(),
+                            row[5].c_str());
+                name = row[5];
+                break;
+            }
         }
     }
     std::cout << " ---------------------------------------------------------\n";
@@ -344,7 +360,12 @@ void Tui::verRul(std::string str) {
     Table ver_table = out.getVersions(strRel, str);
     ver_table.sort(sort_col);
 
+    rul_table_state.sort(sort_col); // why isnt it sorted in the original java?!?
+
     std::vector<std::vector<std::string>> rul_table = out.formatTable(rul_table_state, precision);
+
+
+
 
     std::cout << "  ----- Rule Versions Table -----\n";
     std::printf("%8s%8s%8s%8s%10s%6s   %-5s\n\n", "TOT_T",
@@ -395,7 +416,7 @@ void Tui::iterRel(std::string c, std::string col) {
     std::vector<std::vector<std::string>> table = out.formatTable(rel_table_state, -1);
     std::vector<std::shared_ptr<Iteration>> iter;
     for (auto& row : table) {
-        if (row[6].compare(c) == 0 || row[5].compare(c) == 0) {
+        if (row[6].compare(c) == 0) {
             std::printf("%4s%2s%-25s\n\n", row[6].c_str(), "", row[5].c_str());
             std::shared_ptr<ProgramRun>& run = out.getProgramRun();
             iter = run->getRelation_map()[row[5]]->getIterations();
@@ -421,6 +442,37 @@ void Tui::iterRel(std::string c, std::string col) {
                 std::printf("%4s   %-6s\n\n", "NO", "TUPLES");
                 graphL(list);
             }
+            return;
+        }
+    }
+    for (auto& row : table) {
+        if (row[5].compare(c) == 0) {
+            std::printf("%4s%2s%-25s\n\n", row[6].c_str(), "", row[5].c_str());
+            std::shared_ptr<ProgramRun>& run = out.getProgramRun();
+            iter = run->getRelation_map()[row[5]]->getIterations();
+            if (col.compare("tot_t") == 0) {
+                std::vector<double> list;
+                for (auto& i : iter) {
+                    list.emplace_back(i->getRuntime());
+                }
+                std::printf("%4s   %-6s\n\n", "NO", "RUNTIME");
+                graphD(list);
+            } else if (col.compare("copy_t") == 0) {
+                std::vector<double> list;
+                for (auto& i : iter) {
+                    list.emplace_back(i->getCopy_time());
+                }
+                std::printf("%4s   %-6s\n\n", "NO", "COPYTIME");
+                graphD(list);
+            } else if (col.compare("tuples") == 0) {
+                std::vector<long> list;
+                for (auto &i : iter) {
+                    list.emplace_back(i->getNum_tuples());
+                }
+                std::printf("%4s   %-6s\n\n", "NO", "TUPLES");
+                graphL(list);
+            }
+            return;
         }
     }
 }
@@ -528,7 +580,13 @@ void Tui::graphD(std::vector<double> list) {
         for (int j=0; j<len;j++) {
             bar += "*";
         }
-        std::printf("%4d %10.8f | %s\n", i++, d, bar.c_str());
+
+        if (isnan(d)) {
+            std::printf("%4d        NaN | %s\n", i++, bar.c_str());
+        } else {
+            std::printf("%4d %10.8f | %s\n", i++, d, bar.c_str());
+        }
+
     }
 }
 
@@ -548,7 +606,9 @@ void Tui::graphL(std::vector<long> list) {
         for (int j=0; j<len;j++) {
             bar += "*";
         }
+
         std::printf("%4d %8s | %s\n", i++, out.formatNum(precision, l).c_str(), bar.c_str());
+
     }
 }
 

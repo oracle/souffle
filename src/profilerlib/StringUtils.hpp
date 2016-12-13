@@ -39,6 +39,7 @@ namespace Tools {
     std::vector<std::vector<std::string>> formatTable(Table table, int precision);
 
     std::vector<std::string> split(std::string str, std::string split_reg);
+    std::vector<std::string> splitAtSemiColon(std::string str);
 
     inline bool file_exists (const std::string& name) {
         std::ifstream f(name.c_str());

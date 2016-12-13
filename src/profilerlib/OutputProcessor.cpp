@@ -144,6 +144,7 @@ Table OutputProcessor::getVersions(std::string strRel, std::string strRul) {
                     std::shared_ptr<Rule> rul = _rul.second;
                     if (rul->getId().compare(strRul) == 0) {
                         std::string strTemp = rul->getName() + rul->getLocator() + std::to_string(rul->getVersion());
+
                         if (rule_map.find(strTemp) != rule_map.end()) {
                             std::shared_ptr<Row> _row = rule_map[strTemp];
                             Row row = *_row;
