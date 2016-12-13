@@ -1,0 +1,79 @@
+//
+// Equivalent
+//
+// This test may be used to check whether equivalent relations are eliminated in the RAM program.
+// A candidate procedure for determining this equivalence is given in the "NOTES" section immediately
+// following the program.
+//
+
+.decl A(i:number)
+.decl B(i:number)
+.decl X(i:number)
+.decl Y(i:number)
+
+.decl P(j:number, k:number) output
+.decl Q(j:number, k:number) output
+
+A(0).
+B(1).
+X(0).
+Y(1).
+
+P(x, y) :- B(y), A(x).
+Q(a, b) :- X(a), Y(b), A(a).
+
+//
+// # NOTES
+//
+// 1. Original program.
+//
+// A(0).
+// B(1).
+// X(0).
+// Y(1).
+//
+// P(x, y) :- B(y), A(x).
+// Q(a, b) :- X(a), Y(b), A(a).
+//
+// 2. Substitute and eliminate equivalent facts (i.e. A = X, B = Y).
+//
+// A(0).
+// B(1).
+//
+// P(x, y) :- B(y), A(x).
+// Q(a, b) :- A(a), B(b), A(a).
+//
+// 2. Re-order clause bodies lexicographically.
+//
+// A(0).
+// B(1).
+//
+// P(x, y) :- A(x), B(y).
+// Q(a, b) :- A(a), A(a), B(b).
+//
+// 3. Eliminate duplicate relations in clause bodies.
+//
+// A(0).
+// B(1).
+//
+// P(x, y) :- A(x), B(y).
+// Q(a, b) :- A(a), B(b).
+//
+// 4. Substitute variables with indexed aliases.
+//
+// A(0).
+// B(1).
+//
+// P(_1, _2) :- A(_1), B(_2).
+// Q(_1, _2) :- A(_1), B(_2).
+//
+// 5. Reduce relations with equivalent clause bodies.
+//
+// A(0).
+// B(1).
+//
+// P(_1, _2) :- A(_1), B(_2).
+// Q(_1, _2) :- P(_1, _2).
+//
+
+
