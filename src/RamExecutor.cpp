@@ -15,6 +15,7 @@
  ***********************************************************************/
 
 #include <chrono>
+#include <memory>
 #include <regex>
 #include <unistd.h>
 #include <algorithm>
@@ -25,6 +26,8 @@
 #include <omp.h>
 #endif
 
+#include "IOSystem.h"
+#include "ReadStream.h"
 #include "RamTranslator.h"
 #include "RamExecutor.h"
 #include "RamVisitor.h"
@@ -658,6 +661,20 @@ namespace {
                   return !err;
                 }
 
+                std::string fname = config.getFactFileDir() + "/" + load.getFileName();
+                std::unique_ptr<ReadStream> reader = IOSystem::getInstance().getCSVReader(fname,
+                        load.getRelation().getSymbolMask(),
+                        env.getSymbolTable());
+                RamRelation& relation = env.getRelation(load.getRelation());
+
+                if (!reader->isReadable()) {
+                    std::cerr << "Cannot open fact file " << baseName(fname) << "\n";
+                    return false;
+                }
+                while (reader->hasNextTuple()) {
+                    relation.insert((reader->readNextTuple()).get());
+                }
+/*
                 // load facts from file
                 std::ifstream csvfile;
                 std::string fname = config.getFactFileDir() + "/" + load.getFileName();
@@ -673,6 +690,7 @@ namespace {
                     std::cerr << "cannot parse fact file " << simplename << "!\n";
                     return false;
                 };
+*/
                 return true;
             }
 
