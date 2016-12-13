@@ -673,24 +673,16 @@ std::unique_ptr<RamStatement> RamTranslator::translateNonRecursiveRelation(const
 
         // add logging
         if (logging) {
-
-            std::string clauseText = toString(*clause);
-
-            // replace double-quotes, new lines, and semi-colons in the clause text 
-            // so that the profiler can read it.
-            replace(clauseText.begin(), clauseText.end(), '"', '\'');
-            replace(clauseText.begin(), clauseText.end(), '\n', ' ');
-            replace(clauseText.begin(), clauseText.end(), ';', '|');
-
+            std::string clauseText = stringify(toString(*clause));
             std::ostringstream line;
-            line << "nonrecursive-rule;" << rel.getName() << ";" << clause->getSrcLoc() << ";" << clauseText << ";";
+            line << "nonrecursive-rule;" << rel.getName() << ";";
+            line << clause->getSrcLoc() << ";";
+            line << clauseText << ";";
             std::string label = line.str();
-
             rule = std::unique_ptr<RamStatement>(new RamSequence(
                     std::unique_ptr<RamStatement>(new RamLogTimer(std::move(rule), "@t-" + label)),
                     std::unique_ptr<RamStatement>(new RamLogSize(rrel, "@n-" + label)))
             );
-
         }
 
         // add rule to result
@@ -706,7 +698,8 @@ std::unique_ptr<RamStatement> RamTranslator::translateNonRecursiveRelation(const
 
         // compute label
         std::ostringstream line;
-        line << "nonrecursive-relation;" << rel.getName() << ";" << rel.getSrcLoc() << ";" ;
+        line << "nonrecursive-relation;" << rel.getName() << ";" ;
+        line << rel.getSrcLoc() << ";" ;
         std::string label = line.str();
 
         // add timer
@@ -874,22 +867,17 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
                 /* add logging */
                 if (logging) {
 
-                    std::string clauseText = toString(*cl);
-                    // replace double-quotes, new lines, and semi-colons in the clause text 
-                    // so that the profiler can read it.
-                    replace(clauseText.begin(), clauseText.end(), '"', '\'');
-                    replace(clauseText.begin(), clauseText.end(), '\n', ' ');
-                    replace(clauseText.begin(), clauseText.end(), ';', '|');
-
+                    std::string clauseText = stringify(toString(*cl));
                     std::ostringstream line;
-                    line << "recursive-rule;" << rel->getName() << ";" << version << ";" << cl->getSrcLoc() << ";" << clauseText << ";";
+                    line << "recursive-rule;" << rel->getName() << ";";
+                    line << version << ";";
+                    line << cl->getSrcLoc() << ";";
+                    line << clauseText << ";";
                     std::string label = line.str();
-
                     rule1 = std::unique_ptr<RamStatement>(new RamSequence(
                             std::unique_ptr<RamStatement>(new RamLogTimer(std::move(rule1), "@t-" + label)),
                             std::unique_ptr<RamStatement>(new RamLogSize(temp2[rel], "@n-" + label)))
                     );
-
                 }
 
                 // add to loop body
@@ -909,9 +897,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
             std::ostringstream line;
             line << "recursive-relation;" << rel->getName() << ";" << rel->getSrcLoc() << ";" ;
             std::string label = line.str();
-
             loopRelSeq1 = std::unique_ptr<RamStatement>(new RamLogTimer(std::move(loopRelSeq1), "@t-" + label));
-
             appendStmt(loopRelSeq1, std::unique_ptr<RamStatement>(new RamLogSize(temp2[rel],"@n-" + label)));
         }
 
