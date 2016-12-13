@@ -68,6 +68,15 @@ inline bool isNumber(const char *str)
 // -------------------------------------------------------------------------------
 
 /**
+ * A utility to check generically whether a given element is contained in a given
+ * container.
+ */
+template<typename C>
+bool contains(const C& container, const typename C::value_type& element) {
+    return std::find(container.begin(), container.end(), element) != container.end();
+}
+
+/**
  * A utility function enabling the creation of a vector with a fixed set of
  * elements within a single expression. This is the base case covering empty
  * vectors.
@@ -88,14 +97,8 @@ std::vector<T> toVector(const T& first, const R& ... rest) {
 }
 
 /**
- * A utility to check generically whether a given element is contained in a given
- * container.
+ * A utility function enabling the creation of a vector of pointers.
  */
-template<typename C>
-bool contains(const C& container, const typename C::value_type& element) {
-    return std::find(container.begin(), container.end(), element) != container.end();
-}
-
 template<typename T>
 std::vector<T*> toPtrVector(const std::vector<std::unique_ptr<T>> &v) {
     std::vector<T*> res;
@@ -105,6 +108,61 @@ std::vector<T*> toPtrVector(const std::vector<std::unique_ptr<T>> &v) {
     return res;
 }
 
+/**
+ * A utility function enabling the creation of a vector of pointers.
+ */
+template<typename T>
+std::vector<T*> toPtrVector(const std::vector<std::shared_ptr<T>> &v) {
+    std::vector<T*> res;
+    for (auto &e : v) {
+        res.push_back(e.get());
+    }
+    return res;
+}
+
+/**
+ * A utility function enabling the creation of a set with a fixed set of
+ * elements within a single expression. This is the base case covering empty
+ * sets.
+ */
+template<typename T>
+std::set<T> toSet() {
+    return std::set<T>();
+}
+
+/**
+ * A utility function enabling the creation of a set with a fixed set of
+ * elements within a single expression. This is the step case covering sets
+ * of arbitrary length.
+ */
+template<typename T, typename ... R>
+std::set<T> toSet(const T& first, const R& ... rest) {
+    return { first, rest ... };
+}
+
+/**
+ * A utility function enabling the creation of a set of pointers.
+ */
+template<typename T>
+std::set<T*> toPtrSet(const std::set<std::unique_ptr<T>> &v) {
+    std::set<T*> res;
+    for (auto &e : v) {
+        res.insert(e.get());
+    }
+    return res;
+}
+
+/**
+ * A utility function enabling the creation of a set of pointers.
+ */
+template<typename T>
+std::set<T*> toPtrSet(const std::set<std::shared_ptr<T>> &v) {
+    std::set<T*> res;
+    for (auto &e : v) {
+        res.insert(e.get());
+    }
+    return res;
+}
 
 // -------------------------------------------------------------
 //                             Ranges
@@ -172,7 +230,7 @@ struct comp_deref {
 
 
 /**
- * A function testing whether two vectors are equal (same list of elements).
+ * A function testing whether two vectors are equal (same vector of elements).
  */
 template<typename T, typename Comp = std::equal_to<T>>
 bool equal(const std::vector<T>& a, const std::vector<T>& b, const Comp& comp = Comp()) {
@@ -193,7 +251,7 @@ bool equal(const std::vector<T>& a, const std::vector<T>& b, const Comp& comp = 
 }
 
 /**
- * A function testing whether two list of pointers are referencing to equivalent
+ * A function testing whether two vector of pointers are referencing to equivalent
  * targets.
  */
 template<typename T>
@@ -202,12 +260,70 @@ bool equal_targets(const std::vector<T*>& a, const std::vector<T*>& b) {
 }
 
 /**
- * A function testing whether two list of pointers are referencing to equivalent
+ * A function testing whether two vector of pointers are referencing to equivalent
  * targets.
  */
 template<typename T>
 bool equal_targets(const std::vector<std::unique_ptr<T>>& a, const std::vector<std::unique_ptr<T>>& b) {
     return equal(a,b,comp_deref<std::unique_ptr<T>>());
+}
+
+/**
+ * A function testing whether two vector of pointers are referencing to equivalent
+ * targets.
+ */
+template<typename T>
+bool equal_targets(const std::vector<std::shared_ptr<T>>& a, const std::vector<std::shared_ptr<T>>& b) {
+    return equal(a,b,comp_deref<std::shared_ptr<T>>());
+}
+
+
+/**
+ * A function testing whether two sets are equal (same set of elements).
+ */
+template<typename T, typename Comp = std::equal_to<T>>
+bool equal(const std::set<T>& a, const std::set<T>& b, const Comp& comp = Comp()) {
+    // check reference
+    if (&a == &b) return true;
+
+    // check size
+    if (a.size() != b.size()) return false;
+
+    // check content
+    for (auto it_i = a.begin(); it_i != a.end(); ++it_i)
+        for (auto it_j = a.begin(); it_j != a.end(); ++it_j)
+            // if there is a difference
+            if (!comp(*it_i,*it_j)) return false;
+
+    // all the same
+    return true;
+}
+
+/**
+ * A function testing whether two set of pointers are referencing to equivalent
+ * targets.
+ */
+template<typename T>
+bool equal_targets(const std::set<T*>& a, const std::set<T*>& b) {
+    return equal(a,b,comp_deref<T*>());
+}
+
+/**
+ * A function testing whether two set of pointers are referencing to equivalent
+ * targets.
+ */
+template<typename T>
+bool equal_targets(const std::set<std::unique_ptr<T>>& a, const std::set<std::unique_ptr<T>>& b) {
+    return equal(a,b,comp_deref<std::unique_ptr<T>>());
+}
+
+/**
+ * A function testing whether two set of pointers are referencing to equivalent
+ * targets.
+ */
+template<typename T>
+bool equal_targets(const std::set<std::shared_ptr<T>>& a, const std::set<std::shared_ptr<T>>& b) {
+    return equal(a,b,comp_deref<std::shared_ptr<T>>());
 }
 
 /**
