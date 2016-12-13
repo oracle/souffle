@@ -350,7 +350,7 @@ namespace {
 
                 // obtain index
                 auto idx = scan.getIndex();
-                if (!idx || (rel.getName().find("_temp") == 0)) {
+                if (!idx || rel.getID().isTemp()) {
                     idx = rel.getIndex(scan.getRangeQueryColumns(), idx);
                     scan.setIndex(idx);
                 }
@@ -1125,10 +1125,8 @@ namespace {
         }
 
         void visitDrop(const RamDrop& drop, std::ostream& out) {
-            std::string name = getRelationName(drop.getRelation());
-            bool isTemp = (name.find("rel__temp1_")==0) || (name.find("rel__temp2_")==0);
-            if (!config.isDebug() || isTemp) {
-                out << name << "->" << "purge();\n";
+            if (!config.isDebug() || drop.getRelation().isTemp()) {
+                out << getRelationName(drop.getRelation()) << "->" << "purge();\n";
             }
         }
 
@@ -1184,15 +1182,15 @@ namespace {
 
         void visitSwap(const RamSwap& swap, std::ostream& out) {
 
-            const std::string tmp = "rel__temp0";
-            const std::string& one = getRelationName(swap.getFirstRelation());
-            const std::string& two = getRelationName(swap.getSecondRelation());
+            const std::string tempKnowledge = "rel__0temp";
+            const std::string& deltaKnowledge  = getRelationName(swap.getFirstRelation());
+            const std::string& newKnowledge = getRelationName(swap.getSecondRelation());
 
             // perform a triangular swap of pointers
             out << "{\nauto "
-            << tmp << " = " << one << ";\n"
-            << one << " = " << two << ";\n"
-            << two << " = " << tmp << ";\n"
+            << tempKnowledge << " = " << deltaKnowledge << ";\n"
+            << deltaKnowledge << " = " << newKnowledge << ";\n"
+            << newKnowledge << " = " << tempKnowledge << ";\n"
             << "}\n";
 
         }
@@ -1924,12 +1922,9 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         const std::string &raw_name = rel.getName();
         const std::string &name = CPPIdentifierMap::getIdentifier(raw_name);
 
-        // find types for relations
-        bool isTemp1 = name.find("_temp1_") == 0;
-        bool isTemp2 = name.find("_temp2_") == 0;
-        bool isTemp = (isTemp1 || isTemp2);
-        tempType = (isTemp1) ? getRelationType(rel.getArity(), indices[rel]) : tempType;
-        const std::string& type = (isTemp) ? tempType : getRelationType(rel.getArity(), indices[rel]);
+        // ensure that the type of the new knowledge is the same as that of the delta knowledge
+        tempType = (rel.isTemp() && name.find("_0delta_") == 0) ? getRelationType(rel.getArity(), indices[rel]) : tempType;
+        const std::string& type = (rel.isTemp()) ? tempType : getRelationType(rel.getArity(), indices[rel]);
 
         // defining table
         os << "// -- Table: " << raw_name << "\n";
@@ -1937,7 +1932,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         if (initCons.size() > 0) initCons += ",\n";
         initCons += "rel_" + name + "(new " + type + "())";
         deleteForNew += "delete rel_" + name + ";\n";
-        if ((rel.isInput() || rel.isComputed() || getConfig().isDebug()) && !isTemp) {
+        if ((rel.isInput() || rel.isComputed() || getConfig().isDebug()) && !rel.isTemp()) {
            os << "souffle::RelationWrapper<";
            os << relCtr++ << ",";
            os << type << ",";

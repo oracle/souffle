@@ -75,6 +75,7 @@ class RamRelationIdentifier {
     bool computed;
     bool output;
     bool isdata;
+    bool istemp;
 
     // allow the ram environment to cache lookup results
     friend class RamEnvironment;
@@ -84,15 +85,20 @@ class RamRelationIdentifier {
 public:
 
     RamRelationIdentifier() : arity(0), mask(arity), input(false), computed(false), output(false), 
-      isdata(false), last(nullptr), rel(nullptr) {
+      isdata(false), istemp(false), last(nullptr), rel(nullptr) {
+    }
+
+    RamRelationIdentifier(const std::string& name, unsigned arity, const bool istemp)
+    : RamRelationIdentifier(name, arity) {
+        this->istemp = istemp;
     }
 
     RamRelationIdentifier(const std::string& name, unsigned arity,
             std::vector<std::string> attributeNames = {},
             std::vector<std::string> attributeTypeQualifiers = {}, const SymbolMask& mask = SymbolMask(0),
-            bool input = false, bool computed = false, bool output = false, bool isdata = false)
+            const bool input = false, const bool computed = false, const bool output = false, const bool isdata = false, const bool istemp = false)
         : name(name), arity(arity), attributeNames(attributeNames), attributeTypeQualifiers(attributeTypeQualifiers),
-          mask(mask), input(input), computed(computed), output(output), isdata(isdata), last(nullptr), rel(nullptr)   {
+          mask(mask), input(input), computed(computed), output(output), isdata(isdata), istemp(istemp), last(nullptr), rel(nullptr)   {
         assert(this->attributeNames.size() == arity || this->attributeNames.empty());
         assert(this->attributeTypeQualifiers.size() == arity || this->attributeTypeQualifiers.empty());
     }
@@ -119,20 +125,24 @@ public:
 
     const SymbolMask& getSymbolMask() const { return mask; }
 
-    bool isInput() const {
+    const bool isInput() const {
         return input;
     }
 
-    bool isData() const {
-        return isdata;
-    }
-
-    bool isComputed() const {
+    const bool isComputed() const {
         return computed;
     }
 
-    bool isOutput() const {
+    const bool isOutput() const {
         return output;
+    }
+
+    const bool isData() const {
+        return isdata;
+    }
+
+    const bool isTemp() const {
+        return istemp;
     }
 
     unsigned getArity() const {
