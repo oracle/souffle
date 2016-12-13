@@ -62,8 +62,13 @@ libsoufflejni_la_SOURCES = $(jni_sources) \
   jni/include/handle.h
 
 libsoufflejni_la_CXXFLAGS = $(JNIFLAGS) \
-  -I@srcdir@/include -I@builddir@/jni/include -I@srcdir@/jni/include \
-	-I@top_srcdir@ -I@top_srcdir@/src -I@top_srcdir@/include
+  -I@srcdir@/include \
+  -I@srcdir@/jni/include \
+  -I@builddir@/jni/include \
+  -I@top_builddir@/src \
+  -I@top_srcdir@ \
+  -I@top_srcdir@/src \
+  -I@top_srcdir@/include
 
 libsoufflejni_la_LIBADD = @top_builddir@/src/libsouffle.la
 

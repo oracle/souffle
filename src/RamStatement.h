@@ -78,7 +78,7 @@ public:
 
     /** Pretty print statement */
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos);
+        for (int i = 0; i < tabpos; ++i) os << '\t';
         os << "CREATE " << getRelation().getName() << "(";
         os << getRelation().getArg(0); 
         for(size_t i=1;i<getRelation().getArity();i++) { 
@@ -110,7 +110,7 @@ public:
 
     /** Pretty print statement */
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos);
+        for (int i = 0; i < tabpos; ++i) os << '\t';
         os << "INSERT (" << join(values, ",", print_deref<std::unique_ptr<const RamValue>>()) << ") INTO " << getRelation().getName();
     };
 
@@ -133,7 +133,7 @@ public:
 
     /** Pretty print statement */
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos);
+        for (int i = 0; i < tabpos; ++i) os << '\t';
         os << "LOAD DATA FOR " << getRelation().getName();
     };
 
@@ -153,7 +153,7 @@ public:
 
     /** Pretty print statement */
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos);
+        for (int i = 0; i < tabpos; ++i) os << '\t';
         os << "STORE DATA FOR " << getRelation().getName();
     };
 
@@ -172,7 +172,7 @@ public:
         : RamRelationStatement(RN_Clear, rel) {}
 
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos);
+        for (int i = 0; i < tabpos; ++i) os << '\t';
         os << "CLEAR ";
         os << getRelation().getName();
     }
@@ -187,7 +187,8 @@ public:
         : RamRelationStatement(RN_Drop, rel) {}
 
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos) << "DROP " << getRelation().getName();
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "DROP " << getRelation().getName();
     }
 };
 
@@ -203,7 +204,8 @@ public:
     }
 
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos) << "LOGSIZE " << getRelation().getName() << " TEXT ";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "LOGSIZE " << getRelation().getName() << " TEXT ";
         os << "\"" << txt << "\"";
     } 
 };
@@ -220,7 +222,8 @@ public:
     }
 
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos) << "PRINTSIZE " << getRelation().getName() << " TEXT ";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "PRINTSIZE " << getRelation().getName() << " TEXT ";
         os << "\"" << txt << "\"";
     } 
 };
@@ -248,7 +251,8 @@ public:
     }
 
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos) << "INSERT \n";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "INSERT \n";
         operation->print(os, tabpos+1);
     }
 
@@ -272,7 +276,8 @@ public:
     const RamRelationIdentifier& getTargetRelation() const { return dest; }
 
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos) << "MERGE ";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "MERGE ";
         os << src.getName() << " INTO " << dest.getName();
     }
 
@@ -288,43 +293,46 @@ public:
 // ------------------------------------------------------------------
 
 
-/** two statements in sequence */
+/** sequential execution of statements */
 class RamSequence : public RamStatement {
-    /** first statement */
-    std::unique_ptr<RamStatement> first;
-    /** second statement */
-    std::unique_ptr<RamStatement> second;
+	std::vector<std::unique_ptr<RamStatement>> stmts;
 public:
-    RamSequence(std::unique_ptr<RamStatement> f, std::unique_ptr<RamStatement> s)
-        : RamStatement(RN_Sequence), first(std::move(f)), second(std::move(s)) {
-        ASSERT(first && second);
-    }
 
     template<typename ... Stmts>
-    RamSequence(std::unique_ptr<RamStatement> f, std::unique_ptr<RamStatement> s, std::unique_ptr<Stmts> ... rest)
-        : RamStatement(RN_Sequence), first(std::move(f)), second(std::unique_ptr<RamStatement>(new RamSequence(std::move(s), std::unique_ptr<RamStatement>(rest.release())...))) {
-        ASSERT(first);
+    RamSequence(std::unique_ptr<Stmts>&& ... stmts)
+        : RamStatement(RN_Sequence) {
+
+    	// move all the given statements into the vector (not so simple)
+    	std::unique_ptr<RamStatement> tmp[] = { std::move(stmts) ... };
+    	for(auto& cur : tmp) {
+    		this->stmts.emplace_back(std::move(cur));
+    	}
+
+    	for(const auto& cur : this->stmts) ASSERT(cur);
     }
 
     ~RamSequence() { }
 
-    const RamStatement& getFirst() const {
-        return *first;
+    /* add new statement to parallel construct */
+    void add(std::unique_ptr<RamStatement> s) {
+        if (s) stmts.push_back(std::move(s));
     }
 
-    const RamStatement& getSecond() const {
-        return *second;
+    std::vector<RamStatement*> getStatements() const {
+        return toPtrVector(stmts);
     }
 
     virtual void print(std::ostream &os, int tabpos) const {
-        first->print(os, tabpos);
-        os << ";\n";
-        second->print(os, tabpos);
+    	os << join(stmts, ";\n", [&](std::ostream& os, const std::unique_ptr<RamStatement>& stmt){
+    		stmt->print(os, tabpos);
+    	});
     }
 
     /** Obtains a list of child nodes */
     virtual std::vector<const RamNode*> getChildNodes() const {
-        return toVector<const RamNode*>(first.get(), second.get());
+        std::vector<const RamNode*> res;
+        for(const auto& cur : stmts) res.push_back(cur.get());
+        return res;
     }
 };
 
@@ -348,16 +356,19 @@ public:
 
     /* print parallel statement */ 
     virtual void print(std::ostream &os, int tabpos) const {
-        auto tabs = times('\t', tabpos);
-        os << tabs << "PARALLEL\n";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "PARALLEL\n";
         for(uint32_t i=0;i<stmts.size();i++) { 
            stmts[i]->print(os, tabpos+1);
            if (i < stmts.size() -1 ) {
-              os << "\n" << tabs << " ||";
+              os << "\n";
+              for (int i = 0; i < tabpos; ++i) os << '\t';
+              os << " ||";
            }
            os << "\n";
         }
-        os << tabs << "END PARALLEL";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "END PARALLEL";
     } 
 
     /** Obtains a list of child nodes */
@@ -385,10 +396,12 @@ public:
     }
 
     virtual void print(std::ostream &os, int tabpos) const {
-        auto tabs = times('\t', tabpos);
-        os << tabs << "LOOP\n";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "LOOP\n";
         body->print(os, tabpos+1);
-        os << "\n" << tabs << "END LOOP";
+        os << "\n";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "END LOOP";
     } 
 
     /** Obtains a list of child nodes */
@@ -397,6 +410,35 @@ public:
     }
 };
 
+/** Swap operation for temporary relations. */
+class RamSwap : public RamStatement {
+
+    RamRelationIdentifier first;
+    RamRelationIdentifier second;
+
+public:
+
+    RamSwap(const RamRelationIdentifier& f, const RamRelationIdentifier& s)
+        : RamStatement(RN_Swap), first(f), second(s) {
+        assert(first.getArity() == second.getArity());
+    }
+
+    ~RamSwap() { }
+
+    virtual void print(std::ostream &os, int tabpos) const {
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "SWAP (" << first.getName() << ", " << second.getName() << ")";
+    };
+
+    const RamRelationIdentifier& getFirstRelation() const { return first; }
+    const RamRelationIdentifier& getSecondRelation() const { return second; }
+
+    /** Obtains a list of child nodes */
+    virtual std::vector<const RamNode*> getChildNodes() const {
+        return std::vector<const RamNode*>(); // no child nodes
+    }
+
+};
 
 /** exit the body if condition holds */ 
 class RamExit: public RamStatement {
@@ -411,7 +453,8 @@ public:
     }
 
     virtual void print(std::ostream &os, int tabpos) const {
-        os << times('\t', tabpos) << "EXIT ";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "EXIT ";
         condition->print(os); 
     } 
 
@@ -442,10 +485,12 @@ public:
     }
 
     virtual void print(std::ostream& os, int tabpos) const {
-        auto tabs = times('\t', tabpos);
-        os << tabs << "START_TIMER \"" << label << "\"\n";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "START_TIMER \"" << label << "\"\n";
         nested->print(os,tabpos + 1);
-        os << "\n" << tabs << "END_TIMER \"" << label << "\"";
+        os << "\n";
+        for (int i = 0; i < tabpos; ++i) os << '\t';
+        os << "END_TIMER \"" << label << "\"";
     }
 
     /** Obtains a list of child nodes */

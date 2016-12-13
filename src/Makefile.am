@@ -4,31 +4,20 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-SUBDIRS = wavelib
-
 SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 
-bin_PROGRAMS = souffle souffle-wave souffle-prof
+#bin_PROGRAMS = souffle
+bin_PROGRAMS = souffle souffle-mcpp
 
-# dependenceis of wave
-
-# ... which should no go to distribution
-nodist_souffle_wave_SOURCES = $(BUILT_SOURCES)
-
-souffle_prof_SOURCES = souffle_prof.cpp
-
-
-souffle_wave_SOURCES = wave.cpp wave_trace_macro_expansion.hpp \
-		wave_stop_watch.hpp
-
-souffle_wave_CPPFLAGS = $(BOOST_CPPFLAGS) -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\""
-souffle_wave_LDFLAGS =
-souffle_wave_LDADD = $(BOOST_LDFLAGS) \
-             $(BOOST_FILESYSTEM_LIB) \
-             wavelib/libwave.a \
-             $(BOOST_SYSTEM_LIB) \
-             $(BOOST_THREAD_LIB) \
-             $(BOOST_DATE_TIME_LIB)
+nodist_souffle_mcpp_SOURCES = $(BUILT_SOURCES)
+ 
+souffle_mcpp_SOURCES = mcpp-system.H mcpp-configed.H mcpp-internal.H mcpp-main.c mcpp-directive.c mcpp-eval.c \
+ 					   mcpp-expand.c mcpp-mbchar.c mcpp-support.c mcpp-system.c mcpp_out.h
+ 
+mcpp-main.o mcpp-directive.o mcpp-eval.o mcpp-expand.o mcpp-mbchar.o mcpp-support.o mcpp-system.o	:	\
+ 	mcpp-system.H mcpp-internal.H mcpp_out.h
+mcpp-system.H	: mcpp-configed.H
+ 
 
 # ... which should no go to distribution
 nodist_souffle_SOURCES = $(BUILT_SOURCES)
@@ -89,7 +78,7 @@ souffle_sources = \
 # -- build souffle as a library so it can be reused in testing
 noinst_LTLIBRARIES = libsouffle.la
 libsouffle_la_SOURCES  = $(souffle_sources)
-libsouffle_la_CXXFLAGS = $(souffle_CPPFLAGS)
+libsouffle_la_CXXFLAGS = $(souffle_CPPFLAGS) -DJNI_INTERFACE
 libsouffle_la_LDFLAGS = --static --dlopen --pic
 
 souffle_SOURCES = main.cpp

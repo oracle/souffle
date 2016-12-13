@@ -1,5 +1,5 @@
-.decl A (n:number)
-.decl B (n:number)
+.decl A (n:number) output
+.decl B (n:number) output
 .decl S1 (n:number) output
 .decl S2 (n:number) output
 .decl S3 (n:number) output

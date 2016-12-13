@@ -157,7 +157,7 @@ public:
      * Obtains a mask indicating the keys to be matched when realizing this scan
      * via a range query.
      */
-    SearchColumns getRangeQueryColumns() const {
+    const SearchColumns& getRangeQueryColumns() const {
         return keys;
     }
 

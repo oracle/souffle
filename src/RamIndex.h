@@ -88,7 +88,7 @@ public:
     }
 
     /** Tests whether this order is a prefix of the given order. */
-    bool isPrefixOf(const RamIndexOrder& other) {
+    bool isPrefixOf(const RamIndexOrder& other) const {
         // this one must not be longer
         if (columns.size() > other.columns.size()) return false;
         for(unsigned i = 0; i<columns.size(); i++) {
@@ -102,10 +102,9 @@ public:
      * order A is compatible with an order B if the first |A| elements
      * of B are a permutation of A.
      */
-    bool isCompatible(const RamIndexOrder& other) {
+    bool isCompatible(const RamIndexOrder& other) const {
         // this one must be shorter
         if (columns.size() > other.columns.size()) return false;
-
         // check overlapping prefix
         for(unsigned i = 0; i < columns.size(); ++i) {
             if (!contains(columns, other.columns[i])) return false;
@@ -133,7 +132,7 @@ protected:
     /* lexicographical comparison operation on two tuple pointers */ 
     struct comparator {
 
-        RamIndexOrder order;
+        const RamIndexOrder& order;
 
         /* constructor to initialize state */ 
         comparator(const RamIndexOrder& order) : order(order) {}
@@ -171,37 +170,57 @@ public:
 
 private:
 
-    index_set set;         // set storing tuple pointers of table 
+    const RamIndexOrder theOrder; // retain the index order used to construct an object of this class
+    index_set set;                // set storing tuple pointers of table
 
 public:
 
-    RamIndex(const RamIndexOrder& order): set(comparator(order)) {}
+    RamIndex(const RamIndexOrder& order): theOrder(order), set(comparator(theOrder)) {}
+
+    const RamIndexOrder& order() const { return theOrder; }
 
     /**
      * add tuple to the index 
      * 
      * precondition: tuple does not exist in the index 
-     */ 
-    inline void insert(const RamDomain *tuple) {
+     */
+    void insert(const RamDomain *tuple) {
        set.insert(tuple);    
     }
 
-    /* check whether tuple exists in index */
+    /**
+     * add tuples to the index via an iterator
+     *
+     * precondition: the tuples do not exist in the index
+     */
+    template<class Iter>
+    void insert(const Iter& a, const Iter& b) {
+        set.insert(a, b);
+    };
+
+    /** check whether tuple exists in index */
     bool exists(const RamDomain *value) {
        return set.find(value) != set.end();  
     } 
 
-    /* purge all hashes of index */ 
+    /** purge all hashes of index */
     void purge() {
         set.clear();
     }
 
-    /* return start and end iterator of an equal range */
+    /** enables the index to be printed */
+    void print(std::ostream& out) const {
+        set.printStats(out);
+        out << "\n";
+        set.printTree(out);
+    }
+
+    /** return start and end iterator of an equal range */
     inline std::pair<iterator, iterator> equalRange(const RamDomain *value) const {
         return lowerUpperBound(value,value);
     }
 
-    /* return start and end iterator of a range */
+    /** return start and end iterator of a range */
     inline std::pair<iterator, iterator> lowerUpperBound(const RamDomain* low, const RamDomain* high) const {
         return std::pair<iterator, iterator>(set.lower_bound(low), set.upper_bound(high));
     }

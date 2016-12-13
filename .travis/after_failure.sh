@@ -16,21 +16,6 @@
 # allowing us to debug the problem.                                       #
 #=========================================================================#
 
-set -e
-set -u
-
-pwd
-ls
-
-for FI in */; do
-    echo $FI
-    ls $FI
-done
-
-TEST_ROOT=`find . -type d -name "testsuite.dir" | head -1`
-RELEVANT_EXTENSIONS=".out .err .log"
-MAXIMUM_LINES="200"
-
 # prints the text of its $1 arguement in blue and underlines it
 pretty_print () {
     echo -n $(tput setaf 4)
@@ -38,6 +23,35 @@ pretty_print () {
     echo -n $1 | tr '[:print:]' '-'
     echo $(tput sgr0)
 }
+
+TEST_ROOT=`find . -type d -name "testsuite.dir" | head -1`
+RELEVANT_EXTENSIONS=".out .err .log"
+MAXIMUM_LINES="200"
+
+# Show the current directory, and the contents of each direct subdirectory
+pretty_print "Current directory status"
+pwd
+ls
+for FI in */; do
+    pretty_print $FI
+    ls $FI
+done
+
+# print some program data
+pretty_print "Installed tools"
+for exe in git java javac gcc g++ clang clang++ automake autoconf flex bison; do
+    which $exe
+    ($exe --version 2>/dev/null >/dev/null && $exe --version ) || $exe -version
+    echo
+done
+
+# print some helpful stats
+pretty_print "Showing git info"
+git tag
+git remote -v
+git describe --tags --abbrev=0 --always
+git describe --all --abbrev=0 --always
+git describe --tags --abbrev=0
 
 # Find the test case that we will be displaying
 CANDIDATE=`ls $TEST_ROOT | head -1`
@@ -57,4 +71,3 @@ for EXTENSION in $RELEVANT_EXTENSIONS; do
         echo
     done
 done
-

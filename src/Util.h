@@ -740,10 +740,16 @@ inline time_point now() {
     return std::chrono::high_resolution_clock::now();
 }
 
-// a shortcut for obtaining the time difference
+// a shortcut for obtaining the time difference in milliseconds
 inline long duration_in_ms(const time_point& start, const time_point& end) {
     return std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
 }
+
+// a shortcut for obtaining the time difference in nanoseconds
+inline long duration_in_ns(const time_point& start, const time_point& end) {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count();
+}
+
 // -------------------------------------------------------------------------------
 //                               File Utils
 // -------------------------------------------------------------------------------
@@ -846,6 +852,35 @@ inline std::string baseName(std::string &filename)
    strcpy(fn,filename.c_str()); 
    std::string result = basename(fn); 
    return result;
+} 
+
+/**
+ * Stringify a string using escapes for newline, tab, and double-quotes
+ */
+inline std::string stringify(const std::string &input)
+{
+    std::string str(input);
+
+    // replace double-quotes returns by escape sequence 
+    size_t start_pos = 0;
+    while((start_pos = str.find('"', start_pos)) != std::string::npos) {
+        str.replace(start_pos, 1, "\\\"");
+        start_pos +=2;
+    }
+    // replace double-quotes returns by escape sequence 
+    start_pos = 0;
+    while((start_pos = str.find('\n', start_pos)) != std::string::npos) {
+        str.replace(start_pos, 1, "\\n");
+        start_pos +=2;
+    }
+    // replace double-quotes returns by escape sequence 
+    start_pos = 0;
+    while((start_pos = str.find('\t', start_pos)) != std::string::npos) {
+        str.replace(start_pos, 1, "\\t");
+        start_pos +=2;
+    }
+    str = "\"" + str + "\"";
+    return str; 
 } 
 
 } // end namespace souffle

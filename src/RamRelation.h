@@ -37,7 +37,6 @@ namespace souffle {
 class RamEnvironment;
 class RamRelation;
 
-
 class SymbolMask {
     std::vector<bool> mask;
 public:
@@ -64,9 +63,6 @@ public:
         return out;
     }
 };
-
-
-
 
 class RamRelationIdentifier {
 
@@ -190,7 +186,6 @@ class RamRelation {
         }
     };
 
-
     /** The name / arity of this relation */
     RamRelationIdentifier id;
 
@@ -228,7 +223,21 @@ public:
     ~RamRelation() { }
 
     RamRelation& operator=(const RamRelation& other) = delete;
-    RamRelation& operator=(RamRelation&& other) = delete;
+
+    RamRelation& operator=(RamRelation&& other) {
+        ASSERT(getArity() == other.getArity());
+
+        id = other.id;
+        num_tuples = other.num_tuples;
+        tail = other.tail;
+        totalIndex = other.totalIndex;
+
+        // take over ownership
+        head.swap(other.head);
+        indices.swap(other.indices);
+
+        return *this;
+    }
 
     /** Obtains the identifier of this relation */
     const RamRelationIdentifier& getID() const {
@@ -315,14 +324,26 @@ public:
         num_tuples = 0;
     }
 
+    /** get index for a given set of keys using a cached index as a helper. Keys are encoded as bits for each column */
+    RamIndex* getIndex(const SearchColumns& key, RamIndex* cachedIndex) const {
+        if (!cachedIndex) return getIndex(key);
+        return getIndex(cachedIndex->order());
+    }
+
     /** get index for a given set of keys. Keys are encoded as bits for each column */
-    RamIndex* getIndex(SearchColumns key) const {
+    RamIndex* getIndex(const SearchColumns& key) const {
+
+        // suffix for order, if no matching prefix exists
+        std::vector<unsigned char> suffix;
+        suffix.reserve(getArity());
 
         // convert to order
         RamIndexOrder order;
         for(size_t k=1,i=0; i<getArity(); i++,k*=2) {
             if(key & k) {
                 order.append(i);
+            } else {
+                suffix.push_back(i);
             }
         }
 
@@ -338,13 +359,12 @@ public:
         if (res) return res;
 
         // extend index to full index
-        for(size_t i=0; i<getArity(); i++) {
-            if (!order.covers(i)) order.append(i);
-        }
+        for (auto cur : suffix) order.append(cur);
         assert(order.isComplete());
 
         // get a new index
         return getIndex(order);
+
     }
 
     /** get index for a given order. Keys are encoded as bits for each column */
@@ -356,7 +376,7 @@ public:
         if (pos == indices.end()) {
             std::unique_ptr<RamIndex> &newIndex = indices[order];
             newIndex = std::unique_ptr<RamIndex>(new RamIndex(order));
-            for(const auto& cur : *this) newIndex->insert(cur);
+            newIndex->insert(this->begin(), this->end());
             res = newIndex.get();
         }  else {
             res = pos->second.get();

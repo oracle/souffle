@@ -39,6 +39,8 @@ build_*
 debian/changelog
 souffle-*.*.*
 
+src/souffle-mcpp
+
 doc
 
 .idea/
