@@ -1182,7 +1182,7 @@ namespace {
 
         void visitSwap(const RamSwap& swap, std::ostream& out) {
 
-            const std::string tempKnowledge = "rel__0temp";
+            const std::string tempKnowledge = "rel_000temp";
             const std::string& deltaKnowledge  = getRelationName(swap.getFirstRelation());
             const std::string& newKnowledge = getRelationName(swap.getSecondRelation());
 
@@ -1923,7 +1923,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         const std::string &name = CPPIdentifierMap::getIdentifier(raw_name);
 
         // ensure that the type of the new knowledge is the same as that of the delta knowledge
-        tempType = (rel.isTemp() && name.find("_0delta_") == 0) ? getRelationType(rel.getArity(), indices[rel]) : tempType;
+        tempType = (rel.isTemp() && name.find("000delta_") == 0) ? getRelationType(rel.getArity(), indices[rel]) : tempType;
         const std::string& type = (rel.isTemp()) ? tempType : getRelationType(rel.getArity(), indices[rel]);
 
         // defining table

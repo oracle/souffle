@@ -779,8 +779,8 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
         /* create two temporary tables for relaxed semi-naive evaluation */
         auto relName = getRelationName(rel->getName());
         rrel[rel]  = getRamRelationIdentifier(relName, rel->getArity(), rel, &typeEnv);
-        relDelta[rel] = getRamRelationIdentifier("_0delta_"+relName, rel->getArity(), rel, &typeEnv, true);
-        relNew[rel] = getRamRelationIdentifier("_0new_"+relName, rel->getArity(), rel, &typeEnv, true);
+        relDelta[rel] = getRamRelationIdentifier("000delta_"+relName, rel->getArity(), rel, &typeEnv, true);
+        relNew[rel] = getRamRelationIdentifier("000new_"+relName, rel->getArity(), rel, &typeEnv, true);
 
 
         /* create update statements for fixpoint (even iteration) */
@@ -963,8 +963,8 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
 
         // create delta-relations if necessary
         if (relationSchedule->isRecursive(rel)) {
-            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("_0delta_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, true))));
-            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("_0new_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, true))));
+            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("000delta_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, true))));
+            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("000new_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, true))));
         }
     }
 
