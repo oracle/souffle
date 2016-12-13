@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -349,8 +350,8 @@ namespace {
 
                 // obtain index
                 auto idx = scan.getIndex();
-                if (!idx) {
-                    idx = rel.getIndex(scan.getRangeQueryColumns());
+                if (!idx || (rel.getName().find("_temp") == 0)) {
+                    idx = rel.getIndex(scan.getRangeQueryColumns(), idx);
                     scan.setIndex(idx);
                 }
 
@@ -543,7 +544,14 @@ namespace {
             // -- Statements -----------------------------
 
             bool visitSequence(const RamSequence& seq) {
-                return visit(seq.getFirst()) && visit(seq.getSecond());
+
+                // process all statements in sequence
+                for(const auto& cur : seq.getStatements()) {
+                	if (!visit(cur)) return false;
+                }
+
+                // all processed successfully
+                return true;
             }
 
             bool visitParallel(const RamParallel& parallel) {
@@ -625,7 +633,7 @@ namespace {
                   }
                   PrimData* pd = data->getTuples(name);
                   if (pd == NULL || pd->data.size() == 0) {
-                     std::cout << "relation " << name <<" is empty\n"; 
+                     std::cout << "relation " << name <<" is empty\n";
                      return true;
                   }
 
@@ -660,7 +668,7 @@ namespace {
 
                 auto& rel = env.getRelation(store.getRelation());
                 if (config.getOutputDir() == "-") {
-                    std::cout << "---------------\n" << rel.getName() << "\n===============\n";
+                    std::cout << "---------------\n" << store.getRelation() << "\n===============\n";
                     rel.store(std::cout, env.getSymbolTable(), store.getRelation().getSymbolMask());
                     std::cout << "===============\n";
                     return true;
@@ -701,6 +709,13 @@ namespace {
                 return true;
             }
 
+            bool visitSwap(const RamSwap& swap) {
+                std::swap(
+                    env.getRelation(swap.getFirstRelation()),
+                    env.getRelation(swap.getSecondRelation())
+                );
+                return true;
+            }
 
             // -- safety net --
 
@@ -717,7 +732,6 @@ namespace {
     }
 
 }
-
 
 void RamGuidedInterpreter::applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const {
 
@@ -736,7 +750,6 @@ void RamGuidedInterpreter::applyOn(const RamStatement& stmt, RamEnvironment& env
     }
 
 }
-
 
 namespace {
 
@@ -830,7 +843,6 @@ namespace {
 
 }
 
-
 /** With this strategy queries will be processed as they are stated by the user */
 const QueryExecutionStrategy DirectExecution =
         [](const RamExecutorConfig& config, const RamInsert& insert, RamEnvironment& env, std::ostream*)->ExecutionSummary {
@@ -921,7 +933,7 @@ namespace {
         res << "ram::Relation<" << arity;
         if (!useNoIndex()) {
 			for(auto &cur : indices.getAllOrders() ) {
-				res << ",ram::index<";
+				res << ", ram::index<";
 				res << join(cur, ",");
 				res << ">";
 			}
@@ -970,6 +982,8 @@ namespace {
 
         const RamExecutorConfig& config;
 
+        // const IndexMap& indices;
+
         std::function<void(std::ostream&,const RamNode*)> rec;
 
         struct printer {
@@ -985,8 +999,8 @@ namespace {
 
     public:
 
-        Printer(const RamExecutorConfig& config, const IndexMap&)
-            : config(config) {
+        Printer(const RamExecutorConfig& config, const IndexMap&) //indices)
+            : config(config) { // , indices(indices) {
             rec = [&](std::ostream& out, const RamNode* node) {
               this->visit(*node, out);
             };
@@ -998,7 +1012,7 @@ namespace {
         }
 
         void visitFact(const RamFact& fact, std::ostream& out) {
-            out << getRelationName(fact.getRelation()) << ".insert("
+            out << getRelationName(fact.getRelation()) << "->" << "insert("
                 << join(fact.getValues(), ",", rec)
                 << ");\n";
         }
@@ -1018,7 +1032,7 @@ namespace {
             });
             if (!input_relations.empty()) {
                 out << "if (" << join(input_relations, "&&", [&](std::ostream& out, const RamRelationIdentifier& rel){
-                    out << "!" << this->getRelationName(rel) << ".empty()";
+                    out << "!" << this->getRelationName(rel) << "->" << "empty()";
                 }) << ") ";
             }
 
@@ -1044,7 +1058,7 @@ namespace {
                     parallel = true;
 
                     // partition outermost relation
-                    out << "auto part = " << getRelationName(scan->getRelation()) << ".partition();\n";
+                    out << "auto part = " << getRelationName(scan->getRelation()) << "->" << "partition();\n";
 
                     // build a parallel block around this loop nest
                     out << "PARALLEL_START;\n";
@@ -1059,7 +1073,7 @@ namespace {
 
             // create operation contexts for this operation
             for(const RamRelationIdentifier& rel : getReferencedRelations(insert.getOperation())) {
-                out << "CREATE_OP_CONTEXT(" << getOpContextName(rel) << ","<< getRelationName(rel) << ".createContext());\n";
+                out << "CREATE_OP_CONTEXT(" << getOpContextName(rel) << ","<< getRelationName(rel) << "->" << "createContext());\n";
             }
 
             out << print(insert.getOperation());
@@ -1101,20 +1115,20 @@ namespace {
         }
 
         void visitMerge(const RamMerge& merge, std::ostream& out) {
-            out << getRelationName(merge.getTargetRelation()) << ".insertAll("
+            out << getRelationName(merge.getTargetRelation()) << "->" << "insertAll(" << "*"
                 << getRelationName(merge.getSourceRelation())
                 << ");\n";
         }
 
         void visitClear(const RamClear& clear, std::ostream& out) {
-            out << getRelationName(clear.getRelation()) << ".purge();\n";
+            out << getRelationName(clear.getRelation()) << "->" << "purge();\n";
         }
 
         void visitDrop(const RamDrop& drop, std::ostream& out) {
             std::string name = getRelationName(drop.getRelation());
             bool isTemp = (name.find("rel__temp1_")==0) || (name.find("rel__temp2_")==0);
             if (!config.isDebug() || isTemp) {
-                out << name << ".purge();\n";
+                out << name << "->" << "purge();\n";
             }
         }
 
@@ -1125,14 +1139,15 @@ namespace {
             out << "{ auto lease = getOutputLock().acquire(); \n";
             out << "profile << R\"(" << print.getLabel() << ")\" <<  ";
             out << getRelationName(print.getRelation());
-            out << ".size() << \"\\n\";\n" << "}";
+            out << "->" << "size() << \"\\n\";\n" << "}";
         }
 
         // -- control flow statements --
 
         void visitSequence(const RamSequence& seq, std::ostream& out) {
-            out << print(seq.getFirst());
-            out << print(seq.getSecond());
+        	for(const auto& cur : seq.getStatements()) {
+        		out << print(cur);
+        	}
         }
 
         void visitParallel(const RamParallel& parallel, std::ostream& out) {
@@ -1165,6 +1180,21 @@ namespace {
 
         void visitLoop(const RamLoop& loop, std::ostream& out) {
             out << "for(;;) {\n" << print(loop.getBody()) << "}\n";
+        }
+
+        void visitSwap(const RamSwap& swap, std::ostream& out) {
+
+            const std::string tmp = "rel__temp0";
+            const std::string& one = getRelationName(swap.getFirstRelation());
+            const std::string& two = getRelationName(swap.getSecondRelation());
+
+            // perform a triangular swap of pointers
+            out << "{\nauto "
+            << tmp << " = " << one << ";\n"
+            << one << " = " << two << ";\n"
+            << two << " = " << tmp << ";\n"
+            << "}\n";
+
         }
 
         void visitExit(const RamExit& exit, std::ostream& out) {
@@ -1212,13 +1242,13 @@ namespace {
             // if this search is a full scan
             if (scan.getRangeQueryColumns() == 0) {
                 if (scan.isPureExistenceCheck()) {
-                    out << "if(!" << relName << ".empty()) {\n";
+                    out << "if(!" << relName << "->" << "empty()) {\n";
                 } else if (scan.getLevel() == 0) {
                     // make this loop parallel
                     out << "pfor(auto it = part.begin(); it<part.end(); ++it) \n";
                     out << "for(const auto& env0 : *it) {\n";
                 } else {
-                    out << "for(const auto& env" << level << " : " << relName << ") {\n";
+                    out << "for(const auto& env" << level << " : " << "*" << relName << ") {\n";
                 }
                 visitSearch(scan, out);
                 out << "}\n";
@@ -1249,7 +1279,7 @@ namespace {
 
             // if it is a equality-range query
             out << "const Tuple<RamDomain," << arity << "> key({"; printKeyTuple(); out << "});\n";
-            out << "auto range = " << relName << ".equalRange" << index << "(key," << ctxName << ");\n";
+            out << "auto range = " << relName << "->" << "equalRange" << index << "(key," << ctxName << ");\n";
             if (config.isLogging()) {
                 out << "if (range.empty()) ++private_num_failed_proofs;\n";
             }
@@ -1301,7 +1331,7 @@ namespace {
             // special case: counting of number elements in a full relation
             if (aggregate.getFunction() == RamAggregate::COUNT && aggregate.getRangeQueryColumns() == 0) {
                 // shortcut: use relation size
-                out << "env" << level << "[0] = " << relName << ".size();\n";
+                out << "env" << level << "[0] = " << relName << "->" << "size();\n";
                 visitSearch(aggregate, out);
                 return;
             }
@@ -1323,7 +1353,7 @@ namespace {
             if (keys == 0) {
 
                 // no index => use full relation
-                out << "auto& range = " << relName << ";\n";
+                out << "auto& range = " << "*" << relName << ";\n";
 
             } else {
 
@@ -1344,7 +1374,7 @@ namespace {
                 // get index
                 auto index = toIndex(keys);
                 out << "const " << tuple_type << " key({"; printKeyTuple();  out << "});\n";
-                out << "auto range = " << relName << ".equalRange" << index << "(key," << ctxName << ");\n";
+                out << "auto range = " << relName << "->" << "equalRange" << index << "(key," << ctxName << ");\n";
 
             }
 
@@ -1437,9 +1467,9 @@ namespace {
 
             // insert tuple
             if (config.isLogging()) {
-                out << "if (!(" << relName << ".insert(tuple," << ctxName << "))) { ++private_num_failed_proofs; }\n";
+                out << "if (!(" << relName << "->" << "insert(tuple," << ctxName << "))) { ++private_num_failed_proofs; }\n";
             } else {
-                out << relName << ".insert(tuple," << ctxName << ");\n";
+                out << relName << "->" << "insert(tuple," << ctxName << ");\n";
             }
 
             // end filter
@@ -1534,7 +1564,7 @@ namespace {
         }
 
         void visitEmpty(const RamEmpty& empty, std::ostream& out) {
-            out << getRelationName(empty.getRelation()) << ".empty()";
+            out << getRelationName(empty.getRelation()) << "->" << "empty()";
         }
 
         void visitNotExists(const RamNotExists& ne, std::ostream& out) {
@@ -1547,14 +1577,14 @@ namespace {
 
             // if it is total we use the contains function
             if (ne.isTotal()) {
-                out << "!" << relName << ".contains(Tuple<RamDomain," << arity << ">({"
+                out << "!" << relName << "->" << "contains(Tuple<RamDomain," << arity << ">({"
                             << join(ne.getValues(),",",rec)
                         << "})," << ctxName << ")";
                 return;
             }
 
             // else we conduct a range query
-            out << relName << ".equalRange";
+            out << relName << "->" << "equalRange";
             out << toIndex(ne.getKey());
             out << "(Tuple<RamDomain," << arity << ">({";
             out << join(ne.getValues(), ",", [&](std::ostream& out, RamValue* value) {
@@ -1704,7 +1734,6 @@ namespace {
 
 }
 
-
 CPPIdentifierMap* CPPIdentifierMap::instance = 0;
 
 CPPIdentifierMap& CPPIdentifierMap::getInstance() {
@@ -1713,7 +1742,6 @@ CPPIdentifierMap& CPPIdentifierMap::getInstance() {
     }
     return *instance;
 }
-
 
 std::string CPPIdentifierMap::getIdentifier(std::string rel_name) {
     return getInstance().identifier(rel_name);
@@ -1771,7 +1799,6 @@ std::string RamCompiler::resolveFileName() const {
 	}
 	return getBinaryFile();
 }
-
 
 std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStatement& stmt, const std::string& filename) const {
 
@@ -1885,20 +1912,31 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 
     // print relation definitions
     std::string initCons; // initialization of constructor
+    std::string deleteForNew; // matching deletes for each new, used in the destructor
     std::string registerRel; // registration of relations
     int relCtr=0;
+    std::string tempType; // string to hold the type of the temporary relations
     visitDepthFirst(stmt, [&](const RamCreate& create) {
+
         // get some table details
         const auto& rel = create.getRelation();
-        auto type = getRelationType(rel.getArity(), indices[rel]);
         int arity = rel.getArity();
         const std::string &raw_name = rel.getName();
         const std::string &name = CPPIdentifierMap::getIdentifier(raw_name);
 
+        // find types for relations
+        bool isTemp1 = name.find("_temp1_") == 0;
+        bool isTemp2 = name.find("_temp2_") == 0;
+        bool isTemp = (isTemp1 || isTemp2);
+        tempType = (isTemp1) ? getRelationType(rel.getArity(), indices[rel]) : tempType;
+        const std::string& type = (isTemp) ? tempType : getRelationType(rel.getArity(), indices[rel]);
+
         // defining table
         os << "// -- Table: " << raw_name << "\n";
-        os << type << " rel_" << name << ";\n";
-        bool isTemp = (name.find("_temp1_")==0) || (name.find("_temp2_")==0);
+        os << type << "*" << " rel_" << name << ";\n";
+        if (initCons.size() > 0) initCons += ",\n";
+        initCons += "rel_" + name + "(new " + type + "())";
+        deleteForNew += "delete rel_" + name + ";\n";
         if ((rel.isInput() || rel.isComputed() || getConfig().isDebug()) && !isTemp) {
            os << "souffle::RelationWrapper<";
            os << relCtr++ << ",";
@@ -1927,10 +1965,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
            tupleType += "}";
            tupleName += "}";
 
-           if (initCons.size() > 0) {
-               initCons += ",\n";
-           }
-           initCons += "wrapper_" + name + "(rel_" + name + ",symTable,\"" + raw_name + "\"," + tupleType + "," + tupleName + ")";
+           initCons += ",\nwrapper_" + name + "(" + "*" + "rel_" + name + ",symTable,\"" + raw_name + "\"," + tupleType + "," + tupleName + ")";
            registerRel += "addRelation(\"" + raw_name + "\",&wrapper_" + name + "," + std::to_string(rel.isInput()) + "," + std::to_string(rel.isOutput()) + ");\n";
         }
     });
@@ -1964,6 +1999,12 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         os << "\n";
     }
 
+    os << "}\n";
+
+    // -- destructor --
+
+    os << "~" << classname << "() {\n";
+    os << deleteForNew;
     os << "}\n";
 
 
@@ -2011,7 +2052,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
             }
 
             // create call
-            os << relName << ".printCSV(" << target;
+            os << relName << "->" << "printCSV(" << target;
             os << ",symTable";
 
             // add format parameters
@@ -2026,7 +2067,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         } else if (auto print = dynamic_cast<const RamPrintSize*>(&node)) {
             auto relName = "rel_" + CPPIdentifierMap::getIdentifier(print->getRelation().getName());
             os << "{ auto lease = getOutputLock().acquire(); \n";
-            os << "std::cout << R\"(" << print->getLabel() << ")\" <<  " << relName << ".size() << \"\\n\";\n";
+            os << "std::cout << R\"(" << print->getLabel() << ")\" <<  " << relName << "->" << "size() << \"\\n\";\n";
             os << "}";
         }
     });
@@ -2038,11 +2079,11 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     visitDepthFirst(stmt, [&](const RamLoad& load) {
         // get some table details
         os << "rel_" <<  CPPIdentifierMap::getIdentifier(load.getRelation().getName());
-        os << ".loadCSV(dirname + \"/";
+        os << "->" << "loadCSV(dirname + \"/";
         os << load.getFileName() << "\"";
-        os << ",symTable";
+        os << ", symTable";
         for(size_t i=0;i<load.getRelation().getArity();i++) {
-            os << (load.getRelation().getSymbolMask().isSymbol(i) ? ",1" : ",0");
+            os << (load.getRelation().getSymbolMask().isSymbol(i) ? ", 1" : ", 0");
         }
         os << ");\n";
     });
@@ -2055,11 +2096,11 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 		os << "out << \"---------------\\n" << name << "\\n===============\\n\";\n";
 
 		// create call
-		os << relName << ".printCSV(out,symTable";
+		os << relName << "->" << "printCSV(out,symTable";
 
 		// add format parameters
 		for(size_t i=0; i<arity; i++) {
-			os << ((mask.isSymbol(i)) ? ",1" : ",0");
+			os << ((mask.isSymbol(i)) ? ", 1" : ", 0");
 		}
 
 		os << ");\n";

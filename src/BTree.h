@@ -1577,6 +1577,7 @@ namespace detail {
          */
         template<typename Iter>
         void insert(const Iter& a, const Iter& b) {
+            // TODO: improve this beyond a naive insert
             operation_hints hints;
             // a naive insert so far .. seems to work fine
             for(auto it = a; it != b; ++it) {

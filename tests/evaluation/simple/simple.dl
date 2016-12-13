@@ -1,0 +1,12 @@
+// Simple datalog example.
+
+.type the_type
+
+.decl the_input(x:the_type) input
+.decl the_output(x:the_type) output
+.decl hello_world(x:the_type)
+.decl is_hello_world(x:the_type)
+
+hello_world("helloworld").
+is_hello_world(X) :- the_input(X), hello_world(X).
+the_output(X) :- is_hello_world(X).

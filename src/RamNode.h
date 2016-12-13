@@ -55,12 +55,15 @@ enum RamNodeType {
     RN_LogSize,
 
     RN_Merge,
+    RN_Swap,
 
+    // control flow
     RN_Sequence,
     RN_Loop,
     RN_Parallel,
     RN_Exit,
     RN_LogTimer
+
 };
 
 
