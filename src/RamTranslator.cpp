@@ -977,6 +977,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
 
         // create delta-relations if necessary
         if (relationSchedule->isRecursive(rel)) {
+            // TODO: replace _temp1_ and _temp2_ prefixes with a flag
             appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("_temp1_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv))));
             appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("_temp2_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv))));
         }
