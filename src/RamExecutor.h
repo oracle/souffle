@@ -417,7 +417,7 @@ public:
     /**
      * Given a string, returns its corresponding unique valid identifier;
      */
-    static std::string getIdentifier(std::string);
+    static std::string getIdentifier(std::string, bool);
 
     ~CPPIdentifierMap() {}
 
@@ -426,7 +426,7 @@ public:
     /**
      * Given a string, returns its corresponding unique valid identifier.
      */
-    std::string identifier(std::string);
+    std::string identifier(std::string, bool);
 
     /*
      * Removes invalid substrings, adds trailing digits if the resulting identifier is in use.
