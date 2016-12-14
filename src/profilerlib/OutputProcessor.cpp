@@ -41,6 +41,8 @@ Table OutputProcessor::getRelTable() {
     return table;
 }
 
+
+
 Table OutputProcessor::getRulTable() {
     std::unordered_map<std::string, std::shared_ptr<Relation>>& relation_map = programRun->getRelation_map();
     std::unordered_map<std::string, std::shared_ptr<Row>> rule_map;

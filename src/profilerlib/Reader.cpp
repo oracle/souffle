@@ -60,7 +60,7 @@ void Reader::save(std::string f_name) {
         std::string sPath = workingdir+std::string("/old_runs");
         mode_t nMode = 0733; // UNIX style permissions
         int nError = 0;
-        #if defined(WINDOWS)
+        #if defined(_WIN32) || defined(_WIN64) || defined(WINDOWS)
                 nError = _mkdir(sPath.c_str()); // can be used on Windows
         #else
                 nError = mkdir(sPath.c_str(),nMode); // can be used on non-Windows

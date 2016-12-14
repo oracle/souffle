@@ -41,9 +41,9 @@ public:
 	std::shared_ptr<ProgramRun> run;
 
 	Reader(std::string arg, std::shared_ptr<ProgramRun> run, bool vFlag, bool online) :
-            run(run), file_loc(arg), file(std::ifstream(arg)), online(online),
-            relation_map(std::unordered_map<std::string,std::shared_ptr<Relation>>()),
-            runtime(-1.0){ }
+            file_loc(arg), run(run), file(std::ifstream(arg)), runtime(-1.0), online(online),
+            relation_map(std::unordered_map<std::string,std::shared_ptr<Relation>>())
+            { }
 
 	/**
 	 * Read the contents from file into the class
@@ -61,13 +61,6 @@ public:
 	void addRule(std::shared_ptr<Relation> rel, std::vector<std::string> data);
 
 	inline bool isLoaded() { return loaded; }
-
-	// TODO: remove, is for testing only
-	inline std::unordered_map<std::string, std::shared_ptr<Relation>> retRelationMap() { return this->relation_map; }
-
-
-//	std::vector<std::string> replace(std::string str);
-
     std::string RelationcreateId() { return "R" + std::to_string(++rel_id); }
 
     std::string createId();

@@ -14,7 +14,6 @@ Tui::Tui(std::string filename, bool live) {
     Reader read = Reader(filename, run, false, live);
     read.readFile();
     this->loaded = read.isLoaded();
-    std::unordered_map<std::string, std::shared_ptr<Relation>>& rel_map = run->getRelation_map();
 
     rul_table_state = out.getRulTable();
     rel_table_state = out.getRelTable();

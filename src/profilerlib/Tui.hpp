@@ -22,8 +22,6 @@ private:
 	int precision = -1;
     Table rel_table_state;
     Table rul_table_state;
-    int sortDir = 1;
-    static const int SCREEN_WIDTH = 64; //characters
 
 public:
 	Tui(std::string filename, bool live);

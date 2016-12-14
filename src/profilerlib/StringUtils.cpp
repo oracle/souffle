@@ -163,8 +163,6 @@ std::vector<std::string> Tools::splitAtSemiColon(std::string str) {
         }
     }
 
-
-
     std::vector<std::string> result = split(str, ";");
     for (auto& st : result) {
         std::string s = st;
@@ -181,12 +179,32 @@ std::vector<std::string> Tools::splitAtSemiColon(std::string str) {
 
 std::string Tools::getworkingdir() {
     char cCurrentPath[FILENAME_MAX];
-
     if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath))) {
         return std::string();
     }
-
-    cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
-
+    cCurrentPath[sizeof(cCurrentPath) - 1] = '\0';
     return std::string(cCurrentPath);
+}
+
+std::string Tools::cleanString(std::string val) {
+    if (val.size() < 2) {
+        return val;
+    }
+
+    if (val.at(0) == '"' && val.at(val.size()-1) == '"') {
+        val = val.substr(1,val.size()-2);
+    }
+
+    size_t start_pos = 0;
+    while((start_pos = val.find('\\', start_pos)) != std::string::npos) {
+        val.erase(start_pos, 1);
+        if (start_pos < val.size()) {
+            if (val[start_pos] == 'n' || val[start_pos] == 't') {
+                val.replace(start_pos, 1, " ");
+            } //else if (str[start_pos] == '"') {
+
+            //}
+        }
+    }
+    return val;
 }

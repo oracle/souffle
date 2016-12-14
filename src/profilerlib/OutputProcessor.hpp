@@ -20,11 +20,8 @@ public:
 
 	inline std::shared_ptr<ProgramRun>& getProgramRun() { return programRun; }
 
-//
     Table getRelTable();
-//    //Table getRulTableGui();
     Table getRulTable();
-//    //Table getVersionsGui(String strRel, String strRul);
     Table getVersions(std::string strRel, std::string strRul);
 
 

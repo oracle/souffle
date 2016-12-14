@@ -38,7 +38,7 @@ public:
     double getDoubVal() {std::cerr << "getting double on string cell\n"; throw this;}
     long getLongVal() {std::cerr << "getting long on string cell\n"; throw this;}
     std::string getStringVal() { return val; }
-    std::string toString(int precision) { return val; }
+    std::string toString(int precision) { return Tools::cleanString(val); }
 };
 
 template <>

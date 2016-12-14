@@ -15,7 +15,7 @@
 
 #include <stdio.h>  /* defines FILENAME_MAX */
 
-#ifdef WINDOWS
+#if defined(_WIN32) || defined(_WIN64) || defined(WINDOWS)
 #include <direct.h>
 #define GetCurrentDir _getcwd
 #else
@@ -47,4 +47,5 @@ namespace Tools {
     }
 
     std::string getworkingdir();
+    std::string cleanString(std::string val);
 }

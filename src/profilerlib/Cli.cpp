@@ -8,7 +8,7 @@ static bool DEBUG=false;
 
 void Cli::error() {
     //std::cout << "\nExpected commands/args to run souffle-prof: \n";
-    std::cout << "java -jar souffleprof.jar [-f|-j <file> [-c <command>] [-l]] [-h]\n";
+    std::cout << "./souffle-profile [-f|-j <file> [-c <command>] [-l]] [-h]\n";
     exit(1);
 }
 
@@ -28,7 +28,7 @@ void Cli::parse() {
         }
 
         if (arg.compare("-h")==0) {
-            std::cout << "Souffle Profiler Alpha 4 (23/11/16)\n";
+            std::cout << "Souffle Profiler Alpha 4 (14/12/16)\n";
             error();
         } else if (arg.compare("-c")==0) {
             if (i < args.size()) {
