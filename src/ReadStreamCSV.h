@@ -29,7 +29,7 @@ namespace souffle {
 class ReadStreamCSV : public ReadStream {
 public:
     ReadStreamCSV(const std::string &fname, const SymbolMask& symbolMask, SymbolTable &symbolTable,
-            char delimiter = '\t') : file(std::ifstream(fname)), symbolMask(symbolMask),
+            char delimiter = '\t') : file(std::ifstream(fname, std::ifstream::in)), symbolMask(symbolMask),
             symbolTable(symbolTable), delimiter(delimiter), lineNumber(0) {};
     virtual bool isReadable() {
         return file.is_open();

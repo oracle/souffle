@@ -672,7 +672,10 @@ namespace {
                     return false;
                 }
                 while (reader->hasNextTuple()) {
-                    relation.insert((reader->readNextTuple()).get());
+                    auto next = reader->readNextTuple();
+                    if (next) {
+                        relation.insert(next.get());
+                    }
                 }
 /*
                 // load facts from file

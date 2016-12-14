@@ -20,7 +20,7 @@ std::unique_ptr<RamDomain[]> ReadStreamCSV::readNextTuple() {
     bool error = false;
 
     if(!getline(file, line)) {
-            std::cerr << "Reading input failed at line " << lineNumber << ";";
+        return nullptr;
     }
     ++lineNumber;
 
@@ -66,7 +66,7 @@ std::unique_ptr<RamDomain[]> ReadStreamCSV::readNextTuple() {
         }
     }
     if (error) {
-        return std::unique_ptr<RamDomain[]>(nullptr);
+        return nullptr;
     }
 
     return tuple;
