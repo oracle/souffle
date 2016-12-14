@@ -1,10 +1,18 @@
+/*
+* Souffle - A Datalog Compiler
+* Copyright (c) 2016, The Souffle Developers. All rights reserved
+* Licensed under the Universal Permissive License v 1.0 as shown at:
+* - https://opensource.org/licenses/UPL
+* - <souffle root>/licenses/SOUFFLE-UPL.txt
+*/
+
 
 
 #include "Relation.hpp"
 
 
-std::vector<std::shared_ptr<Rule>> Relation::getRuleRecList() {
-    std::vector<std::shared_ptr<Rule>> temp = std::vector<std::shared_ptr<Rule>>();
+std::vector <std::shared_ptr<Rule>> Relation::getRuleRecList() {
+    std::vector <std::shared_ptr<Rule>> temp = std::vector < std::shared_ptr < Rule >> ();
     for (auto &iter : iterations) {
         for (auto &rul : iter->getRul_rec()) {
             temp.push_back(rul.second);
@@ -17,7 +25,7 @@ std::vector<std::shared_ptr<Rule>> Relation::getRuleRecList() {
 std::string Relation::createRecID(std::string name) {
     for (auto &iter : iterations) {
         for (auto &rul : iter->getRul_rec()) {
-            if (rul.second->getName().compare(name)==0) {
+            if (rul.second->getName().compare(name) == 0) {
                 return rul.second->getId();
             }
         }
@@ -93,7 +101,7 @@ std::string Relation::toString() {
     }
     std::string retStr = output.str();
     //substring to remove the last comma
-    return retStr.substr(0, retStr.size()-2) + "]\n}";
+    return retStr.substr(0, retStr.size() - 2) + "]\n}";
 
 //    std::ostringstream output;
 //    output << "{\n" << name << ":" << runtime << ";" << num_tuples

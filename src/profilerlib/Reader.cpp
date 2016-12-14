@@ -1,9 +1,13 @@
-//
-// Created by Dominic Romanowski on 26/11/16.
-//
+/*
+* Souffle - A Datalog Compiler
+* Copyright (c) 2016, The Souffle Developers. All rights reserved
+* Licensed under the Universal Permissive License v 1.0 as shown at:
+* - https://opensource.org/licenses/UPL
+* - <souffle root>/licenses/SOUFFLE-UPL.txt
+*/
+
 
 #include "Reader.hpp"
-
 
 
 void Reader::readFile() {
@@ -26,11 +30,10 @@ void Reader::readFile() {
                 // regex to split on ';' where ';' isn't in a string eg. "asdf;asdf", 'asdf;asdf',
                 // TODO: both ' and "
 //                std::vector<std::string> part = Tools::split(str.substr(1), "\\s*;(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)\\s*");
-                std::vector<std::string> part = Tools::splitAtSemiColon(str.substr(1));
+                std::vector <std::string> part = Tools::splitAtSemiColon(str.substr(1));
                 process(part);
             }
         }
-
 
 
         file.close();
@@ -42,7 +45,7 @@ void Reader::save(std::string f_name) {
 
 
     std::string workingdir = Tools::getworkingdir();
-    if (workingdir.size()==0) {
+    if (workingdir.size() == 0) {
         std::cerr << "could not get working directory\n" << std::endl;
         throw 1;
     }
@@ -51,34 +54,34 @@ void Reader::save(std::string f_name) {
     struct dirent *ent;
     bool exists = false;
 
-    if ((dir = opendir((workingdir+std::string("/old_runs")).c_str())) != NULL) {
+    if ((dir = opendir((workingdir + std::string("/old_runs")).c_str())) != NULL) {
         exists = true;
         closedir(dir);
     }
 
     if (!exists) {
-        std::string sPath = workingdir+std::string("/old_runs");
+        std::string sPath = workingdir + std::string("/old_runs");
         mode_t nMode = 0733; // UNIX style permissions
         int nError = 0;
-        #if defined(_WIN32) || defined(_WIN64) || defined(WINDOWS)
-                nError = _mkdir(sPath.c_str()); // can be used on Windows
-        #else
-                nError = mkdir(sPath.c_str(),nMode); // can be used on non-Windows
-        #endif
+#if defined(_WIN32) || defined(_WIN64) || defined(WINDOWS)
+        nError = _mkdir(sPath.c_str()); // can be used on Windows
+#else
+        nError = mkdir(sPath.c_str(), nMode); // can be used on non-Windows
+#endif
         if (nError != 0) {
             std::cerr << "directory ./old_runs/ failed to be created.";
             exit(2);
         }
     }
 
-    std::string new_file = workingdir+std::string("/old_runs/");
+    std::string new_file = workingdir + std::string("/old_runs/");
     if (Tools::file_exists(new_file)) {
         int i = 1;
-        while (Tools::file_exists(new_file + std::to_string(i))){
+        while (Tools::file_exists(new_file + std::to_string(i))) {
             i++;
         }
 
-        new_file = new_file+std::to_string(i);
+        new_file = new_file + std::to_string(i);
     }
 
     std::ofstream fout(new_file);
@@ -88,12 +91,12 @@ void Reader::save(std::string f_name) {
     }
 
     time_t t = time(0);   // get time now
-    struct tm * now = localtime( & t );
+    struct tm *now = localtime(&t);
     fout << this->file_loc << " created on "
-            << (now->tm_year + 1900) << '.'
+         << (now->tm_year + 1900) << '.'
          << (now->tm_mon + 1) << '.'
-         <<  now->tm_mday << " at "
-            << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec
+         << now->tm_mday << " at "
+         << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec
          << std::endl;
 
     std::string str;
@@ -102,7 +105,7 @@ void Reader::save(std::string f_name) {
     }
 }
 
-void Reader::process(const std::vector<std::string>& data) {
+void Reader::process(const std::vector <std::string> &data) {
     if (data[0].compare("runtime") == 0) {
         runtime = stod(data[1]);
     } else {
@@ -111,7 +114,7 @@ void Reader::process(const std::vector<std::string>& data) {
             relation_map.emplace(data[1], std::make_shared<Relation>(Relation(data[1], createId())));
         } else {
         }
-        std::shared_ptr<Relation> _rel = relation_map[data[1]];
+        std::shared_ptr <Relation> _rel = relation_map[data[1]];
 
         // find non-recursive first, since they both share text recursive
         if (data[0].find("nonrecursive") != std::string::npos) {
@@ -133,10 +136,10 @@ void Reader::process(const std::vector<std::string>& data) {
 }
 
 
-void Reader::addIteration(std::shared_ptr<Relation> rel, std::vector<std::string> data) {
+void Reader::addIteration(std::shared_ptr <Relation> rel, std::vector <std::string> data) {
 
     bool ready = rel->isReady();
-    std::vector<std::shared_ptr<Iteration>>& iterations = rel->getIterations();
+    std::vector <std::shared_ptr<Iteration>> &iterations = rel->getIterations();
     std::string locator = rel->getLocator();
 
 
@@ -146,7 +149,7 @@ void Reader::addIteration(std::shared_ptr<Relation> rel, std::vector<std::string
         rel->setReady(false);
     }
 
-    std::shared_ptr<Iteration>& iter = iterations.back();
+    std::shared_ptr <Iteration> &iter = iterations.back();
 
     if (data[0].find("rule") != std::string::npos) {
         std::string temp = rel->createRecID(data[4]);
@@ -164,16 +167,16 @@ void Reader::addIteration(std::shared_ptr<Relation> rel, std::vector<std::string
 }
 
 
-void Reader::addRule(std::shared_ptr<Relation> rel, std::vector<std::string> data) {
+void Reader::addRule(std::shared_ptr <Relation> rel, std::vector <std::string> data) {
 
-    std::unordered_map<std::string,std::shared_ptr<Rule>>& ruleMap = rel->getRuleMap();
+    std::unordered_map <std::string, std::shared_ptr<Rule>> &ruleMap = rel->getRuleMap();
 
     long prev_num_tuples = rel->getPrev_num_tuples();
     if (ruleMap.find(data[3]) == ruleMap.end()) {
-        ruleMap.emplace(data[3],std::make_shared<Rule>(Rule(data[3], rel->createID())));
+        ruleMap.emplace(data[3], std::make_shared<Rule>(Rule(data[3], rel->createID())));
     }
 
-    std::shared_ptr<Rule> _rul = ruleMap[data[3]];
+    std::shared_ptr <Rule> _rul = ruleMap[data[3]];
 
 
     if (data[0].at(0) == 't') {

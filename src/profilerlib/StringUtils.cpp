@@ -1,6 +1,12 @@
-//
-// Created by Dominic Romanowski on 30/11/16.
-//
+/*
+* Souffle - A Datalog Compiler
+* Copyright (c) 2016, The Souffle Developers. All rights reserved
+* Licensed under the Universal Permissive License v 1.0 as shown at:
+* - https://opensource.org/licenses/UPL
+* - <souffle root>/licenses/SOUFFLE-UPL.txt
+*/
+
+
 
 
 #include "StringUtils.hpp"
@@ -20,43 +26,67 @@ std::string Tools::formatNum(int precision, long amount) {
 
     std::string result;
 
-    for (int i=0;i<abbreviations.size();++i) {
-        if (amount > std::pow(1000,i+2)) {
+    for (int i = 0; i < abbreviations.size(); ++i) {
+        if (amount > std::pow(1000, i + 2)) {
             continue;
         }
 
-        if (i==0) {
+        if (i == 0) {
             return std::to_string(amount);
         }
 
-        double r = amount/std::pow(1000,i+1);
+        double r = amount / std::pow(1000, i + 1);
         result = std::to_string(r);
 
         if (r >= 100) {// 1000 > result >= 100
 
             //not sure why anyone would do such a thing.
             switch (precision) {
-                case -1: break;
-                case 0: result = "0"; break;// I guess 0 would be valid?
-                case 1: result = result.substr(0,1)+"00"; break;
-                case 2: result = result.substr(0,2)+"0"; break;
-                case 3: result = result.substr(0,3); break;
-                default: result = result.substr(0,precision+1);
+                case -1:
+                    break;
+                case 0:
+                    result = "0";
+                    break;// I guess 0 would be valid?
+                case 1:
+                    result = result.substr(0, 1) + "00";
+                    break;
+                case 2:
+                    result = result.substr(0, 2) + "0";
+                    break;
+                case 3:
+                    result = result.substr(0, 3);
+                    break;
+                default:
+                    result = result.substr(0, precision + 1);
             }
         } else if (r >= 10) {// 100 > result >= 10
             switch (precision) {
-                case -1: break;
-                case 0: result = "0"; break;// I guess 0 precision would be valid?
-                case 1: result = result.substr(0,1)+"0"; break;
-                case 2: result = result.substr(0,2); break;
-                default: result = result.substr(0,precision+1);
+                case -1:
+                    break;
+                case 0:
+                    result = "0";
+                    break;// I guess 0 precision would be valid?
+                case 1:
+                    result = result.substr(0, 1) + "0";
+                    break;
+                case 2:
+                    result = result.substr(0, 2);
+                    break;
+                default:
+                    result = result.substr(0, precision + 1);
             }
         } else { // 10 > result > 0
             switch (precision) {
-                case -1: break;
-                case 0: result = "0"; break;// I guess 0 precision would be valid?
-                case 1: result = result.substr(0,1); break;
-                default: result = result.substr(0,precision+1);
+                case -1:
+                    break;
+                case 0:
+                    result = "0";
+                    break;// I guess 0 precision would be valid?
+                case 1:
+                    result = result.substr(0, 1);
+                    break;
+                default:
+                    result = result.substr(0, precision + 1);
             }
         }
         result += abbreviations.at(i);
@@ -74,46 +104,46 @@ std::string Tools::formatTime(double number) {
 
     long sec = std::lrint(number);
     if (sec >= 100) {
-        long min = (long)std::floor(sec/60);
+        long min = (long) std::floor(sec / 60);
         if (min >= 100) {
-            long hours = (long)std::floor(min/60);
+            long hours = (long) std::floor(min / 60);
             if (hours >= 100) {
-                long days = (long)std::floor(hours/24);
+                long days = (long) std::floor(hours / 24);
                 return std::to_string(days) + "D";
             }
             return std::to_string(hours) + "h";
         }
         if (min < 10) {
             // temp should always be 1 digit long
-            long temp = (long)std::floor((sec-(min*60.0))*10.0/6.0); // x*10/6 instead of x/60*100
-            return std::to_string(min) + "." + std::to_string(temp).substr(0,1)+"m";
+            long temp = (long) std::floor((sec - (min * 60.0)) * 10.0 / 6.0); // x*10/6 instead of x/60*100
+            return std::to_string(min) + "." + std::to_string(temp).substr(0, 1) + "m";
         }
         return std::to_string(min) + "m";
     } else if (sec >= 10) {
         return std::to_string(sec);
     } else if (number >= 1.0) {
-        std::string temp = std::to_string(std::lrint(number*100));
-        return temp.substr(0,1)+"."+temp.substr(1,2);
-    } else if (std::lrint(number*1000) >= 100.0) {
-        std::string temp = std::to_string(std::round(number*1000));
-        return "."+temp.substr(0,3);
-    } else if (std::lrint(number*1000) >= 10.0) {
+        std::string temp = std::to_string(std::lrint(number * 100));
+        return temp.substr(0, 1) + "." + temp.substr(1, 2);
+    } else if (std::lrint(number * 1000) >= 100.0) {
+        std::string temp = std::to_string(std::round(number * 1000));
+        return "." + temp.substr(0, 3);
+    } else if (std::lrint(number * 1000) >= 10.0) {
 
-        std::string temp = std::to_string(std::round(number*1000));
-        return ".0"+temp.substr(0,2);
+        std::string temp = std::to_string(std::round(number * 1000));
+        return ".0" + temp.substr(0, 2);
     } else if (number >= .001) {
-        std::string temp = std::to_string(std::round(number*1000));
-        return ".00"+temp.substr(0,1);
+        std::string temp = std::to_string(std::round(number * 1000));
+        return ".00" + temp.substr(0, 1);
     }
 
     return ".000";
 }
 
-std::vector<std::vector<std::string>> Tools::formatTable(Table table, int precision) {
-    std::vector<std::vector<std::string>> result;
-    for (auto& row : table.getRows()) {
-        std::vector<std::string> result_row;
-        for (auto & cell : row->getCells()) {
+std::vector <std::vector<std::string>> Tools::formatTable(Table table, int precision) {
+    std::vector <std::vector<std::string>> result;
+    for (auto &row : table.getRows()) {
+        std::vector <std::string> result_row;
+        for (auto &cell : row->getCells()) {
             if (cell != nullptr) {
                 result_row.push_back(cell->toString(precision));
             } else {
@@ -127,8 +157,8 @@ std::vector<std::vector<std::string>> Tools::formatTable(Table table, int precis
 }
 
 
-std::vector<std::string> Tools::split(std::string str, std::string split_reg) {
-    std::vector<std::string> elems;
+std::vector <std::string> Tools::split(std::string str, std::string split_reg) {
+    std::vector <std::string> elems;
 
     std::regex rgx(split_reg);
     std::sregex_token_iterator iter(str.begin(),
@@ -137,7 +167,7 @@ std::vector<std::string> Tools::split(std::string str, std::string split_reg) {
                                     -1);
 
     std::sregex_token_iterator end;
-    for ( ; iter != end; ++iter) {
+    for (; iter != end; ++iter) {
         elems.push_back(*iter);
     }
 
@@ -145,13 +175,13 @@ std::vector<std::string> Tools::split(std::string str, std::string split_reg) {
 
 }
 
-std::vector<std::string> Tools::splitAtSemiColon(std::string str) {
+std::vector <std::string> Tools::splitAtSemiColon(std::string str) {
 
     bool in_str = false;
 
-    for (int i=0; i<str.size(); i++) {
+    for (int i = 0; i < str.size(); i++) {
         if (in_str) {
-            if (str[i] == '"' && str[i-1] != '\\') {
+            if (str[i] == '"' && str[i - 1] != '\\') {
                 in_str = false;
             } else if (str[i] == ';') {
                 str[i] = '\n';
@@ -163,10 +193,10 @@ std::vector<std::string> Tools::splitAtSemiColon(std::string str) {
         }
     }
 
-    std::vector<std::string> result = split(str, ";");
-    for (auto& st : result) {
+    std::vector <std::string> result = split(str, ";");
+    for (auto &st : result) {
         std::string s = st;
-        for (int i=0; i<st.size(); i++) {
+        for (int i = 0; i < st.size(); i++) {
             if (st[i] == '\n') {
                 st[i] = ';';
             }
@@ -174,7 +204,6 @@ std::vector<std::string> Tools::splitAtSemiColon(std::string str) {
     }
     return result;
 }
-
 
 
 std::string Tools::getworkingdir() {
@@ -191,12 +220,12 @@ std::string Tools::cleanString(std::string val) {
         return val;
     }
 
-    if (val.at(0) == '"' && val.at(val.size()-1) == '"') {
-        val = val.substr(1,val.size()-2);
+    if (val.at(0) == '"' && val.at(val.size() - 1) == '"') {
+        val = val.substr(1, val.size() - 2);
     }
 
     size_t start_pos = 0;
-    while((start_pos = val.find('\\', start_pos)) != std::string::npos) {
+    while ((start_pos = val.find('\\', start_pos)) != std::string::npos) {
         val.erase(start_pos, 1);
         if (start_pos < val.size()) {
             if (val[start_pos] == 'n' || val[start_pos] == 't') {

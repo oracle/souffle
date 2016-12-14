@@ -1,3 +1,10 @@
+/*
+* Souffle - A Datalog Compiler
+* Copyright (c) 2016, The Souffle Developers. All rights reserved
+* Licensed under the Universal Permissive License v 1.0 as shown at:
+* - https://opensource.org/licenses/UPL
+* - <souffle root>/licenses/SOUFFLE-UPL.txt
+*/
 
 
 #include "OutputProcessor.hpp"
@@ -16,10 +23,10 @@
 	 *
 	 */
 Table OutputProcessor::getRelTable() {
-    std::unordered_map<std::string, std::shared_ptr<Relation>>& relation_map = programRun->getRelation_map();
+    std::unordered_map <std::string, std::shared_ptr<Relation>> &relation_map = programRun->getRelation_map();
     Table table;
-    for (auto& rel : relation_map) {
-        std::shared_ptr<Relation> r = rel.second;
+    for (auto &rel : relation_map) {
+        std::shared_ptr <Relation> r = rel.second;
         Row row(9);
         double total_time = r->getNonRecTime() + r->getRecTime() + r->getCopyTime();
         row[0] = std::shared_ptr<CellInterface>(new Cell<double>(total_time));
@@ -31,7 +38,7 @@ Table OutputProcessor::getRelTable() {
         row[6] = std::shared_ptr<CellInterface>(new Cell<std::string>(r->getId()));
         row[7] = std::shared_ptr<CellInterface>(new Cell<std::string>(r->getLocator()));
         if (total_time != 0.0) {
-            row[8] = std::shared_ptr<CellInterface>(new Cell<double>(r->getNum_tuplesRel()/total_time));
+            row[8] = std::shared_ptr<CellInterface>(new Cell<double>(r->getNum_tuplesRel() / total_time));
         } else {
             row[8] = std::shared_ptr<CellInterface>(new Cell<double>(r->getNum_tuplesRel() / 1.0));
         }
@@ -42,18 +49,17 @@ Table OutputProcessor::getRelTable() {
 }
 
 
-
 Table OutputProcessor::getRulTable() {
-    std::unordered_map<std::string, std::shared_ptr<Relation>>& relation_map = programRun->getRelation_map();
-    std::unordered_map<std::string, std::shared_ptr<Row>> rule_map;
+    std::unordered_map <std::string, std::shared_ptr<Relation>> &relation_map = programRun->getRelation_map();
+    std::unordered_map <std::string, std::shared_ptr<Row>> rule_map;
 
     double tot_rec_tup = programRun->getTotNumRecTuples();
     double tot_copy_time = programRun->getTotCopyTime();
 
-    for (auto& rel:relation_map) {
-        for (auto& _rul : rel.second->getRuleMap()) {
+    for (auto &rel:relation_map) {
+        for (auto &_rul : rel.second->getRuleMap()) {
             Row row(11);
-            std::shared_ptr<Rule> rul = _rul.second;
+            std::shared_ptr <Rule> rul = _rul.second;
             row[1] = std::shared_ptr<CellInterface>(new Cell<double>(rul->getRuntime()));
             row[2] = std::shared_ptr<CellInterface>(new Cell<double>(0.0));
             row[3] = std::shared_ptr<CellInterface>(new Cell<double>(0.0));
@@ -66,14 +72,15 @@ Table OutputProcessor::getRulTable() {
 
             rule_map.emplace(rul->getName(), std::make_shared<Row>(row));
         }
-        for (auto& iter : rel.second->getIterations()) {
-            for (auto& _rul : iter->getRul_rec()) {
-                std::shared_ptr<Rule> rul = _rul.second;
-                if (rule_map.find(rul->getName())!=rule_map.end()) {
-                    std::shared_ptr<Row> _row = rule_map[rul->getName()];
+        for (auto &iter : rel.second->getIterations()) {
+            for (auto &_rul : iter->getRul_rec()) {
+                std::shared_ptr <Rule> rul = _rul.second;
+                if (rule_map.find(rul->getName()) != rule_map.end()) {
+                    std::shared_ptr <Row> _row = rule_map[rul->getName()];
                     Row row = *_row;
                     row[2] = std::shared_ptr<CellInterface>(new Cell<double>(row[2]->getDoubVal() + rul->getRuntime()));
-                    row[4] = std::shared_ptr<CellInterface>(new Cell<long>(row[4]->getLongVal() + rul->getNum_tuples()));
+                    row[4] = std::shared_ptr<CellInterface>(
+                            new Cell<long>(row[4]->getLongVal() + rul->getNum_tuples()));
                     row[0] = std::shared_ptr<CellInterface>(new Cell<double>(rul->getRuntime()));
                     rule_map[rul->getName()] = std::make_shared<Row>(row);
                 } else {
@@ -91,12 +98,12 @@ Table OutputProcessor::getRulTable() {
                 }
             }
         }
-        for (auto& _row : rule_map) {
-            std::shared_ptr<Row> row = _row.second;
+        for (auto &_row : rule_map) {
+            std::shared_ptr <Row> row = _row.second;
             Row t = *row;
             if (t[6]->getStringVal().at(0) == 'C') {
-                double rec_tup = (double)(t[4]->getLongVal());
-                t[3] = std::shared_ptr<CellInterface>(new Cell<double>(rec_tup*tot_copy_time/tot_rec_tup));
+                double rec_tup = (double) (t[4]->getLongVal());
+                t[3] = std::shared_ptr<CellInterface>(new Cell<double>(rec_tup * tot_copy_time / tot_rec_tup));
             }
             double val = t[1]->getDoubVal() + t[2]->getDoubVal() + t[3]->getDoubVal();
 
@@ -112,11 +119,12 @@ Table OutputProcessor::getRulTable() {
     }
 
     Table table;
-    for (auto& _row : rule_map) {
+    for (auto &_row : rule_map) {
         table.addRow(_row.second);
     }
     return table;
 }
+
 /*
 	 * ver table :
 	 * ROW[0] = TOT_T
@@ -132,23 +140,23 @@ Table OutputProcessor::getRulTable() {
 	 * ROW[10]= REL_NAME
 	 */
 Table OutputProcessor::getVersions(std::string strRel, std::string strRul) {
-    std::unordered_map<std::string, std::shared_ptr<Relation>>& relation_map = programRun->getRelation_map();
-    std::unordered_map<std::string, std::shared_ptr<Row>> rule_map;
+    std::unordered_map <std::string, std::shared_ptr<Relation>> &relation_map = programRun->getRelation_map();
+    std::unordered_map <std::string, std::shared_ptr<Row>> rule_map;
 
     double tot_rec_tup = programRun->getTotNumRecTuples();
     double tot_copy_time = programRun->getTotCopyTime();
 
-    for (auto& _rel : relation_map) {
-        std::shared_ptr<Relation> rel = _rel.second;
+    for (auto &_rel : relation_map) {
+        std::shared_ptr <Relation> rel = _rel.second;
         if (rel->getId().compare(strRel) == 0) {
-            for (auto& iter : rel->getIterations()) {
-                for (auto& _rul : iter->getRul_rec()) {
-                    std::shared_ptr<Rule> rul = _rul.second;
+            for (auto &iter : rel->getIterations()) {
+                for (auto &_rul : iter->getRul_rec()) {
+                    std::shared_ptr <Rule> rul = _rul.second;
                     if (rul->getId().compare(strRul) == 0) {
                         std::string strTemp = rul->getName() + rul->getLocator() + std::to_string(rul->getVersion());
 
                         if (rule_map.find(strTemp) != rule_map.end()) {
-                            std::shared_ptr<Row> _row = rule_map[strTemp];
+                            std::shared_ptr <Row> _row = rule_map[strTemp];
                             Row row = *_row;
                             row[2] = std::shared_ptr<CellInterface>(
                                     new Cell<double>(row[2]->getDoubVal() + rul->getRuntime()));
@@ -177,8 +185,9 @@ Table OutputProcessor::getVersions(std::string strRel, std::string strRul) {
                 Row t = *row.second;
                 double d = tot_rec_tup;
                 long d2 = t[4]->getLongVal();
-                t[3] = std::shared_ptr<CellInterface>(new Cell<double>(d2*tot_copy_time/d));
-                t[0] = std::shared_ptr<CellInterface>(new Cell<double>(t[1]->getDoubVal() + t[2]->getDoubVal() + t[3]->getDoubVal()));
+                t[3] = std::shared_ptr<CellInterface>(new Cell<double>(d2 * tot_copy_time / d));
+                t[0] = std::shared_ptr<CellInterface>(
+                        new Cell<double>(t[1]->getDoubVal() + t[2]->getDoubVal() + t[3]->getDoubVal()));
                 rule_map[row.first] = std::make_shared<Row>(t);
             }
             break;
@@ -187,7 +196,7 @@ Table OutputProcessor::getVersions(std::string strRel, std::string strRul) {
     }
 
     Table table;
-    for (auto& _row : rule_map) {
+    for (auto &_row : rule_map) {
         table.addRow(_row.second);
     }
     return table;

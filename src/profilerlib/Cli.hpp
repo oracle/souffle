@@ -1,3 +1,11 @@
+/*
+* Souffle - A Datalog Compiler
+* Copyright (c) 2016, The Souffle Developers. All rights reserved
+* Licensed under the Universal Permissive License v 1.0 as shown at:
+* - https://opensource.org/licenses/UPL
+* - <souffle root>/licenses/SOUFFLE-UPL.txt
+*/
+
 #pragma once
 
 #include <iostream>
@@ -8,21 +16,19 @@
 #include "Tui.hpp"
 
 
-
 class Cli {
 public:
 
-    std::vector<std::string> args;
+    std::vector <std::string> args;
 
     Cli(int argc, char *argv[]) :
-            args()
-    {
-        for (int i=0; i<argc; i++) {
+            args() {
+        for (int i = 0; i < argc; i++) {
             args.push_back(std::string(argv[i]));
         }
     }
 
-	void error();
+    void error();
 
-	void parse();
+    void parse();
 };

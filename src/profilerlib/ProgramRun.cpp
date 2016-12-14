@@ -1,3 +1,11 @@
+/*
+* Souffle - A Datalog Compiler
+* Copyright (c) 2016, The Souffle Developers. All rights reserved
+* Licensed under the Universal Permissive License v 1.0 as shown at:
+* - https://opensource.org/licenses/UPL
+* - <souffle root>/licenses/SOUFFLE-UPL.txt
+*/
+
 #include "ProgramRun.hpp"
 
 
@@ -12,7 +20,7 @@ std::string ProgramRun::toString() {
 
 long ProgramRun::getTotNumTuples() {
     long result = 0;
-    for (auto& item : relation_map) {
+    for (auto &item : relation_map) {
         result += item.second->getTotNum_tuples();
     }
     return result;
@@ -20,7 +28,7 @@ long ProgramRun::getTotNumTuples() {
 
 long ProgramRun::getTotNumRecTuples() {
     long result = 0;
-    for (auto& item : relation_map) {
+    for (auto &item : relation_map) {
         result += item.second->getTotNumRec_tuples();
     }
     return result;
@@ -28,7 +36,7 @@ long ProgramRun::getTotNumRecTuples() {
 
 double ProgramRun::getTotCopyTime() {
     double result = 0;
-    for (auto& item : relation_map) {
+    for (auto &item : relation_map) {
         result += item.second->getCopyTime();
     }
     return result;
@@ -36,14 +44,14 @@ double ProgramRun::getTotCopyTime() {
 
 double ProgramRun::getTotTime() {
     double result = 0;
-    for (auto& item : relation_map) {
+    for (auto &item : relation_map) {
         result += item.second->getRecTime();
     }
     return result;
 }
 
-Relation* ProgramRun::getRelation(std::string name) {
-    if(relation_map.find(name) != relation_map.end()) {
+Relation *ProgramRun::getRelation(std::string name) {
+    if (relation_map.find(name) != relation_map.end()) {
         return &(*relation_map[name]);
     }
     return nullptr;
