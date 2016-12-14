@@ -104,8 +104,8 @@ souffle_sources = \
               ReadStream.h                              \
               ReadStreamCSV.cpp     ReadStreamCSV.h     \
               WriteStream.h                             \
-              WriteStreamCSV.cpp    WriteStreamCSV.h    \
-              IOSystem.cpp          IOSystem.h
+              WriteStreamCSV.h                          \
+              IOSystem.h
 
 
 # -- build souffle as a library so it can be reused in testing
