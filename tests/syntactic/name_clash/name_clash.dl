@@ -14,3 +14,5 @@
 .decl boolean_value(X:number) output
 
 boolean_value(X) :- boolean.value(X).
+
+boolean.value(1).
