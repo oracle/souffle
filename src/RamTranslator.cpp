@@ -48,10 +48,10 @@ namespace {
     }
 
     RamRelationIdentifier getRamRelationIdentifier(const std::string& name, unsigned arity, const AstRelation *rel, 
-                                                   const TypeEnvironment *typeEnv) {
+                                                   const TypeEnvironment *typeEnv, const bool istemp = false) {
 
     	if (!rel) {
-    		return RamRelationIdentifier(name, arity);
+    		return RamRelationIdentifier(name, arity, istemp);
     	}
     	assert(arity == rel->getArity());
         std::vector<std::string> attributeNames;
@@ -63,9 +63,9 @@ namespace {
             }
         }
 
-        return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers, 
+        return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers,
                                      getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), 
-                                     rel->isOutput(), rel->isData());
+                                     rel->isOutput(), rel->isData(), istemp);
 
     }
 
@@ -767,8 +767,8 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
 
     // mappings for temporary relations
     std::map<const AstRelation*, RamRelationIdentifier> rrel;
-    std::map<const AstRelation*, RamRelationIdentifier> temp1;
-    std::map<const AstRelation*, RamRelationIdentifier> temp2;
+    std::map<const AstRelation*, RamRelationIdentifier> relDelta;
+    std::map<const AstRelation*, RamRelationIdentifier> relNew;
 
     /* Compute non-recursive clauses for relations in scc and push
        the results in their delta tables. */
@@ -779,15 +779,15 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
         /* create two temporary tables for relaxed semi-naive evaluation */
         auto relName = getRelationName(rel->getName());
         rrel[rel]  = getRamRelationIdentifier(relName, rel->getArity(), rel, &typeEnv);
-        temp1[rel] = getRamRelationIdentifier("_temp1_"+relName, rel->getArity(), rel, &typeEnv);
-        temp2[rel] = getRamRelationIdentifier("_temp2_"+relName, rel->getArity(), rel, &typeEnv);
+        relDelta[rel] = getRamRelationIdentifier("_0delta_"+relName, rel->getArity(), rel, &typeEnv, true);
+        relNew[rel] = getRamRelationIdentifier("_0new_"+relName, rel->getArity(), rel, &typeEnv, true);
 
 
         /* create update statements for fixpoint (even iteration) */
         appendStmt(updateRelTable1, std::unique_ptr<RamStatement>(new RamSequence(
-            std::unique_ptr<RamStatement>(new RamMerge(rrel[rel], temp2[rel])),
-            std::unique_ptr<RamStatement>(new RamSwap(temp1[rel], temp2[rel])),
-            std::unique_ptr<RamStatement>(new RamClear(temp2[rel])))
+            std::unique_ptr<RamStatement>(new RamMerge(rrel[rel], relNew[rel])),
+            std::unique_ptr<RamStatement>(new RamSwap(relDelta[rel], relNew[rel])),
+            std::unique_ptr<RamStatement>(new RamClear(relNew[rel])))
         ));
 
         /* measure update time for each relation */
@@ -799,15 +799,15 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
 
         /* drop temporary tables after recursion */
         appendStmt(postamble, std::unique_ptr<RamStatement>(new RamSequence(
-                std::unique_ptr<RamStatement>(new RamDrop(temp1[rel])),
-                std::unique_ptr<RamStatement>(new RamDrop(temp2[rel])))
+                std::unique_ptr<RamStatement>(new RamDrop(relDelta[rel])),
+                std::unique_ptr<RamStatement>(new RamDrop(relNew[rel])))
         ));
 
         /* Generate code for non-recursive part of relation */
         appendStmt(preamble, translateNonRecursiveRelation(*rel, program, recursiveClauses, typeEnv));
 
         /* Generate merge operation for temp tables */
-        appendStmt(preamble, std::unique_ptr<RamStatement>(new RamMerge(temp1[rel], rrel[rel])));
+        appendStmt(preamble, std::unique_ptr<RamStatement>(new RamMerge(relDelta[rel], rrel[rel])));
 
         /* Add update operations of relations to parallel statements */
         updateTable1->add(std::move(updateRelTable1));
@@ -844,10 +844,10 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
                 // only interested in atoms within the same SCC
                 if (!isInSameSCC(atomRelation)) continue;
 
-                // modify the processed rule to use temp1 and write to temp2
+                // modify the processed rule to use relDelta and write to relNew
                 std::unique_ptr<AstClause> r1(cl->clone());
-                r1->getHead()->setName(temp2[rel].getName());
-                r1->getAtoms()[j]->setName(temp1[atomRelation].getName());
+                r1->getHead()->setName(relNew[rel].getName());
+                r1->getAtoms()[j]->setName(relDelta[atomRelation].getName());
                 r1->addToBody(std::unique_ptr<AstLiteral>(new AstNegation(std::unique_ptr<AstAtom>(cl->getHead()->clone()))));
 
                 // replace wildcards with variables (reduces indices when wildcards are used in recursive atoms)
@@ -857,7 +857,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
                 for(size_t k = j+1; k<atoms.size(); k++) {
                     if (isInSameSCC(getAtomRelation(atoms[k], program))) {
                         AstAtom* cur = r1->getAtoms()[k]->clone();
-                        cur->setName(temp1[getAtomRelation(atoms[k], program)].getName());
+                        cur->setName(relDelta[getAtomRelation(atoms[k], program)].getName());
                         r1->addToBody(std::unique_ptr<AstLiteral>(new AstNegation(std::unique_ptr<AstAtom>(cur))));
                     }
                 }
@@ -876,7 +876,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
                     std::string label = line.str();
                     rule1 = std::unique_ptr<RamStatement>(new RamSequence(
                             std::unique_ptr<RamStatement>(new RamLogTimer(std::move(rule1), "@t-" + label)),
-                            std::unique_ptr<RamStatement>(new RamLogSize(temp2[rel], "@n-" + label)))
+                            std::unique_ptr<RamStatement>(new RamLogSize(relNew[rel], "@n-" + label)))
                     );
                 }
 
@@ -898,7 +898,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
             line << "recursive-relation;" << rel->getName() << ";" << rel->getSrcLoc() << ";" ;
             std::string label = line.str();
             loopRelSeq1 = std::unique_ptr<RamStatement>(new RamLogTimer(std::move(loopRelSeq1), "@t-" + label));
-            appendStmt(loopRelSeq1, std::unique_ptr<RamStatement>(new RamLogSize(temp2[rel],"@n-" + label)));
+            appendStmt(loopRelSeq1, std::unique_ptr<RamStatement>(new RamLogSize(relNew[rel],"@n-" + label)));
         }
 
         /* add rule computations of a relation to parallel statement */
@@ -914,7 +914,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
 
     std::unique_ptr<RamCondition> exitCond1;
     for(const AstRelation* rel : scc) {
-        addCondition(exitCond1, std::unique_ptr<RamCondition>(new RamEmpty(temp2[rel])));
+        addCondition(exitCond1, std::unique_ptr<RamCondition>(new RamEmpty(relNew[rel])));
     }
 
     /* construct fixpoint loop  */
@@ -963,8 +963,8 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
 
         // create delta-relations if necessary
         if (relationSchedule->isRecursive(rel)) {
-            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("_temp1_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv))));
-            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("_temp2_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv))));
+            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("_0delta_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, true))));
+            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("_0new_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, true))));
         }
     }
 

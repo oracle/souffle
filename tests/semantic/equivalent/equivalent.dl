@@ -1,0 +1,22 @@
+//
+// Equivalent
+//
+// This test may be used to check whether equivalent relations are eliminated in the RAM program.
+//
+
+.decl A(i:number)
+.decl B(i:number)
+.decl X(i:number)
+.decl Y(i:number)
+
+.decl P(j:number, k:number) output
+.decl Q(j:number, k:number) output
+
+A(0).
+B(1).
+X(0).
+Y(1).
+
+P(x, y) :- B(y), A(x).
+Q(a, b) :- X(a), Y(b), A(a).
+
