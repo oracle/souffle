@@ -466,7 +466,6 @@ AC_CONFIG_FILES([
   Makefile
   src/Makefile
   interfaces/Makefile
-  prof/Makefile
   tests/Makefile
   tests/atlocal
 ])
@@ -486,7 +485,6 @@ AC_CONFIG_LINKS([include/souffle/Util.h:src/Util.h])
 AC_CONFIG_LINKS([include/souffle/RamLogger.h:src/RamLogger.h])
 AC_CONFIG_LINKS([include/souffle/SymbolTable.h:src/SymbolTable.h])
 AC_CONFIG_LINKS([include/souffle/SqliteRelationWriter.h:src/SqliteRelationWriter.h])
-AC_CONFIG_LINKS([prof/souffle-profile:prof/souffle-profile])
 
 AM_MISSING_PROG([AUTOM4TE], [autom4te])
 
