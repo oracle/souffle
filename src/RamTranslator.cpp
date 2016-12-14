@@ -779,6 +779,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
         /* create two temporary tables for relaxed semi-naive evaluation */
         auto relName = getRelationName(rel->getName());
         rrel[rel]  = getRamRelationIdentifier(relName, rel->getArity(), rel, &typeEnv);
+
+        // Prefix their names with '0', so that it is impossible for them
+        // to conflict with valid datalog identifiers.
         relDelta[rel] = getRamRelationIdentifier("0_delta_"+relName, rel->getArity(), rel, &typeEnv, true);
         relNew[rel] = getRamRelationIdentifier("0_new_"+relName, rel->getArity(), rel, &typeEnv, true);
 
@@ -963,6 +966,8 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
 
         // create delta-relations if necessary
         if (relationSchedule->isRecursive(rel)) {
+            // Prefix their names with '0', so that it is impossible for them
+            // to conflict with valid datalog identifiers.
             appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("0_delta_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, true))));
             appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("0_new_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, true))));
         }

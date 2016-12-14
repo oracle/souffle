@@ -412,45 +412,56 @@ public:
     /**
      * Obtains the singleton instance.
      */
-    static CPPIdentifierMap& getInstance();
+    static CPPIdentifierMap& getInstance() {
+        if (instance == NULL) instance = new CPPIdentifierMap();
+        return *instance;
+    }
 
     /**
      * Given a string, returns its corresponding unique valid identifier;
      */
-    static std::string getIdentifier(std::string, bool);
+    static std::string getIdentifier(const std::string& name) {
+        return getInstance().identifier(name);
+    }
 
     ~CPPIdentifierMap() {}
 
     private:
     
-    /**
-     * Given a string, returns its corresponding unique valid identifier.
-     */
-    std::string identifier(std::string, bool);
-
-    /*
-     * Removes invalid substrings, adds trailing digits if the resulting identifier is in use.
-     */
-    std::string uniqueIdentifier(std::string name);
-
-    /*
-     * True if the given character is valid to use in an identifier.
-     */
-    bool isValidChar(char c);
-
     CPPIdentifierMap() {}
+
     static CPPIdentifierMap* instance;
 
-    //A map from names to identifiers.
-    std::unordered_map<std::string, std::string> name_id_map;
+    /**
+     * Instance method for getIdentifier above.
+     */
+    const std::string identifier(const std::string& name) {
+        // Check to see if an identifier for the given name
+        // has already been created.
+        auto it = identifiers.find(name);
+        if (it != identifiers.end()) return it->second;
+        // If not, create a new identifier, prefixed by its
+        // index in the map to ensure uniqueness, and suffixed
+        // by the original name.
+        std::string id = std::to_string(identifiers.size() + 1) + '_' + name;
+        // Replace all '?' characters in the name with an '_',
+        // as this is the only illegal character we need to
+        // worry about.
+        std::replace(id.begin(), id.end(), '?', '_');
+        // Insert the name and its new identifier into out map.
+        identifiers.insert(
+            std::make_pair(
+                name,
+                id
+            )
+        );
+        // And return the identifier.
+        return id;
+    }
 
-    //Contains the identifiers currently in use.
-    std::unordered_set<std::string> used_ids;
-    
-    // Permissible identifier lengths.
-    static const size_t id_len = 28;
-    static const size_t suffix_len = 5;
-    static const size_t prefix_len = id_len - suffix_len;
+    // The map of identifiers.
+    std::map<const std::string, const std::string> identifiers;
+
 };
 
 
