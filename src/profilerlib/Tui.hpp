@@ -12,10 +12,12 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <dirent.h>
 
 #include "OutputProcessor.hpp"
 #include "Reader.hpp"
 #include "StringUtils.hpp"
+#include "DataComparator.hpp"
 
 
 class Tui {

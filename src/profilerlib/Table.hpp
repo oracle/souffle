@@ -12,7 +12,7 @@
 
 #include <vector>
 #include <string>
-#include <Algorithm>
+#include <algorithm>
 
 #include "Row.hpp"
 #include "DataComparator.hpp"

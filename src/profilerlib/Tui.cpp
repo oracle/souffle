@@ -9,8 +9,7 @@
 
 
 #include "Tui.hpp"
-#include "DataComparator.hpp"
-#include <dirent.h>
+
 
 Tui::Tui(std::string filename, bool live) {
 
