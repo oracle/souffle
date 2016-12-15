@@ -1,4 +1,4 @@
-Unknown command. For more information try the "help" command.
+Unknown command. Please select from the following commands:
 
 Available profiling commands:
   rel                           -     display relation table.
@@ -21,3 +21,4 @@ Interactive mode only commands:
   stop                          -     stop running live.
   sort <col number>             -     sets sorting to be by given column number (0 indexed).
   q                             -     exit program.
+
