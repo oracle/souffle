@@ -643,57 +643,49 @@ namespace {
 
             bool visitLoad(const RamLoad& load) {
                 if (load.getRelation().isData()) {
-                  // Load from mem
-                  std::string name = load.getRelation().getName();
-                  if(data == NULL){
-                    std::cout << "data is null\n";
-                    return false;
-                  }
-                  PrimData* pd = data->getTuples(name);
-                  if (pd == NULL || pd->data.size() == 0) {
-                     std::cout << "relation " << name <<" is empty\n";
-                     return true;
-                  }
-
-                  bool err = env.getRelation(load.getRelation()).load(pd->data, 
-                  env.getSymbolTable(), 
-                  load.getRelation().getSymbolMask());
-                  return !err;
-                }
-
-                std::string fname = config.getFactFileDir() + "/" + load.getFileName();
-                std::unique_ptr<ReadStream> reader = IOSystem::getInstance().getCSVReader(fname,
-                        load.getRelation().getSymbolMask(),
-                        env.getSymbolTable());
-                RamRelation& relation = env.getRelation(load.getRelation());
-
-                if (!reader->isReadable()) {
-                    std::cerr << "Cannot open fact file " << baseName(fname) << "\n";
-                    return false;
-                }
-                while (reader->hasNextTuple()) {
-                    auto next = reader->readNextTuple();
-                    if (next) {
-                        relation.insert(next.get());
+                    // Load from mem
+                    std::string name = load.getRelation().getName();
+                    if (data == NULL) {
+                        std::cout << "data is null\n";
+                        return false;
                     }
+                    PrimData* pd = data->getTuples(name);
+                    if (pd == NULL || pd->data.size() == 0) {
+                        std::cout << "relation " << name << " is empty\n";
+                        return true;
+                    }
+
+                    bool err = env.getRelation(load.getRelation()).load(pd->data,
+                            env.getSymbolTable(),
+                            load.getRelation().getSymbolMask());
+                    return !err;
                 }
-/*
-                // load facts from file
-                std::ifstream csvfile;
-                std::string fname = config.getFactFileDir() + "/" + load.getFileName();
-                csvfile.open(fname.c_str());
+
+                std::string filename = config.getFactFileDir() + "/" + load.getFileName();
+                std::ifstream csvfile(filename, std::ifstream::in);
                 if (!csvfile.is_open()) {
                     // TODO: use different error reporting here!!
-                    std::cerr << "Cannot open fact file " << baseName(fname) << "\n";
-                    return false; 
-                }
-                if(env.getRelation(load.getRelation()).load(csvfile, env.getSymbolTable(), load.getRelation().getSymbolMask())) {
-                    char *bname = strdup(fname.c_str());
-                    std::string simplename = basename(bname);
-                    std::cerr << "cannot parse fact file " << simplename << "!\n";
+                    std::cerr << "Cannot open fact file " << baseName(filename) << "\n";
                     return false;
-                };
-*/
+                }
+                std::unique_ptr<ReadStream> reader =
+                        IOSystem::getInstance().getCSVReader(csvfile,
+                                load.getRelation().getSymbolMask(),
+                                env.getSymbolTable());
+                RamRelation& relation = env.getRelation(load.getRelation());
+
+                try {
+                    while (reader->hasNextTuple()) {
+                        auto next = reader->readNextTuple();
+                        if (next) {
+                            relation.insert(next.get());
+                        }
+                    }
+                } catch (std::exception& e) {
+                    std::cerr << e.what();
+                    std::cerr << "cannot parse fact file " << baseName(filename) << "!\n";
+                    return false;
+                }
                 return true;
             }
 

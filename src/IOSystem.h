@@ -15,7 +15,9 @@
 
 #pragma once
 
+#include <istream>
 #include <memory>
+#include <ostream>
 #include <string>
 
 #include "ReadStream.h"
@@ -33,13 +35,13 @@ public:
         static IOSystem singleton;
         return singleton;
     }
-    std::unique_ptr<ReadStream> getCSVReader(const std::string &fname, const SymbolMask& format,
-		    SymbolTable &symtab, char delimiter = '\t') {
-        return std::unique_ptr<ReadStreamCSV>(new ReadStreamCSV(fname, format, symtab, delimiter));
+    std::unique_ptr<ReadStream> getCSVReader(std::istream& in, const SymbolMask& format,
+            SymbolTable &symtab, char delimiter = '\t') {
+        return std::unique_ptr<ReadStreamCSV>(new ReadStreamCSV(in, format, symtab, delimiter));
     }
-    std::unique_ptr<WriteStream> getCSVWriter(const std::string &fname, const SymbolMask& format,
+    std::unique_ptr<WriteStream> getCSVWriter(std::ostream& out, const SymbolMask& format,
 		    SymbolTable &symtab, char delimiter = '\t') {
-        return std::unique_ptr<WriteStreamCSV>(new WriteStreamCSV(fname, format, symtab, delimiter));
+        return std::unique_ptr<WriteStreamCSV>(new WriteStreamCSV(out, format, symtab, delimiter));
     }
     ~IOSystem() {}
 private:

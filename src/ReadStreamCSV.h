@@ -28,11 +28,14 @@ namespace souffle {
 
 class ReadStreamCSV : public ReadStream {
 public:
-    ReadStreamCSV(const std::string &fname, const SymbolMask& symbolMask, SymbolTable &symbolTable,
-            char delimiter = '\t') : file(std::ifstream(fname, std::ifstream::in)), symbolMask(symbolMask),
-            symbolTable(symbolTable), delimiter(delimiter), lineNumber(0) {};
+    ReadStreamCSV(std::istream& in, const SymbolMask& symbolMask, SymbolTable &symbolTable,
+            char delimiter = '\t') : delimiter(delimiter),
+            file(in),
+            lineNumber(0),
+            symbolMask(symbolMask),
+            symbolTable(symbolTable) {};
     virtual bool isReadable() {
-        return file.is_open();
+        return file.good();
     }
     /**
      * @return true if another tuple may be read.
@@ -47,11 +50,11 @@ public:
     virtual std::unique_ptr<RamDomain[]> readNextTuple();
     virtual ~ReadStreamCSV() {};
 private:
-    std::ifstream file;
+    const char delimiter;
+    std::istream& file;
+    size_t lineNumber;
     const SymbolMask& symbolMask;
     SymbolTable& symbolTable;
-    const char& delimiter;
-    size_t lineNumber;
 };
 
 } /* namespace souffle */

@@ -2,7 +2,9 @@
 
 #include "RamTypes.h"
 
+#include <stdexcept>
 #include <string>
+#include <sstream>
 
 namespace souffle {
 
@@ -19,7 +21,7 @@ std::unique_ptr<RamDomain[]> ReadStreamCSV::readNextTuple() {
     std::unique_ptr<RamDomain[]> tuple(new RamDomain[symbolMask.getArity()]);
     bool error = false;
 
-    if(!getline(file, line)) {
+    if (!getline(file, line)) {
         return nullptr;
     }
     ++lineNumber;
@@ -38,9 +40,10 @@ std::unique_ptr<RamDomain[]> ReadStreamCSV::readNextTuple() {
             }
         } else {
             if (!error) {
-                std::cerr << "Value missing in column " << column + 1
+                std::stringstream errorMessage;
+                errorMessage << "Value missing in column " << column + 1
                         << " in line " << lineNumber << "; ";
-                error = true;
+                throw std::invalid_argument(errorMessage.str());
             }
             element = "n/a";
         }
@@ -51,9 +54,10 @@ std::unique_ptr<RamDomain[]> ReadStreamCSV::readNextTuple() {
                 tuple[column] = std::stoi(element.c_str());
             } catch (...) {
                 if (!error) {
-                    std::cerr << "Error converting number in column " << column + 1
+                    std::stringstream errorMessage;
+                    errorMessage << "Error converting number in column " << column + 1
                             << " in line " << lineNumber << "; ";
-                    error = true;
+                    throw std::invalid_argument(errorMessage.str());
                 }
             }
         }
@@ -61,12 +65,13 @@ std::unique_ptr<RamDomain[]> ReadStreamCSV::readNextTuple() {
     }
     if (end != line.length()) {
         if (!error) {
-            std::cerr << "Too many cells in line " << lineNumber << "; ";
-            error = true;
+            std::stringstream errorMessage;
+            errorMessage << "Too many cells in line " << lineNumber << "; ";
+            throw std::invalid_argument(errorMessage.str());
         }
     }
     if (error) {
-        return nullptr;
+        throw std::invalid_argument("cannot parse fact file");
     }
 
     return tuple;
