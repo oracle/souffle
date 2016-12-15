@@ -41,7 +41,6 @@ src/souffle-profile
 src/profilerlib/.dirstamp
 
 doc
+prof
 
 .idea/
-
-prof
