@@ -18,7 +18,6 @@
 class ProgramRun {
 private:
     std::unordered_map <std::string, std::shared_ptr<Relation>> relation_map;
-    int rel_id = 0;
     double runtime;
     double tot_rec_tup = 0.0;
     double tot_copy_time = 0.0;

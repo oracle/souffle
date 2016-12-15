@@ -20,7 +20,7 @@ void Cli::error() {
 }
 
 void Cli::parse() {
-    std::vector<std::string> commands = std::vector<std::string>();
+    std::vector<std::string> commands;
     std::string filename;
     bool alive = false;
 
@@ -41,7 +41,7 @@ void Cli::parse() {
             if (i < args.size()) {
                 // split at \s+ and save into commands
                 std::string& command_str = args.at(i++);
-                commands = Tools::split(command_str, "\\s+");
+                commands = Tools::split(command_str, " ");
 
             } else {
                 std::cout << "Parameters for option -c missing!\n";

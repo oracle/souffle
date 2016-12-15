@@ -157,18 +157,42 @@ std::vector <std::vector<std::string>> Tools::formatTable(Table table, int preci
 }
 
 
-std::vector <std::string> Tools::split(std::string str, std::string split_reg) {
-    std::vector <std::string> elems;
+std::vector <std::string> Tools::split(std::string str, std::string split_str) {
+    bool repeat = false;
+    if (split_str.compare(" ") == 0) {
+        repeat = true;
+    }
 
-    std::regex rgx(split_reg);
-    std::sregex_token_iterator iter(str.begin(),
-                                    str.end(),
-                                    rgx,
-                                    -1);
+    std::vector<std::string> elems;
 
-    std::sregex_token_iterator end;
-    for (; iter != end; ++iter) {
-        elems.push_back(*iter);
+    std::string temp;
+    std::string hold;
+    for (int i=0; i < str.size(); i++) {
+        if (repeat) {
+            if (str.at(i) == split_str.at(0)) {
+                while (str.at(++i) == split_str.at(0));
+                elems.push_back(temp);
+                temp = "";
+            }
+            temp += str.at(i);
+        } else {
+            temp += str.at(i);
+            hold += str.at(i);
+            for (int j=0; j < hold.size(); j++) {
+                if (hold[j] != split_str[j]) {
+                    hold = "";
+                }
+            }
+            if (hold.size() == split_str.size()) {
+                elems.push_back(temp.substr(0,temp.size()-hold.size()));
+                hold = "";
+                temp = "";
+            }
+        }
+        
+    } 
+    if (!temp.empty()) {
+        elems.push_back(temp);
     }
 
     return elems;

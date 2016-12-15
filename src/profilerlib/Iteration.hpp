@@ -29,8 +29,8 @@ private:
     std::unordered_map <std::string, std::shared_ptr<Rule>> rul_rec_map;
 
 public:
-    Iteration() {
-        rul_rec_map = std::unordered_map < std::string, std::shared_ptr < Rule >> ();
+    Iteration() : rul_rec_map() {
+        // rul_rec_map = std::unordered_map < std::string, std::shared_ptr < Rule >> ();
     }
 
     void addRule(std::vector <std::string> data, std::string rec_id);

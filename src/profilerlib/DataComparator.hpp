@@ -10,7 +10,7 @@
 #pragma once
 
 #include <vector>
-#include <math.h>
+#include <cmath>
 #include "CellInterface.hpp"
 
 class DataComparator {

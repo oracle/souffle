@@ -11,11 +11,11 @@
 #include "Tui.hpp"
 
 
-Tui::Tui(std::string filename, bool live) {
+Tui::Tui(std::string filename, bool live) : out() {
 
     this->f_name = filename;
 
-    out = OutputProcessor();
+    // out = OutputProcessor();
     std::shared_ptr <ProgramRun> &run = out.getProgramRun();
 
     Reader read(filename, run, false, live);
@@ -106,7 +106,7 @@ void Tui::runProf() {
         //    return;
         //}
 
-        std::vector <std::string> c = Tools::split(input, "\\s+");
+        std::vector <std::string> c = Tools::split(input, " ");
 
         if (c[0].compare("q") == 0 || c[0].compare("quit") == 0) {
             quit();
@@ -360,7 +360,7 @@ void Tui::verRul(std::string str) {
         std::cout << "Rule does not exist\n";
         return;
     }
-    std::vector <std::string> part = Tools::split(str, "\\.");
+    std::vector <std::string> part = Tools::split(str, ".");
     std::string strRel = "R" + part[0].substr(1);
 
     Table ver_table = out.getVersions(strRel, str);
@@ -535,7 +535,7 @@ void Tui::verGraph(std::string c, std::string col) {
         return;
     }
 
-    std::vector <std::string> part = Tools::split(c, "\\.");
+    std::vector <std::string> part = Tools::split(c, ".");
     std::string strRel = "R" + part[0].substr(1);
 
     Table ver_table = out.getVersions(strRel, c);

@@ -13,7 +13,6 @@
 #include <string>
 #include <vector>
 #include <cmath>
-#include <regex>
 #include <fstream>
 
 #include <sys/types.h> // required for stat.h
