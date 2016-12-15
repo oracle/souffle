@@ -10,7 +10,6 @@
 #include "Cli.hpp"
 
 
-static bool DEBUG=false;
 
 
 
@@ -29,7 +28,7 @@ void Cli::parse() {
         error();
     }
 
-    for (int i=1; i<args.size(); i++) {
+    for (size_t i=1; i<args.size(); i++) {
         std::string arg = args.at(i++);
         if (arg.at(0) != '-') {
             error();
@@ -71,37 +70,14 @@ void Cli::parse() {
     }
 
 
-    if (DEBUG) {
-    std::cout << "\n-----\nstarting profiler with file: " << filename << "\n";
-        if (alive) {
-            std::cout << "alive: true\n";
-        } else {
-            std::cout << "alive: false\n";
-        }
-    }
 
     if (commands.size() > 0) {
-        if (DEBUG) {
-            std::cout << "commands: true\n";
-
-            for (int j=0; j<commands.size();j++) {
-                std::string& command = commands.at(j);
-                std::cout << "command: " << commands.at(j) << "\n";
-            }
-        }
         Tui(filename, alive).runCommand(commands);
-
     } else {
-        if (DEBUG)
-            std::cout << "commands: false\n";
         if (args.at(1).compare("-j") == 0) {
-            if (DEBUG)
-                std::cout << "json output: true\n";
 
             Tui(filename, alive).runProf();
         } else {
-            if (DEBUG)
-                std::cout << "json output: false\n";
 
             Tui(filename, alive).runProf();
         }

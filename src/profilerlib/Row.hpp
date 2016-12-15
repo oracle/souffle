@@ -22,7 +22,7 @@ public:
     std::vector <std::shared_ptr<CellInterface>> cells;
 
     Row(unsigned long size) : cells() {
-        for (int i = 0; i < size; i++) {
+        for (unsigned long i = 0; i < size; i++) {
             cells.emplace_back(std::shared_ptr<CellInterface>(nullptr));
         }
     }

@@ -31,11 +31,8 @@ private:
     std::string file_loc;
     std::ifstream file;
 
-//	static long filepointer;
     bool loaded = false;
     bool online;
-    // Thread for live mode
-//	std::string mes;
 
     double runtime;
     std::unordered_map <std::string, std::shared_ptr<Relation>> relation_map;
@@ -45,8 +42,10 @@ public:
     std::shared_ptr <ProgramRun> run;
 
     Reader(std::string arg, std::shared_ptr <ProgramRun> run, bool vFlag, bool online) :
-            file_loc(arg), run(run), file(std::ifstream(arg)), runtime(-1.0), online(online),
-            relation_map(std::unordered_map < std::string, std::shared_ptr < Relation >> ()) {}
+            file_loc(arg), file(arg), online(online), runtime(-1.0),
+            relation_map(std::unordered_map < std::string, std::shared_ptr < Relation >> ()) {
+        this->run = run;
+    }
 
     /**
      * Read the contents from file into the class

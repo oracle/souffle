@@ -18,10 +18,10 @@ public:
     static bool TIME(std::shared_ptr <Row> a, std::shared_ptr <Row> b) {
         double val1 = a->cells[0]->getDoubVal();
         double val2 = b->cells[0]->getDoubVal();
-        if (isnan(val1)) {
+        if (std::isnan(val1)) {
             return true;
         }
-        if (isnan(val2)) {
+        if (std::isnan(val2)) {
             return false;
         }
         return val2 < val1;

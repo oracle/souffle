@@ -26,7 +26,7 @@ std::string Tools::formatNum(int precision, long amount) {
 
     std::string result;
 
-    for (int i = 0; i < abbreviations.size(); ++i) {
+    for (size_t i = 0; i < abbreviations.size(); ++i) {
         if (amount > std::pow(1000, i + 2)) {
             continue;
         }
@@ -97,7 +97,7 @@ std::string Tools::formatNum(int precision, long amount) {
 
 
 std::string Tools::formatTime(double number) {
-    if (isnan(number) || isinf(number)) {
+    if (std::isnan(number) || std::isinf(number)) {
         return "-";
     }
 
@@ -179,7 +179,7 @@ std::vector <std::string> Tools::splitAtSemiColon(std::string str) {
 
     bool in_str = false;
 
-    for (int i = 0; i < str.size(); i++) {
+    for (size_t i = 0; i < str.size(); i++) {
         if (in_str) {
             if (str[i] == '"' && str[i - 1] != '\\') {
                 in_str = false;
@@ -196,7 +196,7 @@ std::vector <std::string> Tools::splitAtSemiColon(std::string str) {
     std::vector <std::string> result = split(str, ";");
     for (auto &st : result) {
         std::string s = st;
-        for (int i = 0; i < st.size(); i++) {
+        for (size_t i = 0; i < st.size(); i++) {
             if (st[i] == '\n') {
                 st[i] = ';';
             }

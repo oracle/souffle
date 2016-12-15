@@ -16,7 +16,7 @@
 int main(int argc, char *argv[]) {
     Cli cli_obj = Cli(argc, argv);
     cli_obj.parse();
-    std::cout << "\r";
+    std::cout << "\n";
     return 0;
 }
 

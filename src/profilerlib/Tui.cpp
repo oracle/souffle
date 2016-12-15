@@ -586,7 +586,7 @@ void Tui::graphD(std::vector<double> list) {
             bar += "*";
         }
 
-        if (isnan(d)) {
+        if (std::isnan(d)) {
             std::printf("%4d        NaN | %s\n", i++, bar.c_str());
         } else {
             std::printf("%4d %10.8f | %s\n", i++, d, bar.c_str());
