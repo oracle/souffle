@@ -21,9 +21,6 @@ libtool
 ltmain.sh
 /include
 test-driver
-prof/build
-prof/com
-prof/souffleprof.jar
 interfaces/souffle-compilelib
 warn.log
 packaging/*
@@ -40,5 +37,9 @@ debian/changelog
 souffle-*.*.*
 
 src/souffle-mcpp
+src/souffle-profile
+src/profilerlib/.dirstamp
 
 doc
+
+.idea/

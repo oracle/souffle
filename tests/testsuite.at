@@ -115,7 +115,8 @@ m4_define([TEST_PROFILE_COMMAND],[
  m4_define([EXPECTED_OUTPUT],["TESTDIR/out/$3.out"])
  AT_CHECK(["$SOUFFLE" -D. -p LOG_FILE -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
  FILE_EXISTS([LOG_FILE])
- AT_CHECK(["$SOUFFLE_PROFILE" -f LOG_FILE -c $3 1>TESTNAME.prof.out 2>TESTNAME.prof.err], [0])
+ AT_CHECK(["$SOUFFLE_PROFILE" -f LOG_FILE -c $3 1>TESTNAME.prof0.out 2>TESTNAME.prof.err], [0])
+ AT_CHECK([sed 's?[./].*$1.dl?$1.dl?g' TESTNAME.prof0.out >TESTNAME.prof.out], [0])
  SAME_LINE_COUNT([TESTNAME.prof.out],[EXPECTED_OUTPUT])
 ])
 
@@ -225,6 +226,7 @@ m4_ifblank(ENV_CONFS, [
 ], [
   m4_define([CONFS], ENV_CONFS)
 ])
+
 
 dnl Syntactic Tests
 AT_BANNER([Syntactic])

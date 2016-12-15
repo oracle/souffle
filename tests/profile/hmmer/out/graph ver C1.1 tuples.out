@@ -1,6 +1,7 @@
-  C1.1  LptrVar(v) :-     DirectFlow(v,w),    LptrVar(w).
+hmmer.dl [30:1-30:43]
+  C1.1  "LptrVar(v) :- \n   DirectFlow(v,w),\n   LptrVar(w)."
 
   NO   TUPLES
 
    0     7575 | ****************************************************************
-
+
