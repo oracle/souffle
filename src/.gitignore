@@ -4,6 +4,7 @@ souffle
 souffle-compile
 souffle-config
 souffle-wave
+souffle-prof
 
 stack.hh
 parser.hh

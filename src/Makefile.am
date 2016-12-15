@@ -4,10 +4,37 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
+
 SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 
-#bin_PROGRAMS = souffle
-bin_PROGRAMS = souffle souffle-mcpp
+bin_PROGRAMS = souffle souffle-mcpp souffle-profile
+ 
+nodist_souffle_profile_SOURCES = $(BUILT_SOURCES)
+
+souffle_profile_SOURCES = souffle_prof.cpp profilerlib/Cell.hpp \
+						  profilerlib/CellInterface.hpp \
+						  profilerlib/Cli.cpp \
+						  profilerlib/Cli.hpp \
+						  profilerlib/DataComparator.hpp \
+						  profilerlib/Iteration.cpp \
+						  profilerlib/Iteration.hpp \
+						  profilerlib/OutputProcessor.cpp \
+						  profilerlib/OutputProcessor.hpp \
+						  profilerlib/ProgramRun.cpp \
+						  profilerlib/ProgramRun.hpp \
+						  profilerlib/Reader.cpp \
+						  profilerlib/Reader.hpp \
+						  profilerlib/Relation.cpp \
+						  profilerlib/Relation.hpp \
+						  profilerlib/Row.hpp \
+						  profilerlib/Rule.cpp \
+						  profilerlib/Rule.hpp \
+						  profilerlib/StringUtils.cpp \
+						  profilerlib/StringUtils.hpp \
+						  profilerlib/Table.cpp \
+						  profilerlib/Table.hpp \
+						  profilerlib/Tui.cpp \
+						  profilerlib/Tui.hpp
 
 nodist_souffle_mcpp_SOURCES = $(BUILT_SOURCES)
  
