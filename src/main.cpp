@@ -53,7 +53,6 @@
 
 namespace souffle {
 
-
 /**
  *  Show help page.
  */

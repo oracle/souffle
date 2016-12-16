@@ -49,17 +49,12 @@ void PrecedenceGraph::outputPrecedenceGraph(std::ostream& os) {
     /* Print dependency graph */
     os << "digraph \"dependence-graph\" {\n";
     /* Print node of dependence graph */
-    unsigned int u = 0;
-    for (const AstRelation *rel : precedenceGraph.getNodes()) {
-        os << "\t\"" << rel->getName() << "\" [label = \"" << rel->getName() << "\"];\n";
-        u++;
-    }
+    for (const AstRelation *rel : precedenceGraph.getNodes()) if (rel)
+            os << "\t\"" << rel->getName() << "\" [label = \"" << rel->getName() << "\"];\n";
 
-    for (const AstRelation *rel : precedenceGraph.getNodes()) {
-        for(const AstRelation *adjRel : precedenceGraph.getEdges(rel)) {
+    for (const AstRelation *rel : precedenceGraph.getNodes()) if (rel)
+        for(const AstRelation *adjRel : precedenceGraph.getEdges(rel)) if (adjRel)
             os << "\t\"" << adjRel->getName() << "\" -> \"" << rel->getName() << "\";\n";
-        }
-    }
 
     os << "}\n";
 }

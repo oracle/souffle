@@ -37,6 +37,11 @@
 #include <assert.h>
 #include <memory>
 
+/* Macro for BREAKPOINT, useful for debugging. */
+#ifndef BREAKPOINT
+#define BREAKPOINT std::cerr << "BREAKPOINT: " << __FILE__ << " @" << __LINE__ << "." << std::endl
+#endif
+
 /* Macro for ASSERT */ 
 #ifndef ASSERT
 #ifndef OPT 
