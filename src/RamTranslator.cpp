@@ -43,7 +43,7 @@ namespace {
      * Converts the given relation identifier into a relation name.
      */
     std::string getRelationName(const AstRelationIdentifier& id) {
-        return toString(join(id.getNames(), "_"));
+        return toString(join(id.getNames(), "-"));
     }
 
     RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity, const AstRelation *rel,
