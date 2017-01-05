@@ -231,7 +231,7 @@ void Tui::help() {
                 "graph the rule (C rules only)  by type(tot_t/tuples).");
     std::printf("  %-30s%-5s %-10s\n",
                 "graph ver <rule id> <type>", "-",
-                "graph the rule versions (C rules only) by type(tot_t/tuples).");
+                "graph the rule versions (C rules only) by type(tot_t/tuples/copy_t).");
     std::printf("  %-30s%-5s %-10s\n", "top", "-",
                 "display top-level summary of program run.");
     std::printf("  %-30s%-5s %-10s\n", "help", "-",
