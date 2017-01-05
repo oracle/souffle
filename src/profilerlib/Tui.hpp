@@ -14,6 +14,16 @@
 #include <vector>
 #include <dirent.h>
 
+// TODO
+//#ifdef __linux__
+//#include <editline.h>
+//#endif
+//#ifdef __OpenBSD__
+//#include <readline/readline.h>
+//#endif
+#include <editline/readline.h>
+
+
 #include "OutputProcessor.hpp"
 #include "Reader.hpp"
 #include "StringUtils.hpp"

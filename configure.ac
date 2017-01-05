@@ -256,6 +256,8 @@ AC_CHECK_HEADER(sqlite3.h,,[AC_MSG_ERROR([required library sqlite3 missing])])
 AC_CHECK_LIB(sqlite3, sqlite3_open,,
           [AC_MSG_ERROR([required library sqlite3 missing])])
 
+PKG_CHECK_MODULES(LIBEDIT, libedit)
+
 dnl Enables OpenMP in the souffle compiler and interpreter
 AC_OPENMP
 AS_VAR_APPEND(CXXFLAGS, [" $OPENMP_CFLAGS "])
@@ -519,5 +521,3 @@ AC_OUTPUT(
   [ src/souffle-compile src/souffle-config interfaces/souffle-compilelib debian/changelog ],
   [ chmod +x src/souffle-compile src/souffle-config interfaces/souffle-compilelib ]
 )
-
-
