@@ -38,6 +38,8 @@ public:
 
     void runProf();
 
+    void outputJson();
+
     void loadMenu();
 
     void quit();

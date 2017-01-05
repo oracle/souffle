@@ -75,10 +75,8 @@ void Cli::parse() {
         Tui(filename, alive).runCommand(commands);
     } else {
         if (args.at(1).compare("-j") == 0) {
-
-            Tui(filename, alive).runProf();
+            Tui(filename, alive).outputJson();
         } else {
-
             Tui(filename, alive).runProf();
         }
     }

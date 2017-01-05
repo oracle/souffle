@@ -135,6 +135,13 @@ void Tui::runProf() {
     }
 }
 
+void Tui::outputJson() {
+    std::cout << "SouffleProf v2.1.8\n";
+    std::cout << "Generating JSON files...\n";
+
+
+}
+
 void Tui::loadMenu() {
     std::cout << "Please 'load' a file or 'open' from Previous Runs.\n";
     std::cout << "Previous Runs:\n";
