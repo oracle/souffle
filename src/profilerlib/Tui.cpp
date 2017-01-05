@@ -24,8 +24,6 @@ Tui::Tui(std::string filename, bool live) : out() {
 
     rul_table_state = out.getRulTable();
     rel_table_state = out.getRelTable();
-
-
 }
 
 void Tui::runCommand(std::vector <std::string> c) {
@@ -91,6 +89,9 @@ void Tui::runProf() {
         std::cout << "SouffleProf v2.1.8\n";
         top();
     }
+
+    rl_inhibit_completion = 1;
+
     while (true) {
         if (!loaded) {
             loadMenu();
@@ -99,12 +100,23 @@ void Tui::runProf() {
             }
         }
         std::string input;
-        std::cout << "> ";
-        getline(std::cin, input);
-        //if (input.compare("")==0) {
-        //    std::cout << "Error reading command.\n";
-        //    return;
-        //}
+        char* x = readline("\n> ");
+        if ((x == NULL) || (x[0] == '\0')) {
+            std::cout << "\n empty input" << std::endl;
+            input = "";
+        } else {
+            input = std::string(x);
+        }
+
+
+        if (input.empty()) {
+            std::cout << "Unknown command. Please select from the following commands:\n";
+            help();
+            continue;
+        }
+
+        add_history(input.c_str());
+
 
         std::vector <std::string> c = Tools::split(input, " ");
 
