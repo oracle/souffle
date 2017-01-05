@@ -13,7 +13,7 @@ set -x
 if [ $TRAVIS_OS_NAME == linux ]
 then
     sudo apt-get -qq update # TODO comment this out if the apt repo is up-to-date
-    sudo apt-get -y install debhelper devscripts build-essential g++ automake autoconf bison flex openjdk-7-jdk libboost-all-dev lsb-release libtool libeditline-dev
+    sudo apt-get -y install debhelper devscripts build-essential g++ automake autoconf bison flex openjdk-7-jdk libboost-all-dev lsb-release libtool libedit-dev
     # The following lines are hacked because travis stopped working around 5/12/16, if you can remove them and traivs still works, then great
     source /opt/jdk_switcher/jdk_switcher.sh
     jdk_switcher use openjdk7
