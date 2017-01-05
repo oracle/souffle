@@ -148,7 +148,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& out, const RamRelationIdentifier &rel) {
         rel.print(out);
-        return out; 
+        return out;
     }
 
 };
@@ -386,16 +386,10 @@ public:
         return totalIndex->exists(tuple);
     }
 
-    /** input table in csv format from file */ 
-    bool load(std::istream &is, SymbolTable& symTable, const SymbolMask& mask);
-
     /** input table as memory */ 
     bool load(std::vector<std::vector<std::string>> data, SymbolTable& symTable, 
       const SymbolMask& mask);
 
-
-    /** print table in csv formt to file */
-    void store(std::ostream &os, const SymbolTable& symTable, const SymbolMask& mask) const;
 
     /** store data to vectors */
     void store(std::vector<std::vector<std::string>>& result, const SymbolTable& symTable, 

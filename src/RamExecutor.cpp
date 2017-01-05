@@ -27,7 +27,6 @@
 #endif
 
 #include "IOSystem.h"
-#include "ReadStream.h"
 #include "RamTranslator.h"
 #include "RamExecutor.h"
 #include "RamVisitor.h"
@@ -662,28 +661,18 @@ namespace {
                 }
 
                 std::string filename = config.getFactFileDir() + "/" + load.getFileName();
-                std::ifstream csvfile(filename, std::ifstream::in);
-                if (!csvfile.is_open()) {
-                    // TODO: use different error reporting here!!
-                    std::cerr << "Cannot open fact file " << baseName(filename) << "\n";
-                    return false;
-                }
-                std::unique_ptr<ReadStream> reader =
-                        IOSystem::getInstance().getCSVReader(csvfile,
-                                load.getRelation().getSymbolMask(),
-                                env.getSymbolTable());
-                RamRelation& relation = env.getRelation(load.getRelation());
-
                 try {
-                    while (reader->hasNextTuple()) {
-                        auto next = reader->readNextTuple();
-                        if (next) {
-                            relation.insert(next.get());
-                        }
+                    std::unique_ptr<ReadStream> reader =
+                            IOSystem::getInstance().getCSVReader(filename,
+                                    load.getRelation().getSymbolMask(),
+                                    env.getSymbolTable());
+                    RamRelation& relation = env.getRelation(load.getRelation());
+
+                    while (auto next = reader->readNextTuple()) {
+                        relation.insert(next.get());
                     }
                 } catch (std::exception& e) {
                     std::cerr << e.what();
-                    std::cerr << "cannot parse fact file " << baseName(filename) << "!\n";
                     return false;
                 }
                 return true;
@@ -696,13 +685,26 @@ namespace {
 
                 auto& rel = env.getRelation(store.getRelation());
                 if (config.getOutputDir() == "-") {
-                    std::cout << "---------------\n" << store.getRelation() << "\n===============\n";
-                    rel.store(std::cout, env.getSymbolTable(), store.getRelation().getSymbolMask());
-                    std::cout << "===============\n";
+                    std::unique_ptr<WriteStream> writeStream =
+                            IOSystem::getInstance().getCoutCSVWriter(
+                                    store.getRelation().getName(),
+                                    store.getRelation().getSymbolMask(),
+                                    env.getSymbolTable());
+                    for(auto it=rel.begin(); it!=rel.end(); ++it) {
+                        writeStream->writeNextTuple(*it);
+                    }
                     return true;
+                } else {
+                    std::string outputFileName(config.getOutputDir() + "/" + store.getFileName());
+                    std::unique_ptr<WriteStream> writeStream =
+                            IOSystem::getInstance().getCSVWriter(
+                                    outputFileName,
+                                    store.getRelation().getSymbolMask(),
+                                    env.getSymbolTable());
+                    for(auto it=rel.begin(); it!=rel.end(); ++it) {
+                        writeStream->writeNextTuple(*it);
+                    }
                 }
-                std::ofstream fout(config.getOutputDir() + "/" + store.getFileName());
-                rel.store(fout, env.getSymbolTable(), store.getRelation().getSymbolMask());
                 return true;
             }
 

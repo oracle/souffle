@@ -23,8 +23,6 @@ namespace souffle {
 
 class ReadStream {
 public:
-    virtual bool isReadable() = 0;
-    virtual bool hasNextTuple() = 0;
     virtual std::unique_ptr<RamDomain[]> readNextTuple() = 0;
     virtual ~ReadStream() {};
 };

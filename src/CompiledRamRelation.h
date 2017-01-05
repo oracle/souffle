@@ -25,6 +25,7 @@
 
 #include "BTree.h"
 #include "CompiledRamTuple.h"
+#include "IOSystem.h"
 #include "IterUtils.h"
 #include "ParallelUtils.h"
 #include "SymbolMask.h"
@@ -1466,18 +1467,14 @@ struct RelationBase {
 
     /* print table in csv format */
     void printCSV(std::ostream& out, const SymbolTable& symbolTable, const SymbolMask& format) const {
-        /* print table */
+
+        std::unique_ptr<WriteStream> writeStream =
+                IOSystem::getInstance().getCSVWriter(
+                        out,
+                        format,
+                        symbolTable);
         for(const tuple_type& cur : asDerived()) {
-            if (arity == 0) out << "()";
-            for(unsigned i=0; i<arity; i++) {
-                if (format.isSymbol(i)) {
-                    out << symbolTable.resolve(cur[i]);
-                } else {
-                    out << (int32_t) cur[i];
-                }
-                if (i+1 != arity) out << '\t';
-            }
-            out << '\n';
+            writeStream->writeNextTuple(cur.data);
         }
     }
 
@@ -1522,82 +1519,41 @@ struct RelationBase {
             return;
         }
 
-        // open file
-        std::ifstream in;
-        in.open(fn);
-        if (!in.is_open()) {
-            char bfn[strlen(fn)+1];
-            strcpy(bfn,fn);
-            std::cerr << "Cannot open fact file " << basename(bfn) << "\n";
-            exit(1);        // panic ?!?
-        }
+        try {
+            std::unique_ptr<ReadStream> reader =
+                    IOSystem::getInstance().getCSVReader(std::string(fn),
+                            format,
+                            symbolTable);
 
-        // and parse it
-        if(!loadCSV(in, symbolTable, format)) {
-            char *bname = strdup(fn);
-            std::string simplename = basename(bname);
-            std::cerr << "cannot parse fact file " << simplename << "!\n";
+            while (auto next = reader->readNextTuple()) {
+                RamDomain data[arity];
+                std::copy(next.get(), next.get() + arity, data);
+                static_cast<Derived*>(this)->insert(reinterpret_cast<const tuple_type&>(data));
+            }
+        } catch (std::exception& e) {
+            std::cerr << e.what();
             exit(1);
         }
     }
 
-    /* Loads the tuples form the given file into this relation. */
+    /* Loads the tuples from the given stream into this relation. */
     bool loadCSV(std::istream& in, SymbolTable& symbolTable, const SymbolMask& format) {
-        bool error = false;
-        size_t lineno = 0;
+        try {
+            std::unique_ptr<ReadStream> reader =
+                    IOSystem::getInstance().getCSVReader(in,
+                            format,
+                            symbolTable);
 
-        // for all the content
-        while(!in.eof()) {
-
-            std::string line;
-            tuple_type tuple;
-
-            getline(in,line);
-            if (in.eof()) break;
-            lineno++;
-
-            int start = 0, end = 0;
-            for(uint32_t col=0;col<arity;col++) {
-                end = line.find('\t', start);
-                if ((size_t)end == std::string::npos) {
-                    end = line.length();
-                }
-                std::string element;
-                if (start >=0 && start <=  end && (size_t)end <= line.length() ) {
-                    element = line.substr(start,end-start);
-                    if (element == "") {
-                        element = "n/a";
-                    }
-                } else {
-                    element = "n/a";
-                    if(!error) { 
-                        std::cerr << "Value missing in column " << col + 1 << " in line " << lineno << "; ";
-                        error = true;
-                    } 
-                }
-                if (format.isSymbol(col)) {
-                    tuple[col] = symbolTable.lookup(element.c_str());
-                } else {
-                    try { 
-                       tuple[col] = std::stoi(element.c_str());
-                    } catch (...) { 
-                       if(!error) { 
-                           std::cerr << "Error converting number in column " << col + 1 << " in line " << lineno << "; ";
-                           error = true;
-                       } 
-                    } 
-                }
-                start = end+1;
+            while (auto next = reader->readNextTuple()) {
+                RamDomain data[arity];
+                std::copy(next.get(), next.get() + arity, data);
+                static_cast<Derived*>(this)->insert(reinterpret_cast<const tuple_type&>(data));
             }
-            if ((size_t)end != line.length()) {
-                if(!error) { 
-                    std::cerr << "Too many cells in line " << lineno << "; ";
-                    error = true;
-                } 
-            }
-            insert(tuple);
+        } catch (std::exception& e) {
+            std::cerr << e.what();
+            return false;
         }
-        return !error;
+        return true;
     }
 
     /**

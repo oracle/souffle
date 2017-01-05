@@ -102,7 +102,7 @@ souffle_sources = \
               TypeSystem.cpp        TypeSystem.h        \
               PrecedenceGraph.cpp   PrecedenceGraph.h   \
               ReadStream.h                              \
-              ReadStreamCSV.cpp     ReadStreamCSV.h     \
+              ReadStreamCSV.h                           \
               WriteStream.h                             \
               WriteStreamCSV.h                          \
               IOSystem.h
