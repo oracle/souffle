@@ -13,7 +13,7 @@ set -x
 if [ $TRAVIS_OS_NAME == linux ]
 then
     sudo apt-get -qq update # TODO comment this out if the apt repo is up-to-date
-    sudo apt-get -y install debhelper devscripts build-essential g++ automake autoconf bison flex openjdk-7-jdk libboost-all-dev lsb-release libtool
+    sudo apt-get -y install debhelper devscripts build-essential g++ automake autoconf bison flex openjdk-7-jdk libboost-all-dev lsb-release libtool libeditline-dev
     # The following lines are hacked because travis stopped working around 5/12/16, if you can remove them and traivs still works, then great
     source /opt/jdk_switcher/jdk_switcher.sh
     jdk_switcher use openjdk7
@@ -27,6 +27,6 @@ fi
 if [ $TRAVIS_OS_NAME == osx ]
 then
    brew update
-   brew install md5sha1sum bison libtool
+   brew install md5sha1sum bison libtool homebrew/dupes/libedit
    brew link bison --force
 fi
