@@ -101,8 +101,7 @@ void Tui::runProf() {
         }
         std::string input;
         char* x = readline("\n> ");
-        if ((x == NULL) || (x[0] == '\0')) {
-            std::cout << "\n empty input" << std::endl;
+        if ((x != NULL) && (x[0] == '\0')) {
             input = "";
         } else {
             input = std::string(x);
