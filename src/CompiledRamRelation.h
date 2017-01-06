@@ -1481,7 +1481,7 @@ struct RelationBase {
     /* print table in csv format */
     template<typename ... Format>
     void printCSV(std::ostream& out, const SymbolTable& symbolTable, Format ... format) const {
-        printCSV(out, symbolTable, SymbolMask({int(format)...}));
+        printCSV(out, symbolTable, SymbolMask({bool(format)...}));
     }
 
     /**
@@ -1494,7 +1494,7 @@ struct RelationBase {
      */
     template<typename ... Format>
     void printCSV(const char* fn, const SymbolTable& symbolTable, Format ... format) const {
-        printCSV(fn, symbolTable, SymbolMask({int(format)...}));
+        printCSV(fn, symbolTable, SymbolMask({bool(format)...}));
     }
 
     /**
@@ -1507,7 +1507,7 @@ struct RelationBase {
      */
     template<typename ... Format>
     void printCSV(const std::string& fn, const SymbolTable& symbolTable, Format ... format) const {
-        printCSV(fn.c_str(), symbolTable, SymbolMask({int(format)...}));
+        printCSV(fn.c_str(), symbolTable, SymbolMask({bool(format)...}));
     }
 
     /* Loads the tuples form the given file into this relation. */
@@ -1566,7 +1566,7 @@ struct RelationBase {
 	 */
     template<typename ... Format>
     void loadCSV(const char* fn, SymbolTable& symbolTable, Format ... format) {
-        loadCSV(fn, symbolTable, SymbolMask({int(format)...}));
+        loadCSV(fn, symbolTable, SymbolMask({bool(format)...}));
     }
 
     /**
@@ -1579,7 +1579,7 @@ struct RelationBase {
      */
     template<typename ... Format>
     void loadCSV(const std::string& fn, SymbolTable& symbolTable, Format ... format) {
-        loadCSV(fn.c_str(), symbolTable, SymbolMask({int(format)...}));
+        loadCSV(fn.c_str(), symbolTable, SymbolMask({bool(format)...}));
     }
 
     /* Provides a description of the internal organization of this relation. */

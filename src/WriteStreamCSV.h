@@ -28,7 +28,7 @@ class WriteStreamCSV: public WriteStream {
 public:
     WriteStreamCSV(std::ostream& out, const SymbolMask& symbolMask, const SymbolTable &symbolTable,
             char delimiter = '\t') :
-            delimiter(delimiter), lineNumber(0), out(out), symbolMask(symbolMask), symbolTable(
+            delimiter(delimiter), out(out), symbolMask(symbolMask), symbolTable(
                     symbolTable) { }
     virtual void writeNextTuple(const RamDomain *tuple) {
         if (symbolMask.getArity() == 0) {
@@ -57,7 +57,6 @@ public:
     virtual ~WriteStreamCSV() {}
 private:
     const char delimiter;
-    size_t lineNumber;
     std::ostream& out;
     const SymbolMask& symbolMask;
     const SymbolTable& symbolTable;
