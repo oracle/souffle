@@ -36,6 +36,8 @@ souffle_profile_SOURCES = souffle_prof.cpp profilerlib/Cell.hpp \
 						  profilerlib/Tui.cpp \
 						  profilerlib/Tui.hpp
 
+souffle_profile_CXXFLAGS = $(souffle_CPPFLAGS) -ledit
+
 nodist_souffle_mcpp_SOURCES = $(BUILT_SOURCES)
  
 souffle_mcpp_SOURCES = mcpp-system.H mcpp-configed.H mcpp-internal.H mcpp-main.c mcpp-directive.c mcpp-eval.c \
