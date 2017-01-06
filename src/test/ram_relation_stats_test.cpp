@@ -17,8 +17,11 @@
 #include "test.h"
 
 #include <fstream>
+#include <memory>
 
 #include "RamRelationStats.h"
+#include "IOSystem.h"
+#include "ReadStream.h"
 
 using namespace souffle;
 
@@ -84,7 +87,12 @@ namespace test {
             // if file not found => be done
             if (!in.is_open()) return;
 
-            rel.load(in, symTable, mask);
+            std::unique_ptr<ReadStream> reader =
+                    IOSystem::getInstance().getCSVReader(in, mask, symTable, '\t');
+
+            while (auto next = reader->readNextTuple()) {
+                rel.insert(next.get());
+            }
         }
 
         std::cout << rel.size() << "\n";

@@ -102,7 +102,13 @@ souffle_sources = \
               RuleScheduler.h                           \
               StringPool.h                              \
               TypeSystem.cpp        TypeSystem.h        \
-              PrecedenceGraph.cpp   PrecedenceGraph.h
+              PrecedenceGraph.cpp   PrecedenceGraph.h   \
+              ReadStream.h                              \
+              ReadStreamCSV.h                           \
+              WriteStream.h                             \
+              WriteStreamCSV.h                          \
+              IOSystem.h
+
 
 # -- build souffle as a library so it can be reused in testing
 noinst_LTLIBRARIES = libsouffle.la
