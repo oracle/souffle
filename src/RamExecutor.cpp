@@ -662,10 +662,14 @@ namespace {
 
                 std::string filename = config.getFactFileDir() + "/" + load.getFileName();
                 try {
+                    // TODO: get option string from datalog file
+                    std::string optionString("IO=file");
+                    optionString += ",file=" + filename;
                     std::unique_ptr<ReadStream> reader =
-                            IOSystem::getInstance().getCSVReader(filename,
+                            IOSystem::getInstance().getReader(
                                     load.getRelation().getSymbolMask(),
-                                    env.getSymbolTable());
+                                    env.getSymbolTable(),
+                                    optionString);
                     RamRelation& relation = env.getRelation(load.getRelation());
 
                     while (auto next = reader->readNextTuple()) {
@@ -683,27 +687,23 @@ namespace {
                   return true;
                 }
 
+                std::unique_ptr<WriteStream> writeStream = nullptr;
                 auto& rel = env.getRelation(store.getRelation());
+                std::string type;
+                std::string optionString;
                 if (config.getOutputDir() == "-") {
-                    std::unique_ptr<WriteStream> writeStream =
-                            IOSystem::getInstance().getCoutCSVWriter(
-                                    store.getRelation().getName(),
-                                    store.getRelation().getSymbolMask(),
-                                    env.getSymbolTable());
-                    for(auto it=rel.begin(); it!=rel.end(); ++it) {
-                        writeStream->writeNextTuple(*it);
-                    }
-                    return true;
+                    optionString += "IO=stdout,";
+                    optionString += "name=" + rel.getName();
                 } else {
-                    std::string outputFileName(config.getOutputDir() + "/" + store.getFileName());
-                    std::unique_ptr<WriteStream> writeStream =
-                            IOSystem::getInstance().getCSVWriter(
-                                    outputFileName,
-                                    store.getRelation().getSymbolMask(),
-                                    env.getSymbolTable());
-                    for(auto it=rel.begin(); it!=rel.end(); ++it) {
-                        writeStream->writeNextTuple(*it);
-                    }
+                    optionString += "IO=file,";
+                    optionString += "file=" + config.getOutputDir() + "/" + store.getFileName();
+                }
+                writeStream = IOSystem::getInstance().getWriter(
+                        store.getRelation().getSymbolMask(),
+                        env.getSymbolTable(),
+                        optionString);
+                for(auto it=rel.begin(); it!=rel.end(); ++it) {
+                    writeStream->writeNextTuple(*it);
                 }
                 return true;
             }
@@ -2058,7 +2058,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 		os << "out << \"---------------\\n" << name << "\\n===============\\n\";\n";
 
 		// create call
-		os << relName << "->" << "printCSV(out,symTable";
+		os << relName << "->" << "printCSV(nullptr,symTable";
 
 		// add format parameters
 		for(size_t i=0; i<arity; i++) {

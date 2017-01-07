@@ -1453,35 +1453,35 @@ struct RelationBase {
 
     // -- IO --
 
+    void printCSV(const SymbolTable& symbolTable, const SymbolMask& format,
+            const std::string& options) const {
+	try {
+            std::unique_ptr<WriteStream> writeStream =
+                    IOSystem::getInstance().getWriter(
+                            format,
+                            symbolTable,
+                            options);
+            for(const tuple_type& cur : asDerived()) {
+                writeStream->writeNextTuple(cur.data);
+            }
+        } catch (std::exception& e) {
+            std::cerr << e.what();
+            exit(1);
+        }
+    }
+
     /* prints this relation to the given file in CSV format */
     void printCSV(const char* fn, const SymbolTable& symbolTable, const SymbolMask& format) const {
         // support NULL as an output
         if (fn == nullptr) {
-            printCSV(std::cout, symbolTable, format);
-            return;
+            printCSV(symbolTable, format, "IO=stdout");
+        } else {
+            // open output file
+            std::stringstream options;
+	    options << "IO=file,";
+            options << "file=" << fn;
+            printCSV(symbolTable, format, options.str());
         }
-        // open output file
-        std::ofstream fos(fn);
-        printCSV(fos, symbolTable, format);
-    }
-
-    /* print table in csv format */
-    void printCSV(std::ostream& out, const SymbolTable& symbolTable, const SymbolMask& format) const {
-
-        std::unique_ptr<WriteStream> writeStream =
-                IOSystem::getInstance().getCSVWriter(
-                        out,
-                        format,
-                        symbolTable);
-        for(const tuple_type& cur : asDerived()) {
-            writeStream->writeNextTuple(cur.data);
-        }
-    }
-
-    /* print table in csv format */
-    template<typename ... Format>
-    void printCSV(std::ostream& out, const SymbolTable& symbolTable, Format ... format) const {
-        printCSV(out, symbolTable, SymbolMask({bool(format)...}));
     }
 
     /**
@@ -1510,21 +1510,12 @@ struct RelationBase {
         printCSV(fn.c_str(), symbolTable, SymbolMask({bool(format)...}));
     }
 
-    /* Loads the tuples form the given file into this relation. */
-    void loadCSV(const char* fn, SymbolTable& symbolTable, const SymbolMask& format) {
-        // check for null
-        if (fn == nullptr) {
-            // for completeness ...
-            loadCSV(std::cin, symbolTable, format);
-            return;
-        }
-
-        try {
-            std::unique_ptr<ReadStream> reader =
-                    IOSystem::getInstance().getCSVReader(std::string(fn),
-                            format,
-                            symbolTable);
-
+    void loadCSV(SymbolTable& symbolTable, const SymbolMask& format, const std::string& options) {
+	try {
+            std::unique_ptr<ReadStream> reader = IOSystem::getInstance().getReader(
+                    format,
+                    symbolTable,
+                    options);
             while (auto next = reader->readNextTuple()) {
                 RamDomain data[arity];
                 std::copy(next.get(), next.get() + arity, data);
@@ -1535,25 +1526,17 @@ struct RelationBase {
             exit(1);
         }
     }
-
-    /* Loads the tuples from the given stream into this relation. */
-    bool loadCSV(std::istream& in, SymbolTable& symbolTable, const SymbolMask& format) {
-        try {
-            std::unique_ptr<ReadStream> reader =
-                    IOSystem::getInstance().getCSVReader(in,
-                            format,
-                            symbolTable);
-
-            while (auto next = reader->readNextTuple()) {
-                RamDomain data[arity];
-                std::copy(next.get(), next.get() + arity, data);
-                static_cast<Derived*>(this)->insert(reinterpret_cast<const tuple_type&>(data));
-            }
-        } catch (std::exception& e) {
-            std::cerr << e.what();
-            return false;
+    /* Loads the tuples form the given file into this relation. */
+    void loadCSV(const char* fn, SymbolTable& symbolTable, const SymbolMask& format) {
+        // check for null
+        if (fn == nullptr) {
+            loadCSV(symbolTable, format, "IO=stdin");
+        } else {
+            std::stringstream options;
+            options << "IO=file,";
+            options << "file=" << fn;
+            loadCSV(symbolTable, format, options.str());
         }
-        return true;
     }
 
     /**
