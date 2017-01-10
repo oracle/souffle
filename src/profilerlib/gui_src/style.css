@@ -1,0 +1,398 @@
+/* ------------------------------------------
+  Reset ♥
+  http://meyerweb.com/eric/tools/css/reset/
+  v2.0 | 20110126
+  License: none (public domain)
+---------------------------------------------*/
+html, body, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font: inherit;
+    vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+body, html { line-height: 1;}
+ol, ul { list-style: none;  }
+blockquote, q { quotes: none; }
+blockquote:before, blockquote:after,
+q:before, q:after { content: none; }
+/* tables still need 'cellspacing="0"' in the markup */
+table { border-collapse: collapse; border-spacing: 0; }
+/* remember to define focus styles. Hee Haw */
+:focus { outline: 0; }
+*, *:before, *:after {
+    box-sizing:border-box;
+}
+body {
+    margin:0;
+    font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size:13px;
+    line-height:18px;
+    color:#303030;
+    background-color:#fafafa;
+    -webkit-font-smoothing:antialiased;
+    padding:0 0;
+
+}
+h1,h2,h3,h4,h5 {
+    font-weight:bold;
+    display:block;
+    margin:0 0 10px;
+}
+h1 {
+    font-size:13px;
+    margin:0 0 20px;
+    display:block;
+    font-weight:normal;
+    text-shadow:0 1px 0 #fff;
+}
+h1 span.description {
+    color:#6d6d6d;
+}
+h2 { font-size:18px; line-height:24px; margin:20px 0 10px;}
+h3 { font-size:15px; margin:20px 0; }
+ul { margin:0 0 20px; }
+li {
+    margin-left:30px;
+    margin-bottom:3px;
+}
+ul li { list-style:disc; }
+ol li { list-style:decimal; }
+
+a {
+    color:#404040;
+    font-weight:bold;
+    text-decoration:none;
+    border-bottom:1px solid #ddd;
+}
+a:hover {
+    border-color:#d0d0d0;
+}
+strong {
+    font-weight:bold;
+}
+.notice {
+    background:#ffa;
+    border:1px solid #cc7;
+    display:block;
+    padding:10px;
+    margin-bottom:10px;
+}
+.stretch {
+    display:block;
+    width:100%;
+}
+.pad1y {
+    padding:10px 0;
+}
+.center {
+    text-align:center;
+}
+.content {
+    margin-top:40px;
+    padding:0 0 20px;
+}
+table {
+    background:#fff;
+    max-width:100%;
+    border-spacing:0;
+    width:100%;
+    margin:10px 0;
+    border:1px solid #ddd;
+    border-collapse:separate;
+    *border-collapse:collapsed;
+    -webkit-box-shadow:0 0 4px rgba(0,0,0,0.10);
+    -moz-box-shadow:0 0 4px rgba(0,0,0,0.10);
+    box-shadow:0 0 4px rgba(0,0,0,0.10);
+}
+table th,
+table td {
+    padding:4px;
+    line-height:14px;
+    text-align:left;
+    border-top:1px solid #ddd;
+}
+table th {
+    background:#eee;
+    background:-webkit-gradient(linear, left top, left bottom, from(#f6f6f6), to(#eee));
+    background:-moz-linear-gradient(top, #f6f6f6, #eee);
+    text-shadow:0 1px 0 #fff;
+    font-weight:bold;
+    vertical-align:bottom;
+}
+table td {
+    vertical-align:top;
+}
+
+table tr {
+    background: rgba(0,255,0,0);
+}
+
+table thead:first-child tr th,
+table thead:first-child tr td {
+    border-top:0;
+}
+table tbody + tbody {
+    border-top:2px solid #ddd;
+}
+table th + th,
+table td + td,
+table th + td,
+table td + th {
+    border-left:1px solid #ddd;
+}
+table thead:first-child tr:first-child th,
+table tbody:first-child tr:first-child th,
+table tbody:first-child tr:first-child td {
+    border-top:0;
+}
+
+header {
+    width:960px;
+    margin:0 auto;
+    padding:0 20px;
+}
+
+.limiter {
+    width:520px;
+    margin:0 auto;
+    padding:0 20px;
+}
+
+.links {
+    width:480px;
+    margin:50px auto 0;
+}
+.links a {
+    width:50%;
+    float:left;
+}
+a.button {
+    background:#1F90FF;
+    border:1px solid #1f4fff;
+    height:40px;
+    line-height:38px;
+    color:#fff;
+    display:inline-block;
+    text-align:center;
+    padding:0 10px;
+    -webkit-border-radius:1px;
+    border-radius:1px;
+    -webkit-transition:box-shadow 150ms linear;
+    -moz-transition:box-shadow 150ms linear;
+    -o-transition:box-shadow 150ms linear;
+    transition:box-shadow 150ms linear;
+}
+a.button:hover {
+    background-color:#0081ff;
+    -webkit-box-shadow:0 1px 5px rgba(0,0,0,0.25);
+    box-shadow:0 1px 5px rgba(0,0,0,0.25);
+    border:1px solid #1f4fff;
+}
+a.button:focus,
+a.button:active {
+    background:#0081ff;
+    -webkit-box-shadow:inset 0 1px 5px rgba(0,0,0,0.25);
+    box-shadow:inset 0 1px 5px rgba(0,0,0,0.25);
+}
+
+.options {
+    margin:10px 0 30px 15px;
+}
+.options h3 {
+    display:block;
+    padding-top:10px;
+    margin-top:20px;
+}
+.options h3:first-child {
+    border:none;
+    margin-top:0;
+}
+
+pre,
+code {
+    font-family:Consolas, Menlo, 'Liberation Mono', Courier, monospace;
+    word-wrap:break-word;
+    color:#333;
+}
+pre {
+    font-size:13px;
+    line-height:1.25em;
+    background:#fff;
+    padding:10px 15px;
+    margin:10px 0;
+    overflow: auto;
+    -webkit-box-shadow:0 1px 3px rgba(0, 0, 0, 0.30);
+    box-shadow:0 1px 3px rgba(0, 0, 0, 0.30);
+}
+code {
+    font-size:12px;
+    border:0;
+    padding:0;
+    background:#e6e6e6;
+    background:rgba(0,0,0,0.08);
+    box-shadow:0 0 0 2px rgba(0,0,0,0.08);
+}
+pre code {
+    font-size:13px;
+    line-height:1.25em;
+    background:transparent;
+    box-shadow:none;
+    border:none;
+    padding:0;
+    margin:0;
+}
+
+.col12 { width:100%; }
+.col6 { width:50%; float:left; display:block; }
+
+.pill-group {
+    margin:40px 0 0;
+}
+.pill-group a:first-child {
+    border-radius:20px 0 0 20px;
+    border-right-width:0;
+}
+.pill-group a:last-child {
+    border-radius:0 20px 20px 0;
+}
+
+
+#toolbar-button {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    margin: 7px 12px;
+    padding: 8px 14px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 32px;
+}
+#toolbar-button:hover {
+    background-color:#0081ff;
+    -webkit-box-shadow:0 1px 5px rgba(0,0,0,0.25);
+    box-shadow:0 1px 5px rgba(0,0,0,0.25);
+}
+#toolbar-button:focus,
+#toolbar-button:active {
+    background:#0081ff;
+    -webkit-box-shadow:inset 0 1px 5px rgba(0,0,0,0.25);
+    box-shadow:inset 0 1px 5px rgba(0,0,0,0.25);
+}
+
+/* Style the list */
+ul.tab {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+}
+
+/* Float the list items side by side */
+ul.tab li {float: left;
+    list-style: none;}
+
+/* Style the links inside the list items */
+ul.tab li a {
+    display: inline-block;
+    color: black;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    transition: 0.3s;
+    font-size: 17px;
+}
+
+/* Change background color of links on hover */
+ul.tab li a:hover {background-color: #ddd;}
+
+/* Create an active/current tablink class */
+ul.tab li a:focus, .active {background-color: #ccc;}
+
+/* Style the tab content */
+.tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+}
+
+.tabcontent {
+    -webkit-animation: fadeEffect 1s;
+    animation: fadeEffect 1s; /* Fading effect takes 1 second */
+}
+
+.rulesofrel {
+    display: none;
+
+}
+
+.rulesofrel {
+    -webkit-animation: fadeEffect 1s;
+    animation: fadeEffect 1s; /* Fading effect takes 1 second */
+}
+
+.RulVerTable {
+    display: none;
+
+}
+
+.RulVerTable {
+    -webkit-animation: fadeEffect 1s;
+    animation: fadeEffect 1s; /* Fading effect takes 1 second */
+}
+
+@-webkit-keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+@keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+.perc_time {
+    padding: 0;
+    margin: 0;
+    background: blue;
+    width: 100%;
+    height: 30px;
+    font: inherit;
+    font-weight: bold;
+    color: black;
+}
+.perc_tup {
+    padding: 0;
+    margin: 0;
+    background: blue;
+    width: 100%;
+    height: 30px;
+    font: inherit;
+    font-weight: bold;
+    color: black;
+
+}
+
+p {
+    padding: 4px;
+}

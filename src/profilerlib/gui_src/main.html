@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Top</title>
+</head>
+<link href='style.css' rel='stylesheet'>
+<link href='table.css' rel='stylesheet'>
+<link href='chartist.min.css' rel='stylesheet'>
+
+<body>
+<div id="wrapper" style="width:100%;height:inherit">
+    <ul class="tab">
+        <li><a href="javascript:void(0)" class="tablinks" id="default" onclick="changeTab(event, 'Top')">Top</a></li>
+        <li><a href="javascript:void(0)" class="tablinks" onclick="changeTab(event, 'Relations')">Relations</a></li>
+        <li><a href="javascript:void(0)" class="tablinks" onclick="changeTab(event, 'Rules')">Rules</a></li>
+        <li id="chart_tab" style="display:none"><a href="javascript:void(0)" class="tablinks">Chart</a></li>
+    </ul>
+    <div id="Top" class="tabcontent">
+        <h3>Top</h3>
+    </div>
+    <div id="Relations" class="tabcontent">
+        <h3>Relations table</h3>
+        <table id='Rel_table'>
+            <thead>
+            <tr>
+                <th><span class="text">Name</span></th>
+                <th><span class="text">ID</span></th>
+                <th data-sort-method="number"><span class="text">Total Time</span></th>
+                <th data-sort-method="number"><span class="text">Non Rec Time</span></th>
+                <th data-sort-method="number"><span class="text">Rec Time</span></th>
+                <th data-sort-method="number"><span class="text">Copy Time</span></th>
+                <th data-sort-method="number"><span class="text">Tuples</span></th>
+                <th data-sort-method="number"><span class="text">% of Time</span></th>
+                <th data-sort-method="number"><span class="text">% of Tuples</span></th>
+                <th><span class="text">Source</span></th>
+            </tr>
+            </thead>
+            <tbody id="Rel_table_body">
+
+            </tbody>
+
+        </table>
+        <hr/>
+        <div id="rulesofrel" style="display:none">
+            <h3>Rules of Relation</h3>
+            <button>Graph selected (not implemented: seems useless)</button>
+            <p>Graph relation selected below (ID begins with R)</p>
+            <table id="rulesofrel_table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>ID</th>
+                    <th data-sort-method="number">Total Time</th>
+                    <th data-sort-method="number">Non Rec Time</th>
+                    <th data-sort-method="number">Rec Time</th>
+                    <th data-sort-method="number">Copy Time</th>
+                    <th data-sort-method="number">Tuples</th>
+                    <th data-sort-method="number">% of Time</th>
+                    <th data-sort-method="number">% of Tuples</th>
+                    <th>Source</th>
+                </tr>
+                </thead>
+                <tbody id="rulesofrel_body">
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="Rules" class="tabcontent">
+        <h3>Rules table</h3>
+        <table id='Rul_table'>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>ID</th>
+                <th data-sort-method="number">Total Time</th>
+                <th data-sort-method="number">Non Rec Time</th>
+                <th data-sort-method="number">Rec Time</th>
+                <th data-sort-method="number">Copy Time</th>
+                <th data-sort-method="number">Tuples</th>
+                <th data-sort-method="number">% of Time</th>
+                <th data-sort-method="number">% of Tuples</th>
+                <th>Source</th>
+            </tr>
+            </thead>
+            <tbody id="Rul_table_body">
+            </tbody>
+        </table>
+        <hr/>
+        <div id="rulver" style="display:none">
+            <h3>Rule Versions Table</h3>
+            <p>Graph recursive rule selected below (ID begins with C)</p>
+            <button>Graph selected (not implemented: seems useless)</button><br/>
+            <button onclick="showChart()">Graph versions of selected</button>
+            <table id='rulvertable'>
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>ID</th>
+                    <th data-sort-method="number">Total Time</th>
+                    <th data-sort-method="number">Non Rec Time</th>
+                    <th data-sort-method="number">Rec Time</th>
+                    <th data-sort-method="number">Copy Time</th>
+                    <th data-sort-method="number">Tuples</th>
+                    <th data-sort-method="number">Ver</th>
+                    <th data-sort-method="number">% of Time</th>
+                    <th data-sort-method="number">% of Tuples</th>
+                    <th>Source</th>
+                </tr>
+                </thead>
+                <tbody id="rulver_body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="chart" class="tabcontent">
+        <h1>Total run time</h1>
+        <div class="ct-chart1"></div>
+        <h1>Total number of tuples</h1>
+        <div class="ct-chart2"></div>
+        <button onclick="show_graph_vals=!show_graph_vals;showChart();">Toggle values</button>
+    </div>
+</div>
+
+</body>
+<script src='tablesort.min.js'></script>
+<script src='tablesort.number.js'></script>
+<script src="chartist.min.js"></script>
+<script src="mappedids.js"></script>
+<script>
+    var created_relrul = false;
+    var created_rulver = false;
+    var selected_for_chart = false;
+    var show_graph_vals = false;
+    function select_for_graph(elem) {
+        tabcontent = document.getElementById("tabcontent");
+        tablinks = document.getElementsByClassName("rul_ver_row");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].style.background = 'rgba(255,255,0,0)';
+        }
+        tablinks = document.getElementsByClassName("rulesofrel_row");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].style.background = 'rgba(255,255,0,0)';
+        }
+        elem.style.background = 'rgba(255,255,0,0.2)';
+
+        selected_for_chart = elem;
+    }
+
+    function showChart() {
+        var selected_id;
+        var i, tabcontent, tablinks;
+
+        if (!selected_for_chart) {
+            alert("please select a recursive rule to graph");
+            return;
+        }
+
+        selected_id = selected_for_chart.cells[1].innerHTML;
+        if (selected_id[0]!='C') {
+            alert("Please select a recursive rule (ID starts with C)");
+            return;
+        }
+
+        document.getElementById("chart_tab").style.display = 'block';
+
+
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+
+        document.getElementById('chart_tab').style.display = "block";
+        document.getElementById('chart_tab').className += " active";
+        document.getElementById('chart').style.display = "block";
+
+        var versions = [], tot_t = [], tuples = [];
+        for (j=0;j<data['rul'][selected_id][9].tot_t.length;j++) {
+            versions.push(j.toString());
+            tot_t.push({value:data['rul'][selected_id][9].tot_t[j]});
+            tuples.push({value:data['rul'][selected_id][9].tuples[j]});
+        }
+
+        draw_graph(versions, tot_t, tuples);
+    }
+
+    function ctBarLabels(chart) {
+        if (chart instanceof Chartist.Bar) {
+            chart.on('draw', function (data) {
+                var barHorizontalCenter, barVerticalCenter, label, value;
+                if (data.type === "bar") {
+                    barHorizontalCenter = data.x1 + (data.element.width() * .5);
+                    barVerticalCenter = data.y1 + (data.element.height() * -1) -2 ;
+                    value = data.element.attr('ct:value');
+                    if (value !== '0') {
+                        label = new Chartist.Svg('text');
+                        label.text(value);
+                        label.addClass("ct-barlabel");
+                        label.attr({
+                            x: barHorizontalCenter,
+                            y: barVerticalCenter,
+                            'text-anchor': 'middle'
+                        });
+                        return data.group.append(label);
+                    }
+                }
+            });
+        }
+    }
+
+    function draw_graph(versions, tot_t, tuples) {
+        var options = {
+            height: '37vh',
+
+        };
+
+        if (show_graph_vals) {
+            options['plugins'] = [ctBarLabels]
+        }
+
+        new Chartist.Bar('.ct-chart1', {
+            labels: versions,
+            series: [tot_t]
+        }, options);
+
+        new Chartist.Bar('.ct-chart2', {
+            labels: versions,
+            series: [tuples]
+        }, options);
+
+
+    }
+
+    function changeRowRel(elem) {
+        var i, table_body, tablinks, rel;
+
+        // highlight row, remove highlighting from others
+        // TODO: optimize by keeping last highlighted
+        tablinks = document.getElementsByClassName("rel_row");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].style.background = 'rgba(255,255,0,0)';
+        }
+        elem.style.background = 'rgba(255,255,0,0.2)';
+
+        document.getElementById('rulesofrel').style.display = 'block';
+
+        table_body = document.getElementById("rulesofrel_body");
+        table_body.innerHTML = '';
+
+        rel = data['rel'][elem.id];
+
+
+        row = document.createElement("tr");
+        for (j=0; j<7; j++) {
+            td = document.createElement('td');
+            td.innerHTML = rel[j];
+            row.appendChild(td);
+        }
+        td = document.createElement('td');
+        div = document.createElement('div');
+        div.className = 'perc_time';
+        div.style.width = "100%";
+        div.innerHTML = "100";
+        td.appendChild(div);
+        row.appendChild(td);
+        td = document.createElement('td');
+        div = document.createElement('div');
+        div.className = 'perc_time';
+        div.style.width = "100%";
+        div.innerHTML = "100";
+        td.appendChild(div);
+        row.appendChild(td);
+        row.className = "rulesofrel_row";
+        row.onclick = function() {select_for_graph(this)};
+        table_body.appendChild(row);
+
+        for (i=0;i<rel[7].length;i++) {
+            row = document.createElement("tr");
+            for (k=0; k<7;k++) {
+                td = document.createElement('td');
+                td.innerHTML = data['rul'][rel[7][i]][k];
+                row.appendChild(td);
+            }
+
+            td = document.createElement('td');
+            div = document.createElement('div');
+            div.className = 'perc_time';
+            if (rel[2] == 0) {
+                div.style.width = "0%";
+                div.innerHTML = "0";
+            } else {
+                div.style.width = 100.0 * data['rul'][rel[7][i]][2] / rel[2] + "%";
+                div.innerHTML = (100.0 * data['rul'][rel[7][i]][2] / rel[2]).toPrecision(4);
+            }
+            td.appendChild(div);
+            row.appendChild(td);
+
+            td = document.createElement('td');
+            div = document.createElement('div');
+            div.className = 'perc_time';
+            if (rel[6] == 0) {
+                div.style.width = "0%";
+                div.innerHTML = "0";
+            } else {
+                div.style.width = 100.0 * data['rul'][rel[7][i]][6] / rel[6] + "%";
+                div.innerHTML = (100.0 * data['rul'][rel[7][i]][6] / rel[6]).toPrecision(4);
+            }
+            td.appendChild(div);
+            row.appendChild(td);
+            row.onclick = function() {select_for_graph(this)};
+            row.className = "rulesofrel_row";
+            table_body.appendChild(row);
+        }
+
+        if (!created_relrul) {
+            new Tablesort(document.getElementById('rulesofrel_table'));
+            created_relrul = true;
+        }
+    }
+
+    function changeRowRul(elem) {
+        var i, table_body, tablinks, rel;
+
+        tablinks = document.getElementsByClassName("rul_row");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].style.background = 'rgba(255,255,0,0)';
+        }
+        elem.style.background = 'rgba(255,255,0,0.2)';
+
+        document.getElementById('rulver').style.display = 'block';
+
+        table_body = document.getElementById("rulver_body");
+        table_body.innerHTML = '';
+
+
+        rul = data['rul'][elem.id];
+
+        row = document.createElement("tr");
+        for (j=0; j<7; j++) {
+            td = document.createElement('td');
+            td.innerHTML = rul[j];
+            row.appendChild(td);
+        }
+        td = document.createElement('td');
+        td.innerHTML = "-";
+        row.appendChild(td);
+        td = document.createElement('td');
+        div = document.createElement('div');
+        div.className = 'perc_time';
+        div.style.width = "100%";
+        div.innerHTML = "100";
+        td.appendChild(div);
+        row.appendChild(td);
+        td = document.createElement('td');
+        div = document.createElement('div');
+        div.className = 'perc_time';
+        div.style.width = "100%";
+        div.innerHTML = "100";
+        td.appendChild(div);
+        row.appendChild(td);
+        row.className = "rul_ver_row";
+        row.onclick = function() {select_for_graph(this)};
+        table_body.appendChild(row);
+
+
+        var counto = 0;
+        for (i=0;i<rul[7].length;i++) {
+
+            row = document.createElement("tr");
+            for (k=0; k<7;k++) {
+                td = document.createElement('td');
+                td.innerHTML = data['rul'][rul[7][i]][k];
+                row.appendChild(td);
+            }
+            td = document.createElement('td');
+            td.innerHTML = counto++;
+            row.appendChild(td);
+
+            td = document.createElement('td');
+            div = document.createElement('div');
+            div.className = 'perc_time';
+            if (rul[2] == 0) {
+                div.style.width = "0%";
+                div.innerHTML = "0";
+            } else {
+                div.style.width = 100.0 * data['rul'][rul[7][i]][2] / rul[2] + "%";
+                div.innerHTML = (100.0 * data['rul'][rul[7][i]][2] / rul[2]).toPrecision(4);
+            }
+            td.appendChild(div);
+            row.appendChild(td);
+
+            td = document.createElement('td');
+            div = document.createElement('div');
+            div.className = 'perc_time';
+            if (rul[6] == 0) {
+                div.style.width = "0%";
+                div.innerHTML = "0";
+            } else {
+                div.style.width = 100.0 * data['rul'][rul[7][i]][6] / rul[6] + "%";
+                div.innerHTML = (100.0 * data['rul'][rul[7][i]][6] / rul[6]).toPrecision(4);
+            }
+            td.appendChild(div);
+            row.appendChild(td);
+            row.className = "rul_ver_row";
+            row.onclick = function() {select_for_graph(this)};
+            table_body.appendChild(row);
+        }
+
+
+        if (!created_rulver) {
+            new Tablesort(document.getElementById('rulvertable'));
+            created_rulver = true;
+        }
+    }
+
+    function changeTab(evt, tabLabel) {
+        document.getElementById("chart_tab").style.display = 'none';
+
+        var i, tabcontent, tablinks;
+
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+
+        document.getElementById(tabLabel).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+    function gen_top() {
+        x = document.getElementById('Top');
+        line1 = document.createElement('p');
+        line1.textContent = 'Total runtime: '+data['top'][0];
+        line2 = document.createElement('p');
+        line2.textContent = 'Total tuples: '+data['top'][1];
+        x.appendChild(line1);
+        x.appendChild(line2);
+    }
+
+    function gen_rel_table() {
+        var table, row, td, i, j;
+
+        var tot_time = 0.0;
+        var tot_tup = 0.01;
+
+        for (i in data['rel']) {
+            if (!data['rel'].hasOwnProperty(i)) continue;
+            tot_time += data['rel'][i][2];
+            tot_tup += parseFloat(data['rel'][i][6]);
+        }
+
+        table = document.getElementById('Rel_table_body');
+        for (i in data['rel']) {
+            if (!data['rel'].hasOwnProperty(i)) continue;
+
+            row = document.createElement('tr');
+            row.id = data['rel'][i][1];
+            row.className = "rel_row";
+            row.onclick = function(){changeRowRel(this)};
+            for (j=0; j<7; j++) {
+                td = document.createElement('td');
+                td.innerHTML = data['rel'][i][j];
+                row.appendChild(td);
+            }
+            td = document.createElement('td');
+            div = document.createElement('div');
+            div.className = 'perc_time';
+            div.style.width = data['rel'][i][2]/tot_time*100+"%";
+            div.innerHTML = data['rel'][i][2]/tot_time*100;
+            td.appendChild(div);
+            row.appendChild(td);
+
+            td = document.createElement('td');
+            div = document.createElement('div');
+            div.className = 'perc_time';
+            div.style.width = 100.0*parseFloat(data['rel'][i][6])/tot_tup+"%";
+            div.innerHTML = (100.0*parseFloat(data['rel'][i][6])/tot_tup).toPrecision(4);
+            td.appendChild(div);
+            row.appendChild(td);
+
+            table.appendChild(row);
+        }
+
+    }
+
+    function gen_rul_table() {
+        var table, row, td, i, j;
+
+        var tot_time = 0.0;
+        var tot_tup = 0.01;
+        for (i in data['rul']) {
+            if (!data['rul'].hasOwnProperty(i)) continue;
+            tot_time += data['rul'][i][2];
+            tot_tup += parseFloat(data['rul'][i][6]);
+        }
+
+
+        table = document.getElementById('Rul_table_body');
+        for (i in data['rul']) {
+            if (!data['rul'].hasOwnProperty(i)) continue;
+
+            row = document.createElement('tr');
+            row.id = data['rul'][i][1];
+            row.className = "rul_row";
+            row.onclick = function(){changeRowRul(this)};
+            for (j=0; j<7; j++) {
+                td = document.createElement('td');
+                td.innerHTML = data['rul'][i][j];
+                row.appendChild(td);
+            }
+            td = document.createElement('td');
+            div = document.createElement('div');
+            div.className = 'perc_time';
+            div.style.width = data['rul'][i][2]/tot_time*100+"%";
+            div.innerHTML = data['rul'][i][2]/tot_time*100;
+            td.appendChild(div);
+            row.appendChild(td);
+
+            td = document.createElement('td');
+            div = document.createElement('div');
+            div.className = 'perc_time';
+            div.style.width = 100.0*parseFloat(data['rul'][i][6])/tot_tup+"%";
+            div.innerHTML = (100.0*parseFloat(data['rul'][i][6])/tot_tup).toPrecision(4);
+            td.appendChild(div);
+            row.appendChild(td);
+
+            table.appendChild(row);
+        }
+
+    }
+
+    function init() {
+        gen_top();
+        gen_rel_table();
+        gen_rul_table();
+        document.getElementById("default").click();
+        new Tablesort(document.getElementById('Rel_table'));
+        new Tablesort(document.getElementById('Rul_table'));
+    }
+
+    init();
+    changeRowRul(document.getElementById('C1.1'));
+
+</script>
+</html>

@@ -137,7 +137,10 @@ void Tui::runProf() {
 
 void Tui::outputJson() {
     std::cout << "SouffleProf v2.1.8\n";
+    std::cout << "Using default sorting.\n";
     std::cout << "Generating JSON files...\n";
+
+
 
 
 }
