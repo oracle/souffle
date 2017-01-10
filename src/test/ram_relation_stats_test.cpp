@@ -84,11 +84,15 @@ namespace test {
         {
             std::fstream in(BUILDDIR "../tests/evaluation/hmmer/facts/DirectFlow.facts");
 
+            std::string options("file=");
+            options += (BUILDDIR "../tests/evaluation/hmmer/facts/DirectFlow.facts");
+            options += ",delimiter=\t,";
+	    options += "IO=file";
             // if file not found => be done
             if (!in.is_open()) return;
 
             std::unique_ptr<ReadStream> reader =
-                    IOSystem::getInstance().getCSVReader(in, mask, symTable, '\t');
+                    IOSystem::getInstance().getReader(mask, symTable, options);
 
             while (auto next = reader->readNextTuple()) {
                 rel.insert(next.get());
