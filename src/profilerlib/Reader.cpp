@@ -69,7 +69,7 @@ void Reader::save(std::string f_name) {
         nError = mkdir(sPath.c_str(), nMode); // can be used on non-Windows
 #endif
         if (nError != 0) {
-            std::cerr << "directory ./old_runs/ failed to be created.";
+            std::cerr << "directory ./old_runs/ failed to be created. Please create it and try again.";
             exit(2);
         }
     }

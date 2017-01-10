@@ -72,12 +72,12 @@ void Cli::parse() {
 
 
     if (commands.size() > 0) {
-        Tui(filename, alive).runCommand(commands);
+        Tui(filename, alive, false).runCommand(commands);
     } else {
         if (args.at(1).compare("-j") == 0) {
-            Tui(filename, alive).outputJson();
+            Tui(filename, alive, true).outputJson();
         } else {
-            Tui(filename, alive).runProf();
+            Tui(filename, alive, false).runProf();
         }
     }
 }

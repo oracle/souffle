@@ -175,7 +175,6 @@ Table OutputProcessor::getVersions(std::string strRel, std::string strRul) {
                             row[8] = std::shared_ptr<CellInterface>(new Cell<long>(rul->getVersion()));
                             row[9] = std::shared_ptr<CellInterface>(new Cell<std::string>(rul->getLocator()));
                             row[0] = std::shared_ptr<CellInterface>(new Cell<double>(rul->getRuntime()));
-                            std::cout << rul->getLocator() << "\n";
                             rule_map[strTemp] = std::make_shared<Row>(row);
                         }
                     }

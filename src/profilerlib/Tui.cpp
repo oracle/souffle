@@ -11,9 +11,13 @@
 #include "Tui.hpp"
 
 
-Tui::Tui(std::string filename, bool live) : out() {
+Tui::Tui(std::string filename, bool live, bool gui) : out() {
 
     this->f_name = filename;
+
+    if (gui) {
+        std::cout << "Loading and processing file...\n";
+    }
 
     // out = OutputProcessor();
     std::shared_ptr <ProgramRun> &run = out.getProgramRun();
@@ -137,11 +141,140 @@ void Tui::runProf() {
 
 void Tui::outputJson() {
     std::cout << "SouffleProf v2.1.8\n";
-    std::cout << "Using default sorting.\n";
     std::cout << "Generating JSON files...\n";
 
 
+    std::string workingdir = Tools::getworkingdir();
+    if (workingdir.size() == 0) {
+        std::cerr << "Could not get working directory\n" << std::endl;
+        throw 1;
+    }
+    DIR *dir;
+    struct dirent *ent;
+    bool exists = false;
 
+    if ((dir = opendir((workingdir + std::string("/profiler_html")).c_str())) != NULL) {
+        exists = true;
+        closedir(dir);
+    }
+    if (!exists) {
+        std::string sPath = workingdir + std::string("/profiler_html");
+        mode_t nMode = 0733; // UNIX style permissions
+        int nError = 0;
+#if defined(_WIN32) || defined(_WIN64) || defined(WINDOWS)
+        nError = _mkdir(sPath.c_str()); // can be used on Windows
+#else
+        nError = mkdir(sPath.c_str(), nMode); // can be used on non-Windows
+#endif
+        if (nError != 0) {
+            std::cerr << "directory ./profiler_html/ failed to be created. Please create it and try again.";
+            exit(2);
+        }
+    }
+
+    std::string new_file = workingdir + std::string("/profiler_html/");
+    if (Tools::file_exists(new_file)) {
+        int i = 1;
+        while (Tools::file_exists(new_file + std::to_string(i) + ".html")) {
+            i++;
+        }
+
+        new_file = new_file + std::to_string(i) + ".html";
+    }
+
+    FILE * outfile;
+    outfile = std::fopen(new_file.c_str(), "w");
+
+    html_string html;
+
+    std::fprintf(outfile, "%s", html.get_first_half().c_str());
+
+
+    std::shared_ptr <ProgramRun> &run = out.getProgramRun();
+    std::string runtime = run->getRuntime();
+    std::fprintf(outfile, "data={'top':[%f,%lu],\n'rel':{\n", run->getTotTime(), run->getTotNumTuples());
+    for (auto &_row : rel_table_state.getRows()) {
+        Row row = *_row;
+        std::fprintf(outfile, "'%s':['%s','%s',%f,%f,%f,%f,%lu,'%s',[",
+                    row[6]->getStringVal().c_str(),row[5]->getStringVal().c_str(),row[6]->getStringVal().c_str(),
+                    row[0]->getDoubVal(),row[1]->getDoubVal(),row[2]->getDoubVal(),row[3]->getDoubVal(),
+                    row[4]->getLongVal(),row[7]->getStringVal().c_str());
+        for (auto &_rel_row : rul_table_state.getRows()) {
+            Row rel_row = *_rel_row;
+            if (rel_row[7]->getStringVal().compare(row[5]->getStringVal()) == 0) {
+                std::fprintf(outfile, "'%s',",rel_row[6]->getStringVal().c_str());
+            }
+        }
+        std::fprintf(outfile, "],{}],\n");
+    }
+    std::fprintf(outfile, "},'rul':{\n");
+
+
+    for (auto &_row: rul_table_state.getRows()) {
+        Row row = *_row;
+
+        std::vector <std::string> part = Tools::split(row[6]->getStringVal(), ".");
+        std::string strRel = "R" + part[0].substr(1);
+        Table ver_table = out.getVersions(strRel, row[6]->getStringVal());
+
+        std::string src;
+        if (ver_table.rows.size() > 0) {
+            if (ver_table.rows[0]->cells[9] != nullptr) {
+                 src = (*ver_table.rows[0])[9]->getStringVal();
+            } else {
+                src = "-";
+            }
+        } else {
+            src = row[10]->toString(-1);
+        }
+
+        std::fprintf(outfile, "'%s':['%s','%s',%f,%f,%f,%f,%lu,'%s',[",
+                    row[6]->getStringVal().c_str(),row[5]->getStringVal().c_str(),row[6]->getStringVal().c_str(),
+                    row[0]->getDoubVal(),row[1]->getDoubVal(),row[2]->getDoubVal(),row[3]->getDoubVal(),
+                    row[4]->getLongVal(),src.c_str());
+
+
+
+        bool has_ver = false;
+        for (auto &_ver_row : ver_table.getRows()) {
+            has_ver = true;
+            Row ver_row = *_ver_row;
+
+            std::fprintf(outfile, "[%lu,'%s'],",
+                        ver_row[8]->getLongVal(),
+                        ver_row[6]->getStringVal().c_str());
+
+        }
+        if (has_ver) {
+
+            std::fprintf(outfile, "],{},{'tot_t':[\n");
+//            std::vector <std::string> part = Tools::split(c, ".");
+//            std::string strRel = "R" + part[0].substr(1);
+//
+//            Table ver_table = out.getVersions(strRel, c);
+
+            for (auto &row : ver_table.rows) {
+                std::fprintf(outfile, "%f,",(*row)[0]->getDoubVal());
+            }
+            std::fprintf(outfile, "],\n'copy_t':[");
+            for (auto &row : ver_table.rows) {
+                std::fprintf(outfile, "%f,",(*row)[3]->getDoubVal());
+            }
+            std::fprintf(outfile, "],\n'tuples':[");
+            for (auto &row : ver_table.rows) {
+                std::fprintf(outfile, "%ld,",(*row)[4]->getLongVal());
+            }
+            std::fprintf(outfile, "]}],\n");
+        } else {
+            std::fprintf(outfile, "],{},{}],\n");
+        }
+    }
+    std::fprintf(outfile, "}};");
+
+
+    std::fprintf(outfile, "%s", html.get_second_half().c_str());
+
+    fclose(outfile);
 
 }
 
@@ -257,7 +390,6 @@ void Tui::top() {
     std::shared_ptr <ProgramRun> &run = out.getProgramRun();
     std::string runtime = run->getRuntime();
     std::cout << "\n Total runtime: " << runtime << "\n";
-
 
     std::cout << "\n Total number of new tuples: " << run->formatNum(precision, run->getTotNumTuples()) << std::endl;
 }

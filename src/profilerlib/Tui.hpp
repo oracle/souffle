@@ -18,6 +18,7 @@
 #include "Reader.hpp"
 #include "StringUtils.hpp"
 #include "DataComparator.hpp"
+#include "html_string.hpp"
 
 
 class Tui {
@@ -32,7 +33,7 @@ private:
     Table rul_table_state;
 
 public:
-    Tui(std::string filename, bool live);
+    Tui(std::string filename, bool live, bool gui);
 
     void runCommand(std::vector <std::string> c);
 
