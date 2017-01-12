@@ -1455,7 +1455,7 @@ struct RelationBase {
 
     void printCSV(const SymbolTable& symbolTable, const SymbolMask& format,
             const std::string& options) const {
-	try {
+    try {
             std::unique_ptr<WriteStream> writeStream =
                     IOSystem::getInstance().getWriter(
                             format,
@@ -1474,12 +1474,12 @@ struct RelationBase {
     void printCSV(const char* fn, const SymbolTable& symbolTable, const SymbolMask& format) const {
         // support NULL as an output
         if (fn == nullptr) {
-            printCSV(symbolTable, format, "IO=stdout");
+            printCSV(symbolTable, format, "IO=stdout,name=error");
         } else {
             // open output file
             std::stringstream options;
-	    options << "IO=file,";
-            options << "file=" << fn;
+            options << "IO=file,";
+            options << "name=" << fn;
             printCSV(symbolTable, format, options.str());
         }
     }
@@ -1534,7 +1534,7 @@ struct RelationBase {
         } else {
             std::stringstream options;
             options << "IO=file,";
-            options << "file=" << fn;
+            options << "name=" << fn;
             loadCSV(symbolTable, format, options.str());
         }
     }

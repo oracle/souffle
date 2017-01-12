@@ -59,7 +59,7 @@ class WriteFileCSVFactory : public OutputFactory, public CSVFactory {
 public:
     std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask,
             const SymbolTable &symbolTable, const std::map<std::string, std::string>& options) {
-        return std::unique_ptr<WriteFileCSV>(new WriteFileCSV(options.at("file"),
+        return std::unique_ptr<WriteFileCSV>(new WriteFileCSV(options.at("name"),
                 symbolMask, symbolTable, getDelimiter(options)));
     }
     virtual ~WriteFileCSVFactory() {}
@@ -69,7 +69,7 @@ class WriteCoutCSVFactory : public OutputFactory, public CSVFactory {
 public:
     std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask,
             const SymbolTable &symbolTable, const std::map<std::string, std::string>& options) {
-        return std::unique_ptr<WriteStreamCSV>(new WriteStreamCSV(std::cout,
+        return std::unique_ptr<WriteCoutCSV>(new WriteCoutCSV(options.at("name"),
                 symbolMask, symbolTable, getDelimiter(options)));
     }
     virtual ~WriteCoutCSVFactory() {}
@@ -80,7 +80,7 @@ class ReadFileCSVFactory : public InputFactory, public CSVFactory {
 public:
     std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask,
             SymbolTable &symbolTable, const std::map<std::string, std::string>& options) {
-        return std::unique_ptr<ReadFileCSV>(new ReadFileCSV(options.at("file"),
+        return std::unique_ptr<ReadFileCSV>(new ReadFileCSV(options.at("name"),
                 symbolMask, symbolTable, getDelimiter(options)));
     }
     virtual ~ReadFileCSVFactory() {}

@@ -84,7 +84,7 @@ namespace test {
         {
             std::fstream in(BUILDDIR "../tests/evaluation/hmmer/facts/DirectFlow.facts");
 
-            std::string options("file=");
+            std::string options("name=");
             options += (BUILDDIR "../tests/evaluation/hmmer/facts/DirectFlow.facts");
             options += ",delimiter=\t,";
 	    options += "IO=file";
