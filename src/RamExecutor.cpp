@@ -15,6 +15,7 @@
  ***********************************************************************/
 
 #include <chrono>
+#include <memory>
 #include <regex>
 #include <unistd.h>
 #include <algorithm>
@@ -25,6 +26,7 @@
 #include <omp.h>
 #endif
 
+#include "IOSystem.h"
 #include "RamTranslator.h"
 #include "RamExecutor.h"
 #include "RamVisitor.h"
@@ -640,39 +642,43 @@ namespace {
 
             bool visitLoad(const RamLoad& load) {
                 if (load.getRelation().isData()) {
-                  // Load from mem
-                  std::string name = load.getRelation().getName();
-                  if(data == NULL){
-                    std::cout << "data is null\n";
-                    return false;
-                  }
-                  PrimData* pd = data->getTuples(name);
-                  if (pd == NULL || pd->data.size() == 0) {
-                     std::cout << "relation " << name <<" is empty\n";
-                     return true;
-                  }
+                    // Load from mem
+                    std::string name = load.getRelation().getName();
+                    if (data == NULL) {
+                        std::cout << "data is null\n";
+                        return false;
+                    }
+                    PrimData* pd = data->getTuples(name);
+                    if (pd == NULL || pd->data.size() == 0) {
+                        std::cout << "relation " << name << " is empty\n";
+                        return true;
+                    }
 
-                  bool err = env.getRelation(load.getRelation()).load(pd->data, 
-                  env.getSymbolTable(), 
-                  load.getRelation().getSymbolMask());
-                  return !err;
+                    bool err = env.getRelation(load.getRelation()).load(pd->data,
+                            env.getSymbolTable(),
+                            load.getRelation().getSymbolMask());
+                    return !err;
                 }
 
-                // load facts from file
-                std::ifstream csvfile;
-                std::string fname = config.getFactFileDir() + "/" + load.getFileName();
-                csvfile.open(fname.c_str());
-                if (!csvfile.is_open()) {
-                    // TODO: use different error reporting here!!
-                    std::cerr << "Cannot open fact file " << baseName(fname) << "\n";
-                    return false; 
-                }
-                if(env.getRelation(load.getRelation()).load(csvfile, env.getSymbolTable(), load.getRelation().getSymbolMask())) {
-                    char *bname = strdup(fname.c_str());
-                    std::string simplename = basename(bname);
-                    std::cerr << "cannot parse fact file " << simplename << "!\n";
+                std::string filename = config.getFactFileDir() + "/" + load.getFileName();
+                try {
+                    // TODO: get option string from datalog file
+                    std::string optionString("IO=file");
+                    optionString += ",file=" + filename;
+                    std::unique_ptr<ReadStream> reader =
+                            IOSystem::getInstance().getReader(
+                                    load.getRelation().getSymbolMask(),
+                                    env.getSymbolTable(),
+                                    optionString);
+                    RamRelation& relation = env.getRelation(load.getRelation());
+
+                    while (auto next = reader->readNextTuple()) {
+                        relation.insert(next.get());
+                    }
+                } catch (std::exception& e) {
+                    std::cerr << e.what();
                     return false;
-                };
+                }
                 return true;
             }
 
@@ -681,15 +687,24 @@ namespace {
                   return true;
                 }
 
+                std::unique_ptr<WriteStream> writeStream = nullptr;
                 auto& rel = env.getRelation(store.getRelation());
+                std::string type;
+                std::string optionString;
                 if (config.getOutputDir() == "-") {
-                    std::cout << "---------------\n" << store.getRelation() << "\n===============\n";
-                    rel.store(std::cout, env.getSymbolTable(), store.getRelation().getSymbolMask());
-                    std::cout << "===============\n";
-                    return true;
+                    optionString += "IO=stdout,";
+                    optionString += "name=" + rel.getName();
+                } else {
+                    optionString += "IO=file,";
+                    optionString += "file=" + config.getOutputDir() + "/" + store.getFileName();
                 }
-                std::ofstream fout(config.getOutputDir() + "/" + store.getFileName());
-                rel.store(fout, env.getSymbolTable(), store.getRelation().getSymbolMask());
+                writeStream = IOSystem::getInstance().getWriter(
+                        store.getRelation().getSymbolMask(),
+                        env.getSymbolTable(),
+                        optionString);
+                for(auto it=rel.begin(); it!=rel.end(); ++it) {
+                    writeStream->writeNextTuple(*it);
+                }
                 return true;
             }
 
@@ -2043,7 +2058,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 		os << "out << \"---------------\\n" << name << "\\n===============\\n\";\n";
 
 		// create call
-		os << relName << "->" << "printCSV(out,symTable";
+		os << relName << "->" << "printCSV(nullptr,symTable";
 
 		// add format parameters
 		for(size_t i=0; i<arity; i++) {

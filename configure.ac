@@ -256,6 +256,8 @@ AC_CHECK_HEADER(sqlite3.h,,[AC_MSG_ERROR([required library sqlite3 missing])])
 AC_CHECK_LIB(sqlite3, sqlite3_open,,
           [AC_MSG_ERROR([required library sqlite3 missing])])
 
+PKG_CHECK_MODULES(LIBEDIT, libedit)
+
 dnl Enables OpenMP in the souffle compiler and interpreter
 AC_OPENMP
 AS_VAR_APPEND(CXXFLAGS, [" $OPENMP_CFLAGS "])
@@ -483,6 +485,12 @@ AC_CONFIG_LINKS([include/souffle/Table.h:src/Table.h])
 AC_CONFIG_LINKS([include/souffle/IterUtils.h:src/IterUtils.h])
 AC_CONFIG_LINKS([include/souffle/Util.h:src/Util.h])
 AC_CONFIG_LINKS([include/souffle/RamLogger.h:src/RamLogger.h])
+AC_CONFIG_LINKS([include/souffle/IOSystem.h:src/IOSystem.h])
+AC_CONFIG_LINKS([include/souffle/ReadStream.h:src/ReadStream.h])
+AC_CONFIG_LINKS([include/souffle/ReadStreamCSV.h:src/ReadStreamCSV.h])
+AC_CONFIG_LINKS([include/souffle/WriteStream.h:src/WriteStream.h])
+AC_CONFIG_LINKS([include/souffle/WriteStreamCSV.h:src/WriteStreamCSV.h])
+AC_CONFIG_LINKS([include/souffle/SymbolMask.h:src/SymbolMask.h])
 AC_CONFIG_LINKS([include/souffle/SymbolTable.h:src/SymbolTable.h])
 AC_CONFIG_LINKS([include/souffle/SqliteRelationWriter.h:src/SqliteRelationWriter.h])
 
@@ -519,5 +527,3 @@ AC_OUTPUT(
   [ src/souffle-compile src/souffle-config interfaces/souffle-compilelib debian/changelog ],
   [ chmod +x src/souffle-compile src/souffle-config interfaces/souffle-compilelib ]
 )
-
-

@@ -21,48 +21,23 @@
 
 #pragma once
 
-#include <string>
-#include <map>
 #include <pthread.h>
 
-#include "Util.h"
-#include "RamTypes.h"
+#include <map>
+#include <string>
+
 #include "RamIndex.h"
-#include "Table.h"
+#include "RamTypes.h"
+#include "SymbolMask.h"
 #include "SymbolTable.h"
+#include "Table.h"
+#include "Util.h"
 
 namespace souffle {
 
 // forward declaration
 class RamEnvironment;
 class RamRelation;
-
-class SymbolMask {
-    std::vector<bool> mask;
-public:
-    SymbolMask(size_t arity) : mask(arity) {}
-
-    size_t getArity() const {
-        return mask.size();
-    }
-
-    bool isSymbol(size_t index) const {
-        return index < getArity() && mask[index];
-    }
-
-    void setSymbol(size_t index, bool value = true) {
-        mask[index] = value;
-    }
-
-    void print(std::ostream& out) const {
-        out << mask << "\n";
-    }
-
-    friend std::ostream& operator<<(std::ostream& out, const SymbolMask& mask) {
-        mask.print(out);
-        return out;
-    }
-};
 
 class RamRelationIdentifier {
 
@@ -173,7 +148,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& out, const RamRelationIdentifier &rel) {
         rel.print(out);
-        return out; 
+        return out;
     }
 
 };
@@ -411,16 +386,10 @@ public:
         return totalIndex->exists(tuple);
     }
 
-    /** input table in csv format from file */ 
-    bool load(std::istream &is, SymbolTable& symTable, const SymbolMask& mask);
-
     /** input table as memory */ 
     bool load(std::vector<std::vector<std::string>> data, SymbolTable& symTable, 
       const SymbolMask& mask);
 
-
-    /** print table in csv formt to file */
-    void store(std::ostream &os, const SymbolTable& symTable, const SymbolMask& mask) const;
 
     /** store data to vectors */
     void store(std::vector<std::vector<std::string>>& result, const SymbolTable& symTable, 
