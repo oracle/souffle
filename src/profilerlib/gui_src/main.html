@@ -1,8 +1,16 @@
+<!--
+* Souffle - A Datalog Compiler
+* Copyright (c) 2017, The Souffle Developers. All rights reserved
+* Licensed under the Universal Permissive License v 1.0 as shown at:
+* - https://opensource.org/licenses/UPL
+* - <souffle root>/licenses/SOUFFLE-UPL.txt
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Top</title>
+    <title>Souffle Profiler</title>
 </head>
 <style>.rulesofrel,.tabcontent{-webkit-animation:fadeEffect 1s}a,abbr,acronym,address,applet,article,aside,audio,b,big,blockquote,body,canvas,caption,center,cite,code,dd,del,details,dfn,dl,dt,em,embed,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,header,html,i,iframe,img,ins,kbd,label,legend,li,mark,menu,nav,object,ol,output,p,pre,q,ruby,s,samp,section,small,span,strike,strong,sub,summary,sup,table,tbody,td,tfoot,th,thead,time,tr,tt,u,ul,var,video{margin:0;padding:0;border:0;font:inherit;vertical-align:baseline}body,h1{font-size:13px}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body,html{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:after,blockquote:before,q:after,q:before{content:none}:focus{outline:0}*,:after,:before{box-sizing:border-box}body{margin:0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;line-height:18px;color:#303030;background-color:#fafafa;-webkit-font-smoothing:antialiased;padding:0}h1,h2,h3,h4,h5{font-weight:700;display:block;margin:0 0 10px}h1,ul{margin:0 0 20px}h1{display:block;font-weight:400;text-shadow:0 1px 0 #fff}a,strong,table th{font-weight:700}h1 span.description{color:#6d6d6d}h2{font-size:18px;line-height:24px;margin:20px 0 10px}h3{font-size:15px;margin:20px 0}li{margin-left:30px;margin-bottom:3px}ul li{list-style:disc}ol li{list-style:decimal}a{color:#404040;text-decoration:none;border-bottom:1px solid #ddd}a:hover{border-color:#d0d0d0}.notice{background:#ffa;border:1px solid #cc7;display:block;padding:10px;margin-bottom:10px}.stretch{display:block;width:100%}.pad1y{padding:10px 0}.center{text-align:center}.content{margin-top:40px;padding:0 0 20px}table{background:#fff;max-width:100%;border-spacing:0;width:100%;margin:10px 0;border:1px solid #ddd;border-collapse:separate;-webkit-box-shadow:0 0 4px rgba(0,0,0,.1);-moz-box-shadow:0 0 4px rgba(0,0,0,.1);box-shadow:0 0 4px rgba(0,0,0,.1)}table td,table th{padding:4px;line-height:14px;text-align:left;border-top:1px solid #ddd}.limiter,header{margin:0 auto;padding:0 20px}table th{background:#eee;background:-webkit-gradient(linear,left top,left bottom,from(#f6f6f6),to(#eee));background:-moz-linear-gradient(top,#f6f6f6,#eee);text-shadow:0 1px 0 #fff;vertical-align:bottom}table td{vertical-align:top}table tr{background:rgba(0,255,0,0)}table tbody:first-child tr:first-child td,table tbody:first-child tr:first-child th,table thead:first-child tr td,table thead:first-child tr th,table thead:first-child tr:first-child th{border-top:0}table tbody+tbody{border-top:2px solid #ddd}table td+td,table td+th,table th+td,table th+th{border-left:1px solid #ddd}header{width:960px}.limiter{width:520px}.links{width:480px;margin:50px auto 0}.links a{width:50%;float:left}a.button{background:#1F90FF;border:1px solid #1f4fff;height:40px;line-height:38px;color:#fff;display:inline-block;text-align:center;padding:0 10px;-webkit-border-radius:1px;border-radius:1px;-webkit-transition:box-shadow 150ms linear;-moz-transition:box-shadow 150ms linear;-o-transition:box-shadow 150ms linear;transition:box-shadow 150ms linear}pre,pre code{line-height:1.25em}a.button:hover{background-color:#0081ff;-webkit-box-shadow:0 1px 5px rgba(0,0,0,.25);box-shadow:0 1px 5px rgba(0,0,0,.25);border:1px solid #1f4fff}a.button:active,a.button:focus{background:#0081ff;-webkit-box-shadow:inset 0 1px 5px rgba(0,0,0,.25);box-shadow:inset 0 1px 5px rgba(0,0,0,.25)}.options{margin:10px 0 30px 15px}.options h3{display:block;padding-top:10px;margin-top:20px}.options h3:first-child{border:none;margin-top:0}code,pre{font-family:Consolas,Menlo,'Liberation Mono',Courier,monospace;word-wrap:break-word;color:#333}pre{font-size:13px;background:#fff;padding:10px 15px;margin:10px 0;overflow:auto;-webkit-box-shadow:0 1px 3px rgba(0,0,0,.3);box-shadow:0 1px 3px rgba(0,0,0,.3)}code{font-size:12px;border:0;padding:0;background:#e6e6e6;background:rgba(0,0,0,.08);box-shadow:0 0 0 2px rgba(0,0,0,.08)}pre code{font-size:13px;background:0 0;box-shadow:none;border:none;padding:0;margin:0}.col12{width:100%}.col6{width:50%;float:left;display:block}#toolbar-button,ul.tab li a{display:inline-block;text-align:center;text-decoration:none}.pill-group{margin:40px 0 0}.pill-group a:first-child{border-radius:20px 0 0 20px;border-right-width:0}.pill-group a:last-child{border-radius:0 20px 20px 0}#toolbar-button{background-color:#4CAF50;border:none;color:#fff;margin:7px 12px;padding:8px 14px;font-size:32px}.tabcontent,ul.tab{border:1px solid #ccc}#toolbar-button:hover{background-color:#0081ff;-webkit-box-shadow:0 1px 5px rgba(0,0,0,.25);box-shadow:0 1px 5px rgba(0,0,0,.25)}#toolbar-button:active,#toolbar-button:focus{background:#0081ff;-webkit-box-shadow:inset 0 1px 5px rgba(0,0,0,.25);box-shadow:inset 0 1px 5px rgba(0,0,0,.25)}ul.tab{margin:0;padding:0;overflow:hidden;background-color:#f1f1f1}ul.tab li{float:left;list-style:none}ul.tab li a{color:#000;padding:14px 16px;transition:.3s;font-size:17px}ul.tab li a:hover{background-color:#ddd}.active,ul.tab li a:focus{background-color:#ccc}.tabcontent{display:none;padding:6px 12px;border-top:none;animation:fadeEffect 1s}.rulesofrel{display:none;animation:fadeEffect 1s}.RulVerTable{display:none;-webkit-animation:fadeEffect 1s;animation:fadeEffect 1s}@-webkit-keyframes fadeEffect{from{opacity:0}to{opacity:1}}@keyframes fadeEffect{from{opacity:0}to{opacity:1}}.perc_time,.perc_tup{padding:0;margin:0;background:#aaf;width:100%;height:30px;font:inherit;font-weight:700;color:#000}p{padding:4px}th[role=columnheader]:not(.no-sort){cursor:pointer}th[role=columnheader]:not(.no-sort):after{content:'';float:right;margin-top:7px;border-width:0 4px 4px;border-style:solid;border-color:#404040 transparent;visibility:hidden;opacity:0;-webkit-user-select:none;-moz-user-select:none;user-select:none}.ct-double-octave:before,.ct-major-eleventh:before,.ct-major-second:before,.ct-major-seventh:before,.ct-major-sixth:before,.ct-major-tenth:before,.ct-major-third:before,.ct-major-twelfth:before,.ct-minor-second:before,.ct-minor-seventh:before,.ct-minor-sixth:before,.ct-minor-third:before,.ct-octave:before,.ct-perfect-fifth:before,.ct-perfect-fourth:before,.ct-square:before{float:left;content:"";height:0}th[aria-sort=ascending]:not(.no-sort):after{border-bottom:none;border-width:4px 4px 0}th[aria-sort]:not(.no-sort):after{visibility:visible;opacity:.4}th[role=columnheader]:not(.no-sort):hover:after{visibility:visible;opacity:1}.ct-double-octave:after,.ct-major-eleventh:after,.ct-major-second:after,.ct-major-seventh:after,.ct-major-sixth:after,.ct-major-tenth:after,.ct-major-third:after,.ct-major-twelfth:after,.ct-minor-second:after,.ct-minor-seventh:after,.ct-minor-sixth:after,.ct-minor-third:after,.ct-octave:after,.ct-perfect-fifth:after,.ct-perfect-fourth:after,.ct-square:after{content:"";clear:both}.ct-label{fill:rgba(0,0,0,.4);color:rgba(0,0,0,.4);font-size:.75rem;line-height:1}.ct-grid-background,.ct-line{fill:none}.ct-chart-bar .ct-label,.ct-chart-line .ct-label{display:block;display:-webkit-box;display:-moz-box;display:-ms-flexbox;display:-webkit-flex;display:flex}.ct-chart-donut .ct-label,.ct-chart-pie .ct-label{dominant-baseline:central}.ct-label.ct-horizontal.ct-start{-webkit-box-align:flex-end;-webkit-align-items:flex-end;-ms-flex-align:flex-end;align-items:flex-end;-webkit-box-pack:flex-start;-webkit-justify-content:flex-start;-ms-flex-pack:flex-start;justify-content:flex-start;text-align:left;text-anchor:start}.ct-label.ct-horizontal.ct-end{-webkit-box-align:flex-start;-webkit-align-items:flex-start;-ms-flex-align:flex-start;align-items:flex-start;-webkit-box-pack:flex-start;-webkit-justify-content:flex-start;-ms-flex-pack:flex-start;justify-content:flex-start;text-align:left;text-anchor:start}.ct-label.ct-vertical.ct-start{-webkit-box-align:flex-end;-webkit-align-items:flex-end;-ms-flex-align:flex-end;align-items:flex-end;-webkit-box-pack:flex-end;-webkit-justify-content:flex-end;-ms-flex-pack:flex-end;justify-content:flex-end;text-align:right;text-anchor:end}.ct-label.ct-vertical.ct-end{-webkit-box-align:flex-end;-webkit-align-items:flex-end;-ms-flex-align:flex-end;align-items:flex-end;-webkit-box-pack:flex-start;-webkit-justify-content:flex-start;-ms-flex-pack:flex-start;justify-content:flex-start;text-align:left;text-anchor:start}.ct-chart-bar .ct-label.ct-horizontal.ct-start{-webkit-box-align:flex-end;-webkit-align-items:flex-end;-ms-flex-align:flex-end;align-items:flex-end;-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;text-align:center;text-anchor:start}.ct-chart-bar .ct-label.ct-horizontal.ct-end{-webkit-box-align:flex-start;-webkit-align-items:flex-start;-ms-flex-align:flex-start;align-items:flex-start;-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;text-align:center;text-anchor:start}.ct-chart-bar.ct-horizontal-bars .ct-label.ct-horizontal.ct-start{-webkit-box-align:flex-end;-webkit-align-items:flex-end;-ms-flex-align:flex-end;align-items:flex-end;-webkit-box-pack:flex-start;-webkit-justify-content:flex-start;-ms-flex-pack:flex-start;justify-content:flex-start;text-align:left;text-anchor:start}.ct-chart-bar.ct-horizontal-bars .ct-label.ct-horizontal.ct-end{-webkit-box-align:flex-start;-webkit-align-items:flex-start;-ms-flex-align:flex-start;align-items:flex-start;-webkit-box-pack:flex-start;-webkit-justify-content:flex-start;-ms-flex-pack:flex-start;justify-content:flex-start;text-align:left;text-anchor:start}.ct-chart-bar.ct-horizontal-bars .ct-label.ct-vertical.ct-start{-webkit-box-align:center;-webkit-align-items:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:flex-end;-webkit-justify-content:flex-end;-ms-flex-pack:flex-end;justify-content:flex-end;text-align:right;text-anchor:end}.ct-chart-bar.ct-horizontal-bars .ct-label.ct-vertical.ct-end{-webkit-box-align:center;-webkit-align-items:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:flex-start;-webkit-justify-content:flex-start;-ms-flex-pack:flex-start;justify-content:flex-start;text-align:left;text-anchor:end}.ct-grid{stroke:rgba(0,0,0,.2);stroke-width:1px;stroke-dasharray:2px}.ct-point{stroke-width:10px;stroke-linecap:round}.ct-line{stroke-width:4px}.ct-area{stroke:none;fill-opacity:.1}.ct-bar{fill:none;stroke-width:10px}.ct-slice-donut{fill:none;stroke-width:60px}.ct-series-a .ct-bar,.ct-series-a .ct-line,.ct-series-a .ct-point,.ct-series-a .ct-slice-donut{stroke:#d70206}.ct-series-a .ct-area,.ct-series-a .ct-slice-pie{fill:#d70206}.ct-series-b .ct-bar,.ct-series-b .ct-line,.ct-series-b .ct-point,.ct-series-b .ct-slice-donut{stroke:#f05b4f}.ct-series-b .ct-area,.ct-series-b .ct-slice-pie{fill:#f05b4f}.ct-series-c .ct-bar,.ct-series-c .ct-line,.ct-series-c .ct-point,.ct-series-c .ct-slice-donut{stroke:#f4c63d}.ct-series-c .ct-area,.ct-series-c .ct-slice-pie{fill:#f4c63d}.ct-series-d .ct-bar,.ct-series-d .ct-line,.ct-series-d .ct-point,.ct-series-d .ct-slice-donut{stroke:#d17905}.ct-series-d .ct-area,.ct-series-d .ct-slice-pie{fill:#d17905}.ct-series-e .ct-bar,.ct-series-e .ct-line,.ct-series-e .ct-point,.ct-series-e .ct-slice-donut{stroke:#453d3f}.ct-series-e .ct-area,.ct-series-e .ct-slice-pie{fill:#453d3f}.ct-series-f .ct-bar,.ct-series-f .ct-line,.ct-series-f .ct-point,.ct-series-f .ct-slice-donut{stroke:#59922b}.ct-series-f .ct-area,.ct-series-f .ct-slice-pie{fill:#59922b}.ct-series-g .ct-bar,.ct-series-g .ct-line,.ct-series-g .ct-point,.ct-series-g .ct-slice-donut{stroke:#0544d3}.ct-series-g .ct-area,.ct-series-g .ct-slice-pie{fill:#0544d3}.ct-series-h .ct-bar,.ct-series-h .ct-line,.ct-series-h .ct-point,.ct-series-h .ct-slice-donut{stroke:#6b0392}.ct-series-h .ct-area,.ct-series-h .ct-slice-pie{fill:#6b0392}.ct-series-i .ct-bar,.ct-series-i .ct-line,.ct-series-i .ct-point,.ct-series-i .ct-slice-donut{stroke:#f05b4f}.ct-series-i .ct-area,.ct-series-i .ct-slice-pie{fill:#f05b4f}.ct-series-j .ct-bar,.ct-series-j .ct-line,.ct-series-j .ct-point,.ct-series-j .ct-slice-donut{stroke:#dda458}.ct-series-j .ct-area,.ct-series-j .ct-slice-pie{fill:#dda458}.ct-series-k .ct-bar,.ct-series-k .ct-line,.ct-series-k .ct-point,.ct-series-k .ct-slice-donut{stroke:#eacf7d}.ct-series-k .ct-area,.ct-series-k .ct-slice-pie{fill:#eacf7d}.ct-series-l .ct-bar,.ct-series-l .ct-line,.ct-series-l .ct-point,.ct-series-l .ct-slice-donut{stroke:#86797d}.ct-series-l .ct-area,.ct-series-l .ct-slice-pie{fill:#86797d}.ct-series-m .ct-bar,.ct-series-m .ct-line,.ct-series-m .ct-point,.ct-series-m .ct-slice-donut{stroke:#b2c326}.ct-series-m .ct-area,.ct-series-m .ct-slice-pie{fill:#b2c326}.ct-series-n .ct-bar,.ct-series-n .ct-line,.ct-series-n .ct-point,.ct-series-n .ct-slice-donut{stroke:#6188e2}.ct-series-n .ct-area,.ct-series-n .ct-slice-pie{fill:#6188e2}.ct-series-o .ct-bar,.ct-series-o .ct-line,.ct-series-o .ct-point,.ct-series-o .ct-slice-donut{stroke:#a748ca}.ct-series-o .ct-area,.ct-series-o .ct-slice-pie{fill:#a748ca}.ct-square{display:block;position:relative;width:100%}.ct-square:before{display:block;width:0;padding-bottom:100%}.ct-square:after{display:table}.ct-square>svg{display:block;position:absolute;top:0;left:0}.ct-minor-second{display:block;position:relative;width:100%}.ct-minor-second:before{display:block;width:0;padding-bottom:93.75%}.ct-minor-second:after{display:table}.ct-minor-second>svg{display:block;position:absolute;top:0;left:0}.ct-major-second{display:block;position:relative;width:100%}.ct-major-second:before{display:block;width:0;padding-bottom:88.8888888889%}.ct-major-second:after{display:table}.ct-major-second>svg{display:block;position:absolute;top:0;left:0}.ct-minor-third{display:block;position:relative;width:100%}.ct-minor-third:before{display:block;width:0;padding-bottom:83.3333333333%}.ct-minor-third:after{display:table}.ct-minor-third>svg{display:block;position:absolute;top:0;left:0}.ct-major-third{display:block;position:relative;width:100%}.ct-major-third:before{display:block;width:0;padding-bottom:80%}.ct-major-third:after{display:table}.ct-major-third>svg{display:block;position:absolute;top:0;left:0}.ct-perfect-fourth{display:block;position:relative;width:100%}.ct-perfect-fourth:before{display:block;width:0;padding-bottom:75%}.ct-perfect-fourth:after{display:table}.ct-perfect-fourth>svg{display:block;position:absolute;top:0;left:0}.ct-perfect-fifth{display:block;position:relative;width:100%}.ct-perfect-fifth:before{display:block;width:0;padding-bottom:66.6666666667%}.ct-perfect-fifth:after{display:table}.ct-perfect-fifth>svg{display:block;position:absolute;top:0;left:0}.ct-minor-sixth{display:block;position:relative;width:100%}.ct-minor-sixth:before{display:block;width:0;padding-bottom:62.5%}.ct-minor-sixth:after{display:table}.ct-minor-sixth>svg{display:block;position:absolute;top:0;left:0}.ct-golden-section{display:block;position:relative;width:100%}.ct-golden-section:before{display:block;float:left;content:"";width:0;height:0;padding-bottom:61.804697157%}.ct-golden-section:after{content:"";display:table;clear:both}.ct-golden-section>svg{display:block;position:absolute;top:0;left:0}.ct-major-sixth{display:block;position:relative;width:100%}.ct-major-sixth:before{display:block;width:0;padding-bottom:60%}.ct-major-sixth:after{display:table}.ct-major-sixth>svg{display:block;position:absolute;top:0;left:0}.ct-minor-seventh{display:block;position:relative;width:100%}.ct-minor-seventh:before{display:block;width:0;padding-bottom:56.25%}.ct-minor-seventh:after{display:table}.ct-minor-seventh>svg{display:block;position:absolute;top:0;left:0}.ct-major-seventh{display:block;position:relative;width:100%}.ct-major-seventh:before{display:block;width:0;padding-bottom:53.3333333333%}.ct-major-seventh:after{display:table}.ct-major-seventh>svg{display:block;position:absolute;top:0;left:0}.ct-octave{display:block;position:relative;width:100%}.ct-octave:before{display:block;width:0;padding-bottom:50%}.ct-octave:after{display:table}.ct-octave>svg{display:block;position:absolute;top:0;left:0}.ct-major-tenth{display:block;position:relative;width:100%}.ct-major-tenth:before{display:block;width:0;padding-bottom:40%}.ct-major-tenth:after{display:table}.ct-major-tenth>svg{display:block;position:absolute;top:0;left:0}.ct-major-eleventh{display:block;position:relative;width:100%}.ct-major-eleventh:before{display:block;width:0;padding-bottom:37.5%}.ct-major-eleventh:after{display:table}.ct-major-eleventh>svg{display:block;position:absolute;top:0;left:0}.ct-major-twelfth{display:block;position:relative;width:100%}.ct-major-twelfth:before{display:block;width:0;padding-bottom:33.3333333333%}.ct-major-twelfth:after{display:table}.ct-major-twelfth>svg{display:block;position:absolute;top:0;left:0}.ct-double-octave{display:block;position:relative;width:100%}.ct-double-octave:before{display:block;width:0;padding-bottom:25%}.ct-double-octave:after{display:table}.ct-double-octave>svg{display:block;position:absolute;top:0;left:0}
 </style>
@@ -19,11 +27,12 @@
     </div>
     <div id="Relations" class="tabcontent">
         <h3>Relations table</h3>
+        <button onclick="toggle_precision()">Toggle number precision</button>
         <table id='Rel_table'>
             <thead>
             <tr>
-                <th><span class="text">Name</span></th>
-                <th><span class="text">ID</span></th>
+                <th data-sort-method="text"><span class="text">Name</span></th>
+                <th data-sort-method="text"><span class="text">ID</span></th>
                 <th data-sort-method="time"><span class="text">Total Time</span></th>
                 <th data-sort-method="time"><span class="text">Non Rec Time</span></th>
                 <th data-sort-method="time"><span class="text">Rec Time</span></th>
@@ -31,7 +40,7 @@
                 <th data-sort-method="number"><span class="text">Tuples</span></th>
                 <th data-sort-method="number"><span class="text">% of Time</span></th>
                 <th data-sort-method="number"><span class="text">% of Tuples</span></th>
-                <th><span class="text">Source</span></th>
+                <th data-sort-method="text"><span class="text">Source</span></th>
             </tr>
             </thead>
             <tbody id="Rel_table_body">
@@ -45,8 +54,8 @@
             <table id="rulesofrel_table">
                 <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>ID</th>
+                    <th data-sort-method="text">Name</th>
+                    <th data-sort-method="text">ID</th>
                     <th data-sort-method="time">Total Time</th>
                     <th data-sort-method="time">Non Rec Time</th>
                     <th data-sort-method="time">Rec Time</th>
@@ -54,7 +63,7 @@
                     <th data-sort-method="number">Tuples</th>
                     <th data-sort-method="number">% of Time</th>
                     <th data-sort-method="number">% of Tuples</th>
-                    <th>Source</th>
+                    <th data-sort-method="text">Source</th>
                 </tr>
                 </thead>
                 <tbody id="rulesofrel_body">
@@ -65,11 +74,12 @@
     </div>
     <div id="Rules" class="tabcontent">
         <h3>Rules table</h3>
+        <button onclick="toggle_precision()">Toggle number precision</button>
         <table id='Rul_table'>
             <thead>
             <tr>
-                <th>Name</th>
-                <th>ID</th>
+                <th data-sort-method="text">Name</th>
+                <th data-sort-method="text">ID</th>
                 <th data-sort-method="time">Total Time</th>
                 <th data-sort-method="time">Non Rec Time</th>
                 <th data-sort-method="time">Rec Time</th>
@@ -77,7 +87,7 @@
                 <th data-sort-method="number">Tuples</th>
                 <th data-sort-method="number">% of Time</th>
                 <th data-sort-method="number">% of Tuples</th>
-                <th>Source</th>
+                <th data-sort-method="text">Source</th>
             </tr>
             </thead>
             <tbody id="Rul_table_body">
@@ -92,8 +102,8 @@
             <table id='rulvertable'>
                 <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>ID</th>
+                    <th data-sort-method="text">Name</th>
+                    <th data-sort-method="text">ID</th>
                     <th data-sort-method="time">Total Time</th>
                     <th data-sort-method="time">Non Rec Time</th>
                     <th data-sort-method="time">Rec Time</th>
@@ -102,7 +112,7 @@
                     <th data-sort-method="number">Ver</th>
                     <th data-sort-method="number">% of Time</th>
                     <th data-sort-method="number">% of Tuples</th>
-                    <th>Source</th>
+                    <th data-sort-method="text">Source</th>
                 </tr>
                 </thead>
                 <tbody id="rulver_body">
@@ -170,405 +180,6 @@
         }};
 
 
-
-    !function () {
-        var a = function (a) {
-            return a;
-        }, b = function (a, b) {
-            return a = parseFloat(a), b = parseFloat(b), a = isNaN(a) ? 0 : a, b = isNaN(b) ? 0 : b, a - b
-        };
-        Tablesort.extend("number", function (a) {
-            return a.match(/.*/)
-        }, function (c, d) {
-            return c = a(c), d = a(d), b(d, c)
-        })
-    }();
-
-
-    (function () {
-        var cleanNumber = function (x) {
-                if (x.slice(-1) == 'Y') {
-                    return parseFloat(x.slice(0, -1)) * 365 * 24 * 60 * 60;
-                } else if (x.slice(-1) == 'W') {
-                    return parseFloat(x.slice(0, -1)) * 7 * 24 * 60 * 60;
-                } else if (x.slice(-1) == "D") {
-                    return parseFloat(x.slice(0, -1)) * 24 * 60 * 60;
-                } else if (x.slice(-1) == "H") {
-                    return parseFloat(x.slice(0, -1)) * 60 * 60;
-                } else if (x.slice(-1) == "m") {
-                    return parseFloat(x.slice(0, -1)) * 60;
-                } else if (x.slice(-2) == "µs") {
-                    return parseFloat(x.slice(0, -2)) / 1000000;
-                } else if (x.slice(-1) == "s") {
-                    return parseFloat(x.slice(0, -1));
-                }
-                return parseInt(x.slice(0, -1));
-            },
-            compareNumber = function (a, b) {
-                a = isNaN(a) ? 0 : a;
-                b = isNaN(b) ? 0 : b;
-                return a - b;
-            };
-        Tablesort.extend('time', function (item) {
-            return true;
-        }, function (a, b) {
-            a = cleanNumber(a);
-            b = cleanNumber(b);
-            return compareNumber(b, a);
-        });
-    }());
-
-
-    function select_for_graph(a) {
-        for (tabcontent = document.getElementById("tabcontent"), tablinks = document.getElementsByClassName("rul_ver_row"), i = 0; i < tablinks.length; i++) tablinks[i].style.background = "rgba(255,255,0,0)";
-        for (tablinks = document.getElementsByClassName("rulesofrel_row"), i = 0; i < tablinks.length; i++) tablinks[i].style.background = "rgba(255,255,0,0)";
-        a.style.background = "rgba(255,255,0,0.2)", selected_for_chart = a
-    }
-
-    function showChart() {
-        var a, b, c, d;
-        if (!selected_for_chart) return void alert("please select a recursive rule to graph");
-        if (a = selected_for_chart.cells[1].innerHTML, "C" != a[0]) return void alert("Please select a recursive rule (ID starts with C)");
-        for (document.getElementById("chart_tab").style.display = "block", c = document.getElementsByClassName("tabcontent"), b = 0; b < c.length; b++) c[b].style.display = "none";
-        for (d = document.getElementsByClassName("tablinks"), b = 0; b < d.length; b++) d[b].className = d[b].className.replace(" active", "");
-        document.getElementById("chart_tab").style.display = "block", document.getElementById("chart_tab").className += " active", document.getElementById("chart").style.display = "block";
-        var e = [],
-            f = [],
-            g = [];
-        for (j = 0; j < data.rul[a][10].tot_t.length; j++) e.push(j.toString()), f.push({
-            value: data.rul[a][10].tot_t[j]
-        }), g.push({
-            value: data.rul[a][10].tuples[j]
-        });
-        draw_graph(e, f, g)
-    }
-
-    function ctBarLabels(a) {
-        a instanceof Chartist.Bar && a.on("draw", function (a) {
-            var b, c, d, e;
-            if ("bar" === a.type && (b = a.x1 + .5 * a.element.width(), c = a.y1 + a.element.height() * -1 - 2, e = a.element.attr("ct:value"), "0" !== e)) return d = new Chartist.Svg("text"), d.text(e), d.addClass("ct-barlabel"), d.attr({
-                x: b,
-                y: c,
-                "text-anchor": "middle"
-            }), a.group.append(d)
-        })
-    }
-
-    function draw_graph(a, b, c) {
-        var d = {
-            height: "37vh"
-        };
-        show_graph_vals && (d.plugins = [ctBarLabels]), new Chartist.Bar(".ct-chart1", {
-            labels: a,
-            series: [b]
-        }, d), new Chartist.Bar(".ct-chart2", {
-            labels: a,
-            series: [c]
-        }, d)
-    }
-
-    function clean_percentages(data) {
-        if (data < 1) {
-            return data.toFixed(3);
-        }
-        return data.toPrecision(3);
-    }
-
-    function humanize_time(data) {
-        if (data < 1) {
-            milli = data * 1000;
-            if (milli > 1) {
-                return data.toFixed(3) + "s"
-            }
-            micro = milli * 1000;
-            if (micro > 1) {
-                return micro.toPrecision(3) + "µs"
-            }
-            return micro
-        } else {
-            minutes = (data / 60);
-            if (minutes < 3) return data.toPrecision(3) + "s";
-            hours = (minutes / 60);
-            if (hours < 3) return minutes.toFixed(1) + "m";
-            days = (hours / 24);
-            if (days < 3) return hours.toFixed(1) + "H";
-            weeks = (days / 7);
-            if (weeks < 3) return days.toFixed(1) + "D";
-            year = (days / 365);
-            if (year < 3) return weeks.toFixed(1) + "W";
-            return year.toFixed(1) + "Y"
-        }
-    }
-
-    function minify_numbers(data) {
-        if (data < 1e6) {
-            return data;
-        }
-        return data.toExponential(2);
-    }
-
-    function changeRowRel(a) {
-        var b, c, d, e, f, g, h;
-        for (d = document.getElementsByClassName("rel_row"), b = 0; b < d.length; b++) d[b].style.background = "rgba(255,255,0,0)";
-        a.style.background = "rgba(255,255,0,0.2)", document.getElementById("rulesofrel").style.display = "block", c = document.getElementById("rulesofrel_body"), c.innerHTML = "", e = data.rel[a.id],
-            f = document.createElement("tr"),
-
-            h = document.createElement("td"),
-            h.innerHTML = e[0],
-            f.appendChild(h);
-        h = document.createElement("td"),
-            h.innerHTML = e[1],
-            f.appendChild(h);
-        h = document.createElement("td"),
-            h.innerHTML = humanize_time(e[2]),
-            f.appendChild(h);
-        h = document.createElement("td"),
-            h.innerHTML = humanize_time(e[3]),
-            f.appendChild(h);
-        h = document.createElement("td"),
-            h.innerHTML = humanize_time(e[4]),
-            f.appendChild(h);
-        h = document.createElement("td"),
-            h.innerHTML = humanize_time(e[5]),
-            f.appendChild(h);
-        h = document.createElement("td"),
-            h.innerHTML = minify_numbers(e[6]),
-            f.appendChild(h);
-        for (h = document.createElement("td"), g = document.createElement("div"), g.className = "perc_time", g.style.width = "100%", g.innerHTML = "100", h.appendChild(g), f.appendChild(h), h = document.createElement("td"), g = document.createElement("div"), g.className = "perc_time", g.style.width = "100%", g.innerHTML = "100", h.appendChild(g), f.appendChild(h), h = document.createElement("td"), h.innerHTML = e[7], f.appendChild(h), f.className = "rulesofrel_row", f.onclick = function () {
-            select_for_graph(this)
-        }, c.appendChild(f), b = 0; b < e[8].length; b++) {
-            f = document.createElement("tr");
-            h = document.createElement("td"),
-                h.innerHTML = data.rul[e[8][b]][0],
-                f.appendChild(h);
-            h = document.createElement("td"),
-                h.innerHTML = data.rul[e[8][b]][1],
-                f.appendChild(h);
-            h = document.createElement("td"),
-                h.innerHTML = humanize_time(data.rul[e[8][b]][2]),
-                f.appendChild(h);
-            h = document.createElement("td"),
-                h.innerHTML = humanize_time(data.rul[e[8][b]][3]),
-                f.appendChild(h);
-            h = document.createElement("td"),
-                h.innerHTML = humanize_time(data.rul[e[8][b]][4]),
-                f.appendChild(h);
-            h = document.createElement("td"),
-                h.innerHTML = humanize_time(data.rul[e[8][b]][5]),
-                f.appendChild(h);
-            h = document.createElement("td"),
-                h.innerHTML = minify_numbers(data.rul[e[8][b]][6]),
-                f.appendChild(h);
-            h = document.createElement("td"),
-                g = document.createElement("div"),
-                g.className = "perc_time",
-                0 == e[2] ? (g.style.width = "0%", g.innerHTML = "0") : (
-                    g.style.width = 100 * data.rul[e[8][b]][2] / e[2] + "%",
-                        g.innerHTML = (100 * data.rul[e[8][b]][2] / e[2]).toPrecision(4)
-                ),
-                h.appendChild(g),
-                f.appendChild(h),
-                h = document.createElement("td"),
-                g = document.createElement("div"),
-                g.className = "perc_time", 0 == e[6] ? (g.style.width = "0%", g.innerHTML = "0") : (
-                g.style.width = 100 * data.rul[e[8][b]][6] / e[6] + "%",
-                    g.innerHTML = (100 * data.rul[e[8][b]][6] / e[6]).toPrecision(4)
-            ),
-                h.appendChild(g), f.appendChild(h), h = document.createElement("td"),
-                h.innerHTML = data.rul[e[8][b]][7],
-                f.appendChild(h),
-                f.onclick = function () {
-                    select_for_graph(this)
-                }, f.className = "rulesofrel_row",
-                c.appendChild(f)
-        }
-        created_relrul || (new Tablesort(document.getElementById("rulesofrel_table")), created_relrul = !0)
-    }
-
-    function changeRowRul(a) {
-        var b, c, d, e, f, g, h;
-        for (d = document.getElementsByClassName("rul_row"), b = 0; b < d.length; b++) d[b].style.background = "rgba(255,255,0,0)";
-        a.style.background = "rgba(255,255,0,0.2)",
-            document.getElementById("rulver").style.display = "block",
-            c = document.getElementById("rulver_body"), c.innerHTML = "",
-            e = data.rul[a.id], f = document.createElement("tr"),
-            g = document.createElement("td"),
-            g.innerHTML = e[0],
-            f.appendChild(g);
-        g = document.createElement("td"),
-            g.innerHTML = e[1],
-            f.appendChild(g);
-        g = document.createElement("td"),
-            g.innerHTML = humanize_time(e[2]),
-            f.appendChild(g);
-        g = document.createElement("td"),
-            g.innerHTML = humanize_time(e[3]),
-            f.appendChild(g);
-        g = document.createElement("td"),
-            g.innerHTML = humanize_time(e[4]),
-            f.appendChild(g);
-        g = document.createElement("td"),
-            g.innerHTML = humanize_time(e[5]),
-            f.appendChild(g);
-        g = document.createElement("td"),
-            g.innerHTML = minify_numbers(e[6]),
-            f.appendChild(g);
-        for (g = document.createElement("td"), g.innerHTML = "-", f.appendChild(g), g = document.createElement("td"), h = document.createElement("div"), h.className = "perc_time", h.style.width = "100%", h.innerHTML = "100", g.appendChild(h), f.appendChild(g), g = document.createElement("td"), h = document.createElement("div"), h.className = "perc_time", h.style.width = "100%", h.innerHTML = "100", g.appendChild(h), f.appendChild(g), g = document.createElement("td"), g.innerHTML = e[7], f.appendChild(g), f.className = "rul_ver_row", f.onclick = function () {
-            select_for_graph(this)
-        }, c.appendChild(f), b = 0; b < e[8].length; b++) {
-            f = document.createElement("tr");
-            g = document.createElement("td"),
-                g.innerHTML = data.rul[e[8][b][1]][0],
-                f.appendChild(g);
-            g = document.createElement("td"),
-                g.innerHTML = data.rul[e[8][b][1]][1],
-                f.appendChild(g);
-            g = document.createElement("td"),
-                g.innerHTML = humanize_time(data.rul[e[8][b][1]][2]),
-                f.appendChild(g);
-            g = document.createElement("td"),
-                g.innerHTML = humanize_time(data.rul[e[8][b][1]][3]),
-                f.appendChild(g);
-            g = document.createElement("td"),
-                g.innerHTML = humanize_time(data.rul[e[8][b][1]][4]),
-                f.appendChild(g);
-            g = document.createElement("td"),
-                g.innerHTML = humanize_time(data.rul[e[8][b][1]][5]),
-                f.appendChild(g);
-            g = document.createElement("td"),
-                g.innerHTML = minify_numbers(data.rul[e[8][b][1]][6]),
-                f.appendChild(g);
-
-            g = document.createElement("td"), g.innerHTML = e[8][b][0], f.appendChild(g), g = document.createElement("td"), h = document.createElement("div"), h.className = "perc_time", 0 == e[2] ? (h.style.width = "0%", h.innerHTML = "0") : (h.style.width = 100 * data.rul[e[8][b][1]][2] / e[2] + "%", h.innerHTML = (100 * data.rul[e[8][b][1]][2] / e[2]).toPrecision(4)), g.appendChild(h), f.appendChild(g), g = document.createElement("td"), h = document.createElement("div"), h.className = "perc_time", 0 == e[6] ? (h.style.width = "0%", h.innerHTML = "0") : (h.style.width = 100 * data.rul[e[8][b][1]][6] / e[6] + "%", h.innerHTML = (100 * data.rul[e[8][b][1]][6] / e[6]).toPrecision(4)), g.appendChild(h), f.appendChild(g), g = document.createElement("td"), g.innerHTML = data.rul[e[8][b][1]][7], f.appendChild(g), f.className = "rul_ver_row", f.onclick = function () {
-                select_for_graph(this)
-            }, c.appendChild(f)
-        }
-        created_rulver || (new Tablesort(document.getElementById("rulvertable")), created_rulver = !0)
-    }
-
-    function changeTab(a, b) {
-        document.getElementById("chart_tab").style.display = "none";
-        var c, d, e;
-        for (d = document.getElementsByClassName("tabcontent"), c = 0; c < d.length; c++) d[c].style.display = "none";
-        for (e = document.getElementsByClassName("tablinks"), c = 0; c < e.length; c++) e[c].className = e[c].className.replace(" active", "");
-        document.getElementById(b).style.display = "block", a.currentTarget.className += " active"
-    }
-
-    function gen_top() {
-        x = document.getElementById("Top"), line1 = document.createElement("p"), line1.textContent = "Total runtime: " + data.top[0], line2 = document.createElement("p"), line2.textContent = "Total tuples: " + data.top[1], x.appendChild(line1), x.appendChild(line2)
-    }
-
-    function gen_rel_table() {
-        var a, b, c, d, e, f = 0,
-            g = .01;
-        for (d in data.rel) data.rel.hasOwnProperty(d) && (f += data.rel[d][2], g += parseFloat(data.rel[d][6]));
-        a = document.getElementById("Rel_table_body");
-        for (d in data.rel)
-            if (data.rel.hasOwnProperty(d)) {
-                b = document.createElement("tr"), b.id = data.rel[d][1], b.className = "rel_row", b.onclick = function () {
-                    changeRowRel(this)
-                }, c = document.createElement("td"),
-                    c.innerHTML = data.rel[d][0],
-                    b.appendChild(c);
-                c = document.createElement("td"),
-                    c.innerHTML = data.rel[d][1],
-                    b.appendChild(c);
-                c = document.createElement("td"),
-                    c.innerHTML = humanize_time(data.rel[d][2]),
-                    b.appendChild(c);
-                c = document.createElement("td"),
-                    c.innerHTML = humanize_time(data.rel[d][3]),
-                    b.appendChild(c);
-                c = document.createElement("td"),
-                    c.innerHTML = humanize_time(data.rel[d][4]),
-                    b.appendChild(c);
-                c = document.createElement("td"),
-                    c.innerHTML = humanize_time(data.rel[d][5]),
-                    b.appendChild(c);
-                c = document.createElement("td"),
-                    c.innerHTML = minify_numbers(data.rel[d][6]),
-                    b.appendChild(c);
-                c = document.createElement("td"),
-                    div = document.createElement("div"),
-                    div.className = "perc_time",
-                    div.style.width = data.rel[d][2] / f * 100 + "%",
-                    div.innerHTML = clean_percentages(data.rel[d][2] / f * 100),
-                    c.appendChild(div),
-                    b.appendChild(c),
-                    c = document.createElement("td"),
-                    div = document.createElement("div"),
-                    div.className = "perc_time",
-                    div.style.width = 100 * parseFloat(data.rel[d][6]) / g + "%",
-                    div.innerHTML = clean_percentages(100 * parseFloat(data.rel[d][6]) / g),
-                    c.appendChild(div),
-                    b.appendChild(c),
-                    c = document.createElement("td"),
-                    c.innerHTML = data.rel[d][7],
-                    b.appendChild(c),
-                    a.appendChild(b)
-            }
-    }
-
-    function gen_rul_table() {
-        var a, b, c, d, e, f = 0,
-            g = .01;
-        for (d in data.rul) data.rul.hasOwnProperty(d) && (f += data.rul[d][2], g += parseFloat(data.rul[d][6]));
-        a = document.getElementById("Rul_table_body");
-        for (d in data.rul)
-            if (data.rul.hasOwnProperty(d)) {
-                b = document.createElement("tr"), b.id = data.rul[d][1], b.className = "rul_row", b.onclick = function () {
-                    changeRowRul(this)
-                };
-                c = document.createElement("td"),
-                    c.innerHTML = data.rul[d][0],
-                    b.appendChild(c);
-                c = document.createElement("td"),
-                    c.innerHTML = data.rul[d][1],
-                    b.appendChild(c);
-                c = document.createElement("td"),
-                    c.innerHTML = humanize_time(data.rul[d][2]),
-                    b.appendChild(c);
-                c = document.createElement("td"),
-                    c.innerHTML = humanize_time(data.rul[d][3]),
-                    b.appendChild(c);
-                c = document.createElement("td"),
-                    c.innerHTML = humanize_time(data.rul[d][4]),
-                    b.appendChild(c);
-                c = document.createElement("td"),
-                    c.innerHTML = humanize_time(data.rul[d][5]),
-                    b.appendChild(c);
-                c = document.createElement("td"),
-                    c.innerHTML = minify_numbers(data.rul[d][6]),
-                    b.appendChild(c);
-
-                c = document.createElement("td"),
-                    div = document.createElement("div"),
-                    div.className = "perc_time",
-                    div.style.width = data.rul[d][2] / f * 100 + "%",
-                    div.innerHTML = clean_percentages(data.rul[d][2] / f * 100),
-                    c.appendChild(div),
-                    b.appendChild(c),
-                    c = document.createElement("td"),
-                    div = document.createElement("div"),
-                    div.className = "perc_time",
-                    div.style.width = 100 * parseFloat(data.rul[d][6]) / g + "%",
-                    div.innerHTML = clean_percentages(100 * parseFloat(data.rul[d][6]) / g),
-                    c.appendChild(div),
-                    b.appendChild(c),
-                    c = document.createElement("td"),
-                    c.innerHTML = data.rul[d][7],
-                    b.appendChild(c),
-                    a.appendChild(b)
-            }
-    }
-
-    function init() {
-        gen_top(), gen_rel_table(), gen_rul_table(), document.getElementById("default").click(), new Tablesort(document.getElementById("Rel_table")), new Tablesort(document.getElementById("Rul_table"))
-    }
-    var created_relrul = !1,
-        created_rulver = !1,
-        selected_for_chart = !1,
-        show_graph_vals = !1;
-    init();
 </script>
+<script src="page_functions.js"></script>
 </html>

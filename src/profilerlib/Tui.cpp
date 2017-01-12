@@ -287,6 +287,7 @@ void Tui::outputJson() {
 
     fclose(outfile);
 
+    std::cout << "file output to: " << new_file << std::endl;
 }
 
 void Tui::loadMenu() {

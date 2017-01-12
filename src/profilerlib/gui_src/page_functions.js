@@ -1,4 +1,12 @@
-!function () {
+/*
+* Souffle - A Datalog Compiler
+* Copyright (c) 2017, The Souffle Developers. All rights reserved
+* Licensed under the Universal Permissive License v 1.0 as shown at:
+* - https://opensource.org/licenses/UPL
+* - <souffle root>/licenses/SOUFFLE-UPL.txt
+*/
+
+(function () {
     var a = function (a) {
         return a;
     }, b = function (a, b) {
@@ -9,8 +17,18 @@
     }, function (c, d) {
         return c = a(c), d = a(d), b(d, c)
     })
-}();
+})();
 
+(function () {
+    var b = function (a, b) {
+        return a.localeCompare(b);
+    };
+    Tablesort.extend("text", function (a) {
+        return a.match(/.*/)
+    }, function (c, d) {
+        return b(d, c)
+    })
+})();
 
 (function () {
     var cleanNumber = function (x) {
@@ -29,7 +47,7 @@
             } else if (x.slice(-1) == "s") {
                 return parseFloat(x.slice(0, -1));
             }
-            return parseInt(x.slice(0, -1));
+            return parseFloat(x);
         },
         compareNumber = function (a, b) {
             a = isNaN(a) ? 0 : a;
@@ -53,7 +71,7 @@ function select_for_graph(a) {
 }
 
 function showChart() {
-    var a, b, c, d;
+    var a, b, c, d, j;
     if (!selected_for_chart) return void alert("please select a recursive rule to graph");
     if (a = selected_for_chart.cells[1].innerHTML, "C" != a[0]) return void alert("Please select a recursive rule (ID starts with C)");
     for (document.getElementById("chart_tab").style.display = "block", c = document.getElementsByClassName("tabcontent"), b = 0; b < c.length; b++) c[b].style.display = "none";
@@ -82,6 +100,7 @@ function ctBarLabels(a) {
 }
 
 function draw_graph(a, b, c) {
+    console.log(a, b, c);
     var d = {
         height: "37vh"
     };
@@ -102,6 +121,7 @@ function clean_percentages(data) {
 }
 
 function humanize_time(data) {
+    if (precision) return data;
     if (data < 1) {
         milli = data * 1000;
         if (milli > 1) {
@@ -128,16 +148,17 @@ function humanize_time(data) {
 }
 
 function minify_numbers(data) {
-    if (data < 1e6) {
-        return data;
-    }
+    if (precision) return data;
+    if (data < 1e6) return data;
     return data.toExponential(2);
 }
 
 function changeRowRel(a) {
+    selected_for_chart = !1;
+    selected.rel = a;
     var b, c, d, e, f, g, h;
     for (d = document.getElementsByClassName("rel_row"), b = 0; b < d.length; b++) d[b].style.background = "rgba(255,255,0,0)";
-    a.style.background = "rgba(255,255,0,0.2)", document.getElementById("rulesofrel").style.display = "block", c = document.getElementById("rulesofrel_body"), c.innerHTML = "", e = data.rel[a.id],
+    document.getElementById(a).style.background = "rgba(255,255,0,0.2)", document.getElementById("rulesofrel").style.display = "block", c = document.getElementById("rulesofrel_body"), c.innerHTML = "", e = data.rel[a],
              f = document.createElement("tr"),
 
         h = document.createElement("td"),
@@ -213,12 +234,15 @@ function changeRowRel(a) {
 }
 
 function changeRowRul(a) {
+    selected_for_chart = !1;
+    selected.rul = a;
+
     var b, c, d, e, f, g, h;
     for (d = document.getElementsByClassName("rul_row"), b = 0; b < d.length; b++) d[b].style.background = "rgba(255,255,0,0)";
-    a.style.background = "rgba(255,255,0,0.2)",
+    document.getElementById(a).style.background = "rgba(255,255,0,0.2)",
         document.getElementById("rulver").style.display = "block",
         c = document.getElementById("rulver_body"), c.innerHTML = "",
-        e = data.rul[a.id], f = document.createElement("tr"),
+        e = data.rul[a], f = document.createElement("tr"),
         g = document.createElement("td"),
         g.innerHTML = e[0],
         f.appendChild(g);
@@ -282,18 +306,25 @@ function changeTab(a, b) {
 }
 
 function gen_top() {
-    x = document.getElementById("Top"), line1 = document.createElement("p"), line1.textContent = "Total runtime: " + data.top[0], line2 = document.createElement("p"), line2.textContent = "Total tuples: " + data.top[1], x.appendChild(line1), x.appendChild(line2)
+    x = document.getElementById("Top");
+    line1 = document.createElement("p");
+    line1.textContent = "Total runtime: " + data.top[0],
+        line2 = document.createElement("p"),
+        line2.textContent = "Total tuples: " + data.top[1],
+        x.appendChild(line1),
+        x.appendChild(line2)
 }
 
 function gen_rel_table() {
-    var a, b, c, d, e, f = 0,
+    var a, b, c, d, f = 0,
         g = .01;
     for (d in data.rel) data.rel.hasOwnProperty(d) && (f += data.rel[d][2], g += parseFloat(data.rel[d][6]));
     a = document.getElementById("Rel_table_body");
+    a.innerHTML="";
     for (d in data.rel)
         if (data.rel.hasOwnProperty(d)) {
             b = document.createElement("tr"), b.id = data.rel[d][1], b.className = "rel_row", b.onclick = function () {
-                changeRowRel(this)
+                changeRowRel(this.id)
             }, c = document.createElement("td"),
                 c.innerHTML = data.rel[d][0],
                 b.appendChild(c);
@@ -337,14 +368,15 @@ function gen_rel_table() {
 }
 
 function gen_rul_table() {
-    var a, b, c, d, e, f = 0,
+    var a, b, c, d, f = 0,
         g = .01;
     for (d in data.rul) data.rul.hasOwnProperty(d) && (f += data.rul[d][2], g += parseFloat(data.rul[d][6]));
     a = document.getElementById("Rul_table_body");
+    a.innerHTML="";
     for (d in data.rul)
         if (data.rul.hasOwnProperty(d)) {
             b = document.createElement("tr"), b.id = data.rul[d][1], b.className = "rul_row", b.onclick = function () {
-                changeRowRul(this)
+                changeRowRul(this.id)
             };
             c = document.createElement("td"),
                 c.innerHTML = data.rul[d][0],
@@ -390,10 +422,33 @@ function gen_rul_table() {
 }
 
 function init() {
-    gen_top(), gen_rel_table(), gen_rul_table(), document.getElementById("default").click(), new Tablesort(document.getElementById("Rel_table")), new Tablesort(document.getElementById("Rul_table"))
+    gen_top();
+    gen_rel_table();
+    gen_rul_table();
+    document.getElementById("default").click();
+    new Tablesort(document.getElementById("Rel_table"));
+    new Tablesort(document.getElementById("Rul_table"));
 }
+
+function toggle_precision() {
+    precision=!precision;
+    gen_rel_table();
+    gen_rul_table();
+    if (selected) {
+        if (selected.rul) {
+            changeRowRul(selected.rul);
+        }
+        if (selected.rel) {
+            changeRowRel(selected.rel);
+        }
+    }
+}
+
+
 var created_relrul = !1,
     created_rulver = !1,
     selected_for_chart = !1,
-    show_graph_vals = !1;
+    show_graph_vals = !1,
+    precision = !1,
+    selected = {rel:!1,rul:!1};
 init();
