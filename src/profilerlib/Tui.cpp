@@ -228,7 +228,7 @@ void Tui::outputJson() {
             src = row[10]->toString(-1);
         }
 
-        std::fprintf(outfile, "'%s':['%s','%s',%f,%f,%f,%f,%lu,'%s',[",
+        std::fprintf(outfile, "\"%s\":[\"%s\",\"%s\",%f,%f,%f,%f,%lu,\"%s\",[",
                     row[6]->getStringVal().c_str(),row[5]->getStringVal().c_str(),row[6]->getStringVal().c_str(),
                     row[0]->getDoubVal(),row[1]->getDoubVal(),row[2]->getDoubVal(),row[3]->getDoubVal(),
                     row[4]->getLongVal(),src.c_str());
@@ -240,14 +240,14 @@ void Tui::outputJson() {
             has_ver = true;
             Row ver_row = *_ver_row;
 
-            std::fprintf(outfile, "[%lu,'%s'],",
+            std::fprintf(outfile, "[%lu,\"%s\"],",
                         ver_row[8]->getLongVal(),
                         ver_row[6]->getStringVal().c_str());
 
         }
         if (has_ver) {
 
-            std::fprintf(outfile, "],{},{'tot_t':[\n");
+            std::fprintf(outfile, "],{},{\"tot_t\":[\n");
 //            std::vector <std::string> part = Tools::split(c, ".");
 //            std::string strRel = "R" + part[0].substr(1);
 //
@@ -256,11 +256,11 @@ void Tui::outputJson() {
             for (auto &row : ver_table.rows) {
                 std::fprintf(outfile, "%f,",(*row)[0]->getDoubVal());
             }
-            std::fprintf(outfile, "],\n'copy_t':[");
+            std::fprintf(outfile, "],\n\"copy_t\":[");
             for (auto &row : ver_table.rows) {
                 std::fprintf(outfile, "%f,",(*row)[3]->getDoubVal());
             }
-            std::fprintf(outfile, "],\n'tuples':[");
+            std::fprintf(outfile, "],\n\"tuples\":[");
             for (auto &row : ver_table.rows) {
                 std::fprintf(outfile, "%ld,",(*row)[4]->getLongVal());
             }
