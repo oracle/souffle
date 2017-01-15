@@ -28,7 +28,7 @@ then
   then
     if [ $MAKEPACKAGE == 1 ]
     then
-      make package
+      make -j2 package
       # compute md5 for package &
       # copy files to deploy directory
       for f in packaging/*.deb
@@ -42,11 +42,11 @@ then
       # show contents of deployment
       ls deploy/*
     else
-      make
+      make -j2
       TESTSUITEFLAGS="-j3 $TESTRANGE" make check
     fi 
   else
-    make
+    make -j2
     TESTSUITEFLAGS="-j3 $TESTRANGE" make check
   fi
 fi
@@ -59,7 +59,7 @@ if [ $TRAVIS_OS_NAME == osx ]
 then
   if [ $MAKEPACKAGE == 1 ]
   then
-    make package
+    make -j2 package
     # compute md5 for package &
     # copy files to deploy directory
     for f in *.pkg
@@ -73,7 +73,7 @@ then
     # show contents of deployment
     ls deploy/*
   else
-    make
+    make -j2
     TESTSUITEFLAGS="-j3 $TESTRANGE" make check
   fi
 fi
