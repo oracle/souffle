@@ -100,7 +100,6 @@ function ctBarLabels(a) {
 }
 
 function draw_graph(a, b, c) {
-    console.log(a, b, c);
     var d = {
         height: "37vh"
     };
