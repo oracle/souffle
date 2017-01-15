@@ -28,7 +28,7 @@ m4_define([SAME_FILES],[
  AT_CHECK([diff "$1" "$2"],[],[],[])
 ])
 
-dnl Check whether two files have the same number of lines 
+dnl Check whether two files have the same number of lines
 dnl $1 -- first file
 dnl $2 -- second file
 m4_define([SAME_LINE_COUNT],[
@@ -131,7 +131,7 @@ m4_define([PROFILE_TEST],[
  ])
 ])
 
-dnl Execute a negative test case for a given flag configuration 
+dnl Execute a negative test case for a given flag configuration
 dnl $1 -- test case
 dnl $2 -- category
 m4_define([TEST_EVAL_ERROR],[
@@ -218,32 +218,57 @@ m4_define([DEFAULT_CONFS], [[], dnl interpreter
 
 dnl Store user-defined souffle flag configuration given by the SOUFFLE_CONFS env (if any)
 m4_define([ENV_CONFS],
-    m4_esyscmd_s(echo "$SOUFFLE_CONFS"))
+    m4_split(m4_esyscmd_s(echo "[[$SOUFFLE_CONFS]]"),[,]))
 
 dnl Pick a flag configuration for testing giving preference to user-defined flags
-m4_ifblank(ENV_CONFS, [
+m4_ifblank(m4_join([],ENV_CONFS), [
   m4_define([CONFS], [DEFAULT_CONFS])
 ], [
-  m4_define([CONFS], ENV_CONFS)
+  m4_define([CONFS], [ENV_CONFS])
 ])
 
+m4_define([DEFAULT_CATEGORIES], [[Syntactic],
+  [Semantic],
+  [Evaluation],
+  [Interface],
+  [Profile]])
 
-dnl Syntactic Tests
-AT_BANNER([Syntactic])
-m4_include([syntactic.at])
+dnl Store user-defined souffle flag configuration given by the SOUFFLE_CONFS env (if any)
+m4_define([ENV_CATEGORIES],
+    m4_split(m4_esyscmd_s(echo "[[$SOUFFLE_CATEGORY]]"),[,]))
 
-dnl Semantic Tests
-AT_BANNER([Semantic])
-m4_include([semantic.at])
+dnl Set default values if none were given.
+m4_ifblank(m4_join([],ENV_CATEGORIES), [
+  m4_define([CATEGORIES], [DEFAULT_CATEGORIES])
+], [
+  m4_define([CATEGORIES], [ENV_CATEGORIES])
+])
 
-dnl Evaluation
-AT_BANNER([Evaluation])
-m4_include([evaluation.at])
+m4_foreach(current, [CATEGORIES],
+[
+  AT_BANNER([current])
+  m4_if(current, Syntactic, [
+    dnl Syntactic Tests
+    m4_include([syntactic.at])
+  ])
 
-dnl Interface
-AT_BANNER([Interface])
-m4_include([interface.at])
+  m4_if(current, Semantic, [
+    dnl Semantic Tests
+    m4_include([semantic.at])
+  ])
 
-dnl Profile
-AT_BANNER([Profile])
-m4_include([profile.at])
+  m4_if(current, Evaluation, [
+    dnl Evaluation
+    m4_include([evaluation.at])
+  ])
+
+  m4_if(current, Interface, [
+    dnl Interface
+    m4_include([interface.at])
+  ])
+
+  m4_if(current, Profile, [
+    dnl Profile
+    m4_include([profile.at])
+  ])
+])

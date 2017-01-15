@@ -10,13 +10,19 @@ os:
 compiler:
   - clang
   - gcc
-# The build takes about 7 minutes (2017013) before testsuite starts running
+# The build takes about 4 minutes (2017016) before testsuite starts running
 env:
   - MAKEPACKAGE=1
-  - MAKEPACKAGE=0 TESTRANGE=1-500
-  - MAKEPACKAGE=0 TESTRANGE=501-1000
-  - MAKEPACKAGE=0 TESTRANGE=1001-1500
-  - MAKEPACKAGE=0 TESTRANGE=1501-
+  - SOUFFLE_CATEGORY=Unit
+  - SOUFFLE_CATEGORY=Syntactic
+  - SOUFFLE_CATEGORY=Semantic
+  - SOUFFLE_CATEGORY=Interface
+  - SOUFFLE_CATEGORY=Profile
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-j1,-j8,-p profile.log"
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-c -j8"
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS=-c
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="--auto-schedule -o testprog"
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-c -p profile.log"
 dist: trusty
 osx_image: xcode7.3
 

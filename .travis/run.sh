@@ -12,7 +12,12 @@ git describe --tags --abbrev=0 --always
 ./bootstrap
 
 # configure project
-./configure --enable-host-packaging
+if [ "$MAKEPACKAGE" == 1 ]
+then
+  ./configure --enable-host-packaging
+else
+  ./configure
+fi
 
 # create deployment directory
 mkdir deploy
@@ -22,32 +27,28 @@ mkdir deploy
 ###############
 if [ $TRAVIS_OS_NAME == linux ]
 then
-  # If c++ compiler is g++ and MAKEPACKAGE == 1, build Debian package.
-  # Otherwise, just check whether latest check-in works
-  if [ $CXX == g++ ]
+  if [ "$MAKEPACKAGE" == 1 ]
   then
-    if [ $MAKEPACKAGE == 1 ]
-    then
-      make -j2 package
-      # compute md5 for package &
-      # copy files to deploy directory
-      for f in packaging/*.deb
-      do
-        pkg=`basename $f .deb`
-        src="packaging/$pkg.deb"
-        dest="deploy/$pkg.deb"
-        cp $src $dest
-        md5sum <$src >deploy/$pkg.md5
-      done
-      # show contents of deployment
-      ls deploy/*
-    else
-      make -j2
-      TESTSUITEFLAGS="-j3 $TESTRANGE" make check
-    fi 
+    make -j2 package
+    # compute md5 for package &
+    # copy files to deploy directory
+    for f in packaging/*.deb
+    do
+      pkg=`basename $f .deb`
+      src="packaging/$pkg.deb"
+      dest="deploy/$pkg.deb"
+      cp $src $dest
+      md5sum <$src >deploy/$pkg.md5
+    done
+    # show contents of deployment
+    ls deploy/*
   else
     make -j2
-    TESTSUITEFLAGS="-j3 $TESTRANGE" make check
+    if [[ "$SOUFFLE_CATEGORY" != *"Unit"* ]]
+    then
+      cd tests
+    fi
+    TESTSUITEFLAGS="-j2 $TESTRANGE" make check
   fi
 fi
 
@@ -57,7 +58,7 @@ fi
 
 if [ $TRAVIS_OS_NAME == osx ]
 then
-  if [ $MAKEPACKAGE == 1 ]
+  if [ "$MAKEPACKAGE" == 1 ]
   then
     make -j2 package
     # compute md5 for package &
@@ -74,6 +75,10 @@ then
     ls deploy/*
   else
     make -j2
-    TESTSUITEFLAGS="-j3 $TESTRANGE" make check
+    if [[ "$SOUFFLE_CATEGORY" != *"Unit"* ]]
+    then
+      cd tests
+    fi
+    TESTSUITEFLAGS="-j2 $TESTRANGE" make check
   fi
 fi
