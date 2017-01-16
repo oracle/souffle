@@ -127,10 +127,10 @@ function humanize_time(data) {
             return data.toFixed(3) + "s"
         }
         micro = milli * 1000;
-        if (micro > 1) {
+        if (micro >= 1) {
             return micro.toPrecision(3) + "µs"
         }
-        return micro
+        return micro + "µs"
     } else {
         minutes = (data / 60);
         if (minutes < 3) return data.toPrecision(3) + "s";
