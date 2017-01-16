@@ -8,6 +8,33 @@ set -x
 echo -n "Version: "
 git describe --tags --abbrev=0 --always
 
+if [ "$TEST_FORMAT" == 1 ]
+then
+  clang-format-3.6 --version
+  set +x
+  for f in $(git diff --name-only --diff-filter=ACMRTUXB HEAD~); do
+    if ! echo "$f" | egrep -q "[.](cpp|h)$"; then
+      continue
+    fi
+    if ! echo "$f" | egrep -q "^src/"; then
+      continue
+    fi
+    d=$(diff -u "$f" <(clang-format-3.6 "$f")) || true
+    if [ -n "$d" ]; then
+      echo "!!! $f not compliant to coding style, here is a suggested fix:"
+      echo "$d"
+      fail=1
+    fi
+  done
+
+  if [ "$fail" == 1 ]
+  then
+    exit 1
+  else
+    exit 0
+  fi
+fi
+
 # create configure files
 ./bootstrap
 
