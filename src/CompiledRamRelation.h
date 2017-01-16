@@ -1453,6 +1453,9 @@ struct RelationBase {
 
     // -- IO --
 
+    /**
+     * Prints this relation using the given options.
+     */
     void printCSV(const SymbolTable& symbolTable, const SymbolMask& format,
             const std::string& options) const {
     try {
@@ -1468,46 +1471,6 @@ struct RelationBase {
             std::cerr << e.what();
             exit(1);
         }
-    }
-
-    /* prints this relation to the given file in CSV format */
-    void printCSV(const char* fn, const SymbolTable& symbolTable, const SymbolMask& format) const {
-        // support NULL as an output
-        if (fn == nullptr) {
-            printCSV(symbolTable, format, "IO=stdout,name=error");
-        } else {
-            // open output file
-            std::stringstream options;
-            options << "IO=file,";
-            options << "name=" << fn;
-            printCSV(symbolTable, format, options.str());
-        }
-    }
-
-    /**
-     * Prints this relation to the given file.
-     *
-     * @param fn .. the file name to be targeted
-     * @param format .. a mask of 0s or 1s determining which components
-     * 				of the tuples should be converted to a symbol using
-     * 				the symbol table and which are representing actual numbers
-     */
-    template<typename ... Format>
-    void printCSV(const char* fn, const SymbolTable& symbolTable, Format ... format) const {
-        printCSV(fn, symbolTable, SymbolMask({bool(format)...}));
-    }
-
-    /**
-     * Prints this relation to the given file.
-     *
-     * @param fn .. the file name to be targeted
-     * @param format .. a mask of 0s or 1s determining which components
-     *              of the tuples should be converted to a symbol using
-     *              the symbol table and which are representing actual numbers
-     */
-    template<typename ... Format>
-    void printCSV(const std::string& fn, const SymbolTable& symbolTable, Format ... format) const {
-        printCSV(fn.c_str(), symbolTable, SymbolMask({bool(format)...}));
     }
 
     void loadCSV(SymbolTable& symbolTable, const SymbolMask& format, const std::string& options) {
