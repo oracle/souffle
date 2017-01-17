@@ -27,6 +27,7 @@
 #include "SymbolTable.h"
 #include "WriteStream.h"
 #include "WriteStreamCSV.h"
+#include "WriteStreamSQLite.h"
 
 namespace souffle {
 
@@ -73,6 +74,16 @@ public:
                 symbolMask, symbolTable, getDelimiter(options)));
     }
     virtual ~WriteCoutCSVFactory() {}
+};
+
+class WriteSQLiteFactory : public OutputFactory {
+public:
+    std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask,
+            const SymbolTable &symbolTable, const std::map<std::string, std::string>& options) {
+        return std::unique_ptr<WriteStreamSQLite>(new WriteStreamSQLite("souffle", options.at("name"),
+                symbolMask, symbolTable));
+    }
+    virtual ~WriteSQLiteFactory() {}
 };
 
 
@@ -210,6 +221,7 @@ private:
         registerInputFactory("stdin", std::make_shared<ReadCinCSVFactory>());
         registerOutputFactory("file", std::make_shared<WriteFileCSVFactory>());
         registerOutputFactory("stdout", std::make_shared<WriteCoutCSVFactory>());
+        registerOutputFactory("sqlite", std::make_shared<WriteSQLiteFactory>());
     };
     std::map<std::string, std::shared_ptr<OutputFactory>> outputFactories;
     std::map<std::string, std::shared_ptr<InputFactory>> inputFactories;
