@@ -24,6 +24,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 
 namespace souffle {
 
@@ -37,6 +38,8 @@ public:
               symbolTable(symbolTable) {
         openDB();
         createRelationTable();
+        createRelationView();
+        createSymbolTable();
         prepareInsertStatement();
         //        executeSQL("BEGIN TRANSACTION", db);
     }
@@ -47,29 +50,29 @@ public:
         }
 
         for (size_t i = 0; i < symbolMask.getArity(); i++) {
-            std::string symbol;
+            int32_t value;
             if (symbolMask.isSymbol(i)) {
-                symbol = symbolTable.resolve(tuple[i]);
+                value = getSymbolTableID(tuple[i]);
             } else {
-                symbol = std::to_string((int32_t)tuple[i]);
+                value = (int32_t)tuple[i];
             }
-            if (sqlite3_bind_text(insertStmt, i + 1, symbol.c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK) {
+            if (sqlite3_bind_int(insertStatement, i + 1, value) != SQLITE_OK) {
                 std::stringstream error;
                 error << "SQLite error in sqlite3_bind_text: " << sqlite3_errmsg(db) << "\n";
                 throw std::invalid_argument(error.str());
             }
         }
-        if (sqlite3_step(insertStmt) != SQLITE_DONE) {
+        if (sqlite3_step(insertStatement) != SQLITE_DONE) {
             std::stringstream error;
             error << "SQLite error in sqlite3_step: " << sqlite3_errmsg(db) << "\n";
             throw std::invalid_argument(error.str());
         }
-        sqlite3_clear_bindings(insertStmt);
-        sqlite3_reset(insertStmt);
+        sqlite3_clear_bindings(insertStatement);
+        sqlite3_reset(insertStatement);
     }
 
     virtual ~WriteStreamSQLite() {
-        sqlite3_finalize(insertStmt);
+        sqlite3_finalize(insertStatement);
         sqlite3_close(db);
     }
 
@@ -89,6 +92,31 @@ private:
             throw std::invalid_argument(error.str());
         }
     }
+
+    uint64_t getSymbolTableID(int index) {
+        if (dbSymbolTable.count(index) != 0) {
+            return dbSymbolTable[index];
+        }
+
+        if (sqlite3_bind_text(symbolInsertStatement, 1, symbolTable.resolve(index), -1, SQLITE_TRANSIENT) !=
+                SQLITE_OK) {
+            std::stringstream error;
+            error << "SQLite error in sqlite3_bind_text: " << sqlite3_errmsg(db) << "\n";
+            throw std::invalid_argument(error.str());
+        }
+        if (sqlite3_step(symbolInsertStatement) != SQLITE_DONE) {
+            std::stringstream error;
+            error << "SQLite error in sqlite3_step: " << sqlite3_errmsg(db) << "\n";
+            throw std::invalid_argument(error.str());
+        }
+        sqlite3_clear_bindings(symbolInsertStatement);
+        sqlite3_reset(symbolInsertStatement);
+
+        uint64_t rowid = sqlite3_last_insert_rowid(db);
+        dbSymbolTable[index] = rowid;
+        return rowid;
+    }
+
     void openDB() {
         if (sqlite3_open(dbFilename.c_str(), &db) != SQLITE_OK) {
             std::stringstream error;
@@ -100,6 +128,18 @@ private:
         executeSQL("PRAGMA journal_mode = MEMORY", db);
     }
 
+    virtual void prepareSymbolInsertStatement() {
+        std::stringstream insertSQL;
+        insertSQL << "INSERT OR IGNORE INTO " << symbolTableName;
+        insertSQL << " VALUES(@V0);";
+        const char* tail = 0;
+        if (sqlite3_prepare_v2(db, insertSQL.str().c_str(), -1, &symbolInsertStatement, &tail) != SQLITE_OK) {
+            std::stringstream error;
+            error << "SQLite error in sqlite3_prepare_v2: " << sqlite3_errmsg(db) << "\n";
+            throw std::invalid_argument(error.str());
+        }
+    }
+
     virtual void prepareInsertStatement() {
         std::stringstream insertSQL;
         insertSQL << "INSERT INTO _" << relationName << " VALUES ";
@@ -109,34 +149,80 @@ private:
         }
         insertSQL << ");";
         const char* tail = 0;
-        if (sqlite3_prepare_v2(db, insertSQL.str().c_str(), -1, &insertStmt, &tail) != SQLITE_OK) {
+        if (sqlite3_prepare_v2(db, insertSQL.str().c_str(), -1, &insertStatement, &tail) != SQLITE_OK) {
             std::stringstream error;
             error << "SQLite error in sqlite3_prepare_v2: " << sqlite3_errmsg(db) << "\n";
             throw std::invalid_argument(error.str());
         }
     }
+
     virtual void createRelationTable() {
-        std::stringstream createStmt;
-        createStmt << "CREATE TABLE IF NOT EXISTS '_" << relationName << "' (";
+        std::stringstream createTableText;
+        createTableText << "CREATE TABLE IF NOT EXISTS '_" << relationName << "' (";
         if (symbolMask.getArity() > 0) {
-            createStmt << "'0' TEXT";
+            createTableText << "'0' INTEGER";
             for (unsigned int i = 1; i < symbolMask.getArity(); i++) {
-                createStmt << ",'" << std::to_string(i) << "' ";
-                createStmt << "TEXT";
+                createTableText << ",'" << std::to_string(i) << "' ";
+                createTableText << "INTEGER";
             }
         }
-        createStmt << ");";
-        executeSQL(createStmt.str(), db);
+        createTableText << ");";
+        executeSQL(createTableText.str(), db);
         executeSQL("DELETE FROM '_" + relationName + "';", db);
+    }
+
+    virtual void createRelationView() {
+        // Create view with symbol strings resolved
+        std::stringstream createViewText;
+        createViewText << "CREATE VIEW '" << relationName << "' AS ";
+        std::stringstream projectionClause;
+        std::stringstream fromClause;
+        fromClause << "'_" << relationName << "'";
+        std::stringstream whereClause;
+        bool firstWhere = true;
+        for (unsigned int i = 0; i < symbolMask.getArity(); i++) {
+            std::string columnName = std::to_string(i);
+            if (i != 0) {
+                projectionClause << ",";
+            }
+            if (!symbolMask.isSymbol(i)) {
+                projectionClause << "'_" << relationName << "'.'" << columnName << "'";
+            } else {
+                projectionClause << "'_symtab_" << columnName << "'.symbol AS '" << columnName << "'";
+                fromClause << ",'" << symbolTableName << "' AS '_symtab_" << columnName << "'";
+                if (!firstWhere) {
+                    whereClause << " AND ";
+                } else {
+                    firstWhere = false;
+                }
+                whereClause << "'_" << relationName << "'.'" << columnName << "' = "
+                            << "'_symtab_" << columnName << "'.id";
+            }
+        }
+        createViewText << "SELECT " << projectionClause.str() << " FROM " << fromClause.str();
+        if (!firstWhere) {
+            createViewText << " WHERE " << whereClause.str();
+        }
+        createViewText << ";";
+        executeSQL(createViewText.str(), db);
+    }
+    virtual void createSymbolTable() {
+        std::stringstream createTableText;
+        createTableText << "CREATE TABLE IF NOT EXISTS '" << symbolTableName << "' ";
+        createTableText << "(id INTEGER PRIMARY KEY, symbol TEXT UNIQUE);";
+        executeSQL(createTableText.str(), db);
     }
 
 private:
     const std::string& dbFilename;
     const std::string& relationName;
+    const std::string symbolTableName = "__SymbolTable";
     const SymbolMask& symbolMask;
     const SymbolTable& symbolTable;
 
-    sqlite3_stmt* insertStmt;
+    std::unordered_map<uint64_t, uint64_t> dbSymbolTable;
+    sqlite3_stmt* insertStatement;
+    sqlite3_stmt* symbolInsertStatement;
     sqlite3* db;
 };
 
