@@ -23,6 +23,7 @@
 
 #include "ReadStream.h"
 #include "ReadStreamCSV.h"
+#include "ReadStreamSQLite.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
 #include "WriteStream.h"
@@ -80,8 +81,8 @@ class WriteSQLiteFactory : public OutputFactory {
 public:
     std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask,
             const SymbolTable &symbolTable, const std::map<std::string, std::string>& options) {
-        return std::unique_ptr<WriteStreamSQLite>(new WriteStreamSQLite("souffle", options.at("name"),
-                symbolMask, symbolTable));
+        return std::unique_ptr<WriteStreamSQLite>(new WriteStreamSQLite(options.at("dbname"),
+                        options.at("name"), symbolMask, symbolTable));
     }
     virtual ~WriteSQLiteFactory() {}
 };
@@ -107,6 +108,15 @@ public:
     virtual ~ReadCinCSVFactory() {}
 };
 
+class ReadStreamSQLiteFactory : public InputFactory {
+public:
+    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
+            const std::map<std::string, std::string>& options) {
+        return std::unique_ptr<ReadStreamSQLite>(new ReadStreamSQLite(options.at("dbname"),
+                options.at("name"), symbolMask, symbolTable));
+    }
+    virtual ~ReadStreamSQLiteFactory() {}
+};
 
 class IOSystem {
 public:
@@ -219,6 +229,8 @@ private:
     IOSystem() {
         registerInputFactory("file", std::make_shared<ReadFileCSVFactory>());
         registerInputFactory("stdin", std::make_shared<ReadCinCSVFactory>());
+        registerInputFactory("sqlite", std::make_shared<ReadStreamSQLiteFactory>());
+
         registerOutputFactory("file", std::make_shared<WriteFileCSVFactory>());
         registerOutputFactory("stdout", std::make_shared<WriteCoutCSVFactory>());
         registerOutputFactory("sqlite", std::make_shared<WriteSQLiteFactory>());
