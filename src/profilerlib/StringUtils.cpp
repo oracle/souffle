@@ -201,32 +201,28 @@ std::vector <std::string> Tools::split(std::string str, std::string split_str) {
 
 std::vector <std::string> Tools::splitAtSemiColon(std::string str) {
 
-    bool in_str = false;
 
     for (size_t i = 0; i < str.size(); i++) {
-        if (in_str) {
-            if (str[i] == '"' && str[i - 1] != '\\') {
-                in_str = false;
-            } else if (str[i] == ';') {
-                str[i] = 0;
-            }
-        } else {
-            if (i>0 && str[i] == '"' && str[i - 1] != '\\') {
-                in_str = true;
-            }
+        if (i>0 && str[i] == ';' && str[i - 1] == '\\') {
+            str[i-1] = '\b'; // im assuming this isnt a thing that will be naturally found in souffle profiler files
+            str.erase(i--,1);
+
         }
     }
-
-
+    bool changed =false;
     std::vector <std::string> result = split(str, ";");
-    for (auto &st : result) {
-        std::string s = st;
-        for (size_t i = 0; i < st.size(); i++) {
-            if (st[i] == 0) {
-                st[i] = ';';
+    for (size_t i=0; i<result.size(); i++) {
+        for (size_t j = 0; j < result[i].size(); j++) {
+            if (result[i][j] == '\b') {
+                result[i][j] = ';';
+                changed = true;
             }
         }
+        if (changed) {
+            changed = false;
+        }
     }
+
     return result;
 }
 

@@ -23,7 +23,6 @@ void Reader::readFile() {
         int lineno = 0;
         while (getline(file, str)) {
             lineno++;
-            std::cout << str << std::endl;
             if (!str.empty() && str.at(0) == '@') {
                 if (str.compare("@start-debug") == 0) {
                     continue;
@@ -32,10 +31,6 @@ void Reader::readFile() {
                 // TODO: both ' and "
 //                std::vector<std::string> part = Tools::split(str.substr(1), "\\s*;(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)\\s*");
                 std::vector <std::string> part = Tools::splitAtSemiColon(str.substr(1));
-                int icount= 0;
-                for (auto& item : part) {
-                    std::cout << "\t " << icount++ << ": " << item << std::endl;
-                }
                 process(part);
             }
         }
@@ -184,7 +179,6 @@ void Reader::addRule(std::shared_ptr <Relation> rel, std::vector <std::string> d
 
 
     if (data[0].at(0) == 't') {
-        std::cout << "=======" << data[4] << "\n";
         _rul->setRuntime(std::stod(data[4]));
         _rul->setLocator(data[2]);
     } else if (data[0].at(0) == 'n') {
@@ -214,7 +208,6 @@ void Reader::livereadinit() {
     bool finished = false;
     while (std::getline(ifs, line)) {
         gpos = ifs.tellg();
-        std::cout << "line: " << line << std::endl;
         std::vector <std::string> part = Tools::splitAtSemiColon(line.substr(1));
         if (line == "@start-debug") continue;
         process(part);
@@ -230,6 +223,7 @@ void Reader::livereadinit() {
 
 
 void Reader::liveread(std::ifstream &ifs, std::ios::streampos &gpos) {
+    std::cerr << "\n==LiveReader start.==\n";
     std::string line;
     bool done = false;
 
@@ -249,9 +243,10 @@ void Reader::liveread(std::ifstream &ifs, std::ios::streampos &gpos) {
         }
 
         gpos = ifs.tellg();
-        std::cout << "line: " << line << std::endl;
+        std::cerr << "Read line: " << line << std::endl;
         std::vector <std::string> part = Tools::splitAtSemiColon(line.substr(1));
         process(part);
     }
     loaded = true;
+    std::cerr << "\n==LiveReader finish.==\n";
 }
