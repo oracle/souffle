@@ -12,8 +12,8 @@
 
 void Reader::readFile() {
     if (isLive()) {
-        std::cerr << "not implemented";
-        throw std::exception();
+        livereadinit();
+        //std::thread([this]{liveread();}).detach();
     } else {
         if (!file.is_open()) {
             throw std::exception();
@@ -23,6 +23,7 @@ void Reader::readFile() {
         int lineno = 0;
         while (getline(file, str)) {
             lineno++;
+            std::cout << str << std::endl;
             if (!str.empty() && str.at(0) == '@') {
                 if (str.compare("@start-debug") == 0) {
                     continue;
@@ -31,6 +32,10 @@ void Reader::readFile() {
                 // TODO: both ' and "
 //                std::vector<std::string> part = Tools::split(str.substr(1), "\\s*;(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)\\s*");
                 std::vector <std::string> part = Tools::splitAtSemiColon(str.substr(1));
+                int icount= 0;
+                for (auto& item : part) {
+                    std::cout << "\t " << icount++ << ": " << item << std::endl;
+                }
                 process(part);
             }
         }
@@ -107,15 +112,14 @@ void Reader::save(std::string f_name) {
 
 void Reader::process(const std::vector <std::string> &data) {
     if (data[0].compare("runtime") == 0) {
-        runtime = stod(data[1]);
+        runtime = std::stod(data[1]);
     } else {
         //insert into the map if it does not exist already
         if (relation_map.find(data[1]) == relation_map.end()) {
             relation_map.emplace(data[1], std::make_shared<Relation>(Relation(data[1], createId())));
-        } else {
         }
-        std::shared_ptr <Relation> _rel = relation_map[data[1]];
 
+        std::shared_ptr <Relation> _rel = relation_map[data[1]];
         // find non-recursive first, since they both share text recursive
         if (data[0].find("nonrecursive") != std::string::npos) {
             if (data[0].at(0) == 't' && data[0].find("relation") != std::string::npos) {
@@ -180,6 +184,7 @@ void Reader::addRule(std::shared_ptr <Relation> rel, std::vector <std::string> d
 
 
     if (data[0].at(0) == 't') {
+        std::cout << "=======" << data[4] << "\n";
         _rul->setRuntime(std::stod(data[4]));
         _rul->setLocator(data[2]);
     } else if (data[0].at(0) == 'n') {
@@ -192,4 +197,61 @@ void Reader::addRule(std::shared_ptr <Relation> rel, std::vector <std::string> d
 
 std::string Reader::createId() {
     return "R" + std::to_string(++rel_id);
+}
+
+
+void Reader::livereadinit() {
+    std::ifstream ifs(this->file_loc);
+
+    if(!ifs.is_open())
+    {
+        std::cerr << "ERROR: opening log file: " << this->file_loc << '\n';
+        return;
+    }
+    std::cout << this->file_loc << " open" <<std::endl;
+    std::ios::streampos gpos = ifs.tellg();
+    std::string line;
+    bool finished = false;
+    while (std::getline(ifs, line)) {
+        gpos = ifs.tellg();
+        std::cout << "line: " << line << std::endl;
+        std::vector <std::string> part = Tools::splitAtSemiColon(line.substr(1));
+        if (line == "@start-debug") continue;
+        process(part);
+        if (line.find("@runtime;") == 0) finished = true;
+    }
+    if (finished || line.find("@runtime;") == 0) {
+        std::cout << "Souffle has finished already, no need for live version." <<std::endl;
+    } else {
+        std::thread([this, &ifs, &gpos] { liveread(ifs, gpos); }).detach();
+    }
+    loaded = true;
+}
+
+
+void Reader::liveread(std::ifstream &ifs, std::ios::streampos &gpos) {
+    std::string line;
+    bool done = false;
+
+    while(!done)
+    {
+        if(!std::getline(ifs, line) || ifs.eof())
+        {
+            ifs.clear();
+            ifs.seekg(gpos);
+
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            continue;
+        }
+        std::size_t found=line.find("@runtime;");
+        if (found!=std::string::npos && found==0) {
+            done=true;
+        }
+
+        gpos = ifs.tellg();
+        std::cout << "line: " << line << std::endl;
+        std::vector <std::string> part = Tools::splitAtSemiColon(line.substr(1));
+        process(part);
+    }
+    loaded = true;
 }

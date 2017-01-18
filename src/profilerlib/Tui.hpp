@@ -41,7 +41,7 @@ private:
     int precision = -1;
     Table rel_table_state;
     Table rul_table_state;
-
+    std::shared_ptr<Reader> reader;
 public:
     Tui(std::string filename, bool live, bool gui);
 

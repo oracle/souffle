@@ -48,6 +48,10 @@ public:
         return formatTime(runtime);
     }
 
+    double getDoubleRuntime() {
+        return runtime;
+    }
+
     long getTotNumTuples();
 
     long getTotNumRecTuples();

@@ -22,10 +22,11 @@ Tui::Tui(std::string filename, bool live, bool gui) : out() {
     // out = OutputProcessor();
     std::shared_ptr <ProgramRun> &run = out.getProgramRun();
 
-    Reader read(filename, run, false, live);
-    read.readFile();
-    this->loaded = read.isLoaded();
+    this->reader = std::make_shared<Reader>(Reader(filename, run, false, live));
+    reader->readFile();
 
+    this->loaded = reader->isLoaded();
+    this->alive = live;
     rul_table_state = out.getRulTable();
     rel_table_state = out.getRelTable();
 }
@@ -202,13 +203,14 @@ void Tui::outputJson() {
 
 
     std::shared_ptr <ProgramRun> &run = out.getProgramRun();
-    std::string runtime = run->getRuntime();
-    std::fprintf(outfile, "data={'top':[%f,%lu],\n'rel':{\n", run->getTotTime(), run->getTotNumTuples());
+
+    std::fprintf(outfile, "data={'top':[%f,%lu],\n'rel':{\n", run->getDoubleRuntime(), run->getTotNumTuples());
     for (auto &_row : rel_table_state.getRows()) {
         Row row = *_row;
-        std::fprintf(outfile, "'%s':['%s','%s',%f,%f,%f,%f,%lu,'%s',[",
-                    row[6]->getStringVal().c_str(),row[5]->getStringVal().c_str(),row[6]->getStringVal().c_str(),
-                    row[0]->getDoubVal(),row[1]->getDoubVal(),row[2]->getDoubVal(),row[3]->getDoubVal(),
+        std::fprintf(outfile, "'%s':['%s','%s',%s,%s,%s,%s,%lu,'%s',[",
+                     row[6]->getStringVal().c_str(),Tools::cleanJsonOut(row[5]->getStringVal()).c_str(),row[6]->getStringVal().c_str(),
+                     Tools::cleanJsonOut(row[0]->getDoubVal()).c_str(),Tools::cleanJsonOut(row[1]->getDoubVal()).c_str(),
+                     Tools::cleanJsonOut(row[2]->getDoubVal()).c_str(),Tools::cleanJsonOut(row[3]->getDoubVal()).c_str(),
                     row[4]->getLongVal(),row[7]->getStringVal().c_str());
         for (auto &_rel_row : rul_table_state.getRows()) {
             Row rel_row = *_rel_row;
@@ -239,10 +241,11 @@ void Tui::outputJson() {
             src = row[10]->toString(-1);
         }
 
-        std::fprintf(outfile, "\"%s\":[\"%s\",\"%s\",%f,%f,%f,%f,%lu,\"%s\",[",
-                    row[6]->getStringVal().c_str(),row[5]->getStringVal().c_str(),row[6]->getStringVal().c_str(),
-                    row[0]->getDoubVal(),row[1]->getDoubVal(),row[2]->getDoubVal(),row[3]->getDoubVal(),
-                    row[4]->getLongVal(),src.c_str());
+        std::fprintf(outfile, "\"%s\":[\"%s\",\"%s\",%s,%s,%s,%s,%lu,\"%s\",[",
+                    row[6]->getStringVal().c_str(),Tools::cleanJsonOut(row[5]->getStringVal()).c_str(),row[6]->getStringVal().c_str(),
+                     Tools::cleanJsonOut(row[0]->getDoubVal()).c_str(),Tools::cleanJsonOut(row[1]->getDoubVal()).c_str(),
+                     Tools::cleanJsonOut(row[2]->getDoubVal()).c_str(),Tools::cleanJsonOut(row[3]->getDoubVal()).c_str(),
+                     row[4]->getLongVal(),src.c_str());
 
 
 
@@ -265,11 +268,11 @@ void Tui::outputJson() {
 //            Table ver_table = out.getVersions(strRel, c);
 
             for (auto &row : ver_table.rows) {
-                std::fprintf(outfile, "%f,",(*row)[0]->getDoubVal());
+                std::fprintf(outfile, "%s,",Tools::cleanJsonOut((*row)[0]->getDoubVal()).c_str());
             }
             std::fprintf(outfile, "],\n\"copy_t\":[");
             for (auto &row : ver_table.rows) {
-                std::fprintf(outfile, "%f,",(*row)[3]->getDoubVal());
+                std::fprintf(outfile, "%s,",Tools::cleanJsonOut((*row)[3]->getDoubVal()).c_str());
             }
             std::fprintf(outfile, "],\n\"tuples\":[");
             for (auto &row : ver_table.rows) {

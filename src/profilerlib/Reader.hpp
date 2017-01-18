@@ -15,7 +15,7 @@
 #include <exception>
 #include <memory>
 #include <regex>
-
+#include <thread>
 
 #include <dirent.h>
 
@@ -43,7 +43,7 @@ public:
 
     Reader(std::string arg, std::shared_ptr <ProgramRun> run, bool vFlag, bool online) :
             file_loc(arg), file(arg), online(online), runtime(-1.0),
-            relation_map(std::unordered_map < std::string, std::shared_ptr < Relation >> ()) {
+            relation_map(std::unordered_map < std::string, std::shared_ptr < Relation >>()) {
         this->run = run;
     }
 
@@ -68,5 +68,6 @@ public:
 
     std::string createId();
 
-
+    void livereadinit();
+    void liveread(std::ifstream &ifs, std::ios::streampos &gpos);
 };

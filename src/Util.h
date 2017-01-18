@@ -42,9 +42,9 @@
 #define BREAKPOINT std::cerr << "BREAKPOINT: " << __FILE__ << " @" << __LINE__ << "." << std::endl
 #endif
 
-/* Macro for ASSERT */ 
+/* Macro for ASSERT */
 #ifndef ASSERT
-#ifndef OPT 
+#ifndef OPT
 #define ASSERT(x) assert(x)
 #else
 #define ASSERT(x) 
@@ -970,10 +970,10 @@ inline std::string findTool(std::string tool, std::string base, std::string path
 inline std::string baseName(std::string &filename)
 {
    char fn[filename.size()+1];
-   strcpy(fn,filename.c_str()); 
-   std::string result = basename(fn); 
+   strcpy(fn,filename.c_str());
+   std::string result = basename(fn);
    return result;
-} 
+}
 
 /**
  * Stringify a string using escapes for newline, tab, and double-quotes
@@ -982,27 +982,27 @@ inline std::string stringify(const std::string &input)
 {
     std::string str(input);
 
-    // replace double-quotes returns by escape sequence 
+    // replace double-quotes returns by escape sequence
     size_t start_pos = 0;
-    while((start_pos = str.find('"', start_pos)) != std::string::npos) {
-        str.replace(start_pos, 1, "\\\"");
+    while((start_pos = str.find(';', start_pos)) != std::string::npos) {
+        str.replace(start_pos, 1, "\\;");
         start_pos +=2;
     }
-    // replace double-quotes returns by escape sequence 
+    // replace double-quotes returns by escape sequence
     start_pos = 0;
     while((start_pos = str.find('\n', start_pos)) != std::string::npos) {
         str.replace(start_pos, 1, "\\n");
         start_pos +=2;
     }
-    // replace double-quotes returns by escape sequence 
+    // replace double-quotes returns by escape sequence
     start_pos = 0;
     while((start_pos = str.find('\t', start_pos)) != std::string::npos) {
         str.replace(start_pos, 1, "\\t");
         start_pos +=2;
     }
     str = "\"" + str + "\"";
-    return str; 
-} 
+    return str;
+}
 
 } // end namespace souffle
 

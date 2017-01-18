@@ -208,20 +208,21 @@ std::vector <std::string> Tools::splitAtSemiColon(std::string str) {
             if (str[i] == '"' && str[i - 1] != '\\') {
                 in_str = false;
             } else if (str[i] == ';') {
-                str[i] = '\n';
+                str[i] = 0;
             }
         } else {
-            if (str[i] == '"') {
+            if (i>0 && str[i] == '"' && str[i - 1] != '\\') {
                 in_str = true;
             }
         }
     }
 
+
     std::vector <std::string> result = split(str, ";");
     for (auto &st : result) {
         std::string s = st;
         for (size_t i = 0; i < st.size(); i++) {
-            if (st[i] == '\n') {
+            if (st[i] == 0) {
                 st[i] = ';';
             }
         }
@@ -260,4 +261,31 @@ std::string Tools::cleanString(std::string val) {
         }
     }
     return val;
+}
+
+
+std::string Tools::cleanJsonOut(std::string val) {
+    if (val.size() < 2) {
+        return val;
+    }
+
+    if (val.at(0) == '"' && val.at(val.size() - 1) == '"') {
+        val = val.substr(1, val.size() - 2);
+    }
+
+    size_t start_pos = 0;
+    while ((start_pos = val.find('"', start_pos)) != std::string::npos) {
+        val.replace(start_pos, 1, "\"");
+        start_pos++;
+    }
+    return val;
+}
+
+std::string Tools::cleanJsonOut(double val) {
+    if (std::isnan(val)) {
+        return "NaN";
+    }
+    std::ostringstream ss;
+    ss << std::scientific << std::setprecision(6) << val;
+    return ss.str();
 }

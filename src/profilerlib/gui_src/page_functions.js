@@ -317,7 +317,7 @@ function gen_top() {
 function gen_rel_table() {
     var a, b, c, d, f = 0,
         g = .01;
-    for (d in data.rel) data.rel.hasOwnProperty(d) && (f += data.rel[d][2], g += parseFloat(data.rel[d][6]));
+    for (d in data.rel) data.rel.hasOwnProperty(d) && !isNaN(data.rel[d][2])  && (f += data.rel[d][2], g += parseFloat(data.rel[d][6]));
     a = document.getElementById("Rel_table_body");
     a.innerHTML="";
     for (d in data.rel)
@@ -369,7 +369,7 @@ function gen_rel_table() {
 function gen_rul_table() {
     var a, b, c, d, f = 0,
         g = .01;
-    for (d in data.rul) data.rul.hasOwnProperty(d) && (f += data.rul[d][2], g += parseFloat(data.rul[d][6]));
+    for (d in data.rul) data.rul.hasOwnProperty(d) && !isNaN(data.rul[d][2]) && (f += data.rul[d][2], g += parseFloat(data.rul[d][6]));
     a = document.getElementById("Rul_table_body");
     a.innerHTML="";
     for (d in data.rul)
