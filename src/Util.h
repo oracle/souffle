@@ -1000,7 +1000,6 @@ inline std::string stringify(const std::string &input)
         str.replace(start_pos, 1, "\\t");
         start_pos +=2;
     }
-    str = "\"" + str + "\"";
     return str;
 }
 

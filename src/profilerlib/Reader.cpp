@@ -106,6 +106,7 @@ void Reader::save(std::string f_name) {
 }
 
 void Reader::process(const std::vector <std::string> &data) {
+
     if (data[0].compare("runtime") == 0) {
         runtime = std::stod(data[1]);
     } else {
@@ -195,58 +196,75 @@ std::string Reader::createId() {
 
 
 void Reader::livereadinit() {
-    std::ifstream ifs(this->file_loc);
+    live_file = std::ifstream(this->file_loc);
 
-    if(!ifs.is_open())
+    if(!live_file.is_open())
     {
         std::cerr << "ERROR: opening log file: " << this->file_loc << '\n';
         return;
     }
     std::cout << this->file_loc << " open" <<std::endl;
-    std::ios::streampos gpos = ifs.tellg();
+    gpos = live_file.tellg();
     std::string line;
     bool finished = false;
-    while (std::getline(ifs, line)) {
-        gpos = ifs.tellg();
-        std::vector <std::string> part = Tools::splitAtSemiColon(line.substr(1));
-        if (line == "@start-debug") continue;
-        process(part);
-        if (line.find("@runtime;") == 0) finished = true;
+    bool done = false;
+    while(!done)
+    {
+        if(!std::getline(live_file, line) || live_file.eof())
+        {
+            live_file.clear();
+            live_file.seekg(gpos);
+            //std::this_thread::sleep_for(std::chrono::seconds(1));
+            break;
+        }
+        //std::cerr << "Read line: " << line << std::endl;
+
+        if (!line.empty() && line.at(0) == '@') {
+            std::vector <std::string> part = Tools::splitAtSemiColon(line.substr(1));
+            if (line == "@start-debug") continue;
+            process(part);
+
+            std::size_t found=line.find("@runtime;");
+            if (found!=std::string::npos && found==0) {
+                finished = true;
+                break;
+            }
+
+            gpos = live_file.tellg();
+        }
     }
+
     if (finished || line.find("@runtime;") == 0) {
-        std::cout << "Souffle has finished already, no need for live version." <<std::endl;
+        std::cout << "Souffle has finished, no need for live version." <<std::endl;
     } else {
-        std::thread([this, &ifs, &gpos] { liveread(ifs, gpos); }).detach();
+        std::thread([this] { liveread(); }).detach();
     }
     loaded = true;
 }
 
 
-void Reader::liveread(std::ifstream &ifs, std::ios::streampos &gpos) {
-    std::cerr << "\n==LiveReader start.==\n";
+void Reader::liveread() {
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     std::string line;
     bool done = false;
-
     while(!done)
     {
-        if(!std::getline(ifs, line) || ifs.eof())
+        if(!std::getline(live_file, line) || live_file.eof())
         {
-            ifs.clear();
-            ifs.seekg(gpos);
-
+            live_file.clear();
+            live_file.seekg(gpos);
             std::this_thread::sleep_for(std::chrono::seconds(1));
             continue;
+
         }
         std::size_t found=line.find("@runtime;");
         if (found!=std::string::npos && found==0) {
             done=true;
         }
 
-        gpos = ifs.tellg();
-        std::cerr << "Read line: " << line << std::endl;
+        gpos = live_file.tellg();
         std::vector <std::string> part = Tools::splitAtSemiColon(line.substr(1));
         process(part);
     }
-    loaded = true;
-    std::cerr << "\n==LiveReader finish.==\n";
+    std::cerr << "\n==LiveReader/souffle finished.==\n";
 }

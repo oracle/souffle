@@ -123,7 +123,10 @@ void Tui::runProf() {
 
 
         std::vector <std::string> c = Tools::split(input, " ");
-
+        if (alive) {
+            rul_table_state = out.getRulTable();
+            rel_table_state = out.getRelTable();
+        }
         if (c[0].compare("q") == 0 || c[0].compare("quit") == 0) {
             quit();
             break;
@@ -346,10 +349,10 @@ void Tui::load(std::string method, std::string load_file) {
         std::cout << "Load success\n";
         this->loaded = true;
         this->f_name = f_name;
-        if (alive) {
-            std::cout << "Live reader not implemented\n" << std::endl;
-            throw;
-        }
+//        if (alive) {
+//            std::cout << "Live reader not implemented\n" << std::endl;
+//            throw;
+//        }
         top();
     } else {
         std::cout << "Error: File not found\n";

@@ -30,6 +30,8 @@ class Reader {
 private:
     std::string file_loc;
     std::ifstream file;
+    std::ifstream live_file;
+    std::ios::streampos gpos;
 
     bool loaded = false;
     bool online;
@@ -69,5 +71,5 @@ public:
     std::string createId();
 
     void livereadinit();
-    void liveread(std::ifstream &ifs, std::ios::streampos &gpos);
+    void liveread();
 };
