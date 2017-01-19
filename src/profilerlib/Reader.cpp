@@ -137,11 +137,9 @@ void Reader::process(const std::vector <std::string> &data) {
 
 
 void Reader::addIteration(std::shared_ptr <Relation> rel, std::vector <std::string> data) {
-
     bool ready = rel->isReady();
     std::vector <std::shared_ptr<Iteration>> &iterations = rel->getIterations();
     std::string locator = rel->getLocator();
-
 
     // add an iteration if we require one
     if (ready || iterations.empty()) {
@@ -178,7 +176,6 @@ void Reader::addRule(std::shared_ptr <Relation> rel, std::vector <std::string> d
 
     std::shared_ptr <Rule> _rul = ruleMap[data[3]];
 
-
     if (data[0].at(0) == 't') {
         _rul->setRuntime(std::stod(data[4]));
         _rul->setLocator(data[2]);
@@ -207,29 +204,30 @@ void Reader::livereadinit() {
     gpos = live_file.tellg();
     std::string line;
     bool finished = false;
-    bool done = false;
-    while(!done)
+    while(1)
     {
+        // get line, if reached eof, reset reader to last valid line
+        // otherwise break, and start thread
         if(!std::getline(live_file, line) || live_file.eof())
         {
             live_file.clear();
             live_file.seekg(gpos);
-            //std::this_thread::sleep_for(std::chrono::seconds(1));
             break;
         }
-        //std::cerr << "Read line: " << line << std::endl;
 
         if (!line.empty() && line.at(0) == '@') {
             std::vector <std::string> part = Tools::splitAtSemiColon(line.substr(1));
             if (line == "@start-debug") continue;
             process(part);
 
+            // @runtime only appears as last line.
             std::size_t found=line.find("@runtime;");
             if (found!=std::string::npos && found==0) {
                 finished = true;
                 break;
             }
 
+            // save position in case eof reached
             gpos = live_file.tellg();
         }
     }
@@ -255,16 +253,15 @@ void Reader::liveread() {
             live_file.seekg(gpos);
             std::this_thread::sleep_for(std::chrono::seconds(1));
             continue;
-
         }
         std::size_t found=line.find("@runtime;");
         if (found!=std::string::npos && found==0) {
             done=true;
         }
-
         gpos = live_file.tellg();
         std::vector <std::string> part = Tools::splitAtSemiColon(line.substr(1));
         process(part);
     }
     std::cerr << "\n==LiveReader/souffle finished.==\n";
+
 }

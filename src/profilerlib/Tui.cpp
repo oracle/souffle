@@ -256,10 +256,12 @@ void Tui::outputJson() {
         for (auto &_ver_row : ver_table.getRows()) {
             has_ver = true;
             Row ver_row = *_ver_row;
+            std::fprintf(outfile, "[\"%s\",\"%s\",%s,%s,%s,%s,%lu,\"%s\",%lu],",
 
-            std::fprintf(outfile, "[%lu,\"%s\"],",
-                        ver_row[8]->getLongVal(),
-                        ver_row[6]->getStringVal().c_str());
+                         Tools::cleanJsonOut(ver_row[5]->getStringVal()).c_str(),ver_row[6]->getStringVal().c_str(),
+                         Tools::cleanJsonOut(ver_row[0]->getDoubVal()).c_str(),Tools::cleanJsonOut(ver_row[1]->getDoubVal()).c_str(),
+                         Tools::cleanJsonOut(ver_row[2]->getDoubVal()).c_str(),Tools::cleanJsonOut(ver_row[3]->getDoubVal()).c_str(),
+                         ver_row[4]->getLongVal(),src.c_str(),ver_row[8]->getLongVal());
 
         }
         if (has_ver) {
