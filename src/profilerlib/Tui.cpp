@@ -36,6 +36,12 @@ void Tui::runCommand(std::vector <std::string> c) {
         std::cout << "Error: File cannot be loaded\n";
         return;
     }
+
+    if (alive) {
+        rul_table_state = out.getRulTable();
+        rel_table_state = out.getRelTable();
+    }
+
     if (c[0].compare("top") == 0) {
         top();
     } else if (c[0].compare("rel") == 0) {
@@ -45,7 +51,6 @@ void Tui::runCommand(std::vector <std::string> c) {
             rel(c[0]);
         } else {
             std::cout << "Invalid parameters to rel command.\n";
-            help();
         }
     } else if (c[0].compare("rul") == 0) {
         if (c.size() > 1) {
@@ -58,7 +63,6 @@ void Tui::runCommand(std::vector <std::string> c) {
                 verRul(c[1]);
             } else {
                 std::cout << "Invalid parameters to rul command.\n";
-                help();
             }
         } else {
             rul(c[0]);
@@ -73,13 +77,11 @@ void Tui::runCommand(std::vector <std::string> c) {
             verGraph(c[2], c[3]);
         } else {
             std::cout << "Invalid parameters to graph command.\n";
-            help();
         }
     } else if (c[0].compare("help") == 0) {
         help();
     } else {
-        std::cout << "Unknown command. Please select from the following commands:\n";
-        help();
+        std::cout << "Unknown command. Type help for a list of commands.\n";
     }
 }
 
@@ -114,8 +116,7 @@ void Tui::runProf() {
 
 
         if (input.empty()) {
-            std::cout << "Unknown command. Please select from the following commands:\n";
-            help();
+            std::cout << "Unknown command. Type help for a list of commands.\n";
             continue;
         }
 
@@ -123,26 +124,23 @@ void Tui::runProf() {
 
 
         std::vector <std::string> c = Tools::split(input, " ");
-        if (alive) {
-            rul_table_state = out.getRulTable();
-            rel_table_state = out.getRelTable();
-        }
-        if (c[0].compare("q") == 0 || c[0].compare("quit") == 0) {
+
+        if (c[0]=="q" || c[0] == "quit") {
             quit();
             break;
-        } else if (c[0].compare("load") == 0 || c[0].compare("open") == 0) {
+        } else if (c[0]=="load" || c[0]=="open") {
             if (c.size() == 2) {
                 load(c[0], c[1]);
             } else {
                 loadMenu();
             }
-        } else if (c[0].compare("save") == 0) {
+        } else if (c[0]=="save") {
             if (c.size() == 1) {
                 std::cout << "Enter file name to save.\n";
             } else if (c.size() == 2) {
                 save(c[1]);
             }
-        } else if (c[0].compare("sort") == 0) {
+        } else if (c[0]=="sort") {
             if (c.size() == 2 && std::stoi(c[1]) < 7) {
                 sort_col = std::stoi(c[1]);
             } else {
@@ -161,7 +159,7 @@ void Tui::outputJson() {
 
     std::string workingdir = Tools::getworkingdir();
     if (workingdir.size() == 0) {
-        std::cerr << "Could not get working directory\n" << std::endl;
+        std::cerr << "Error getting working directory\nMaybe try run profiler with absolute path" << std::endl;
         throw 1;
     }
     DIR *dir;
@@ -267,10 +265,6 @@ void Tui::outputJson() {
         if (has_ver) {
 
             std::fprintf(outfile, "],{},{\"tot_t\":[\n");
-//            std::vector <std::string> part = Tools::split(c, ".");
-//            std::string strRel = "R" + part[0].substr(1);
-//
-//            Table ver_table = out.getVersions(strRel, c);
 
             for (auto &row : ver_table.rows) {
                 std::fprintf(outfile, "%s,",Tools::cleanJsonOut((*row)[0]->getDoubVal()).c_str());
@@ -322,7 +316,7 @@ void Tui::loadMenu() {
 
 void Tui::quit() {
     if (alive && loaded) {
-        std::cerr << "Liver reader not implemented\n";
+        // std::cerr << "Liver reader not implemented\n";
         // live_reader.stopRead();
     }
 }
@@ -366,7 +360,7 @@ void Tui::help() {
     std::printf("  %-30s%-5s %-10s\n", "rel", "-",
                 "display relation table.");
     std::printf("  %-30s%-5s %-10s\n", "rel <relation id>",
-                "-", "display all rules of given relation.");
+                "-", "display all rules of a given relation.");
     std::printf("  %-30s%-5s %-10s\n", "rul", "-",
                 "display rule table");
     std::printf("  %-30s%-5s %-10s\n", "rul <rule id>", "-",
@@ -377,13 +371,13 @@ void Tui::help() {
                 "-", "display the rule name for the given rule id.");
     std::printf("  %-30s%-5s %-10s\n",
                 "graph <relation id> <type>", "-",
-                "graph the relation by type(tot_t/copy_t/tuples).");
+                "graph a relation by type: (tot_t/copy_t/tuples).");
     std::printf("  %-30s%-5s %-10s\n",
                 "graph <rule id> <type>", "-",
-                "graph the rule (C rules only)  by type(tot_t/tuples).");
+                "graph recursive(C) rule by type(tot_t/tuples).");
     std::printf("  %-30s%-5s %-10s\n",
                 "graph ver <rule id> <type>", "-",
-                "graph the rule versions (C rules only) by type(tot_t/tuples/copy_t).");
+                "graph recusive(C) rule versions by type(tot_t/copy_t/tuples).");
     std::printf("  %-30s%-5s %-10s\n", "top", "-",
                 "display top-level summary of program run.");
     std::printf("  %-30s%-5s %-10s\n", "help", "-",
@@ -391,23 +385,24 @@ void Tui::help() {
 
     std::cout << "\nInteractive mode only commands:" << std::endl;
     std::printf("  %-30s%-5s %-10s\n", "load <filename>",
-                "-", "load the given new log file.");
+                "-", "load the given proflier log file.");
     std::printf("  %-30s%-5s %-10s\n", "open", "-",
-                "list stored program run log files.");
+                "list stored souffle log files.");
     std::printf("  %-30s%-5s %-10s\n", "open <filename>",
                 "-", "open the given stored log file.");
     std::printf("  %-30s%-5s %-10s\n", "save <filename>",
-                "-", "store a log file.");
-    std::printf("  %-30s%-5s %-10s\n", "stop", "-",
-                "stop running live.");
+                "-", "store a copy of the souffle log file.");
+//    if (alive) std::printf("  %-30s%-5s %-10s\n", "stop", "-",
+//                "stop the current live run.");
     std::printf("  %-30s%-5s %-10s\n", "sort <col number>",
-                "-", "sets sorting to be by given column number (0 indexed).");
+                "-", "sort tables by given column number.");
     std::printf("  %-30s%-5s %-10s\n", "q", "-",
                 "exit program.");
 }
 
 void Tui::top() {
     std::shared_ptr <ProgramRun> &run = out.getProgramRun();
+    if (alive) run->update();
     std::string runtime = run->getRuntime();
     std::cout << "\n Total runtime: " << runtime << "\n";
 
