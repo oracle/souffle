@@ -17,8 +17,10 @@
 
 #include <iostream>
 #include <istream>
+#include <map>
 #include <memory>
 #include <ostream>
+#include <sstream>
 #include <string>
 
 #include "ReadStream.h"
@@ -91,9 +93,27 @@ public:
 class ReadFileCSVFactory : public InputFactory, public CSVFactory {
 public:
     std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask,
-            SymbolTable &symbolTable, const std::map<std::string, std::string>& options) {
+            SymbolTable& symbolTable, const std::map<std::string, std::string>& options) {
+        std::map<int, int> inputMap;
+        if (options.count("columns") > 0) {
+            std::istringstream iss(options.at("columns"));
+            std::string mapping;
+            int index = 0;
+            while (std::getline(iss, mapping, ':')) {
+                // TODO (mmcgr): handle ranges like 4-7
+                inputMap[stoi(mapping)] = index++;
+            }
+            if (inputMap.size() < symbolMask.getArity()) {
+                throw std::invalid_argument("Invalid column set was given: <" + options.at("columns") + ">");
+            }
+        } else {
+            while (inputMap.size() < symbolMask.getArity()) {
+                int size = inputMap.size();
+                inputMap[size] = size;
+            }
+        }
         return std::unique_ptr<ReadFileCSV>(new ReadFileCSV(options.at("name"),
-                symbolMask, symbolTable, getDelimiter(options)));
+                symbolMask, symbolTable, inputMap, getDelimiter(options)));
     }
     virtual ~ReadFileCSVFactory() {}
 };
@@ -103,7 +123,7 @@ public:
     std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask,
             SymbolTable &symbolTable, const std::map<std::string, std::string>& options) {
         return std::unique_ptr<ReadStreamCSV>(new ReadStreamCSV(std::cin,
-                symbolMask, symbolTable, getDelimiter(options)));
+                symbolMask, symbolTable, std::map<int, int>(), getDelimiter(options)));
     }
     virtual ~ReadCinCSVFactory() {}
 };

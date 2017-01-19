@@ -21,6 +21,7 @@
 #include "SymbolTable.h"
 
 #include <fstream>
+#include <map>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
@@ -30,10 +31,18 @@ namespace souffle {
 
 class ReadStreamCSV: public ReadStream {
 public:
-    ReadStreamCSV(std::istream& in, const SymbolMask& symbolMask, SymbolTable &symbolTable,
-            char delimiter = '\t') :
-            delimiter(delimiter), file(in), lineNumber(0), symbolMask(symbolMask), symbolTable(
-                    symbolTable) {
+    ReadStreamCSV(std::istream& in, const SymbolMask& symbolMask, SymbolTable& symbolTable,
+            std::map<int, int> inputMap = std::map<int, int>(), char delimiter = '\t')
+            : delimiter(delimiter),
+              file(in),
+              lineNumber(0),
+              symbolMask(symbolMask),
+              symbolTable(symbolTable),
+              inputMap(inputMap) {
+        while (this->inputMap.size() < symbolMask.getArity()) {
+            int size = this->inputMap.size();
+            this->inputMap[size] = size;
+        }
     }
 
     /**
@@ -56,7 +65,7 @@ public:
         ++lineNumber;
 
         size_t start = 0, end = 0;
-        for (uint32_t column = 0; column < symbolMask.getArity(); column++) {
+        for (uint32_t column = 0; end < line.length(); column++) {
             end = line.find(delimiter, start);
             if (end == std::string::npos) {
                 end = line.length();
@@ -76,11 +85,15 @@ public:
                 }
                 element = "n/a";
             }
+            start = end + 1;
+            if (inputMap.count(column) == 0) {
+                continue;
+            }
             if (symbolMask.isSymbol(column)) {
-                tuple[column] = symbolTable.lookup(element.c_str());
+                tuple[inputMap[column]] = symbolTable.lookup(element.c_str());
             } else {
                 try {
-                    tuple[column] = std::stoi(element.c_str());
+                    tuple[inputMap[column]] = std::stoi(element.c_str());
                 } catch (...) {
                     if (!error) {
                         std::stringstream errorMessage;
@@ -90,7 +103,6 @@ public:
                     }
                 }
             }
-            start = end + 1;
         }
         if (end != line.length()) {
             if (!error) {
@@ -106,22 +118,22 @@ public:
         return tuple;
     }
 
-    virtual ~ReadStreamCSV() {
-    }
-    ;
+    virtual ~ReadStreamCSV() {}
+
 private:
     const char delimiter;
     std::istream& file;
     size_t lineNumber;
     const SymbolMask& symbolMask;
     SymbolTable& symbolTable;
+    std::map<int, int> inputMap;
 };
 
 class ReadFileCSV: public ReadStream {
 public:
-    ReadFileCSV(const std::string& filename, const SymbolMask& symbolMask, SymbolTable &symbolTable,
-            char delimiter = '\t') :
-            fileHandle(filename), readStream(fileHandle, symbolMask, symbolTable, delimiter) {
+    ReadFileCSV(const std::string& filename, const SymbolMask& symbolMask, SymbolTable& symbolTable,
+            std::map<int, int> inputMap = std::map<int, int>(), char delimiter = '\t')
+            : fileHandle(filename), readStream(fileHandle, symbolMask, symbolTable, inputMap, delimiter) {
         char bfn[filename.size()];
         strcpy(bfn, filename.c_str());
         std::stringstream baseNameStream(basename(bfn));
@@ -150,13 +162,13 @@ public:
             throw std::invalid_argument(errorMessage.str());
         }
     }
-    virtual ~ReadFileCSV() {
-    }
+
+    virtual ~ReadFileCSV() {}
+
 private:
     std::string baseName;
     std::ifstream fileHandle;
     ReadStreamCSV readStream;
-
 };
 
 } /* namespace souffle */
