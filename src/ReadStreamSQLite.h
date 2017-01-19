@@ -102,7 +102,7 @@ private:
 
     virtual void prepareSelectStatement() {
         std::stringstream selectSQL;
-        selectSQL << "SELECT * FROM '_" << relationName << "'";
+        selectSQL << "SELECT * FROM '" << relationName << "'";
         const char* tail = 0;
         if (sqlite3_prepare_v2(db, selectSQL.str().c_str(), -1, &selectStatement, &tail) != SQLITE_OK) {
             std::stringstream error;
@@ -125,8 +125,8 @@ private:
     void checkTableExists() {
         sqlite3_stmt* tableStatement;
         std::stringstream selectSQL;
-        selectSQL << "SELECT count(*) FROM sqlite_master WHERE type='table' AND ";
-        selectSQL << " name='_" << relationName << "'";
+        selectSQL << "SELECT count(*) FROM sqlite_master WHERE type IN ('table', 'view') AND ";
+        selectSQL << " name IN ('" << relationName << "', '_" << relationName << "');";
         const char* tail = 0;
 
         if (sqlite3_prepare_v2(db, selectSQL.str().c_str(), -1, &tableStatement, &tail) != SQLITE_OK) {
@@ -137,12 +137,13 @@ private:
 
         if (sqlite3_step(tableStatement) == SQLITE_ROW) {
             int count = sqlite3_column_int(tableStatement, 0);
-            if (count == 1) {
+            if (count == 2) {
                 sqlite3_finalize(tableStatement);
                 return;
             }
         }
-        throw std::invalid_argument("Required table does not exist for relation " + relationName);
+        sqlite3_finalize(tableStatement);
+        throw std::invalid_argument("Required table and view does not exist for relation " + relationName);
     }
     const std::string& dbFilename;
     const std::string& relationName;
