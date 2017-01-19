@@ -106,7 +106,7 @@ souffle_sources = \
               ReadStream.h                              \
               ReadStreamCSV.h                           \
               WriteStream.h                             \
-              WriteStreamCSV.h                          \
+              WriteStreamCSV.h      WriteStreamSQLite.h       \
               IOSystem.h
 
 
