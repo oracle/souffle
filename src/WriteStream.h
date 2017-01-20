@@ -15,13 +15,22 @@
 #pragma once
 
 #include "RamTypes.h"
+#include "SymbolMask.h"
+#include "SymbolTable.h"
 
 namespace souffle {
 
 class WriteStream {
 public:
-    virtual void writeNextTuple(const RamDomain *tuple) = 0;
+    virtual void writeNextTuple(const RamDomain* tuple) = 0;
     virtual ~WriteStream() {}
+};
+
+class WriteStreamFactory {
+public:
+    virtual std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask,
+            const SymbolTable& symbolTable, const std::map<std::string, std::string>& options) = 0;
+    virtual ~WriteStreamFactory() {}
 };
 
 } /* namespace souffle */

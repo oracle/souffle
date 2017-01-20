@@ -29,7 +29,7 @@
 
 namespace souffle {
 
-class ReadStreamCSV: public ReadStream {
+class ReadStreamCSV : public ReadStream {
 public:
     ReadStreamCSV(std::istream& in, const SymbolMask& symbolMask, SymbolTable& symbolTable,
             std::map<int, int> inputMap = std::map<int, int>(), char delimiter = '\t')
@@ -79,8 +79,8 @@ public:
             } else {
                 if (!error) {
                     std::stringstream errorMessage;
-                    errorMessage << "Value missing in column " << column + 1 << " in line "
-                            << lineNumber << "; ";
+                    errorMessage << "Value missing in column " << column + 1 << " in line " << lineNumber
+                                 << "; ";
                     throw std::invalid_argument(errorMessage.str());
                 }
                 element = "n/a";
@@ -97,8 +97,8 @@ public:
                 } catch (...) {
                     if (!error) {
                         std::stringstream errorMessage;
-                        errorMessage << "Error converting number in column " << column + 1
-                                << " in line " << lineNumber << "; ";
+                        errorMessage << "Error converting number in column " << column + 1 << " in line "
+                                     << lineNumber << "; ";
                         throw std::invalid_argument(errorMessage.str());
                     }
                 }
@@ -129,7 +129,7 @@ private:
     std::map<int, int> inputMap;
 };
 
-class ReadFileCSV: public ReadStream {
+class ReadFileCSV : public ReadStream {
 public:
     ReadFileCSV(const std::string& filename, const SymbolMask& symbolMask, SymbolTable& symbolTable,
             std::map<int, int> inputMap = std::map<int, int>(), char delimiter = '\t')
@@ -169,6 +169,55 @@ private:
     std::string baseName;
     std::ifstream fileHandle;
     ReadStreamCSV readStream;
+};
+
+class ReadCSVFactory {
+protected:
+    char getDelimiter(const std::map<std::string, std::string>& options) {
+        char delimiter = '\t';
+        if (options.count("delimiter") > 0) {
+            delimiter = options.at("delimiter").at(0);
+        }
+        return delimiter;
+    }
+};
+
+class ReadCinCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
+public:
+    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
+            const std::map<std::string, std::string>& options) {
+        return std::unique_ptr<ReadStreamCSV>(new ReadStreamCSV(
+                std::cin, symbolMask, symbolTable, std::map<int, int>(), getDelimiter(options)));
+    }
+    virtual ~ReadCinCSVFactory() {}
+};
+
+class ReadFileCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
+public:
+    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
+            const std::map<std::string, std::string>& options) {
+        std::map<int, int> inputMap;
+        if (options.count("columns") > 0) {
+            std::istringstream iss(options.at("columns"));
+            std::string mapping;
+            int index = 0;
+            while (std::getline(iss, mapping, ':')) {
+                // TODO (mmcgr): handle ranges like 4-7
+                inputMap[stoi(mapping)] = index++;
+            }
+            if (inputMap.size() < symbolMask.getArity()) {
+                throw std::invalid_argument("Invalid column set was given: <" + options.at("columns") + ">");
+            }
+        } else {
+            while (inputMap.size() < symbolMask.getArity()) {
+                int size = inputMap.size();
+                inputMap[size] = size;
+            }
+        }
+        return std::unique_ptr<ReadFileCSV>(new ReadFileCSV(
+                options.at("name"), symbolMask, symbolTable, inputMap, getDelimiter(options)));
+    }
+    virtual ~ReadFileCSVFactory() {}
 };
 
 } /* namespace souffle */

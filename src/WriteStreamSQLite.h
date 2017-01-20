@@ -55,15 +55,11 @@ public:
                 value = (int32_t)tuple[i];
             }
             if (sqlite3_bind_int(insertStatement, i + 1, value) != SQLITE_OK) {
-                std::stringstream error;
-                error << "SQLite error in sqlite3_bind_text: " << sqlite3_errmsg(db) << "\n";
-                throw std::invalid_argument(error.str());
+                throwError("SQLite error in sqlite3_bind_text: ");
             }
         }
         if (sqlite3_step(insertStatement) != SQLITE_DONE) {
-            std::stringstream error;
-            error << "SQLite error in sqlite3_step: " << sqlite3_errmsg(db) << "\n";
-            throw std::invalid_argument(error.str());
+            throwError("SQLite error in sqlite3_step: ");
         }
         sqlite3_clear_bindings(insertStatement);
         sqlite3_reset(insertStatement);
@@ -93,21 +89,24 @@ private:
         }
     }
 
+    void throwError(std::string message) {
+        std::stringstream error;
+        error << message << sqlite3_errmsg(db) << "\n";
+        throw std::invalid_argument(error.str());
+    }
+
     uint64_t getSymbolTableIDFromDB(int index) {
-            if (sqlite3_bind_text(symbolSelectStatement, 1, symbolTable.resolve(index), -1, SQLITE_TRANSIENT) != SQLITE_OK) {
-                std::stringstream error;
-                error << "SQLite error in sqlite3_bind_text: " << sqlite3_errmsg(db) << "\n";
-                throw std::invalid_argument(error.str());
-            }
-            if (sqlite3_step(symbolSelectStatement) != SQLITE_ROW) {
-                std::stringstream error;
-                error << "SQLite error in sqlite3_step: " << sqlite3_errmsg(db) << "\n";
-                throw std::invalid_argument(error.str());
-            }
-            uint64_t rowid = sqlite3_column_int64(symbolSelectStatement, 0);
-            sqlite3_clear_bindings(symbolSelectStatement);
-            sqlite3_reset(symbolSelectStatement);
-            return rowid;
+        if (sqlite3_bind_text(symbolSelectStatement, 1, symbolTable.resolve(index), -1, SQLITE_TRANSIENT) !=
+                SQLITE_OK) {
+            throwError("SQLite error in sqlite3_bind_text: ");
+        }
+        if (sqlite3_step(symbolSelectStatement) != SQLITE_ROW) {
+            throwError("SQLite error in sqlite3_step: ");
+        }
+        uint64_t rowid = sqlite3_column_int64(symbolSelectStatement, 0);
+        sqlite3_clear_bindings(symbolSelectStatement);
+        sqlite3_reset(symbolSelectStatement);
+        return rowid;
     }
     uint64_t getSymbolTableID(int index) {
         if (dbSymbolTable.count(index) != 0) {
@@ -116,9 +115,7 @@ private:
 
         if (sqlite3_bind_text(symbolInsertStatement, 1, symbolTable.resolve(index), -1, SQLITE_TRANSIENT) !=
                 SQLITE_OK) {
-            std::stringstream error;
-            error << "SQLite error in sqlite3_bind_text: " << sqlite3_errmsg(db) << "\n";
-            throw std::invalid_argument(error.str());
+            throwError("SQLite error in sqlite3_bind_text: ");
         }
         // Either the insert succeeds and we have a new row id or it already exists and a select is needed.
         uint64_t rowid;
@@ -137,30 +134,25 @@ private:
 
     void openDB() {
         if (sqlite3_open(dbFilename.c_str(), &db) != SQLITE_OK) {
-            std::stringstream error;
-            error << "SQLite error in sqlite3_open: " << sqlite3_errmsg(db);
-            throw std::invalid_argument(error.str());
+            throwError("SQLite error in sqlite3_open");
         }
         sqlite3_extended_result_codes(db, 1);
         executeSQL("PRAGMA synchronous = OFF", db);
         executeSQL("PRAGMA journal_mode = MEMORY", db);
     }
 
-void prepareStatements() {
+    void prepareStatements() {
         prepareInsertStatement();
         prepareSymbolInsertStatement();
         prepareSymbolSelectStatement();
-
-}
+    }
     void prepareSymbolInsertStatement() {
         std::stringstream insertSQL;
         insertSQL << "INSERT INTO " << symbolTableName;
         insertSQL << " VALUES(null,@V0);";
         const char* tail = 0;
         if (sqlite3_prepare_v2(db, insertSQL.str().c_str(), -1, &symbolInsertStatement, &tail) != SQLITE_OK) {
-            std::stringstream error;
-            error << "SQLite error in sqlite3_prepare_v2: " << sqlite3_errmsg(db) << "\n";
-            throw std::invalid_argument(error.str());
+            throwError("SQLite error in sqlite3_prepare_v2: ");
         }
     }
 
@@ -170,9 +162,7 @@ void prepareStatements() {
         selectSQL << " WHERE symbol = @V0;";
         const char* tail = 0;
         if (sqlite3_prepare_v2(db, selectSQL.str().c_str(), -1, &symbolSelectStatement, &tail) != SQLITE_OK) {
-            std::stringstream error;
-            error << "SQLite error in sqlite3_prepare_v2: " << sqlite3_errmsg(db) << "\n";
-            throw std::invalid_argument(error.str());
+            throwError("SQLite error in sqlite3_prepare_v2: ");
         }
     }
 
@@ -186,9 +176,7 @@ void prepareStatements() {
         insertSQL << ");";
         const char* tail = 0;
         if (sqlite3_prepare_v2(db, insertSQL.str().c_str(), -1, &insertStatement, &tail) != SQLITE_OK) {
-            std::stringstream error;
-            error << "SQLite error in sqlite3_prepare_v2: " << sqlite3_errmsg(db) << "\n";
-            throw std::invalid_argument(error.str());
+            throwError("SQLite error in sqlite3_prepare_v2: ");
         }
     }
 
@@ -266,6 +254,16 @@ void prepareStatements() {
     sqlite3_stmt* symbolInsertStatement;
     sqlite3_stmt* symbolSelectStatement;
     sqlite3* db;
+};
+
+class WriteSQLiteFactory : public WriteStreamFactory {
+public:
+    std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask, const SymbolTable& symbolTable,
+            const std::map<std::string, std::string>& options) {
+        return std::unique_ptr<WriteStreamSQLite>(
+                new WriteStreamSQLite(options.at("dbname"), options.at("name"), symbolMask, symbolTable));
+    }
+    virtual ~WriteSQLiteFactory() {}
 };
 
 } /* namespace souffle */
