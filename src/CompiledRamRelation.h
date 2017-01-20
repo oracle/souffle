@@ -1474,7 +1474,7 @@ struct RelationBase {
     }
 
     void loadCSV(SymbolTable& symbolTable, const SymbolMask& format, const std::string& options) {
-	try {
+        try {
             std::unique_ptr<ReadStream> reader = IOSystem::getInstance().getReader(
                     format,
                     symbolTable,
@@ -1488,44 +1488,6 @@ struct RelationBase {
             std::cerr << e.what();
             exit(1);
         }
-    }
-    /* Loads the tuples form the given file into this relation. */
-    void loadCSV(const char* fn, SymbolTable& symbolTable, const SymbolMask& format) {
-        // check for null
-        if (fn == nullptr) {
-            loadCSV(symbolTable, format, "IO=stdin");
-        } else {
-            std::stringstream options;
-            options << "IO=file,";
-            options << "name=" << fn;
-            loadCSV(symbolTable, format, options.str());
-        }
-    }
-
-    /**
-	 * Loads tuples from the given file into this relation.
-	 *
-	 * @param fn .. the file name to be targeted
-	 * @param format .. a mask of 0s or 1s determining which components
-	 * 				of the tuples should be interpreted using
-	 * 				the symbol table and which are representing actual numbers
-	 */
-    template<typename ... Format>
-    void loadCSV(const char* fn, SymbolTable& symbolTable, Format ... format) {
-        loadCSV(fn, symbolTable, SymbolMask({bool(format)...}));
-    }
-
-    /**
-     * Loads tuples from the given file into this relation.
-     *
-     * @param fn .. the file name to be targeted
-     * @param format .. a mask of 0s or 1s determining which components
-     *              of the tuples should be interpreted using
-     *              the symbol table and which are representing actual numbers
-     */
-    template<typename ... Format>
-    void loadCSV(const std::string& fn, SymbolTable& symbolTable, Format ... format) {
-        loadCSV(fn.c_str(), symbolTable, SymbolMask({bool(format)...}));
     }
 
     /* Provides a description of the internal organization of this relation. */

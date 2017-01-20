@@ -2048,13 +2048,16 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     visitDepthFirst(stmt, [&](const RamLoad& load) {
         // get some table details
         os <<  getRelationName(load.getRelation());
-        os << "->" << "loadCSV(dirname + \"/";
-        os << load.getFileName() << "\"";
-        os << ", symTable";
-        for(size_t i=0;i<load.getRelation().getArity();i++) {
-            os << (load.getRelation().getSymbolMask().isSymbol(i) ? ", 1" : ", 0");
+        os << "->" << "loadCSV(symTable, SymbolMask({";
+        if (load.getRelation().getArity() > 0) {
+            os << ((load.getRelation().getSymbolMask().isSymbol(0)) ? "1" : "0");
+            // add format parameters
+            for (size_t i = 1; i < load.getRelation().getArity(); i++) {
+                os << (load.getRelation().getSymbolMask().isSymbol(i) ? ", 1" : ", 0");
+            }
         }
-        os << ");\n";
+        os << "}), \"IO=file,name=\" + " << "dirname + \"/";
+        os << load.getFileName() << "\");\n";
     });
     os << "}\n";  // end of loadAll() method
 
