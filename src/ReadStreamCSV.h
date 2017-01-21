@@ -64,7 +64,7 @@ public:
         }
         ++lineNumber;
 
-        size_t start = 0, end = 0;
+        size_t start = 0, end = 0, columnsFilled = 0;
         for (uint32_t column = 0; end < line.length(); column++) {
             end = line.find(delimiter, start);
             if (end == std::string::npos) {
@@ -89,6 +89,7 @@ public:
             if (inputMap.count(column) == 0) {
                 continue;
             }
+            ++columnsFilled;
             if (symbolMask.isSymbol(column)) {
                 tuple[inputMap[column]] = symbolTable.lookup(element.c_str());
             } else {
@@ -103,6 +104,11 @@ public:
                     }
                 }
             }
+        }
+        if (columnsFilled != symbolMask.getArity()) {
+            std::stringstream errorMessage;
+            errorMessage << "Values missing in line " << lineNumber << "; ";
+            throw std::invalid_argument(errorMessage.str());
         }
         if (end != line.length()) {
             if (!error) {
