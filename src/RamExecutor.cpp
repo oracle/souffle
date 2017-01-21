@@ -699,9 +699,7 @@ namespace {
                         store.getRelation().getSymbolMask(),
                         env.getSymbolTable(),
                         optionString);
-                for(auto it=rel.begin(); it!=rel.end(); ++it) {
-                    writeStream->writeNextTuple(*it);
-                }
+                writeStream->writeAll(rel);
                 return true;
             }
 

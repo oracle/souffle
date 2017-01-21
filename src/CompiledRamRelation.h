@@ -1473,9 +1473,7 @@ struct RelationBase {
                             format,
                             symbolTable,
                             options);
-            for(const tuple_type& cur : asDerived()) {
-                writeStream->writeNextTuple(cur.data);
-            }
+            writeStream->writeAll(asDerived());
         } catch (std::exception& e) {
             std::cerr << e.what();
             exit(1);
