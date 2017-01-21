@@ -671,10 +671,7 @@ namespace {
                                     env.getSymbolTable(),
                                     optionString);
                     RamRelation& relation = env.getRelation(load.getRelation());
-
-                    while (auto next = reader->readNextTuple()) {
-                        relation.insert(next.get());
-                    }
+                    reader->readAll(relation);
                 } catch (std::exception& e) {
                     std::cerr << e.what();
                     return false;

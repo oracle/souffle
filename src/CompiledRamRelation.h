@@ -1446,6 +1446,15 @@ struct RelationBase {
         return static_cast<Derived*>(this)->insert(reinterpret_cast<const tuple_type&>(data));
     }
 
+    bool insert(const RamDomain* ramDomain) {
+        RamDomain data[arity];
+        std::copy(ramDomain, ramDomain + arity, data);
+        const tuple_type& tuple = reinterpret_cast<const tuple_type&>(data);
+        typename Derived::operation_context ctxt;
+
+        return static_cast<Derived*>(this)->insert(tuple, ctxt);
+    }
+
     bool insert(const tuple_type& tuple) {
         typename Derived::operation_context ctxt;
         return static_cast<Derived*>(this)->insert(tuple,ctxt);
@@ -1479,11 +1488,7 @@ struct RelationBase {
                     format,
                     symbolTable,
                     options);
-            while (auto next = reader->readNextTuple()) {
-                RamDomain data[arity];
-                std::copy(next.get(), next.get() + arity, data);
-                static_cast<Derived*>(this)->insert(reinterpret_cast<const tuple_type&>(data));
-            }
+            reader->readAll(*this);
         } catch (std::exception& e) {
             std::cerr << e.what();
             exit(1);

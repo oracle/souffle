@@ -24,6 +24,14 @@ namespace souffle {
 
 class ReadStream {
 public:
+    template <typename T>
+    void readAll(T& relation) {
+        while (const auto next = readNextTuple()) {
+            const RamDomain* ramDomain = next.get();
+            relation.insert(ramDomain);
+        }
+    }
+
     virtual std::unique_ptr<RamDomain[]> readNextTuple() = 0;
     virtual ~ReadStream(){};
 };
