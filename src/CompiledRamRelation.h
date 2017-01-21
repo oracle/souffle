@@ -1462,37 +1462,6 @@ struct RelationBase {
 
     // -- IO --
 
-    /**
-     * Prints this relation using the given options.
-     */
-    void printCSV(const SymbolTable& symbolTable, const SymbolMask& format,
-            const std::string& options) const {
-    try {
-            std::unique_ptr<WriteStream> writeStream =
-                    IOSystem::getInstance().getWriter(
-                            format,
-                            symbolTable,
-                            options);
-            writeStream->writeAll(asDerived());
-        } catch (std::exception& e) {
-            std::cerr << e.what();
-            exit(1);
-        }
-    }
-
-    void loadCSV(SymbolTable& symbolTable, const SymbolMask& format, const std::string& options) {
-        try {
-            std::unique_ptr<ReadStream> reader = IOSystem::getInstance().getReader(
-                    format,
-                    symbolTable,
-                    options);
-            reader->readAll(*this);
-        } catch (std::exception& e) {
-            std::cerr << e.what();
-            exit(1);
-        }
-    }
-
     /* Provides a description of the internal organization of this relation. */
     std::string getDescription() const {
         std::stringstream out;
@@ -1973,6 +1942,10 @@ public:
 
     bool contains(const tuple_type& = tuple_type(), const operation_context& = operation_context()) const {
         return present;
+    }
+
+    bool insert(const RamDomain* ramDomain) {
+        return insert();
     }
 
     bool insert(const tuple_type& = tuple_type(), const operation_context& = operation_context()) {
