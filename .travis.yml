@@ -18,7 +18,7 @@ env:
   - SOUFFLE_CATEGORY=Semantic
   - SOUFFLE_CATEGORY=Interface
   - SOUFFLE_CATEGORY=Profile
-  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-j1,-j8,-p profile.log"
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS=",-j8,-p profile.log"
   - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-c -j8"
   - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS=-c
   - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="--auto-schedule -o testprog"
