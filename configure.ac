@@ -255,6 +255,9 @@ AC_CHECK_LIB(pthread, pthread_create,,
 AC_CHECK_HEADER(sqlite3.h,,[AC_MSG_ERROR([required library sqlite3 missing])])
 AC_CHECK_LIB(sqlite3, sqlite3_open,,
           [AC_MSG_ERROR([required library sqlite3 missing])])
+AC_CHECK_HEADER(zlib.h,,[AC_MSG_ERROR([required library zlib missing])])
+AC_CHECK_LIB(z, compress,,
+          [AC_MSG_ERROR([required library zlib missing])])
 
 PKG_CHECK_MODULES(LIBEDIT, libedit)
 
