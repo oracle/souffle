@@ -50,7 +50,6 @@ public:
         for(;cur != mask.end(); ++cur) {
             out << ", " << *cur;
         }
-        out << "\n";
     }
 
     friend std::ostream& operator<<(std::ostream& out, const SymbolMask& mask) {

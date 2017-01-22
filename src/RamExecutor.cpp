@@ -2003,18 +2003,9 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
             auto target = (toConsole) ? "nullptr" : fname;
 
             os << "try {";
-            os << "IOSystem::getInstance().getWriter(SymbolMask({";
-
-            const SymbolMask& mask = store->getRelation().getSymbolMask();
-            if (mask.getArity() > 0) {
-                os << ((mask.isSymbol(0)) ? "1" : "0");
-                // add format parameters
-                for (size_t i = 1; i < mask.getArity(); i++) {
-                    os << ((mask.isSymbol(i)) ? ", 1" : ", 0");
-                }
-            }
-
-            os << "}), symTable, \"";
+            os << "IOSystem::getInstance().getWriter(";
+            os << "SymbolMask({" << store->getRelation().getSymbolMask() << "})";
+            os << ", symTable, \"";
             if (toConsole) {
                 os << "IO=stdout,name=" << name;
             } else {
@@ -2039,16 +2030,10 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     visitDepthFirst(stmt, [&](const RamLoad& load) {
         // get some table details
         os << "try {";
-        os << "IOSystem::getInstance().getReader(SymbolMask({";
-        if (load.getRelation().getArity() > 0) {
-            os << ((load.getRelation().getSymbolMask().isSymbol(0)) ? "1" : "0");
-            // add format parameters
-            for (size_t i = 1; i < load.getRelation().getArity(); i++) {
-                os << (load.getRelation().getSymbolMask().isSymbol(i) ? ", 1" : ", 0");
-            }
-        }
-        os << "}), ";
-        os << "symTable, \"IO=file,name=\" + " << "dirname + \"/";
+        os << "IOSystem::getInstance().getReader(";
+        os << "SymbolMask({" << load.getRelation().getSymbolMask() << "})";
+        os << ", symTable";
+        os << ", \"IO=file,name=\" + " << "dirname + \"/";
         os << load.getFileName() << "\")->readAll(*" << getRelationName(load.getRelation()) << ");\n";
         os << "} catch (std::exception& e) {std::cerr << e.what();exit(1);}\n";
     });
@@ -2059,15 +2044,9 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         auto relName = name;
 
         os << "try {";
-        os << "IOSystem::getInstance().getWriter(SymbolMask({";
-        if (arity > 0) {
-            os << ((mask.isSymbol(0)) ? "1" : "0");
-            // add format parameters
-            for (size_t i = 1; i < arity; i++) {
-                os << ((mask.isSymbol(i)) ? ", 1" : ", 0");
-            }
-        }
-        os << "}), symTable, \"";
+        os << "IOSystem::getInstance().getWriter(";
+        os << "SymbolMask({" << mask << "})";
+        os << ", symTable, \"";
         os << "IO=stdout,name=" << name;
         os << "\")->writeAll(*" << relName << ");\n";
         os << "} catch (std::exception& e) {std::cerr << e.what();exit(1);}\n";
