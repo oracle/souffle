@@ -30,7 +30,7 @@ package:
 	tar -xvf $(dist_src) -C $(dpkg_dir)
 	cp -r debian $(dpkg_dir)/$(distdir)
 	mv $(dist_src) $(dpkg_dir)/$(deb_src)
-	cd $(dpkg_dir)/$(distdir) && $(DEBUILD) -us -uc
+	cd $(dpkg_dir)/$(distdir) && DEB_BUILD_OPTIONS=nocheck $(DEBUILD) -us -uc
 
 clean-local:
 	-rm -rf $(dpkg_dir)
@@ -47,7 +47,6 @@ package:
 		&& $(MKDIR_P) `pwd`/pkg \
 		&& ./configure --prefix `pwd`/pkg \
 		&& $(MAKE) -j8 install \
-		&& TESTSUITEFLAGS=-j2 $(MAKE) check \
 		&& $(PKGBUILD) \
 			--root `pwd`/pkg \
 			--identifier com.oracle.souffle \

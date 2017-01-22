@@ -17,8 +17,11 @@
 #include "test.h"
 
 #include <fstream>
+#include <memory>
 
 #include "RamRelationStats.h"
+#include "IOSystem.h"
+#include "ReadStream.h"
 
 using namespace souffle;
 
@@ -81,10 +84,19 @@ namespace test {
         {
             std::fstream in(BUILDDIR "../tests/evaluation/hmmer/facts/DirectFlow.facts");
 
+            std::string options("name=");
+            options += (BUILDDIR "../tests/evaluation/hmmer/facts/DirectFlow.facts");
+            options += ",delimiter=\t,";
+	    options += "IO=file";
             // if file not found => be done
             if (!in.is_open()) return;
 
-            rel.load(in, symTable, mask);
+            std::unique_ptr<ReadStream> reader =
+                    IOSystem::getInstance().getReader(mask, symTable, options);
+
+            while (auto next = reader->readNextTuple()) {
+                rel.insert(next.get());
+            }
         }
 
         std::cout << rel.size() << "\n";

@@ -22,27 +22,32 @@ mkdir deploy
 ###############
 if [ $TRAVIS_OS_NAME == linux ]
 then
-  # if c++ compiler is g++, build Debian package
-  # otherwise; just check whether latest check-in works with
-  # clang.
+  # If c++ compiler is g++ and MAKEPACKAGE == 1, build Debian package.
+  # Otherwise, just check whether latest check-in works
   if [ $CXX == g++ ]
   then
-    TESTSUITEFLAGS=-j3 make package
-    # compute md5 for package &
-    # copy files to deploy directory
-    for f in packaging/*.deb
-    do
-      pkg=`basename $f .deb`
-      src="packaging/$pkg.deb"
-      dest="deploy/$pkg.deb"
-      cp $src $dest
-      md5sum <$src >deploy/$pkg.md5
-    done
-    # show contents of deployment
-    ls deploy/*
+    if [ $MAKEPACKAGE == 1 ]
+    then
+      make package
+      # compute md5 for package &
+      # copy files to deploy directory
+      for f in packaging/*.deb
+      do
+        pkg=`basename $f .deb`
+        src="packaging/$pkg.deb"
+        dest="deploy/$pkg.deb"
+        cp $src $dest
+        md5sum <$src >deploy/$pkg.md5
+      done
+      # show contents of deployment
+      ls deploy/*
+    else
+      make
+      TESTSUITEFLAGS="-j3 $TESTRANGE" make check
+    fi 
   else
     make
-    TESTSUITEFLAGS=-j3 make check
+    TESTSUITEFLAGS="-j3 $TESTRANGE" make check
   fi
 fi
 
@@ -52,17 +57,23 @@ fi
 
 if [ $TRAVIS_OS_NAME == osx ]
 then
-  TESTSUITEFLAGS=-j3 make package
-  # compute md5 for package &
-  # copy files to deploy directory
-  for f in *.pkg
-  do
-    pkg=`basename $f .pkg`
-    src="$pkg.pkg"
-    dest="deploy/$pkg.pkg"
-    cp $src $dest
-    md5sum <$src >deploy/$pkg.md5
-  done
-  # show contents of deployment
-  ls deploy/*
+  if [ $MAKEPACKAGE == 1 ]
+  then
+    make package
+    # compute md5 for package &
+    # copy files to deploy directory
+    for f in *.pkg
+    do
+      pkg=`basename $f .pkg`
+      src="$pkg.pkg"
+      dest="deploy/$pkg.pkg"
+      cp $src $dest
+      md5sum <$src >deploy/$pkg.md5
+    done
+    # show contents of deployment
+    ls deploy/*
+  else
+    make
+    TESTSUITEFLAGS="-j3 $TESTRANGE" make check
+  fi
 fi

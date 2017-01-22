@@ -4,17 +4,29 @@ language: cpp
 install:
   - "./.travis/install.sh"
 
+os:
+  - linux
+  - osx
+compiler:
+  - clang
+  - gcc
+# The build takes about 7 minutes (2017013) before testsuite starts running
+env:
+  - MAKEPACKAGE=1
+  - MAKEPACKAGE=0 TESTRANGE=1-500
+  - MAKEPACKAGE=0 TESTRANGE=501-1000
+  - MAKEPACKAGE=0 TESTRANGE=1001-1500
+  - MAKEPACKAGE=0 TESTRANGE=1501-
+dist: trusty
+osx_image: xcode7.3
+
 matrix:
-  include: 
+  exclude: 
   - os: linux 
-    dist: trusty
-    compiler: gcc 
-  - os: linux 
-    dist: trusty
-    compiler: clang 
+    compiler: clang
+    env: MAKEPACKAGE=1 
   - os: osx
-    osx_image: xcode7.3
-    compiler: clang 
+    compiler: gcc
 
 script: 
   - "./.travis/run.sh"
