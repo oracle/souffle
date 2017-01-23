@@ -204,24 +204,27 @@ public:
  * Analysis pass computing a topologically sorted strongly connected component (SCC) graph.
  */
 class TopologicallySortedSCCGraph : public AstAnalysis {
+
 private:
+
+    /** The strongly connected component (SCC) graph. */
     SCCGraph *sccGraph;
+
+    /** The final topological ordering over the SCCs. */
     std::vector<int> orderedSCCs;
 
-    /** Depth lookahead for khan's algorithm. */
+    /** Depth limit for algorithm. */
     const unsigned int DEPTH = 2;
 
-    /** Breadth lookahead for khan's algorithm. */
+    /** Breadth limit for algorithm. */
     const unsigned int BREADTH = 2;
 
-    /** Marker type for to compute topsort */
+    /** Marker type for to compute topological ordering. */
     enum Colour {
         WHITE   = 0xFFFFFF,
         GRAY    = 0x7f7f7f,
         BLACK   = 0x000000,
-        RED     = 0xFF0000,
-        BLUE    = 0x0000FF,
-        GREEN   = 0x00FF00
+        RED     = 0xFF0000
     };
 
     /** Calculate the topological ordering cost of a permutation of as of yet unordered SCCs
@@ -239,13 +242,13 @@ private:
     void runReverseDFS();
 
     /** Recursive component of Khan's algorithm, gets the nodes for the current round. */
-    void khansAlgorithmRecursive(int scc, std::vector<int>& current, unsigned int depth);
+    void findLookaheadSCCs(int scc, std::vector<int>& lookaheadSCCs, unsigned int depth);
 
-    /** Khan's algorithm to compute the topological ordering, uses an additional lookahead. */
-    void khansAlgorithm(int scc);
+    /** Algorithm to compute the topological ordering, uses a breadth and depth lookahead. */
+    void obtainTopologicalOrdering(int scc);
 
-    /** Run khan's algorithm to compute the topsort of the SCC graph. */
-    void runKhansAlgorithm();
+    /** Run algorithm to compute the topological ordering of the SCC graph. */
+    void generateTopologicalOrdering();
 
 public:
     static constexpr const char *name = "topological-scc-graph";
