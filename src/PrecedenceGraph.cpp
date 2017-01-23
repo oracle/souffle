@@ -418,7 +418,7 @@ void TopologicallySortedSCCGraph::runKhansAlgorithm() {
     }
     // finally, check that all nodes have been visited
     for (int scc = 0; scc < sccGraph->getNumSCCs(); ++scc)
-        if (sccGraph->getSCCColor(scc) == WHITE)
+        if (sccGraph->getSCCColor(scc) != BLACK)
             assert("SCC graph is not a DAG");
 }
 
