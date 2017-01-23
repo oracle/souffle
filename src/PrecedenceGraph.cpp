@@ -360,6 +360,7 @@ void TopologicallySortedSCCGraph::khansAlgorithmRecursive(int scc, std::vector<i
 
 void TopologicallySortedSCCGraph::khansAlgorithm(int scc) {
     std::vector<int> current;
+    current.resize(BREADTH * DEPTH);
     khansAlgorithmRecursive(scc, &current, 0);
      // compute the best cost topological ordering over the set of lookahead sccs
     bestCostTopologicalOrdering(current);
@@ -375,7 +376,6 @@ void TopologicallySortedSCCGraph::khansAlgorithm(int scc) {
             }
         }
         sccGraph->setSCCColor(scc_i, (toVisit) ? RED : BLACK);
-        // TODO: can we move the next loop inside this one, maybe even get rid of RED?
     }
     for (auto scc_i : current)
         if (sccGraph->getSCCColor(scc_i) == RED)
