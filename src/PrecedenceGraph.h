@@ -216,7 +216,7 @@ private:
 
     /** Compute the best cost topological ordering of the as of yet unordered SCCs in the lookahead
     set using the ordered SCCs. */
-    void bestCostTopologicalOrdering(std::deque<int>& lookaheadSCCs) const;
+    void bestCostTopologicalOrdering(std::vector<int>& lookaheadSCCs) const;
 
     /** Reverse DFS for computing topological order of SCC graph */
     void reverseDFS(int su);
@@ -224,8 +224,11 @@ private:
     /** Run reverse DFS to compute the topsort of the SCC graph. */
     void runReverseDFS();
 
+    /** Recursive component of Khan's algorithm, gets the nodes for the current round. */
+    void khansAlgorithmRecursive(int scc, std::vector<int>* current, unsigned int depth);
+
     /** Khan's algorithm to compute the topological ordering, uses an additional lookahead. */
-    void khansAlgorithm(std::deque<int>& lookaheadSCCs);
+    void khansAlgorithm(int scc);
 
     /** Run khan's algorithm to compute the topsort of the SCC graph. */
     void runKhansAlgorithm();

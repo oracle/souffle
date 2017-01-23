@@ -289,7 +289,7 @@ const int TopologicallySortedSCCGraph::topologicalOrderingCost(const std::vector
     return costOfPermutation;
 }
 
-void TopologicallySortedSCCGraph::bestCostTopologicalOrdering(std::deque<int>& lookaheadSCCs) const {
+void TopologicallySortedSCCGraph::bestCostTopologicalOrdering(std::vector<int>& lookaheadSCCs) const {
     // exit early if there is only one scc in the lookahead
     if (lookaheadSCCs.size() == 1)
         return;
@@ -297,7 +297,7 @@ void TopologicallySortedSCCGraph::bestCostTopologicalOrdering(std::deque<int>& l
     // cost permutation so far
     int bestCostOfPermutation = -1;
     std::vector<int> permutationOfSCCs = orderedSCCs;
-    std::deque<int> bestPermutationOfSCCs;
+    std::vector<int> bestPermutationOfSCCs;
     // sort the lookahead scc's
     std::sort(lookaheadSCCs.begin(), lookaheadSCCs.end());
     // then iterate through all permutations of them
@@ -344,76 +344,61 @@ void TopologicallySortedSCCGraph::runReverseDFS() {
     }
 }
 
-void TopologicallySortedSCCGraph::khansAlgorithm(std::deque<int>& lookaheadSCCs) {
-    // establish lists for the current and next round of sccs
-    std::deque<int> currentRoundOfSCCs = lookaheadSCCs;
-    std::deque<int> nextRoundOfSCCs;
-    // while more sccs remain for the current round
-    while (!currentRoundOfSCCs.empty()) {
-        // clear the list of lookahead scc's
-        lookaheadSCCs.clear();
-        // for DEPTH number of levels
-        for (unsigned int i = 0; i < DEPTH; ++i) {
-            // clear the list of scc's for the next round
-            nextRoundOfSCCs.clear();
-            // while scc's remain for the current round
-            while (!currentRoundOfSCCs.empty()) {
-                // get the last added scc of the current round
-                int scc_i = currentRoundOfSCCs.back();
-                currentRoundOfSCCs.pop_back();
-                // give it a permanent mark
-                sccGraph->setSCCColor(scc_i, BLACK);
-                // add it to the list of lookahead scc's
-                lookaheadSCCs.push_back(scc_i);
-                // and for each successor of that scc
-                for (int scc_j : sccGraph->getSuccessorSCCs(scc_i)) {
-                    // check it has not yet been visited
-                    if (sccGraph->getSCCColor(scc_j) != WHITE)
-                        continue;
-                    // check that it has no predecessors which have not been visited
-                    bool hasUnvisitedPredecessor = false;
-                    for (int scc_k : sccGraph->getPredecessorSCCs(scc_j)) {
-                        if (sccGraph->getSCCColor(scc_k) != BLACK) {
-                            hasUnvisitedPredecessor = true;
-                            break;
-                        }
-                    }
-                    if (hasUnvisitedPredecessor) continue;
-                    // if it passes, give it a temporary mark
-                    sccGraph->setSCCColor(scc_j, GRAY);
-                    // and add it to the list of scc's for the next round
-                    nextRoundOfSCCs.push_back(scc_j);
-                }
-            }
-            // set the sccs for the current round to the sccs for the next round
-            currentRoundOfSCCs = nextRoundOfSCCs;
+void TopologicallySortedSCCGraph::khansAlgorithmRecursive(int scc, std::vector<int>* current, unsigned int depth) {
+    unsigned int breadth = 0;
+    for (auto scc_i : sccGraph->getSuccessorSCCs(scc)) {
+        if (breadth >= BREADTH) break;
+        if (sccGraph->getSCCColor(scc_i) == WHITE) {
+            current->push_back(scc_i);
+            sccGraph->setSCCColor(scc_i, GRAY);
+            ++breadth;
+            if (depth < DEPTH)
+                khansAlgorithmRecursive(scc_i, current, depth + 1);
         }
-        // compute the best cost topological ordering over the set of lookahead sccs
-        bestCostTopologicalOrdering(lookaheadSCCs);
-        // and append it to the final list of ordered sccs
-        orderedSCCs.insert(orderedSCCs.end(), lookaheadSCCs.begin(), lookaheadSCCs.end());
     }
-    lookaheadSCCs.clear();
+}
+
+void TopologicallySortedSCCGraph::khansAlgorithm(int scc) {
+    std::vector<int> current;
+    khansAlgorithmRecursive(scc, &current, 0);
+     // compute the best cost topological ordering over the set of lookahead sccs
+    bestCostTopologicalOrdering(current);
+    // and append it to the final list of ordered sccs
+    orderedSCCs.insert(orderedSCCs.end(), current.begin(), current.end());
+    current.insert(current.begin(), scc);
+    for (auto scc_i : current) {
+        bool toVisit = false;
+        for (auto scc_j : sccGraph->getSuccessorSCCs(scc_i)) {
+            if (sccGraph->getSCCColor(scc_j) == WHITE) {
+                toVisit = true;
+                break;
+            }
+        }
+        sccGraph->setSCCColor(scc_i, (toVisit) ? RED : BLACK);
+        // TODO: can we move the next loop inside this one, maybe even get rid of RED?
+    }
+    for (auto scc_i : current)
+        if (sccGraph->getSCCColor(scc_i) == RED)
+            khansAlgorithm(scc_i);
 }
 
 
 void TopologicallySortedSCCGraph::runKhansAlgorithm() {
-    std::deque<int> lookaheadSCCs;
     // for each of the sccs in the graph
     for (int scc = 0; scc < sccGraph->getNumSCCs(); ++scc) {
         // if that scc has no predecessors
         if (sccGraph->getPredecessorSCCs(scc).empty()) {
+            // put it in the ordering
+            orderedSCCs.push_back(scc);
             // and if the scc has no successors either
             if (sccGraph->getSuccessorSCCs(scc).empty()) {
                 sccGraph->setSCCColor(scc, BLACK);
-                // put it in the ordering
-                orderedSCCs.push_back(scc);
             // otherwise, if the scc only has no predecessors
             } else {
-                // run khan's algorithm using the current scc as a start node
+                // give it a temporary marking
                 sccGraph->setSCCColor(scc, GRAY);
-                lookaheadSCCs.push_back(scc);
-                khansAlgorithm(lookaheadSCCs);
+                // and run khans algorithm on it
+                khansAlgorithm(scc);
             }
         }
     }
