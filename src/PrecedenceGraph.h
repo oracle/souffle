@@ -251,7 +251,7 @@ private:
     void generateTopologicalOrdering();
 
     /** Naive algorithm to compute best cost topological ordering. Guaranteed to be optimal however runtime is factorial. */
-    void naiveTopoLogicalOrdering();
+    void naiveTopologicalOrdering();
 
 public:
     static constexpr const char *name = "topological-scc-graph";

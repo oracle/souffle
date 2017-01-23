@@ -424,7 +424,7 @@ void TopologicallySortedSCCGraph::generateTopologicalOrdering() {
 
 void TopologicallySortedSCCGraph::naiveTopologicalOrdering() {
     std::vector<int> lookaheadSCCs;
-    for (unsigned int i = 0; i < sccGraph->getNumSCCs(); ++i)
+    for (int i = 0; i < sccGraph->getNumSCCs(); ++i)
         lookaheadSCCs.push_back(i);
     bestCostTopologicalOrdering(lookaheadSCCs);
     orderedSCCs = lookaheadSCCs;
