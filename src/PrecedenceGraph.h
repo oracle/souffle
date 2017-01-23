@@ -227,6 +227,12 @@ private:
         RED     = 0xFF0000
     };
 
+    /** Reverse DFS for computing topological order of SCC graph */
+    void reverseDFS(int su);
+
+    /** Run reverse DFS to compute the topsort of the SCC graph. */
+    void runReverseDFS();
+
     /** Calculate the topological ordering cost of a permutation of as of yet unordered SCCs
     using the ordered SCCs. Returns -1 if the given vector is not a valid topological ordering. */
     const int topologicalOrderingCost(const std::vector<int>& permutationOfSCCs) const;
@@ -234,12 +240,6 @@ private:
     /** Compute the best cost topological ordering of the as of yet unordered SCCs in the lookahead
     set using the ordered SCCs. */
     void bestCostTopologicalOrdering(std::vector<int>& lookaheadSCCs) const;
-
-    /** Reverse DFS for computing topological order of SCC graph */
-    void reverseDFS(int su);
-
-    /** Run reverse DFS to compute the topsort of the SCC graph. */
-    void runReverseDFS();
 
     /** Recursive component of Khan's algorithm, gets the nodes for the current round. */
     void findLookaheadSCCs(int scc, std::vector<int>& lookaheadSCCs, unsigned int depth);
@@ -249,6 +249,9 @@ private:
 
     /** Run algorithm to compute the topological ordering of the SCC graph. */
     void generateTopologicalOrdering();
+
+    /** Naive algorithm to compute best cost topological ordering. Guaranteed to be optimal however runtime is factorial. */
+    void naiveTopoLogicalOrdering();
 
 public:
     static constexpr const char *name = "topological-scc-graph";

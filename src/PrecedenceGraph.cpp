@@ -259,6 +259,26 @@ void SCCGraph::outputSCCGraph(std::ostream& os) {
     os << "}\n";
 }
 
+void TopologicallySortedSCCGraph::reverseDFS(int sv) {
+    if (sccGraph->getColor(sv) == GRAY) {
+        assert("SCC graph is not a DAG");
+    } else if (sccGraph->getColor(sv) == WHITE) {
+        sccGraph->setColor(sv, GRAY);
+        for (int scc : sccGraph->getPredecessorSCCs(sv)) {
+            reverseDFS(scc);
+        }
+        sccGraph->setColor(sv, BLACK);
+        orderedSCCs.push_back(sv);
+    }
+}
+
+void TopologicallySortedSCCGraph::runReverseDFS() {
+    // run reverse DFS for each node in the scc graph
+    for (int su = 0; su < sccGraph->getNumSCCs(); ++su) {
+        reverseDFS(su);
+    }
+}
+
 const int TopologicallySortedSCCGraph::topologicalOrderingCost(const std::vector<int>& permutationOfSCCs) const {
     // create variables to hold the cost of the current SCC and the permutation as a whole
     int costOfSCC = 0;
@@ -321,26 +341,6 @@ void TopologicallySortedSCCGraph::bestCostTopologicalOrdering(std::vector<int>& 
     } while (std::next_permutation(lookaheadSCCs.begin(), lookaheadSCCs.end()));
     // finally, set the lookahead scc's to the best cost ordering
     lookaheadSCCs = bestPermutationOfSCCs;
-}
-
-void TopologicallySortedSCCGraph::reverseDFS(int sv) {
-    if (sccGraph->getColor(sv) == GRAY) {
-        assert("SCC graph is not a DAG");
-    } else if (sccGraph->getColor(sv) == WHITE) {
-        sccGraph->setColor(sv, GRAY);
-        for (int scc : sccGraph->getPredecessorSCCs(sv)) {
-            reverseDFS(scc);
-        }
-        sccGraph->setColor(sv, BLACK);
-        orderedSCCs.push_back(sv);
-    }
-}
-
-void TopologicallySortedSCCGraph::runReverseDFS() {
-    // run reverse DFS for each node in the scc graph
-    for (int su = 0; su < sccGraph->getNumSCCs(); ++su) {
-        reverseDFS(su);
-    }
 }
 
 void TopologicallySortedSCCGraph::findLookaheadSCCs(int scc, std::vector<int>& lookaheadSCCs, unsigned int depth) {
@@ -422,6 +422,14 @@ void TopologicallySortedSCCGraph::generateTopologicalOrdering() {
     }
 }
 
+void TopologicallySortedSCCGraph::naiveTopologicalOrdering() {
+    std::vector<int> lookaheadSCCs;
+    for (unsigned int i = 0; i < sccGraph->getNumSCCs(); ++i)
+        lookaheadSCCs.push_back(i);
+    bestCostTopologicalOrdering(lookaheadSCCs);
+    orderedSCCs = lookaheadSCCs;
+}
+
 void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit) {
     // obtain the scc graph
     sccGraph = translationUnit.getAnalysis<SCCGraph>();
@@ -429,8 +437,13 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
     orderedSCCs.clear();
     // and mark all sccs as unvisited
     sccGraph->fillColors(WHITE);
+
     // generate topological ordering using reverse DFS algorithm
-    // runReverseDFS();
+    // runReverseDFS(); // use this as a benchmark
+
+    // generate topological ordering in naive manner (try all permutations)
+    // naiveTopologicalOrdering(); // use this to assess performance
+
     // generate topological ordering using custom algorithm
     generateTopologicalOrdering();
 }
