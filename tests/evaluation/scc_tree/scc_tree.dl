@@ -1,0 +1,349 @@
+//
+// scc_tree.dl
+//
+// This test is useful in the analysis of the topological order
+// of nodes. Use the debug report to view the scc graph, then
+// see what order the nodes are visited in.
+
+.decl x1(x:number) output
+
+.decl x11(x:number)
+.decl x12(x:number)
+
+.decl x111(x:number)
+.decl x112(x:number)
+.decl x113(x:number)
+
+.decl x121(x:number)
+.decl x122(x:number)
+.decl x123(x:number)
+
+.decl x1111(x:number)
+.decl x1112(x:number)
+.decl x1113(x:number)
+.decl x1114(x:number)
+
+.decl x1121(x:number)
+.decl x1122(x:number)
+.decl x1123(x:number)
+.decl x1124(x:number)
+
+.decl x1131(x:number)
+.decl x1132(x:number)
+.decl x1133(x:number)
+.decl x1134(x:number)
+
+.decl x1211(x:number)
+.decl x1212(x:number)
+.decl x1213(x:number)
+.decl x1214(x:number)
+
+.decl x1221(x:number)
+.decl x1222(x:number)
+.decl x1223(x:number)
+.decl x1224(x:number)
+
+.decl x1231(x:number)
+.decl x1232(x:number)
+.decl x1233(x:number)
+.decl x1234(x:number)
+
+.decl x11111(x:number)
+.decl x11112(x:number)
+.decl x11113(x:number)
+.decl x11114(x:number)
+.decl x11115(x:number)
+.decl x11121(x:number)
+.decl x11122(x:number)
+.decl x11123(x:number)
+.decl x11124(x:number)
+.decl x11125(x:number)
+.decl x11131(x:number)
+.decl x11132(x:number)
+.decl x11133(x:number)
+.decl x11134(x:number)
+.decl x11135(x:number)
+.decl x11141(x:number)
+.decl x11142(x:number)
+.decl x11143(x:number)
+.decl x11144(x:number)
+.decl x11145(x:number)
+
+.decl x11211(x:number)
+.decl x11212(x:number)
+.decl x11213(x:number)
+.decl x11214(x:number)
+.decl x11215(x:number)
+.decl x11221(x:number)
+.decl x11222(x:number)
+.decl x11223(x:number)
+.decl x11224(x:number)
+.decl x11225(x:number)
+.decl x11231(x:number)
+.decl x11232(x:number)
+.decl x11233(x:number)
+.decl x11234(x:number)
+.decl x11235(x:number)
+.decl x11241(x:number)
+.decl x11242(x:number)
+.decl x11243(x:number)
+.decl x11244(x:number)
+.decl x11245(x:number)
+
+.decl x11311(x:number)
+.decl x11312(x:number)
+.decl x11313(x:number)
+.decl x11314(x:number)
+.decl x11315(x:number)
+.decl x11321(x:number)
+.decl x11322(x:number)
+.decl x11323(x:number)
+.decl x11324(x:number)
+.decl x11325(x:number)
+.decl x11331(x:number)
+.decl x11332(x:number)
+.decl x11333(x:number)
+.decl x11334(x:number)
+.decl x11335(x:number)
+.decl x11341(x:number)
+.decl x11342(x:number)
+.decl x11343(x:number)
+.decl x11344(x:number)
+.decl x11345(x:number)
+
+.decl x12111(x:number)
+.decl x12112(x:number)
+.decl x12113(x:number)
+.decl x12114(x:number)
+.decl x12115(x:number)
+.decl x12121(x:number)
+.decl x12122(x:number)
+.decl x12123(x:number)
+.decl x12124(x:number)
+.decl x12125(x:number)
+.decl x12131(x:number)
+.decl x12132(x:number)
+.decl x12133(x:number)
+.decl x12134(x:number)
+.decl x12135(x:number)
+.decl x12141(x:number)
+.decl x12142(x:number)
+.decl x12143(x:number)
+.decl x12144(x:number)
+.decl x12145(x:number)
+
+.decl x12211(x:number)
+.decl x12212(x:number)
+.decl x12213(x:number)
+.decl x12214(x:number)
+.decl x12215(x:number)
+.decl x12221(x:number)
+.decl x12222(x:number)
+.decl x12223(x:number)
+.decl x12224(x:number)
+.decl x12225(x:number)
+.decl x12231(x:number)
+.decl x12232(x:number)
+.decl x12233(x:number)
+.decl x12234(x:number)
+.decl x12235(x:number)
+.decl x12241(x:number)
+.decl x12242(x:number)
+.decl x12243(x:number)
+.decl x12244(x:number)
+.decl x12245(x:number)
+
+.decl x12311(x:number)
+.decl x12312(x:number)
+.decl x12313(x:number)
+.decl x12314(x:number)
+.decl x12315(x:number)
+.decl x12321(x:number)
+.decl x12322(x:number)
+.decl x12323(x:number)
+.decl x12324(x:number)
+.decl x12325(x:number)
+.decl x12331(x:number)
+.decl x12332(x:number)
+.decl x12333(x:number)
+.decl x12334(x:number)
+.decl x12335(x:number)
+.decl x12341(x:number)
+.decl x12342(x:number)
+.decl x12343(x:number)
+.decl x12344(x:number)
+.decl x12345(x:number) input
+
+x1(x) :- x11(x), x12(x).
+
+
+x11(x) :- x111(x), x112(x), x113(x).
+x12(x) :- x121(x), x122(x), x123(x).
+
+
+x111(x) :- x1111(x), x1112(x), x1113(x), x1114(x).
+x112(x) :- x1121(x), x1122(x), x1123(x), x1124(x).
+x113(x) :- x1131(x), x1132(x), x1133(x), x1134(x).
+
+x121(x) :- x1211(x), x1212(x), x1213(x), x1214(x).
+x122(x) :- x1221(x), x1222(x), x1223(x), x1224(x).
+x123(x) :- x1231(x), x1232(x), x1233(x), x1234(x).
+
+
+x1111(x) :- x11111(x), x11112(x), x11113(x), x11114(x), x11115(x).
+x1112(x) :- x11121(x), x11122(x), x11123(x), x11124(x), x11125(x).
+x1113(x) :- x11131(x), x11132(x), x11133(x), x11134(x), x11135(x).
+x1114(x) :- x11141(x), x11142(x), x11143(x), x11144(x), x11145(x).
+
+x1121(x) :- x11211(x), x11212(x), x11213(x), x11214(x), x11215(x).
+x1122(x) :- x11221(x), x11222(x), x11223(x), x11224(x), x11225(x).
+x1123(x) :- x11231(x), x11232(x), x11233(x), x11234(x), x11235(x).
+x1124(x) :- x11241(x), x11242(x), x11243(x), x11244(x), x11245(x).
+
+x1131(x) :- x11311(x), x11312(x), x11313(x), x11314(x), x11315(x).
+x1132(x) :- x11321(x), x11322(x), x11323(x), x11324(x), x11325(x).
+x1133(x) :- x11331(x), x11332(x), x11333(x), x11334(x), x11335(x).
+x1134(x) :- x11341(x), x11342(x), x11343(x), x11344(x), x11345(x).
+
+
+x1211(x) :- x12111(x), x12112(x), x12113(x), x12114(x), x12115(x).
+x1212(x) :- x12121(x), x12122(x), x12123(x), x12124(x), x12125(x).
+x1213(x) :- x12131(x), x12132(x), x12133(x), x12134(x), x12135(x).
+x1214(x) :- x12141(x), x12142(x), x12143(x), x12144(x), x12145(x).
+
+x1221(x) :- x12211(x), x12212(x), x12213(x), x12214(x), x12215(x).
+x1222(x) :- x12221(x), x12222(x), x12223(x), x12224(x), x12225(x).
+x1223(x) :- x12231(x), x12232(x), x12233(x), x12234(x), x12235(x).
+x1224(x) :- x12241(x), x12242(x), x12243(x), x12244(x), x12245(x).
+
+x1231(x) :- x12311(x), x12312(x), x12313(x), x12314(x), x12315(x).
+x1232(x) :- x12321(x), x12322(x), x12323(x), x12324(x), x12325(x).
+x1233(x) :- x12331(x), x12332(x), x12333(x), x12334(x), x12335(x).
+x1234(x) :- x12341(x), x12342(x), x12343(x), x12344(x), x12345(x).
+
+x11111(1).
+x11112(1).
+x11113(1).
+x11114(1).
+x11115(1).
+x11121(1).
+x11122(1).
+x11123(1).
+x11124(1).
+x11125(1).
+x11131(1).
+x11132(1).
+x11133(1).
+x11134(1).
+x11135(1).
+x11141(1).
+x11142(1).
+x11143(1).
+x11144(1).
+x11145(1).
+
+x11211(1).
+x11212(1).
+x11213(1).
+x11214(1).
+x11215(1).
+x11221(1).
+x11222(1).
+x11223(1).
+x11224(1).
+x11225(1).
+x11231(1).
+x11232(1).
+x11233(1).
+x11234(1).
+x11235(1).
+x11241(1).
+x11242(1).
+x11243(1).
+x11244(1).
+x11245(1).
+
+x11311(1).
+x11312(1).
+x11313(1).
+x11314(1).
+x11315(1).
+x11321(1).
+x11322(1).
+x11323(1).
+x11324(1).
+x11325(1).
+x11331(1).
+x11332(1).
+x11333(1).
+x11334(1).
+x11335(1).
+x11341(1).
+x11342(1).
+x11343(1).
+x11344(1).
+x11345(1).
+
+x12111(1).
+x12112(1).
+x12113(1).
+x12114(1).
+x12115(1).
+x12121(1).
+x12122(1).
+x12123(1).
+x12124(1).
+x12125(1).
+x12131(1).
+x12132(1).
+x12133(1).
+x12134(1).
+x12135(1).
+x12141(1).
+x12142(1).
+x12143(1).
+x12144(1).
+x12145(1).
+
+x12211(1).
+x12212(1).
+x12213(1).
+x12214(1).
+x12215(1).
+x12221(1).
+x12222(1).
+x12223(1).
+x12224(1).
+x12225(1).
+x12231(1).
+x12232(1).
+x12233(1).
+x12234(1).
+x12235(1).
+x12241(1).
+x12242(1).
+x12243(1).
+x12244(1).
+x12245(1).
+
+x12311(1).
+x12312(1).
+x12313(1).
+x12314(1).
+x12315(1).
+x12321(1).
+x12322(1).
+x12323(1).
+x12324(1).
+x12325(1).
+x12331(1).
+x12332(1).
+x12333(1).
+x12334(1).
+x12335(1).
+x12341(1).
+x12342(1).
+x12343(1).
+x12344(1).
+
+

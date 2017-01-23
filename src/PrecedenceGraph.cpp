@@ -197,6 +197,11 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
         SCC[nodeToSCC[relation]].insert(relation);
     }
 
+    /* Set the starting color for all SCCs. */
+    sccColor.resize(getNumSCCs());
+    // default color is black
+    std::fill(sccColor.begin(), sccColor.end(), 0);
+
 }
 
 /* Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
@@ -241,7 +246,8 @@ void SCCGraph::outputSCCGraph(std::ostream& os) {
         os << join(getRelationsForSCC(scc), ",\\n", [](std::ostream& out, const AstRelation* rel) {
             out << rel->getName();
         });
-        os << "\",color=black];\n";
+        os << "\", color=\"#" << std::hex <<std::setw(6) << std::setfill('0') << sccColor[scc] << "\" ];\n";
+
     }
 
     /* Print edges of SCC graph */
@@ -254,15 +260,15 @@ void SCCGraph::outputSCCGraph(std::ostream& os) {
 }
 
 /* Compute the topsort of the SCC graph using a reverse DFS and markers */
-void TopologicallySortedSCCGraph::reverseDFS(int sv, std::vector<enum Colour>& sccMarkers) {
-    if (sccMarkers[sv] == GRAY) {
+void TopologicallySortedSCCGraph::reverseDFS(int sv) {
+    if (sccGraph->getSCCColor(sv) == GRAY) {
         assert("SCC graph is not a DAG");
-    } else if (sccMarkers[sv] == WHITE) {
-        sccMarkers[sv] = GRAY;
+    } else if (sccGraph->getSCCColor(sv) == WHITE) {
+        sccGraph->setSCCColor(sv, GRAY);
         for (int scc : sccGraph->getPredecessorSCCs(sv)) {
-            reverseDFS(scc, sccMarkers);
+            reverseDFS(scc);
         }
-        sccMarkers[sv] = BLACK;
+        sccGraph->setSCCColor(sv, BLACK);
         orderedSCCs.push_back(sv);
     }
 }
@@ -331,7 +337,7 @@ void TopologicallySortedSCCGraph::bestCostTopologicalOrdering(std::deque<int>& l
     lookaheadSCCs = bestPermutationOfSCCs;
 }
 
-void TopologicallySortedSCCGraph::khansAlgorithm(std::deque<int>& lookaheadSCCs, std::vector<enum Colour>& sccMarkers) {
+void TopologicallySortedSCCGraph::khansAlgorithm(std::deque<int>& lookaheadSCCs) {
     // establish lists for the current and next round of sccs
     std::deque<int> currentRoundOfSCCs = lookaheadSCCs;
     std::deque<int> nextRoundOfSCCs;
@@ -339,8 +345,8 @@ void TopologicallySortedSCCGraph::khansAlgorithm(std::deque<int>& lookaheadSCCs,
     while (!currentRoundOfSCCs.empty()) {
         // clear the list of lookahead scc's
         lookaheadSCCs.clear();
-        // for LOOKAHEAD number of levels
-        for (unsigned int i = 0; i < LOOKAHEAD; ++i) {
+        // for DEPTH number of levels
+        for (unsigned int i = 0; i < DEPTH; ++i) {
             // clear the list of scc's for the next round
             nextRoundOfSCCs.clear();
             // while scc's remain for the current round
@@ -383,14 +389,14 @@ void TopologicallySortedSCCGraph::khansAlgorithm(std::deque<int>& lookaheadSCCs,
     lookaheadSCCs.clear();
 }
 
-void TopologicallySortedSCCGraph::runReverseDFS(std::vector<enum Colour>& sccMarkers) {
+void TopologicallySortedSCCGraph::runReverseDFS() {
     // run reverse DFS for each node in the scc graph
     for (int su = 0; su < sccGraph->getNumSCCs(); ++su) {
-        reverseDFS(su, sccMarkers);
+        reverseDFS(su);
     }
 }
 
-void TopologicallySortedSCCGraph::runKhansAlgorithm(std::vector<enum Colour>& sccMarkers) {
+void TopologicallySortedSCCGraph::runKhansAlgorithm() {
     std::deque<int> lookaheadSCCs;
     // for each of the sccs in the graph
     for (int scc = 0; scc < sccGraph->getNumSCCs(); ++scc) {
@@ -398,22 +404,22 @@ void TopologicallySortedSCCGraph::runKhansAlgorithm(std::vector<enum Colour>& sc
         if (sccGraph->getPredecessorSCCs(scc).empty()) {
             // and if the scc has no successors either
             if (sccGraph->getSuccessorSCCs(scc).empty()) {
-                sccMarkers[scc] = BLACK;
+                sccGraph->setSCCColor(scc, BLACK);
                 // put it in the ordering
                 orderedSCCs.push_back(scc);
             // otherwise, if the scc only has no predecessors
             } else {
                 // run khan's algorithm using the current scc as a start node
-                sccMarkers[scc] = GRAY;
+                sccGraph->setSCCColor(scc, GRAY);
                 lookaheadSCCs.push_back(scc);
-                khansAlgorithm(lookaheadSCCs, sccMarkers);
+                khansAlgorithm(lookaheadSCCs);
             }
         }
     }
     // finally, check that all nodes have been visited
-    if (std::find(sccMarkers.begin(), sccMarkers.end(), WHITE) != sccMarkers.end()) {
-        assert("SCC graph is not a DAG");
-    }
+    for (int scc = 0; scc < sccGraph->getNumSCCs(); ++scc)
+        if (sccGraph->getSCCColor(scc) == WHITE)
+            assert("SCC graph is not a DAG");
 }
 
 void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit) {
@@ -421,11 +427,10 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
 
     /* Compute topological sort for the SCC graph */
     orderedSCCs.clear();
-    std::vector<enum Colour> sccMarkers; // Markers of a SCC for topsort
-    sccMarkers.resize(sccGraph->getNumSCCs(), WHITE);
+    sccGraph->fillSCCColors(WHITE);
 
-    // runReverseDFS(sccMarkers); // Topsort using reverse DFS algorithm
-    runKhansAlgorithm(sccMarkers); // Topsort using Khan's algorithm
+    runReverseDFS(); // Topsort using reverse DFS algorithm
+    // runKhansAlgorithm(); // Topsort using Khan's algorithm
 }
 
 void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream& os) {
