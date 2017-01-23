@@ -259,20 +259,6 @@ void SCCGraph::outputSCCGraph(std::ostream& os) {
     os << "}\n";
 }
 
-/* Compute the topsort of the SCC graph using a reverse DFS and markers */
-void TopologicallySortedSCCGraph::reverseDFS(int sv) {
-    if (sccGraph->getSCCColor(sv) == GRAY) {
-        assert("SCC graph is not a DAG");
-    } else if (sccGraph->getSCCColor(sv) == WHITE) {
-        sccGraph->setSCCColor(sv, GRAY);
-        for (int scc : sccGraph->getPredecessorSCCs(sv)) {
-            reverseDFS(scc);
-        }
-        sccGraph->setSCCColor(sv, BLACK);
-        orderedSCCs.push_back(sv);
-    }
-}
-
 const int TopologicallySortedSCCGraph::topologicalOrderingCost(const std::vector<int>& permutationOfSCCs) const {
     // create variables to hold the cost of the current SCC and the permutation as a whole
     int costOfSCC = 0;
@@ -337,6 +323,27 @@ void TopologicallySortedSCCGraph::bestCostTopologicalOrdering(std::deque<int>& l
     lookaheadSCCs = bestPermutationOfSCCs;
 }
 
+/* Compute the topsort of the SCC graph using a reverse DFS and markers */
+void TopologicallySortedSCCGraph::reverseDFS(int sv) {
+    if (sccGraph->getSCCColor(sv) == GRAY) {
+        assert("SCC graph is not a DAG");
+    } else if (sccGraph->getSCCColor(sv) == WHITE) {
+        sccGraph->setSCCColor(sv, GRAY);
+        for (int scc : sccGraph->getPredecessorSCCs(sv)) {
+            reverseDFS(scc);
+        }
+        sccGraph->setSCCColor(sv, BLACK);
+        orderedSCCs.push_back(sv);
+    }
+}
+
+void TopologicallySortedSCCGraph::runReverseDFS() {
+    // run reverse DFS for each node in the scc graph
+    for (int su = 0; su < sccGraph->getNumSCCs(); ++su) {
+        reverseDFS(su);
+    }
+}
+
 void TopologicallySortedSCCGraph::khansAlgorithm(std::deque<int>& lookaheadSCCs) {
     // establish lists for the current and next round of sccs
     std::deque<int> currentRoundOfSCCs = lookaheadSCCs;
@@ -389,12 +396,6 @@ void TopologicallySortedSCCGraph::khansAlgorithm(std::deque<int>& lookaheadSCCs)
     lookaheadSCCs.clear();
 }
 
-void TopologicallySortedSCCGraph::runReverseDFS() {
-    // run reverse DFS for each node in the scc graph
-    for (int su = 0; su < sccGraph->getNumSCCs(); ++su) {
-        reverseDFS(su);
-    }
-}
 
 void TopologicallySortedSCCGraph::runKhansAlgorithm() {
     std::deque<int> lookaheadSCCs;
