@@ -355,25 +355,25 @@ void TopologicallySortedSCCGraph::khansAlgorithm(std::deque<int>& lookaheadSCCs)
                 int scc_i = currentRoundOfSCCs.back();
                 currentRoundOfSCCs.pop_back();
                 // give it a permanent mark
-                sccMarkers[scc_i] = BLACK;
+                sccGraph->setSCCColor(scc_i, BLACK);
                 // add it to the list of lookahead scc's
                 lookaheadSCCs.push_back(scc_i);
                 // and for each successor of that scc
                 for (int scc_j : sccGraph->getSuccessorSCCs(scc_i)) {
                     // check it has not yet been visited
-                    if (sccMarkers[scc_j] != WHITE)
+                    if (sccGraph->getSCCColor(scc_j) != WHITE)
                         continue;
                     // check that it has no predecessors which have not been visited
                     bool hasUnvisitedPredecessor = false;
                     for (int scc_k : sccGraph->getPredecessorSCCs(scc_j)) {
-                        if (sccMarkers[scc_k] != BLACK) {
+                        if (sccGraph->getSCCColor(scc_k) != BLACK) {
                             hasUnvisitedPredecessor = true;
                             break;
                         }
                     }
                     if (hasUnvisitedPredecessor) continue;
                     // if it passes, give it a temporary mark
-                    sccMarkers[scc_j] = GRAY;
+                    sccGraph->setSCCColor(scc_j, GRAY);
                     // and add it to the list of scc's for the next round
                     nextRoundOfSCCs.push_back(scc_j);
                 }
