@@ -349,8 +349,8 @@ void TopologicallySortedSCCGraph::khansAlgorithmRecursive(int scc, std::vector<i
     unsigned int breadth = 0;
     for (auto scc_i : sccGraph->getSuccessorSCCs(scc)) {
         if (breadth >= BREADTH) break;
-        if (sccGraph->getColor(scc_i) != WHITE) break;
-        if (sccGraph->hasPredecessorOfColor(scc_i, WHITE)) break;
+        if (sccGraph->getColor(scc_i) != WHITE) continue;
+        if (sccGraph->hasPredecessorOfColor(scc_i, WHITE)) continue;
         current.push_back(scc_i);
         sccGraph->setColor(scc_i, GRAY);
         ++breadth;
@@ -371,19 +371,17 @@ void TopologicallySortedSCCGraph::khansAlgorithm(int scc) {
     orderedSCCs.insert(orderedSCCs.end(), current.begin(), current.end());
     current.insert(current.begin(), scc);
 
-    sccGraph->outputSCCGraph(std::cerr);
     for (auto scc_i : current) {
         if (sccGraph->hasSuccessorOfColor(scc_i, WHITE)) {
             sccGraph->setColor(scc_i, RED);
+            khansAlgorithm(scc_i);
         } else {
             sccGraph->setColor(scc_i, BLACK);
         }
     }
-    for (auto scc_i : current) {
-        if (sccGraph->getColor(scc_i) == RED) {
-            khansAlgorithm(scc_i);
-        }
-    }
+
+    if (sccGraph->getColor(scc) == RED && sccGraph->hasSuccessorOfColor(scc, WHITE) && !sccGraph->hasPredecessorOfColor(scc, WHITE))
+        khansAlgorithm(scc);
 
 }
 
@@ -421,9 +419,8 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
     orderedSCCs.clear();
     sccGraph->fillColors(WHITE);
 
-    // TODO
-    runReverseDFS(); // Topsort using reverse DFS algorithm
-    // runKhansAlgorithm(); // Topsort using Khan's algorithm
+    // runReverseDFS(); // Topsort using reverse DFS algorithm
+    runKhansAlgorithm(); // Topsort using Khan's algorithm
 }
 
 void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream& os) {
