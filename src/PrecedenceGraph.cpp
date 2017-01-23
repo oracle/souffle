@@ -300,6 +300,9 @@ void TopologicallySortedSCCGraph::bestCostTopologicalOrdering(std::vector<int>& 
     std::vector<int> bestPermutationOfSCCs;
     // sort the lookahead scc's
     std::sort(lookaheadSCCs.begin(), lookaheadSCCs.end());
+    // TODO
+    BREAKPOINT;
+    for (auto x : lookaheadSCCs) for (auto y : sccGraph->getRelationsForSCC(x)) std::cerr << y->getName() << " "; std::cerr << std::endl;
     // then iterate through all permutations of them
     do {
         // erase the previous permutation of lookahead scc's from the current permutation, if it exists
@@ -325,14 +328,14 @@ void TopologicallySortedSCCGraph::bestCostTopologicalOrdering(std::vector<int>& 
 
 /* Compute the topsort of the SCC graph using a reverse DFS and markers */
 void TopologicallySortedSCCGraph::reverseDFS(int sv) {
-    if (sccGraph->getSCCColor(sv) == GRAY) {
+    if (sccGraph->getColor(sv) == GRAY) {
         assert("SCC graph is not a DAG");
-    } else if (sccGraph->getSCCColor(sv) == WHITE) {
-        sccGraph->setSCCColor(sv, GRAY);
+    } else if (sccGraph->getColor(sv) == WHITE) {
+        sccGraph->setColor(sv, GRAY);
         for (int scc : sccGraph->getPredecessorSCCs(sv)) {
             reverseDFS(scc);
         }
-        sccGraph->setSCCColor(sv, BLACK);
+        sccGraph->setColor(sv, BLACK);
         orderedSCCs.push_back(sv);
     }
 }
@@ -344,41 +347,51 @@ void TopologicallySortedSCCGraph::runReverseDFS() {
     }
 }
 
-void TopologicallySortedSCCGraph::khansAlgorithmRecursive(int scc, std::vector<int>* current, unsigned int depth) {
+void TopologicallySortedSCCGraph::khansAlgorithmRecursive(int scc, std::vector<int>& current, unsigned int depth) {
     unsigned int breadth = 0;
     for (auto scc_i : sccGraph->getSuccessorSCCs(scc)) {
+        // TODO
+        BREAKPOINT;
+        for (auto x : sccGraph->getRelationsForSCC(scc_i)) std::cerr << x->getName() << " "; std::cerr << std::endl;
         if (breadth >= BREADTH) break;
-        if (sccGraph->getSCCColor(scc_i) == WHITE) {
-            current->push_back(scc_i);
-            sccGraph->setSCCColor(scc_i, GRAY);
-            ++breadth;
-            if (depth < DEPTH)
-                khansAlgorithmRecursive(scc_i, current, depth + 1);
-        }
+        if (sccGraph->getColor(scc_i) != WHITE) break;
+        // TODO @issue-XXX
+        if (sccGraph->hasPredecessorOfColor(scc_i, WHITE)) break;
+        current.push_back(scc_i);
+        sccGraph->setColor(scc_i, GRAY);
+        ++breadth;
+        if (depth < DEPTH)
+            khansAlgorithmRecursive(scc_i, current, depth + 1);
     }
 }
 
 void TopologicallySortedSCCGraph::khansAlgorithm(int scc) {
     std::vector<int> current;
-    current.resize(BREADTH * DEPTH);
-    khansAlgorithmRecursive(scc, &current, 0);
-     // compute the best cost topological ordering over the set of lookahead sccs
+    khansAlgorithmRecursive(scc, current, 0);
+    if (current.size() == 0) return;
+    // TODO
+    BREAKPOINT;
+    for (auto x : current) for (auto y : sccGraph->getRelationsForSCC(x)) std::cerr << y->getName() << " "; std::cerr << std::endl;
+    // compute the best cost topological ordering over the set of lookahead sccs
     bestCostTopologicalOrdering(current);
+    // TODO
+    BREAKPOINT;
+    for (auto x : current) for (auto y : sccGraph->getRelationsForSCC(x)) std::cerr << y->getName() << " "; std::cerr << std::endl;
     // and append it to the final list of ordered sccs
     orderedSCCs.insert(orderedSCCs.end(), current.begin(), current.end());
+    // TODO
+    BREAKPOINT;
+    for (auto x : orderedSCCs) for (auto y : sccGraph->getRelationsForSCC(x)) std::cerr << y->getName() << " "; std::cerr << std::endl;
     current.insert(current.begin(), scc);
     for (auto scc_i : current) {
-        bool toVisit = false;
-        for (auto scc_j : sccGraph->getSuccessorSCCs(scc_i)) {
-            if (sccGraph->getSCCColor(scc_j) == WHITE) {
-                toVisit = true;
-                break;
-            }
+        if (sccGraph->hasSuccessorOfColor(scc_i, WHITE)) {
+            sccGraph->setColor(scc_i, RED);
+        } else {
+            sccGraph->setColor(scc_i, BLACK);
         }
-        sccGraph->setSCCColor(scc_i, (toVisit) ? RED : BLACK);
     }
     for (auto scc_i : current)
-        if (sccGraph->getSCCColor(scc_i) == RED)
+        if (sccGraph->getColor(scc_i) == RED)
             khansAlgorithm(scc_i);
 }
 
@@ -392,11 +405,11 @@ void TopologicallySortedSCCGraph::runKhansAlgorithm() {
             orderedSCCs.push_back(scc);
             // and if the scc has no successors either
             if (sccGraph->getSuccessorSCCs(scc).empty()) {
-                sccGraph->setSCCColor(scc, BLACK);
+                sccGraph->setColor(scc, BLACK);
             // otherwise, if the scc only has no predecessors
             } else {
                 // give it a temporary marking
-                sccGraph->setSCCColor(scc, GRAY);
+                sccGraph->setColor(scc, GRAY);
                 // and run khans algorithm on it
                 khansAlgorithm(scc);
             }
@@ -404,7 +417,7 @@ void TopologicallySortedSCCGraph::runKhansAlgorithm() {
     }
     // finally, check that all nodes have been visited
     for (int scc = 0; scc < sccGraph->getNumSCCs(); ++scc)
-        if (sccGraph->getSCCColor(scc) != BLACK)
+        if (sccGraph->getColor(scc) != BLACK)
             assert("SCC graph is not a DAG");
 }
 
@@ -413,10 +426,13 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
 
     /* Compute topological sort for the SCC graph */
     orderedSCCs.clear();
-    sccGraph->fillSCCColors(WHITE);
+    sccGraph->fillColors(WHITE);
 
+    BREAKPOINT;
     // runReverseDFS(); // Topsort using reverse DFS algorithm
     runKhansAlgorithm(); // Topsort using Khan's algorithm
+    BREAKPOINT;
+    outputTopologicallySortedSCCGraph(std::cerr);
 }
 
 void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream& os) {

@@ -155,24 +155,38 @@ public:
     }
 
     /** Get the color of an SCC. */
-    const unsigned int getSCCColor(const int scc) {
+    const unsigned int getColor(const int scc) {
         return sccColor[scc];
     }
 
     /** Set the color of an SCC. */
-    void setSCCColor(const int scc, const unsigned int color) {
+    void setColor(const int scc, const unsigned int color) {
         sccColor[scc] = color;
     }
 
     /** Fill all SCCs to the given color. */
-    void fillSCCColors(const unsigned int color) {
+    void fillColors(const unsigned int color) {
         std::fill(sccColor.begin(), sccColor.end(), color);
     }
 
+    /** Check if a given SCC has a predecessor of the specified color. */
+    const bool hasPredecessorOfColor(int scc, const unsigned int color) {
+        for (auto pred : getPredecessorSCCs(scc)) if (getColor(pred) == color) return true;
+        return false;
+    }
+
+    /** Check if a given SCC has a successor of the specified color. */
+    const bool hasSuccessorOfColor(int scc, const unsigned int color) {
+        for (auto succ : getSuccessorSCCs(scc)) if (getColor(succ) == color) return true;
+        return false;
+    }
+
+    /** Get all successor SCCs of a specified scc. */
     const std::set<int> &getSuccessorSCCs(int scc) {
         return succSCC[scc];
     }
 
+    /** Get all predecessor SCCs of a specified scc. */
     const std::set<int> &getPredecessorSCCs(int scc) {
         return predSCC[scc];
     }
@@ -225,7 +239,7 @@ private:
     void runReverseDFS();
 
     /** Recursive component of Khan's algorithm, gets the nodes for the current round. */
-    void khansAlgorithmRecursive(int scc, std::vector<int>* current, unsigned int depth);
+    void khansAlgorithmRecursive(int scc, std::vector<int>& current, unsigned int depth);
 
     /** Khan's algorithm to compute the topological ordering, uses an additional lookahead. */
     void khansAlgorithm(int scc);
