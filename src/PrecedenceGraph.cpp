@@ -429,8 +429,8 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
     orderedSCCs.clear();
     sccGraph->fillSCCColors(WHITE);
 
-    runReverseDFS(); // Topsort using reverse DFS algorithm
-    // runKhansAlgorithm(); // Topsort using Khan's algorithm
+    // runReverseDFS(); // Topsort using reverse DFS algorithm
+    runKhansAlgorithm(); // Topsort using Khan's algorithm
 }
 
 void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream& os) {

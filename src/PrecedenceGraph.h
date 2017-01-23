@@ -195,10 +195,10 @@ private:
     std::vector<int> orderedSCCs;
 
     /** Depth lookahead for khan's algorithm. */
-    const unsigned int DEPTH = 2;
+    const unsigned int DEPTH = 1;
 
     /** Breadth lookahead for khan's algorithm. */
-    const unsigned int BREADTH = 2;
+    // const unsigned int BREADTH = ???;
 
     /** Marker type for to compute topsort */
     enum Colour {
