@@ -1482,9 +1482,9 @@ namespace {
             }
 
             // create projected tuple
-            out << "Tuple<RamDomain," << arity << "> tuple({"
-                    << join(project.getValues(), ",", rec)
-                << "});\n";
+            out << "Tuple<RamDomain," << arity << "> tuple({(RamDomain)("
+                    << join(project.getValues(), "),(RamDomain)(", rec)
+                << ")});\n";
 
             // check filter
             if (project.hasFilter()) {
