@@ -1,0 +1,30 @@
+//
+// Record Type
+//
+// This test was created for issue #238 "Segfault: Type checker fails to detect single negative numbers if record type is expected".
+//
+
+// TODO
+// - when issue fixed, run ./../../../src/souffle record_type.dl 1> record_type.out 2> record_type.err
+
+.type record = [ X:number, Y:number ]
+
+.decl MyRelation( X:record )
+
+// No Error
+MyRelation(nil).
+MyRelation([7, 7]).
+MyRelation([-7, -7]).
+
+// Error
+/// MyRelation(0).
+/// MyRelation(7).
+MyRelation(-7).         // TODO
+/// MyRelation("7").
+/// MyRelation(7, 7).
+/// MyRelation([7]).
+/// MyRelation([7, 7, 7]).
+
+.decl YourRelation( X:number ) output
+
+YourRelation(x) :- MyRelation([x, _]). // TODO: tries to unpack that -1
