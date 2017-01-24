@@ -217,9 +217,9 @@ void DebugReporter::generateDebugReport(AstTranslationUnit& translationUnit, std
     translationUnit.getAnalysis<SCCGraph>()->outputSCCGraph(sccGraphDot);
     DebugReportSection sccGraphSection = getDotGraphSection(id + "-scc-graph", "SCC Graph", sccGraphDot.str());
 
-    std::stringstream topsortSCCGraphDot;
-    translationUnit.getAnalysis<TopologicallySortedSCCGraph>()->outputTopologicallySortedSCCGraph(topsortSCCGraphDot);
-    DebugReportSection topsortSCCGraphSection = getCodeSection(id + "-topsort-scc-graph", "SCC Topological Sort Order", topsortSCCGraphDot.str());
+    std::stringstream topsortSCCGraph;
+    translationUnit.getAnalysis<TopologicallySortedSCCGraph>()->outputTopologicallySortedSCCGraph(topsortSCCGraph);
+    DebugReportSection topsortSCCGraphSection = getCodeSection(id + "-topsort-scc-graph", "SCC Topological Sort Order", topsortSCCGraph.str());
 
     translationUnit.getDebugReport().addSection(DebugReportSection(id, title,
             {datalogSection, precedenceGraphSection, sccGraphSection, topsortSCCGraphSection}, ""));

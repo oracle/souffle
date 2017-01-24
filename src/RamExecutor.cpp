@@ -1482,9 +1482,12 @@ namespace {
             }
 
             // create projected tuple
-            out << "Tuple<RamDomain," << arity << "> tuple({"
-                    << join(project.getValues(), ",", rec)
-                << "});\n";
+            if (project.getValues().size() == 0)
+                out << "Tuple<RamDomain," << arity << "> tuple({});\n";
+            else
+                out << "Tuple<RamDomain," << arity << "> tuple({(RamDomain)("
+                    << join(project.getValues(), "),(RamDomain)(", rec)
+                    << ")});\n";
 
             // check filter
             if (project.hasFilter()) {
@@ -1652,7 +1655,7 @@ namespace {
                 out << "(" << print(op.getLHS()) << ") / (" << print(op.getRHS()) << ")";
                 break;
             case BinaryOp::EXP: {
-                out << "(RamDomain)(std::pow((long)" << print(op.getLHS()) << "," << "(long)" << print(op.getRHS()) << "))";
+                out << "(long)(std::pow((long)" << print(op.getLHS()) << "," << "(long)" << print(op.getRHS()) << "))";
                 break;
             }
             case BinaryOp::MOD: {

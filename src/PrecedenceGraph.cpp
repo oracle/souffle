@@ -458,6 +458,7 @@ void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream
         });
         os << "]\n";
     }
+    os << "\ncost: " << topologicalOrderingCost(orderedSCCs) << "\n";
 }
 
 void RelationSchedule::run(const AstTranslationUnit& translationUnit) {

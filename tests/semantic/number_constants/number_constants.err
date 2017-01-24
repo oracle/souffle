@@ -1,7 +1,7 @@
-Error: integer constant must be in range [0, 2147483647] in file number_constants.dl at line 6
+Error: positive integer constant must be in range [0, 2147483647] in file number_constants.dl at line 6
 R(2147483648). // error: out of range
 --^-----------------------------------
-Error: integer constant must be in range [0, 2147483647] in file number_constants.dl at line 8
-R(-2147483648). // error: out of range
----^-----------------------------------
+Error: negative integer constant must be in range [-2147483648, -1] in file number_constants.dl at line 8
+R(-2147483649). // error: out of range
+--^------------------------------------
 2 errors generated, evaluation aborted
