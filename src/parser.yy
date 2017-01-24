@@ -86,6 +86,7 @@
 %token <std::string> STRING      "symbol"
 %token <std::string> IDENT       "identifier"
 %token <int> NUMBER              "number"
+%token <int> NEGATIVE_NUMBER     "negative number"
 %token <std::string> RELOP       "relational operator"
 %token OUTPUT_QUALIFIER          "relation qualifier output"
 %token INPUT_QUALIFIER           "relation qualifier input"
@@ -314,6 +315,10 @@ arg: STRING {
        $$ = new AstNumberConstant($1);
        $$->setSrcLoc(@$);
      }
+   | NEGATIVE_NUMBER {
+       $$ = new AstNumberConstant($1);
+       $$->setSrcLoc(@$);
+    }
    | LPAREN arg RPAREN {
        $$ = $2;
      }
@@ -345,6 +350,10 @@ arg: STRING {
        $$ = new AstBinaryFunctor(BinaryOp::SUB, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
+   | arg NEGATIVE_NUMBER {
+       $$ = new AstBinaryFunctor(BinaryOp::SUB, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>(new AstNumberConstant(-1*$2)));
+       $$->setSrcLoc(@$);
+   }
    | arg STAR arg {
        $$ = new AstBinaryFunctor(BinaryOp::MUL, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
@@ -361,6 +370,15 @@ arg: STRING {
        $$ = new AstBinaryFunctor(BinaryOp::EXP, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
+   | NEGATIVE_NUMBER CARET arg {
+       $$ = new AstUnaryFunctor(UnaryOp::NEG, std::unique_ptr<AstArgument>(
+            new AstBinaryFunctor(BinaryOp::EXP, std::unique_ptr<AstArgument>(
+                new AstNumberConstant(-1*$1)),
+                std::unique_ptr<AstArgument>($3)
+            )
+       ));
+       $$->setSrcLoc(@$);
+    }
    | CAT LPAREN arg COMMA arg RPAREN {
        $$ = new AstBinaryFunctor(BinaryOp::CAT, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
        $$->setSrcLoc(@$);
