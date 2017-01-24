@@ -150,14 +150,14 @@
                                      return yy::parser::make_NUMBER(0, yylloc);
                                    }
                                  }
-[0-9]+                           { try {
-                                     return yy::parser::make_NUMBER(std::stoi(yytext, NULL, 10), yylloc);  
+0|([1-9][0-9]*)                  { try {
+                                     return yy::parser::make_NUMBER(std::stoi(yytext, NULL, 10), yylloc);
                                    } catch (...) { 
                                      driver.error(yylloc, "positive integer constant must be in range [0, 2147483647]");
                                      return yy::parser::make_NUMBER(0, yylloc);
                                    }
                                  }
--[0-9]+                          { try {
+-([1-9][0-9]*)                   { try {
                                      return yy::parser::make_NEGATIVE_NUMBER(std::stoi(yytext, NULL, 10), yylloc);
                                    } catch (...) {
                                      driver.error(yylloc, "negative integer constant must be in range [-2147483648, -1]");
