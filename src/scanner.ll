@@ -150,10 +150,10 @@
                                      return yy::parser::make_NUMBER(0, yylloc);
                                    }
                                  }
-[0-9]+                           { try {
+-?[0-9]+                         { try {
                                      return yy::parser::make_NUMBER(std::stoi(yytext, NULL, 10), yylloc);  
                                    } catch (...) { 
-                                     driver.error(yylloc, "integer constant must be in range [0, 2147483647]");
+                                     driver.error(yylloc, "integer constant must be in range [-2147483647, 2147483647]");
                                      return yy::parser::make_NUMBER(0, yylloc);
                                    }
                                  }
