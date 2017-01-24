@@ -446,6 +446,7 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
 
     // generate topological ordering using custom algorithm
     generateTopologicalOrdering();
+
 }
 
 void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream& os) {

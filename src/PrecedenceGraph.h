@@ -213,11 +213,11 @@ private:
     /** The final topological ordering over the SCCs. */
     std::vector<int> orderedSCCs;
 
-    /** Depth limit for algorithm. */
-    const unsigned int DEPTH = 2;
-
     /** Breadth limit for algorithm. */
     const unsigned int BREADTH = 2;
+
+    /** Depth limit for algorithm. */
+    const unsigned int DEPTH = 2;
 
     /** Marker type for to compute topological ordering. */
     enum Colour {
