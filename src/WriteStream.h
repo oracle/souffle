@@ -15,13 +15,38 @@
 #pragma once
 
 #include "RamTypes.h"
+#include "SymbolMask.h"
+#include "SymbolTable.h"
 
 namespace souffle {
 
 class WriteStream {
 public:
-    virtual void writeNextTuple(const RamDomain *tuple) = 0;
+    template <typename T>
+    void writeAll(const T& relation) {
+        for (const auto& current : relation) {
+            writeNext(current);
+        }
+    }
+    // TODO (mmcgr): change all the Tuple<RamDomain, arity> to std:array, then remove this.
+    template <typename Tuple>
+    void writeNext(Tuple tuple) {
+        writeNextTuple(tuple.data);
+    }
+    virtual void writeNextTuple(const RamDomain* tuple) = 0;
     virtual ~WriteStream() {}
 };
+
+class WriteStreamFactory {
+public:
+    virtual std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask,
+            const SymbolTable& symbolTable, const std::map<std::string, std::string>& options) = 0;
+    virtual ~WriteStreamFactory() {}
+};
+
+template <>
+void WriteStream::writeNext(const RamDomain* tuple) {
+    writeNextTuple(tuple);
+}
 
 } /* namespace souffle */

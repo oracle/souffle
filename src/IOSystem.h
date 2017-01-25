@@ -15,10 +15,8 @@
 
 #pragma once
 
-#include <iostream>
-#include <istream>
+#include <map>
 #include <memory>
-#include <ostream>
 #include <string>
 
 #include "ReadStream.h"
@@ -43,81 +41,6 @@ protected:
     }
 };
 
-class OutputFactory {
-public:
-    virtual std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask,
-            const SymbolTable& symbolTable, const std::map<std::string, std::string>& options) = 0;
-    virtual ~OutputFactory() {}
-};
-
-class InputFactory {
-public:
-    virtual std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask,
-            SymbolTable& symbolTable, const std::map<std::string, std::string>& options) = 0;
-    virtual ~InputFactory() {}
-};
-
-class WriteFileCSVFactory : public OutputFactory, public CSVFactory {
-public:
-    std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask,
-            const SymbolTable &symbolTable, const std::map<std::string, std::string>& options) {
-        return std::unique_ptr<WriteFileCSV>(new WriteFileCSV(options.at("name"),
-                symbolMask, symbolTable, getDelimiter(options)));
-    }
-    virtual ~WriteFileCSVFactory() {}
-};
-
-class WriteCoutCSVFactory : public OutputFactory, public CSVFactory {
-public:
-    std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask,
-            const SymbolTable &symbolTable, const std::map<std::string, std::string>& options) {
-        return std::unique_ptr<WriteCoutCSV>(new WriteCoutCSV(options.at("name"),
-                symbolMask, symbolTable, getDelimiter(options)));
-    }
-    virtual ~WriteCoutCSVFactory() {}
-};
-
-class WriteSQLiteFactory : public OutputFactory {
-public:
-    std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask,
-            const SymbolTable &symbolTable, const std::map<std::string, std::string>& options) {
-        return std::unique_ptr<WriteStreamSQLite>(new WriteStreamSQLite(options.at("dbname"),
-                        options.at("name"), symbolMask, symbolTable));
-    }
-    virtual ~WriteSQLiteFactory() {}
-};
-
-
-class ReadFileCSVFactory : public InputFactory, public CSVFactory {
-public:
-    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask,
-            SymbolTable &symbolTable, const std::map<std::string, std::string>& options) {
-        return std::unique_ptr<ReadFileCSV>(new ReadFileCSV(options.at("name"),
-                symbolMask, symbolTable, getDelimiter(options)));
-    }
-    virtual ~ReadFileCSVFactory() {}
-};
-
-class ReadCinCSVFactory : public InputFactory, public CSVFactory {
-public:
-    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask,
-            SymbolTable &symbolTable, const std::map<std::string, std::string>& options) {
-        return std::unique_ptr<ReadStreamCSV>(new ReadStreamCSV(std::cin,
-                symbolMask, symbolTable, getDelimiter(options)));
-    }
-    virtual ~ReadCinCSVFactory() {}
-};
-
-class ReadStreamSQLiteFactory : public InputFactory {
-public:
-    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
-            const std::map<std::string, std::string>& options) {
-        return std::unique_ptr<ReadStreamSQLite>(new ReadStreamSQLite(options.at("dbname"),
-                options.at("name"), symbolMask, symbolTable));
-    }
-    virtual ~ReadStreamSQLiteFactory() {}
-};
-
 class IOSystem {
 public:
     static IOSystem& getInstance() {
@@ -125,10 +48,10 @@ public:
         return singleton;
     }
 
-    void registerOutputFactory(const std::string& name, std::shared_ptr<OutputFactory> factory) {
+    void registerWriteStreamFactory(const std::string& name, std::shared_ptr<WriteStreamFactory> factory) {
         outputFactories[name] = factory;
     }
-    void registerInputFactory(const std::string& name, std::shared_ptr<InputFactory> factory) {
+    void registerReadStreamFactory(const std::string& name, std::shared_ptr<ReadStreamFactory> factory) {
         inputFactories[name] = factory;
     }
     /**
@@ -227,16 +150,16 @@ private:
 	return str;
     }
     IOSystem() {
-        registerInputFactory("file", std::make_shared<ReadFileCSVFactory>());
-        registerInputFactory("stdin", std::make_shared<ReadCinCSVFactory>());
-        registerInputFactory("sqlite", std::make_shared<ReadStreamSQLiteFactory>());
+        registerReadStreamFactory("file", std::make_shared<ReadFileCSVFactory>());
+        registerReadStreamFactory("stdin", std::make_shared<ReadCinCSVFactory>());
+        registerReadStreamFactory("sqlite", std::make_shared<ReadStreamSQLiteFactory>());
 
-        registerOutputFactory("file", std::make_shared<WriteFileCSVFactory>());
-        registerOutputFactory("stdout", std::make_shared<WriteCoutCSVFactory>());
-        registerOutputFactory("sqlite", std::make_shared<WriteSQLiteFactory>());
+        registerWriteStreamFactory("file", std::make_shared<WriteFileCSVFactory>());
+        registerWriteStreamFactory("stdout", std::make_shared<WriteCoutCSVFactory>());
+        registerWriteStreamFactory("sqlite", std::make_shared<WriteSQLiteFactory>());
     };
-    std::map<std::string, std::shared_ptr<OutputFactory>> outputFactories;
-    std::map<std::string, std::shared_ptr<InputFactory>> inputFactories;
+    std::map<std::string, std::shared_ptr<WriteStreamFactory>> outputFactories;
+    std::map<std::string, std::shared_ptr<ReadStreamFactory>> inputFactories;
 };
 
 } /* namespace souffle */

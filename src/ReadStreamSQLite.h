@@ -100,22 +100,24 @@ private:
         }
     }
 
+    void throwError(std::string message) {
+        std::stringstream error;
+        error << message << sqlite3_errmsg(db) << "\n";
+        throw std::invalid_argument(error.str());
+    }
+
     virtual void prepareSelectStatement() {
         std::stringstream selectSQL;
         selectSQL << "SELECT * FROM '" << relationName << "'";
         const char* tail = 0;
         if (sqlite3_prepare_v2(db, selectSQL.str().c_str(), -1, &selectStatement, &tail) != SQLITE_OK) {
-            std::stringstream error;
-            error << "SQLite error in sqlite3_prepare_v2: " << sqlite3_errmsg(db) << "\n";
-            throw std::invalid_argument(error.str());
+            throwError("SQLite error in sqlite3_prepare_v2: ");
         }
     }
 
     void openDB() {
         if (sqlite3_open(dbFilename.c_str(), &db) != SQLITE_OK) {
-            std::stringstream error;
-            error << "SQLite error in sqlite3_open: " << sqlite3_errmsg(db);
-            throw std::invalid_argument(error.str());
+            throwError("SQLite error in sqlite3_open: ");
         }
         sqlite3_extended_result_codes(db, 1);
         executeSQL("PRAGMA synchronous = OFF", db);
@@ -130,9 +132,7 @@ private:
         const char* tail = 0;
 
         if (sqlite3_prepare_v2(db, selectSQL.str().c_str(), -1, &tableStatement, &tail) != SQLITE_OK) {
-            std::stringstream error;
-            error << "SQLite error in sqlite3_prepare_v2: " << sqlite3_errmsg(db) << "\n";
-            throw std::invalid_argument(error.str());
+            throwError("SQLite error in sqlite3_prepare_v2: ");
         }
 
         if (sqlite3_step(tableStatement) == SQLITE_ROW) {
@@ -151,6 +151,16 @@ private:
     SymbolTable& symbolTable;
     sqlite3_stmt* selectStatement;
     sqlite3* db;
+};
+
+class ReadStreamSQLiteFactory : public ReadStreamFactory {
+public:
+    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
+            const std::map<std::string, std::string>& options) {
+        return std::unique_ptr<ReadStreamSQLite>(
+                new ReadStreamSQLite(options.at("dbname"), options.at("name"), symbolMask, symbolTable));
+    }
+    virtual ~ReadStreamSQLiteFactory() {}
 };
 
 } /* namespace souffle */
