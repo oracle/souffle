@@ -25,11 +25,12 @@
 #include <set>
 #include <memory>
 
-#include "AstNode.h"
-#include "AstType.h"
 #include "AstAttribute.h"
 #include "AstClause.h"
+#include "AstIODirective.h"
+#include "AstNode.h"
 #include "AstRelationIdentifier.h"
+#include "AstType.h"
 
 /** Types of relation qualifiers defined as bits in a word */
 
@@ -223,6 +224,8 @@ public:
         for(const auto& cur : clauses) res.push_back(cur.get());
         return res;
     }
+
+    void addIODirectives(std::unique_ptr<AstIODirective> directive) {}
 
 protected:
 

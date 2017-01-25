@@ -92,6 +92,18 @@ void ParserDriver::addRelation(AstRelation *r) {
     }
 }
 
+void ParserDriver::addIODirective(AstIODirective* r) {
+    const auto& name = r->getName();
+    AstRelation* rel = translationUnit->getProgram()->getRelation(name);
+    if (rel) {
+        rel->addIODirectives(std::unique_ptr<AstIODirective>(r));
+    } else {
+        Diagnostic err(
+                Diagnostic::ERROR, DiagnosticMessage("Undefined relation " + toString(name), r->getSrcLoc()));
+        translationUnit->getErrorReport().addDiagnostic(err);
+    }
+}
+
 void ParserDriver::addType(AstType *type) {
 	const auto& name = type->getName();
     if (const AstType *prev = translationUnit->getProgram()->getType(name)) {

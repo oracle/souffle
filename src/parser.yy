@@ -38,6 +38,7 @@
     #include "AstClause.h"
     #include "AstComponent.h"
     #include "AstRelation.h"
+    #include "AstIODirective.h"
     #include "AstArgument.h"
     #include "AstNode.h"
     #include "BinaryOperator.h"
@@ -107,6 +108,7 @@
 %token PLAN                      "plan keyword"
 %token IF                        ":-"
 %token DECL                      "relation declaration"
+%token INPUT               "input directives declaration"
 %token OVERRIDE                  "override rules of super-component"
 %token TYPE                      "type declaration"
 %token COMPONENT                 "component declaration"
@@ -168,7 +170,7 @@
 %type <AstUnionType *>                   uniontype
 %type <std::vector<AstTypeIdentifier>>   type_params type_param_list
 %type <std::string>                      comp_override
-
+%type <AstIODirective *>                 key_value_pairs non_empty_key_value_pairs inputdirective
 %printer { yyoutput << $$; } <*>;
 
 %precedence AS
@@ -192,6 +194,7 @@ program: unit
 /* Top-level statement */
 unit: unit type { $$ = $1; driver.addType($2); }
     | unit relation { $$ = $1; driver.addRelation($2); }
+    | unit inputdirective { $$ = $1; driver.addIODirective($2); }
     | unit fact { $$ = $1; driver.addClause($2); }
     | unit rule { $$ = $1; for(const auto& cur : $2) driver.addClause(cur); }
     | unit component { $$ = $1; driver.addComponent($2); }
@@ -297,6 +300,38 @@ relation: DECL IDENT LPAREN attributes RPAREN qualifiers {
            $$->setSrcLoc(@$);
           }
         ;
+
+non_empty_key_value_pairs : IDENT EQUALS STRING {
+           $$ = new AstIODirective();
+           $$->addKVP($1, $3);
+          }
+        | key_value_pairs COMMA IDENT EQUALS STRING {
+           $$ = $1;
+           $$->addKVP($3, $5);
+          }
+        | IDENT EQUALS IDENT {
+           $$ = new AstIODirective();
+           $$->addKVP($1, $3);
+          }
+        | key_value_pairs COMMA IDENT EQUALS IDENT {
+           $$ = $1;
+           $$->addKVP($3, $5);
+          }
+        ;
+
+
+key_value_pairs: non_empty_key_value_pairs { $$ = $1; }
+	     | %empty {
+                $$ = new AstIODirective();
+               }
+             ;
+
+inputdirective: INPUT IDENT LPAREN key_value_pairs RPAREN {
+        $$ = $4;
+        $4->setName($2);
+        $4->setSrcLoc(@$);
+        $4->setAsInput();
+       }
 
 /* Atom */
 arg: STRING {
