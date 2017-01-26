@@ -29,8 +29,6 @@
 #include "IOSystem.h"
 #include "IterUtils.h"
 #include "ParallelUtils.h"
-#include "SymbolMask.h"
-#include "SymbolTable.h"
 #include "Table.h"
 #include "Trie.h"
 #include "Util.h"
@@ -203,8 +201,6 @@ namespace detail {
  */
 template<unsigned arity, typename Derived>
 struct RelationBase {
-    using SymbolTable = souffle::SymbolTable; // XXX pending namespace cleanup
-
 	// the type of tuple maintained by this relation
     typedef Tuple<RamDomain,arity> tuple_type;
 
