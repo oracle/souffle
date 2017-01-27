@@ -71,3 +71,13 @@ for EXTENSION in $RELEVANT_EXTENSIONS; do
         echo
     done
 done
+
+if [ $TRAVIS_OS_NAME == osx ]
+then
+    pretty_print "OSX Diagnostic Reports"
+    for f in ~/Library/Logs/DiagnosticReports/*; do
+        pretty_print $f
+        head -$MAXIMUM_LINES $f
+        echo
+    done
+fi
