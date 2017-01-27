@@ -249,11 +249,13 @@ private:
 
 public:
 
+    // TODO
     /** Breadth limit for algorithm, set by command line arguments. */
-    static unsigned int BREADTH;
+    static const unsigned int BREADTH = 2;
 
+    // TODO
     /** Depth limit for algorithm, set by command line arguments. */
-    static unsigned int DEPTH;
+    static const unsigned int DEPTH = 2;
 
     static constexpr const char *name = "topological-scc-graph";
 

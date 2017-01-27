@@ -459,8 +459,6 @@ void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream
         os << "]\n";
     }
     os << "\n";
-    os << "breadth: " << BREADTH << "\n";
-    os << "depth: " << DEPTH << "\n";
     os << "cost: " << topologicalOrderingCost(orderedSCCs) << "\n";
 }
 
