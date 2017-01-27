@@ -38,7 +38,7 @@ view_employee(User, Person, 0, 0, Email, Dept, Position, Bday) :-
 view_employee(User, Person, 0, 0, " ", " ", " ", Bday) :-
   insurance(User),
   view_employee("Alice", Person, _, _, _, _, _, Bday),
-  inslogtable(User, Person, 092311).
+  inslogtable(User, Person, 92311).
 
 view_cwPriv("Bob", Person, Bank1Priv, Bank2Priv) :- 
   cwPriv(Person, Bank1Priv, Bank2Priv).
