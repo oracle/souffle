@@ -135,7 +135,6 @@
                                      driver.error(yylloc, "IP out of range");
                                      return yy::parser::make_NUMBER(0, yylloc); 
                                    }                                                        }
-
 0b[0-1][0-1]*                    { try {
                                      return yy::parser::make_NUMBER(std::stoll(yytext+2, NULL, 2), yylloc); 
                                    } catch(...) {
@@ -150,20 +149,14 @@
                                      return yy::parser::make_NUMBER(0, yylloc);
                                    }
                                  }
-[0-9]+                           { try {
-                                     return yy::parser::make_NUMBER(std::stoi(yytext, NULL, 10), yylloc);  
+0|([1-9][0-9]*)                  { try {
+                                     return yy::parser::make_NUMBER(std::stoi(yytext, NULL, 10), yylloc);
                                    } catch (...) { 
                                      driver.error(yylloc, "positive integer constant must be in range [0, 2147483647]");
                                      return yy::parser::make_NUMBER(0, yylloc);
                                    }
                                  }
--[0-9]+                          { try {
-                                     return yy::parser::make_NEGATIVE_NUMBER(std::stoi(yytext, NULL, 10), yylloc);
-                                   } catch (...) {
-                                     driver.error(yylloc, "negative integer constant must be in range [-2147483648, -1]");
-                                     return yy::parser::make_NEGATIVE_NUMBER(0, yylloc);
-                                   }
-                                 }
+
 [_\?a-zA-Z][_\?a-zA-Z0-9]*       { if (!strcmp(yytext, "_")) {
                                      return yy::parser::make_UNDERSCORE(yylloc);
                                    } else {
@@ -218,3 +211,12 @@
 <<EOF>>                          { return yy::parser::make_END(yylloc); }
 .                                { driver.error(yylloc, std::string("unexpected ") + yytext); } 
 %%
+/* TODO: implement correct support for negative numbers
+-([1-9][0-9]*)                   { try {
+                                     return yy::parser::make_NEGATIVE_NUMBER(std::stoi(yytext, NULL, 10), yylloc);
+                                   } catch (...) {
+                                     driver.error(yylloc, "negative integer constant must be in range [-2147483648, -1]");
+                                     return yy::parser::make_NEGATIVE_NUMBER(0, yylloc);
+                                   }
+                                 }
+*/

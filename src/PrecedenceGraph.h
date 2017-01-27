@@ -213,12 +213,6 @@ private:
     /** The final topological ordering over the SCCs. */
     std::vector<int> orderedSCCs;
 
-    /** Breadth limit for algorithm. */
-    const unsigned int BREADTH = 2;
-
-    /** Depth limit for algorithm. */
-    const unsigned int DEPTH = 2;
-
     /** Marker type for to compute topological ordering. */
     enum Colour {
         WHITE   = 0xFFFFFF,
@@ -254,6 +248,15 @@ private:
     void naiveTopologicalOrdering();
 
 public:
+
+    // TODO
+    /** Breadth limit for algorithm, set by command line arguments. */
+    static const unsigned int BREADTH = 2;
+
+    // TODO
+    /** Depth limit for algorithm, set by command line arguments. */
+    static const unsigned int DEPTH = 2;
+
     static constexpr const char *name = "topological-scc-graph";
 
     virtual void run(const AstTranslationUnit &translationUnit);
