@@ -303,6 +303,10 @@ int main(int argc, char **argv)
         helpPage(true,argc,argv);
     }
 
+    // TODO: make it so that these are specified by command line arguments
+    TopologicallySortedSCCGraph::BREADTH = 2;
+    TopologicallySortedSCCGraph::DEPTH = 2;
+
     std::string programName = which(argv[0]);
     if (programName.empty())
         fail("error: failed to determine souffle executable path");
