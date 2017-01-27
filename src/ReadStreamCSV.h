@@ -195,8 +195,14 @@ public:
         return std::unique_ptr<ReadStreamCSV>(new ReadStreamCSV(
                 std::cin, symbolMask, symbolTable, std::map<int, int>(), getDelimiter(options)));
     }
+    virtual const std::string& getName() const { return name; }
     virtual ~ReadCinCSVFactory() {}
+private:
+    static const std::string name;
+
 };
+
+const std::string ReadCinCSVFactory::name = "stdin";
 
 class ReadFileCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
 public:
@@ -223,7 +229,12 @@ public:
         return std::unique_ptr<ReadFileCSV>(new ReadFileCSV(
                 options.at("name"), symbolMask, symbolTable, inputMap, getDelimiter(options)));
     }
+    virtual const std::string& getName() const { return name; }
     virtual ~ReadFileCSVFactory() {}
+private:
+    static const std::string name;
 };
+
+const std::string ReadFileCSVFactory::name = "file";
 
 } /* namespace souffle */

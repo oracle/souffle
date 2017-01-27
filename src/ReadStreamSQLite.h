@@ -160,7 +160,12 @@ public:
         return std::unique_ptr<ReadStreamSQLite>(
                 new ReadStreamSQLite(options.at("dbname"), options.at("name"), symbolMask, symbolTable));
     }
+    virtual const std::string& getName() const { return name; }
     virtual ~ReadStreamSQLiteFactory() {}
+private:
+    static const std::string name;
 };
+
+const std::string ReadStreamSQLiteFactory::name = "sqlite";
 
 } /* namespace souffle */

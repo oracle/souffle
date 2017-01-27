@@ -263,7 +263,12 @@ public:
         return std::unique_ptr<WriteStreamSQLite>(
                 new WriteStreamSQLite(options.at("dbname"), options.at("name"), symbolMask, symbolTable));
     }
+    virtual const std::string& getName() const { return name; }
     virtual ~WriteSQLiteFactory() {}
+private:
+    static const std::string name;
 };
+
+const std::string WriteSQLiteFactory::name = "sqlite";
 
 } /* namespace souffle */

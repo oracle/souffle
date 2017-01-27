@@ -61,9 +61,10 @@
 %option yylineno noyywrap nounput
 
 %%
-
 ".decl"                               { return yy::parser::make_DECL(yylloc); }
-".input"                              { return yy::parser::make_INPUT(yylloc); }
+".input"                              { return yy::parser::make_INPUT_DECL(yylloc); }
+".output"                             { return yy::parser::make_OUTPUT_DECL(yylloc); }
+".printsize"                          { return yy::parser::make_PRINTSIZE_DECL(yylloc); }
 ".type"                               { return yy::parser::make_TYPE(yylloc); }
 ".comp"                               { return yy::parser::make_COMPONENT(yylloc); }
 ".init"                               { return yy::parser::make_INSTANTIATE(yylloc); }

@@ -114,8 +114,13 @@ public:
         return std::unique_ptr<WriteFileCSV>(
                 new WriteFileCSV(options.at("name"), symbolMask, symbolTable, getDelimiter(options)));
     }
+    virtual const std::string& getName() const { return name; }
     virtual ~WriteFileCSVFactory() {}
+private:
+    static const std::string name;
 };
+
+const std::string WriteFileCSVFactory::name = "file";
 
 class WriteCoutCSVFactory : public WriteStreamFactory, public WriteCSVFactory {
 public:
@@ -124,7 +129,12 @@ public:
         return std::unique_ptr<WriteCoutCSV>(
                 new WriteCoutCSV(options.at("name"), symbolMask, symbolTable, getDelimiter(options)));
     }
+    virtual const std::string& getName() const { return name; }
     virtual ~WriteCoutCSVFactory() {}
+private:
+    static const std::string name;
 };
+
+const std::string WriteCoutCSVFactory::name = "stdout";
 
 } /* namespace souffle */

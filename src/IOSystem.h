@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 
+#include "IODirective.h"
 #include "ReadStream.h"
 #include "ReadStreamCSV.h"
 #include "ReadStreamSQLite.h"
@@ -30,16 +31,6 @@
 
 namespace souffle {
 
-class CSVFactory {
-protected:
-    char getDelimiter(const std::map<std::string, std::string>& options) {
-        char delimiter = '\t';
-        if (options.count("delimiter") > 0) {
-           delimiter = options.at("delimiter").at(0);
-        }
-        return delimiter;
-    }
-};
 
 class IOSystem {
 public:
@@ -48,11 +39,11 @@ public:
         return singleton;
     }
 
-    void registerWriteStreamFactory(const std::string& name, std::shared_ptr<WriteStreamFactory> factory) {
-        outputFactories[name] = factory;
+    void registerWriteStreamFactory(std::shared_ptr<WriteStreamFactory> factory) {
+        outputFactories[factory->getName()] = factory;
     }
-    void registerReadStreamFactory(const std::string& name, std::shared_ptr<ReadStreamFactory> factory) {
-        inputFactories[name] = factory;
+    void registerReadStreamFactory(std::shared_ptr<ReadStreamFactory> factory) {
+        inputFactories[factory->getName()] = factory;
     }
     /**
      * Return a new WriteStream built based on the options string.
@@ -79,6 +70,25 @@ public:
             exit(1);
         }
         return inputFactories[optionMap["IO"]]->getReader(symbolMask, symbolTable, optionMap);
+    }
+ 
+    /**
+     * Return a new WriteStream
+     */
+    template <typename Rel>
+    std::unique_ptr<WriteStream> getWriter(const Rel& rel, const SymbolTable& symbolTable,
+            const SymbolMask& symbolMask, const IODirectives& directives) {
+        return outputFactories[rel.getIODirectives().getIOType()]->getWriter(rel, symbolTable, symbolMask,
+                directives);
+    }
+    /**
+     * Return a new ReadStream
+     * */
+    template <typename Rel>
+    std::unique_ptr<ReadStream> getReader(const Rel& rel, const SymbolTable& symbolTable,
+            const SymbolMask& symbolMask, const IODirectives& directives) {
+        return inputFactories[rel.getIODirectives().getIOType()]->getReader(rel, symbolTable, symbolMask,
+                directives);
     }
     ~IOSystem() {}
 private:
@@ -150,13 +160,13 @@ private:
 	return str;
     }
     IOSystem() {
-        registerReadStreamFactory("file", std::make_shared<ReadFileCSVFactory>());
-        registerReadStreamFactory("stdin", std::make_shared<ReadCinCSVFactory>());
-        registerReadStreamFactory("sqlite", std::make_shared<ReadStreamSQLiteFactory>());
+        registerReadStreamFactory(std::make_shared<ReadFileCSVFactory>());
+        registerReadStreamFactory(std::make_shared<ReadCinCSVFactory>());
+        registerReadStreamFactory(std::make_shared<ReadStreamSQLiteFactory>());
 
-        registerWriteStreamFactory("file", std::make_shared<WriteFileCSVFactory>());
-        registerWriteStreamFactory("stdout", std::make_shared<WriteCoutCSVFactory>());
-        registerWriteStreamFactory("sqlite", std::make_shared<WriteSQLiteFactory>());
+        registerWriteStreamFactory(std::make_shared<WriteFileCSVFactory>());
+        registerWriteStreamFactory(std::make_shared<WriteCoutCSVFactory>());
+        registerWriteStreamFactory(std::make_shared<WriteSQLiteFactory>());
     };
     std::map<std::string, std::shared_ptr<WriteStreamFactory>> outputFactories;
     std::map<std::string, std::shared_ptr<ReadStreamFactory>> inputFactories;

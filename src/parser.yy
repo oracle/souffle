@@ -108,7 +108,9 @@
 %token PLAN                      "plan keyword"
 %token IF                        ":-"
 %token DECL                      "relation declaration"
-%token INPUT               "input directives declaration"
+%token INPUT_DECL                "input directives declaration"
+%token OUTPUT_DECL               "output directives declaration"
+%token PRINTSIZE_DECL            "printsize directives declaration"
 %token OVERRIDE                  "override rules of super-component"
 %token TYPE                      "type declaration"
 %token COMPONENT                 "component declaration"
@@ -151,7 +153,6 @@
 %type <int>                              qualifiers
 %type <AstTypeIdentifier *>              type_id
 %type <AstRelationIdentifier *>          rel_id
-%type <AstProgram *>                     unit
 %type <AstType *>                        type
 %type <AstComponent *>                   component component_head component_body
 %type <AstComponentType *>               comp_type
@@ -170,7 +171,7 @@
 %type <AstUnionType *>                   uniontype
 %type <std::vector<AstTypeIdentifier>>   type_params type_param_list
 %type <std::string>                      comp_override
-%type <AstIODirective *>                 key_value_pairs non_empty_key_value_pairs inputdirective
+%type <AstIODirective *>                 key_value_pairs non_empty_key_value_pairs iodirective
 %printer { yyoutput << $$; } <*>;
 
 %precedence AS
@@ -192,13 +193,13 @@
 program: unit
 
 /* Top-level statement */
-unit: unit type { $$ = $1; driver.addType($2); }
-    | unit relation { $$ = $1; driver.addRelation($2); }
-    | unit inputdirective { $$ = $1; driver.addIODirective($2); }
-    | unit fact { $$ = $1; driver.addClause($2); }
-    | unit rule { $$ = $1; for(const auto& cur : $2) driver.addClause(cur); }
-    | unit component { $$ = $1; driver.addComponent($2); }
-    | unit comp_init { $$ = $1; driver.addInstantiation($2); }
+unit: unit type { driver.addType($2); }
+    | unit relation { driver.addRelation($2); }
+    | unit iodirective { driver.addIODirective($2); } 
+    | unit fact { driver.addClause($2); }
+    | unit rule { for(const auto& cur : $2) driver.addClause(cur); }
+    | unit component { driver.addComponent($2); }
+    | unit comp_init { driver.addInstantiation($2); }
     | %empty {
       }
     ;
@@ -326,12 +327,23 @@ key_value_pairs: non_empty_key_value_pairs { $$ = $1; }
                }
              ;
 
-inputdirective: INPUT IDENT LPAREN key_value_pairs RPAREN {
-        $$ = $4;
-        $4->setName($2);
-        $4->setSrcLoc(@$);
-        $4->setAsInput();
-       }
+iodecl: INPUT_DECL 
+      | OUTPUT_DECL;
+
+iodirective: iodecl IDENT LPAREN key_value_pairs RPAREN {
+                  $$ = $4;
+                  $4->setName($2);
+                  $4->setSrcLoc(@$);
+                  $4->setAsInput(); // FIX THIS
+             }
+            | PRINTSIZE_DECL IDENT { 
+                  AstIODirective *psd = new AstIODirective(); 
+                  psd->setName($2);
+                  psd->setSrcLoc(@$);
+                  psd->setAsPrintsize();
+                  $$ = psd;
+              } 
+            ;
 
 /* Atom */
 arg: STRING {
@@ -753,6 +765,7 @@ component_head: COMPONENT comp_type {
 component_body:
       component_body type          { $$ = $1; $$->addType(std::unique_ptr<AstType>($2)); }
     | component_body relation      { $$ = $1; $$->addRelation(std::unique_ptr<AstRelation>($2)); }
+    | component_body iodirective   { $$ = $1; $$->addIODirective(std::unique_ptr<AstIODirective>($2)); }
     | component_body fact          { $$ = $1; $$->addClause(std::unique_ptr<AstClause>($2)); }
     | component_body rule          { $$ = $1; for(const auto& cur : $2) $$->addClause(std::unique_ptr<AstClause>(cur)); }
     | component_body comp_override { $$ = $1; $$->addOverride($2); }
