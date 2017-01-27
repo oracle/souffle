@@ -7,6 +7,59 @@ set -x
 
 echo -n "Version: "
 git describe --tags --abbrev=0 --always
+changedLines() {
+  range_start=-1
+  
+  for m in $(git diff -U0 HEAD~ $1|grep '^@@'|sed -r 's/^@@.* \+([0-9][0-9]*),?([0-9]*) .*$/_\1 _\2/'); do
+    n=${m:1};
+    if (( range_start > -1 )) ; then
+      if [[ "$n" == "" ]]
+      then
+        echo -n " -lines=$range_start:$range_start"
+      else
+        if (( n > 0 )) ; then
+            echo -n " -lines=$range_start:$((n + range_start))"
+        fi
+      fi
+      range_start=-1
+    else
+      range_start=$n
+    fi
+  done
+  
+  if (( range_start > -1 )) ; then
+    echo -n " -lines=$range_start:$range_start"
+  fi
+}
+
+if [ "$TEST_FORMAT" == 1 ]
+then
+  clang-format-3.6 --version
+  set +x
+  for f in $(git diff --name-only --diff-filter=ACMRTUXB HEAD~); do
+    if ! echo "$f" | egrep -q "[.](cpp|h)$"; then
+      continue
+    fi
+    if ! echo "$f" | egrep -q "^src/"; then
+      continue
+    fi
+    echo "Changed lines: $(changedLines $f)"
+    echo "log: $(git log -n2)"
+    d=$(diff -u0 "$f" <(clang-format-3.6 -style=file $(changedLines $f) "$f")) || true
+    if [ -n "$d" ]; then
+      echo "!!! $f not compliant to coding style, here is a suggested fix:"
+      echo "$d"
+      fail=1
+    fi
+  done
+
+  if [ "$fail" == 1 ]
+  then
+    exit 1
+  else
+    exit 0
+  fi
+fi
 
 # create configure files
 ./bootstrap
@@ -82,3 +135,5 @@ then
     TESTSUITEFLAGS="-j2 $TESTRANGE" make check
   fi
 fi
+
+

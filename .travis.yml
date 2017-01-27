@@ -33,6 +33,14 @@ matrix:
     env: MAKEPACKAGE=1 
   - os: osx
     compiler: gcc
+  include:
+  - os: linux
+    compiler: clang
+    env: TEST_FORMAT=1
+  allow_failures:
+  - os: linux
+    compiler: clang
+    env: TEST_FORMAT=1
 
 script: 
   - "./.travis/run.sh"
