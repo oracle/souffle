@@ -12,29 +12,29 @@ bin_PROGRAMS = souffle souffle-mcpp souffle-profile
 nodist_souffle_profile_SOURCES = $(BUILT_SOURCES)
 
 souffle_profile_SOURCES = souffle_prof.cpp profilerlib/Cell.hpp \
-						  profilerlib/CellInterface.hpp \
-						  profilerlib/Cli.cpp \
-						  profilerlib/Cli.hpp \
-						  profilerlib/DataComparator.hpp \
-						  profilerlib/Iteration.cpp \
-						  profilerlib/Iteration.hpp \
-						  profilerlib/OutputProcessor.cpp \
-						  profilerlib/OutputProcessor.hpp \
-						  profilerlib/ProgramRun.cpp \
-						  profilerlib/ProgramRun.hpp \
-						  profilerlib/Reader.cpp \
-						  profilerlib/Reader.hpp \
-						  profilerlib/Relation.cpp \
-						  profilerlib/Relation.hpp \
-						  profilerlib/Row.hpp \
-						  profilerlib/Rule.cpp \
-						  profilerlib/Rule.hpp \
-						  profilerlib/StringUtils.cpp \
-						  profilerlib/StringUtils.hpp \
-						  profilerlib/Table.cpp \
-						  profilerlib/Table.hpp \
-						  profilerlib/Tui.cpp \
-						  profilerlib/Tui.hpp
+                          profilerlib/CellInterface.hpp         \
+                          profilerlib/Cli.cpp                   \
+                          profilerlib/Cli.hpp                   \
+                          profilerlib/DataComparator.hpp        \
+                          profilerlib/Iteration.cpp             \
+                          profilerlib/Iteration.hpp             \
+                          profilerlib/OutputProcessor.cpp       \
+                          profilerlib/OutputProcessor.hpp       \
+                          profilerlib/ProgramRun.cpp            \
+                          profilerlib/ProgramRun.hpp            \
+                          profilerlib/Reader.cpp                \
+                          profilerlib/Reader.hpp                \
+                          profilerlib/Relation.cpp              \
+                          profilerlib/Relation.hpp              \
+                          profilerlib/Row.hpp                   \
+                          profilerlib/Rule.cpp                  \
+                          profilerlib/Rule.hpp                  \
+                          profilerlib/StringUtils.cpp           \
+                          profilerlib/StringUtils.hpp           \
+                          profilerlib/Table.cpp                 \
+                          profilerlib/Table.hpp                 \
+                          profilerlib/Tui.cpp                   \
+                          profilerlib/Tui.hpp
 
 souffle_profile_CXXFLAGS = $(souffle_CPPFLAGS) -ledit
 
@@ -106,7 +106,7 @@ souffle_sources = \
               ReadStream.h                              \
               ReadStreamCSV.h                           \
               WriteStream.h                             \
-              WriteStreamCSV.h      WriteStreamSQLite.h       \
+              WriteStreamCSV.h      WriteStreamSQLite.h \
               IOSystem.h
 
 
@@ -125,10 +125,30 @@ EXTRA_DIST = parser.yy scanner.ll  test/test.h
 
 soufflepublicdir = $(includedir)/souffle
 
-soufflepublic_HEADERS = CompiledRamOptions.h CompiledRamRelation.h CompiledRamTuple.h CompiledRamRecord.h CompiledSouffle.h \
-				  SouffleInterface.h ParallelUtils.h RamTypes.h BTree.h Trie.h Table.h Util.h IterUtils.h SymbolTable.h RamLogger.h \
-				  SqliteRelationWriter.h IOSystem.h ReadStream.h ReadStreamCSV.h SymbolMask.h ReadStreamSQLite.h WriteStream.h \
-                                  WriteStreamCSV.h WriteStreamSQLite.h
+soufflepublic_HEADERS = CompiledRamOptions.h    \
+                        CompiledRamRelation.h   \
+                        CompiledRamTuple.h      \
+                        CompiledRamRecord.h     \
+                        CompiledSouffle.h       \
+				        SouffleInterface.h      \
+				        ParallelUtils.h         \
+				        RamTypes.h              \
+				        BTree.h                 \
+				        Trie.h                  \
+				        Table.h                 \
+				        Util.h                  \
+				        IterUtils.h             \
+				        SymbolTable.h           \
+				        RamLogger.h             \
+				        SqliteRelationWriter.h  \
+				        IOSystem.h              \
+				        ReadStream.h            \
+				        ReadStreamCSV.h         \
+				        SymbolMask.h            \
+				        ReadStreamSQLite.h      \
+				        WriteStream.h           \
+                        WriteStreamCSV.h        \
+                        WriteStreamSQLite.h
 
 souffle_CPPFLAGS = -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\""
 
@@ -264,8 +284,6 @@ check_PROGRAMS += test/parallel_utils_test
 test_parallel_utils_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
 test_parallel_utils_test_SOURCES = test/parallel_utils_test.cpp
 test_parallel_utils_test_LDADD = libsouffle.la
-
-
 
 # make all check-programs tests
 TESTS = $(check_PROGRAMS)
