@@ -472,6 +472,7 @@ AC_CONFIG_FILES([
   tests/atlocal
 ])
 AC_CONFIG_LINKS([include/souffle/CompiledRamOptions.h:src/CompiledRamOptions.h])
+AC_CONFIG_LINKS([include/souffle/CompiledRamIndexUtils.h:src/CompiledRamIndexUtils.h])
 AC_CONFIG_LINKS([include/souffle/CompiledRamRelation.h:src/CompiledRamRelation.h])
 AC_CONFIG_LINKS([include/souffle/CompiledRamTuple.h:src/CompiledRamTuple.h])
 AC_CONFIG_LINKS([include/souffle/CompiledRamRecord.h:src/CompiledRamRecord.h])
