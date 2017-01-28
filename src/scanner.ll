@@ -27,9 +27,6 @@
     #include <unistd.h>
     #include <cstring>
 
-    // TODO
-    bool isNegated = false;
-
     #include "AstProgram.h"
     #include "StringPool.h"
 
@@ -60,7 +57,7 @@
 
 %x IN_COMMENT
 /* Add line number tracking */
-%option yylineno noyywrap nounput
+%option yylineno noyywrap
 
 %%
 ".decl"                          { return yy::parser::make_DECL(yylloc); }
@@ -166,7 +163,7 @@
                                      int number = std::stoi(yytext, NULL, 10);
                                      std::string text = std::string(yytext);
                                      text = " - " + (number == -2147483648) ? "(1+2147483647)" : text.substr(1);
-                                     for (int i = text.length - 1; i >= 0; --i) unput(text[i]);
+                                     for (int i = text.size() - 1; i >= 0; --i) unput(text[i]);
                                    } catch (...) {
                                      driver.error(yylloc, "integer constant must be in range [-2147483648, 2147483647]");
                                      return yy::parser::make_NUMBER(0, yylloc);
