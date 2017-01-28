@@ -12,7 +12,6 @@ parser.cc
 scanner.cc
 file*
 libsouffle*
-*.output
 
 test-suite.log
 wavelib/cpplexer/re2clex/.dirstamp

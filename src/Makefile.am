@@ -157,7 +157,7 @@ CLEANFILES = $(BUILT_SOURCES)  parser.cc scanner.cc parser.hh stack.hh
 
 # run Bison
 $(builddir)/parser.hh: $(srcdir)/parser.yy
-	$(BISON) -Wall -Werror -v -d -o parser.cc $(srcdir)/parser.yy
+	$(BISON) -Wall -Werror -d -o parser.cc $(srcdir)/parser.yy
 
 $(builddir)/parser.cc $(builddir)/stack.hh: $(builddir)/parser.hh
 

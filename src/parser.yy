@@ -43,7 +43,6 @@
     #include "BinaryOperator.h"
     #include "UnaryOperator.h"
     #include "AstParserUtils.h"
-
     #include "AstSrcLocation.h"
 
     using namespace souffle;
@@ -95,7 +94,7 @@
 %token TMATCH                    "match predicate"
 %token TCONTAINS                 "checks whether substring is contained in a string"
 %token CAT                       "concatenation of two strings"
-%token ORD                       "ordinal NUMBER of a string"
+%token ORD                       "ordinal number of a string"
 %token MIN                       "min aggregator"
 %token MAX                       "max aggregator"
 %token COUNT                     "count aggregator"
