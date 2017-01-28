@@ -43,7 +43,7 @@
     #include "BinaryOperator.h"
     #include "UnaryOperator.h"
     #include "AstParserUtils.h"
-    
+
     #include "AstSrcLocation.h"
 
     using namespace souffle;
@@ -53,9 +53,9 @@
     }
 
     typedef void* yyscan_t;
-    
+
     #define YY_NULLPTR nullptr
-    
+
     /* Macro to update locations as parsing proceeds */
     # define YYLLOC_DEFAULT(Cur, Rhs, N)                       \
     do {                                                       \
@@ -86,9 +86,6 @@
 %token <std::string> STRING      "symbol"
 %token <std::string> IDENT       "identifier"
 %token <int> NUMBER              "number"
-/* TODO: implement correct support for negative numbers
-%token <int> NEGATIVE_NUMBER     "negative number"
-*/
 %token <std::string> RELOP       "relational operator"
 %token OUTPUT_QUALIFIER          "relation qualifier output"
 %token INPUT_QUALIFIER           "relation qualifier input"
@@ -98,7 +95,7 @@
 %token TMATCH                    "match predicate"
 %token TCONTAINS                 "checks whether substring is contained in a string"
 %token CAT                       "concatenation of two strings"
-%token ORD                       "ordinal number of a string"
+%token ORD                       "ordinal NUMBER of a string"
 %token MIN                       "min aggregator"
 %token MAX                       "max aggregator"
 %token COUNT                     "count aggregator"
@@ -163,26 +160,25 @@
 %type <std::vector<AstClause*>>          rule rule_def
 %type <AstExecutionOrder *>              exec_order exec_order_list
 %type <AstExecutionPlan *>               exec_plan exec_plan_list
-%type <AstRecordInit *>                  recordlist 
-%type <AstRecordType *>                  recordtype 
-%type <AstUnionType *>                   uniontype
+%type <AstRecordInit *>                  record_list
+%type <AstRecordType *>                  record_type
+%type <AstUnionType *>                   union_type
 %type <std::vector<AstTypeIdentifier>>   type_params type_param_list
 %type <std::string>                      comp_override
 
 %printer { yyoutput << $$; } <*>;
 
-%left DOT COLON
-%right AS
+%precedence AS
 %left L_OR
 %left L_AND
-%left BW_OR 
+%left BW_OR
 %left BW_XOR
 %left BW_AND
 %left PLUS MINUS
 %left STAR SLASH PERCENT
-%left BW_NOT L_NOT
-%left NEG 
-%left CARET
+%precedence BW_NOT L_NOT
+%precedence NEG
+%right CARET
 
 %%
 %start program;
@@ -197,19 +193,19 @@ unit: unit type { $$ = $1; driver.addType($2); }
     | unit rule { $$ = $1; for(const auto& cur : $2) driver.addClause(cur); }
     | unit component { $$ = $1; driver.addComponent($2); }
     | unit comp_init { $$ = $1; driver.addInstantiation($2); }
-    | {
+    | %empty {
       }
     ;
 
 
 /* Type Identifier */
 
-type_id: 
+type_id:
 	  IDENT { $$ = new AstTypeIdentifier($1); }
 	| type_id DOT IDENT { $$ = $1; $$->append($3); }
 	;
 
-    
+
 /* Type Declaration */
 type: NUMBER_TYPE IDENT {
           $$ = new AstPrimitiveType($2, true);
@@ -223,40 +219,40 @@ type: NUMBER_TYPE IDENT {
           $$ = new AstPrimitiveType($2);
           $$->setSrcLoc(@$);
       }
-    | TYPE IDENT EQUALS uniontype {
-          $$ = $4; 
+    | TYPE IDENT EQUALS union_type {
+          $$ = $4;
           $$->setName($2);
           $$->setSrcLoc(@$);
       }
-    | TYPE IDENT EQUALS LBRACKET recordtype RBRACKET {
-          $$ = $5; 
+    | TYPE IDENT EQUALS LBRACKET record_type RBRACKET {
+          $$ = $5;
           $$->setName($2);
-          $$->setSrcLoc(@$); 
+          $$->setSrcLoc(@$);
       }
     | TYPE IDENT EQUALS LBRACKET RBRACKET {
-          $$ = new AstRecordType(); 
-          $$->setName($2); 
-          $$->setSrcLoc(@$); 
+          $$ = new AstRecordType();
+          $$->setName($2);
+          $$->setSrcLoc(@$);
       }
     ;
 
-recordtype: IDENT COLON type_id  { $$ = new AstRecordType(); $$->add($1, *$3); delete $3; } 
-          | recordtype COMMA IDENT COLON type_id  {  $$ = $1; $1->add($3, *$5); delete $5; } 
+record_type: IDENT COLON type_id  { $$ = new AstRecordType(); $$->add($1, *$3); delete $3; }
+          | record_type COMMA IDENT COLON type_id  {  $$ = $1; $1->add($3, *$5); delete $5; }
           ;
 
-uniontype: type_id  { $$ = new AstUnionType(); $$->add(*$1); delete $1; } 
-         | uniontype PIPE type_id { $$ = $1; $1->add(*$3); delete $3; }
+union_type: type_id  { $$ = new AstUnionType(); $$->add(*$1); delete $1; }
+         | union_type PIPE type_id { $$ = $1; $1->add(*$3); delete $3; }
          ;
-	   
-         
+
+
 /* Relation Identifier */
 
-rel_id: 
+rel_id:
       IDENT { $$ = new AstRelationIdentifier($1); }
     | rel_id DOT IDENT { $$ = $1; $$->append($3); }
     ;
-         
-         
+
+
 /* Relations */
 non_empty_attributes : IDENT COLON type_id {
            $$ = new AstRelation();
@@ -275,7 +271,7 @@ non_empty_attributes : IDENT COLON type_id {
         ;
 
 attributes: non_empty_attributes { $$ = $1; }
-        | { 
+        | %empty {
            $$ = new AstRelation();
           }
         ;
@@ -285,7 +281,7 @@ qualifiers: qualifiers OUTPUT_QUALIFIER { if($1 & OUTPUT_RELATION) driver.error(
           | qualifiers DATA_QUALIFIER { if($1 & DATA_RELATION) driver.error(@2, "input qualifier already set"); $$ = $1 | DATA_RELATION; }
           | qualifiers PRINTSIZE_QUALIFIER { if($1 & PRINTSIZE_RELATION) driver.error(@2, "printsize qualifier already set"); $$ = $1 | PRINTSIZE_RELATION; }
           | qualifiers OVERRIDABLE_QUALIFIER { if($1 & OVERRIDABLE_RELATION) driver.error(@2, "overridable qualifier already set"); $$ = $1 | OVERRIDABLE_RELATION; }
-          | { $$ = 0; }
+          | %empty { $$ = 0; }
           ;
 
 relation: DECL IDENT LPAREN attributes RPAREN qualifiers {
@@ -295,6 +291,7 @@ relation: DECL IDENT LPAREN attributes RPAREN qualifiers {
            $$->setSrcLoc(@$);
           }
         ;
+
 
 /* Atom */
 arg: STRING {
@@ -313,18 +310,12 @@ arg: STRING {
        $$ = new AstVariable($1);
        $$->setSrcLoc(@$);
      }
+   | LPAREN arg RPAREN {
+       $$ = $2;
+     }
    | NUMBER {
        $$ = new AstNumberConstant($1);
        $$->setSrcLoc(@$);
-     }
-   /* TODO: implement correct support for negative numbers
-   | NEGATIVE_NUMBER {
-       $$ = new AstNumberConstant($1);
-       $$->setSrcLoc(@$);
-    }
-   */
-   | LPAREN arg RPAREN {
-       $$ = $2;
      }
    | arg BW_OR arg {
        $$ = new AstBinaryFunctor(BinaryOp::BOR, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
@@ -354,12 +345,6 @@ arg: STRING {
        $$ = new AstBinaryFunctor(BinaryOp::SUB, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
-   /* TODO: implement correct support for negative numbers
-   | arg NEGATIVE_NUMBER {
-       $$ = new AstBinaryFunctor(BinaryOp::SUB, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>(new AstNumberConstant(-1*$2)));
-       $$->setSrcLoc(@$);
-   }
-   */
    | arg STAR arg {
        $$ = new AstBinaryFunctor(BinaryOp::MUL, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
@@ -376,17 +361,6 @@ arg: STRING {
        $$ = new AstBinaryFunctor(BinaryOp::EXP, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
-   /* TODO: implement correct support for negative numbers
-   | NEGATIVE_NUMBER CARET arg {
-       $$ = new AstUnaryFunctor(UnaryOp::NEG, std::unique_ptr<AstArgument>(
-            new AstBinaryFunctor(BinaryOp::EXP, std::unique_ptr<AstArgument>(
-                new AstNumberConstant(-1*$1)),
-                std::unique_ptr<AstArgument>($3)
-            )
-       ));
-       $$->setSrcLoc(@$);
-    }
-   */
    | CAT LPAREN arg COMMA arg RPAREN {
        $$ = new AstBinaryFunctor(BinaryOp::CAT, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
        $$->setSrcLoc(@$);
@@ -395,28 +369,28 @@ arg: STRING {
        $$ = new AstUnaryFunctor(UnaryOp::ORD, std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
-   |  arg AS IDENT { 
-       $$ = new AstTypeCast(std::unique_ptr<AstArgument>($1), $3); 
+   |  arg AS IDENT {
+       $$ = new AstTypeCast(std::unique_ptr<AstArgument>($1), $3);
        $$->setSrcLoc(@$);
      }
-   |  MINUS arg %prec NEG { 
+   |  MINUS arg %prec NEG {
        $$ = new AstUnaryFunctor(UnaryOp::NEG, std::unique_ptr<AstArgument>($2));
-       $$->setSrcLoc(@$); 
+       $$->setSrcLoc(@$);
      }
-   |  BW_NOT arg { 
+   |  BW_NOT arg {
        $$ = new AstUnaryFunctor(UnaryOp::BNOT, std::unique_ptr<AstArgument>($2));
-       $$->setSrcLoc(@$); 
+       $$->setSrcLoc(@$);
      }
-   |  L_NOT arg { 
+   |  L_NOT arg {
        $$ = new AstUnaryFunctor(UnaryOp::LNOT, std::unique_ptr<AstArgument>($2));
-       $$->setSrcLoc(@$); 
+       $$->setSrcLoc(@$);
      }
    | LBRACKET RBRACKET  {
-       $$ = new AstRecordInit(); 
+       $$ = new AstRecordInit();
        $$->setSrcLoc(@$);
-     } 
-   | LBRACKET recordlist RBRACKET {
-       $$ = $2; 
+     }
+   | LBRACKET record_list RBRACKET {
+       $$ = $2;
        $$->setSrcLoc(@$);
      }
    | NIL {
@@ -436,7 +410,7 @@ arg: STRING {
     	   std::cerr << "ERROR: currently not supporting non-conjunctive aggreation clauses!";
     	   exit(1);
        }
-       for(const auto& cur : bodies[0]->getBodyLiterals()) 
+       for(const auto& cur : bodies[0]->getBodyLiterals())
            res->addBodyLiteral(std::unique_ptr<AstLiteral>(cur->clone()));
        delete bodies[0];
        delete $4;
@@ -458,7 +432,7 @@ arg: STRING {
 		   std::cerr << "ERROR: currently not supporting non-conjunctive aggreation clauses!";
 		   exit(1);
 	   }
-       for(const auto& cur : bodies[0]->getBodyLiterals()) 
+       for(const auto& cur : bodies[0]->getBodyLiterals())
     	   res->addBodyLiteral(std::unique_ptr<AstLiteral>(cur->clone()));
        delete bodies[0];
        delete $5;
@@ -480,7 +454,7 @@ arg: STRING {
 		   std::cerr << "ERROR: currently not supporting non-conjunctive aggreation clauses!";
 		   exit(1);
 	   }
-       for(const auto& cur : bodies[0]->getBodyLiterals()) 
+       for(const auto& cur : bodies[0]->getBodyLiterals())
     	   res->addBodyLiteral(std::unique_ptr<AstLiteral>(cur->clone()));
        delete bodies[0];
        delete $5;
@@ -502,7 +476,7 @@ arg: STRING {
 		   std::cerr << "ERROR: currently not supporting non-conjunctive aggreation clauses!";
 		   exit(1);
 	   }
-       for(const auto& cur : bodies[0]->getBodyLiterals()) 
+       for(const auto& cur : bodies[0]->getBodyLiterals())
           res->addBodyLiteral(std::unique_ptr<AstLiteral>(cur->clone()));
        delete bodies[0];
        delete $5;
@@ -511,17 +485,17 @@ arg: STRING {
      }
    ;
 
-recordlist: arg {
-             $$ = new AstRecordInit(); 
+record_list: arg {
+             $$ = new AstRecordInit();
              $$->add(std::unique_ptr<AstArgument>($1));
             }
-          | recordlist COMMA arg {
-             $$ = $1; 
-             $$->add(std::unique_ptr<AstArgument>($3)); 
+          | record_list COMMA arg {
+             $$ = $1;
+             $$->add(std::unique_ptr<AstArgument>($3));
             }
-          ; 
+          ;
 
-non_empty_arg_list : 
+non_empty_arg_list :
           arg {
             $$ = new AstAtom();
             $$->addArgument(std::unique_ptr<AstArgument>($1));
@@ -533,7 +507,7 @@ non_empty_arg_list :
         ;
 
 arg_list: non_empty_arg_list { $$ = $1; }
-        | {
+        | %empty {
           $$ = new AstAtom();
         }
         ;
@@ -581,7 +555,7 @@ literal: arg RELOP arg {
             $$ = new RuleBody(RuleBody::constraint(res));
           }
        ;
-     
+
 /* Fact */
 fact: atom DOT {
           $$ = new AstClause();
@@ -595,12 +569,12 @@ head : atom					{ $$.push_back($1); }
      | head COMMA atom		{ $$.swap($1); $$.push_back($3); }
 	 ;
 
-/* Term */     
+/* Term */
 term : literal							{ $$ = $1; }
 	 | EXCLAMATION term					{ $$ = $2; $$->negate(); }
 	 | LPAREN disjunction RPAREN		{ $$ = $2; }
 	 ;
-	
+
 /* Conjunction */
 conjunction: term 						{ $$ = $1; }
     | conjunction COMMA term 			{ $$ = $1; $$->conjunct(std::move(*$3)); }
@@ -610,11 +584,11 @@ conjunction: term 						{ $$ = $1; }
 disjunction : conjunction				 { $$ = $1; }
 	 | disjunction SEMICOLON conjunction { $$ = $1; $$->disjunct(std::move(*$3)); }
 	 ;
-	 
+
 /* Body */
 body : disjunction						{ $$ = $1; }
      ;
-    
+
 /* execution order list */
 exec_order_list: NUMBER {
           $$ = new AstExecutionOrder();
@@ -625,14 +599,14 @@ exec_order_list: NUMBER {
           $$->appendAtomIndex($3);
       }
     ;
-    
+
 /* execution order */
 exec_order: LPAREN exec_order_list RPAREN {
            $$ = $2;
            $$->setSrcLoc(@$);
       }
     ;
-    
+
 /* execution plan list */
 exec_plan_list : NUMBER COLON exec_order {
            $$ = new AstExecutionPlan();
@@ -643,7 +617,7 @@ exec_plan_list : NUMBER COLON exec_order {
            $$->setOrderFor($3, std::unique_ptr<AstExecutionOrder>($5));
     }
     ;
-    
+
 /* execution plan */
 exec_plan: PLAN exec_plan_list {
           $$ = $2;
@@ -683,10 +657,10 @@ rule: rule_def {
          for(const auto& cur : $$) cur->setExecutionPlan(std::unique_ptr<AstExecutionPlan>($2));
       }
     ;
-    
+
 /* Type Parameters */
 
-type_param_list: 
+type_param_list:
       IDENT {
           $$.push_back($1);
       }
@@ -696,8 +670,8 @@ type_param_list:
           delete $3;
       }
     ;
-    
-type_params: {
+
+type_params: %empty {
       }
     | LT type_param_list GT {
         $$ = $2;
@@ -705,14 +679,14 @@ type_params: {
     ;
 
 /* Component type */
-    
+
 comp_type: IDENT type_params {
         $$ = new AstComponentType($1,$2);
       }
     ;
 
 /* Component */
-    
+
 component_head: COMPONENT comp_type {
         $$ = new AstComponent();
         $$->setComponentType(*$2);
@@ -728,7 +702,7 @@ component_head: COMPONENT comp_type {
         $$->addBaseComponent(*$3);
         delete $3;
       }
-    
+
 component_body:
       component_body type          { $$ = $1; $$->addType(std::unique_ptr<AstType>($2)); }
     | component_body relation      { $$ = $1; $$->addRelation(std::unique_ptr<AstRelation>($2)); }
@@ -737,10 +711,10 @@ component_body:
     | component_body comp_override { $$ = $1; $$->addOverride($2); }
     | component_body component     { $$ = $1; $$->addComponent(std::unique_ptr<AstComponent>($2)); }
     | component_body comp_init     { $$ = $1; $$->addInstantiation(std::unique_ptr<AstComponentInit>($2)); }
-    | {
+    | %empty {
         $$ = new AstComponent();
     }
-    
+
 component: component_head LBRACE component_body RBRACE {
         $$ = $3;
         $$->setComponentType($1->getComponentType());
@@ -748,7 +722,7 @@ component: component_head LBRACE component_body RBRACE {
         delete $1;
         $$->setSrcLoc(@$);
       }
-  
+
 /* Component Instantition */
 
 comp_init: INSTANTIATE IDENT EQUALS comp_type {
@@ -762,7 +736,7 @@ comp_init: INSTANTIATE IDENT EQUALS comp_type {
 /* Override rules of a relation */
 
 comp_override: OVERRIDE IDENT {
-         $$ = $2; 
+         $$ = $2;
 }
 
 %%

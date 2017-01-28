@@ -27,6 +27,9 @@
     #include <unistd.h>
     #include <cstring>
 
+    // TODO
+    bool isNegated = false;
+
     #include "AstProgram.h"
     #include "StringPool.h"
 
@@ -122,41 +125,46 @@
                                       vals[i] = std::stoi(token); 
                                       if(vals[i] > 255) { 
                                          driver.error(yylloc, "IP out of range");
-                                         return yy::parser::make_NUMBER(0, yylloc); 
+                                         return yy::parser::make_NUMBER(0, yylloc);
                                       }
                                       token = std::strtok(NULL, ".");
                                       ++i;
                                     }
                                     int ipnumber = (vals[0]*2^24) + (vals[1]*2^16) + (vals[2]*2^8) + vals[3];
-                                    
-                                    return yy::parser::make_NUMBER(ipnumber, yylloc); 
+                                    return yy::parser::make_NUMBER(ipnumber, yylloc);
 
                                    } catch(...) {
                                      driver.error(yylloc, "IP out of range");
-                                     return yy::parser::make_NUMBER(0, yylloc); 
-                                   }                                                        }
+                                     return yy::parser::make_NUMBER(0, yylloc);
+                                   }
+                                 }
 0b[0-1][0-1]*                    { try {
-                                     return yy::parser::make_NUMBER(std::stoll(yytext+2, NULL, 2), yylloc); 
+                                     long long number = std::stoll(yytext+2, NULL, 2);
+                                     if (number > 2147483647) throw; // positive max
+                                     return yy::parser::make_NUMBER(number, yylloc);
                                    } catch(...) {
                                      driver.error(yylloc, "bool out of range");
-                                     return yy::parser::make_NUMBER(0, yylloc); 
+                                     return yy::parser::make_NUMBER(0, yylloc);
                                    }
                                  }
 0x[a-fA-F0-9]+                   { try {
-                                     return yy::parser::make_NUMBER(std::stoll(yytext+2, NULL, 16), yylloc);
+                                     long long number = std::stoll(yytext+2, NULL, 16);
+                                     if (number > 2147483647) throw; // positive max
+                                     return yy::parser::make_NUMBER(number, yylloc);
                                    } catch(...) {
                                      driver.error(yylloc, "hex out of range");
                                      return yy::parser::make_NUMBER(0, yylloc);
                                    }
                                  }
-0|([1-9][0-9]*)                  { try {
-                                     return yy::parser::make_NUMBER(std::stoi(yytext, NULL, 10), yylloc);
-                                   } catch (...) { 
-                                     driver.error(yylloc, "positive integer constant must be in range [0, 2147483647]");
+0|([1-9][0-9]*)                 { try {
+                                    long long number = std::stoll(yytext, NULL, 10);
+                                     if (number > 2147483647) throw; // positive max
+                                     return yy::parser::make_NUMBER(number, yylloc);
+                                   } catch (...) {
+                                     driver.error(yylloc, "integer constant must be in range [-2147483648, 2147483647]");
                                      return yy::parser::make_NUMBER(0, yylloc);
                                    }
                                  }
-
 [_\?a-zA-Z][_\?a-zA-Z0-9]*       { if (!strcmp(yytext, "_")) {
                                      return yy::parser::make_UNDERSCORE(yylloc);
                                    } else {
@@ -211,12 +219,3 @@
 <<EOF>>                          { return yy::parser::make_END(yylloc); }
 .                                { driver.error(yylloc, std::string("unexpected ") + yytext); } 
 %%
-/* TODO: implement correct support for negative numbers
--([1-9][0-9]*)                   { try {
-                                     return yy::parser::make_NEGATIVE_NUMBER(std::stoi(yytext, NULL, 10), yylloc);
-                                   } catch (...) {
-                                     driver.error(yylloc, "negative integer constant must be in range [-2147483648, -1]");
-                                     return yy::parser::make_NEGATIVE_NUMBER(0, yylloc);
-                                   }
-                                 }
-*/
