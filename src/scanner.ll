@@ -140,7 +140,6 @@
                                  }
 0b[0-1][0-1]*                    { try {
                                      long long number = std::stoll(yytext+2, NULL, 2);
-                                     if (number > 2147483647) throw; // positive max
                                      return yy::parser::make_NUMBER(number, yylloc);
                                    } catch(...) {
                                      driver.error(yylloc, "bool out of range");
@@ -149,7 +148,6 @@
                                  }
 0x[a-fA-F0-9]+                   { try {
                                      long long number = std::stoll(yytext+2, NULL, 16);
-                                     if (number > 2147483647) throw; // positive max
                                      return yy::parser::make_NUMBER(number, yylloc);
                                    } catch(...) {
                                      driver.error(yylloc, "hex out of range");
@@ -157,9 +155,18 @@
                                    }
                                  }
 0|([1-9][0-9]*)                 { try {
-                                    long long number = std::stoll(yytext, NULL, 10);
-                                     if (number > 2147483647) throw; // positive max
+                                     int number = std::stoi(yytext, NULL, 10);
                                      return yy::parser::make_NUMBER(number, yylloc);
+                                   } catch (...) {
+                                     driver.error(yylloc, "integer constant must be in range [-2147483648, 2147483647]");
+                                     return yy::parser::make_NUMBER(0, yylloc);
+                                   }
+                                 }
+-([1-9][0-9]*)                   { try {
+                                     int number = std::stoi(yytext, NULL, 10);
+                                     std::string text = std::string(yytext);
+                                     text = " - " + (number == -2147483648) ? "(1+2147483647)" : text.substr(1);
+                                     for (int i = text.length - 1; i >= 0; --i) unput(text[i]);
                                    } catch (...) {
                                      driver.error(yylloc, "integer constant must be in range [-2147483648, 2147483647]");
                                      return yy::parser::make_NUMBER(0, yylloc);
