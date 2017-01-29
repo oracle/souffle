@@ -54,10 +54,10 @@
 
 namespace souffle {
 
-int fail(const std::string& str) {
+void fail(const std::string& str) {
     // print error message
     std::cerr << str << "\n";
-    return 1;
+    exit(1);
 }
 
 static void wrapPassesForDebugReporting(std::vector<std::unique_ptr<AstTransformer>> &transforms) {
@@ -111,9 +111,10 @@ int main(int argc, char **argv)
                 {"debug-report",      2, "FILE",    "",     "Write debugging output to HTML report."},
                 {"verbose",         'v', "",        "",     "Verbose output."},
                 {"help",            'h', "",        "",     "Display this help message."},
+
                 /// TODO
-                /// {"breadth-limit",   3,   "N",       "2",    "Specify the breadth limit used for the topological ordering of strongly connected components."},
-                /// {"depth-limit",     4,   "N",       "2",    "Specify the depth limit used for the topological ordering of strongly connected components."}
+                {"breadth-limit",   3,   "N",       "2",    "Specify the breadth limit used for the topological ordering of strongly connected components."},
+                {"depth-limit",     4,   "N",       "2",    "Specify the depth limit used for the topological ordering of strongly connected components."}
 
             };
             return std::vector<Option>(std::begin(opts), std::end(opts));
@@ -128,6 +129,10 @@ int main(int argc, char **argv)
         return 1;
    }
 
+   /* turn on compilation of executables */
+   if (env.has("dl-program"))
+        env.set("compile");
+
     /* for the jobs option, to determine the number of threads used */
     static unsigned num_threads = 1; /* the number of threads to use for execution, 0 system-choice, 1 sequential */
     if (env.has("jobs")) {
@@ -136,17 +141,17 @@ int main(int argc, char **argv)
         } else if (isNumber(env.get("jobs").c_str())) {
             num_threads = atoi(env.get("jobs").c_str());
             if (num_threads == 0) {
-               return fail("Number of jobs in the -j/--jobs options must be greater than zero!");
+               fail("Number of jobs in the -j/--jobs options must be greater than zero!");
 
             }
         } else {
-            return fail("Wrong parameter " + env.get("jobs") + " for option -j/--jobs!");
+            fail("Wrong parameter " + env.get("jobs") + " for option -j/--jobs!");
         }
     }
 
     /* if an output directory is given, check it exists */
-    if (env.has("output-dir") && env.has("output-dir", "-") && !existDir(env.get("output-dir")))
-        return fail("error: output directory " + env.get("output-dir") + " does not exists");
+    if (env.has("output-dir") && !env.has("output-dir", "-") && !existDir(env.get("output-dir")))
+        fail("error: output directory " + env.get("output-dir") + " does not exists");
 
     /* turn on compilation if auto-scheduling is enabled */
     if (env.has("auto-schedule") && !env.has("compile"))
@@ -154,14 +159,22 @@ int main(int argc, char **argv)
 
     /* ensure that if auto-scheduling is enabled an output file is given */
     if (env.has("auto-schedule") && !env.has("dl-program"))
-       return fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
+       fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
 
     /// TODO
-    /// /* set the breadth and depth limits for the topological ordering of strongly connected components */
-    /// if (env.has("breadth-limit"))
-        /// TopologicallySortedSCCGraph::BREADTH_LIMIT = ((unsigned)std::stoi(env.get("breadth-limit")));
-    /// if (env.has("depth-limit"))
-        /// TopologicallySortedSCCGraph::DEPTH_LIMIT = ((unsigned)std::stoi(env.get("depth-limit")));
+    /* set the breadth and depth limits for the topological ordering of strongly connected components */
+    if (env.has("breadth-limit")) {
+        int limit = std::stoi(env.get("breadth-limit"));
+        if (limit <= 0)
+            fail("error: breadth limit must be a natural number");
+        TopologicallySortedSCCGraph::BREADTH_LIMIT = limit;
+    }
+    if (env.has("depth-limit")) {
+        int limit = std::stoi(env.get("depth-limit"));
+        if (limit <= 0)
+            fail("error: depth limit must be a natural number");
+        TopologicallySortedSCCGraph::DEPTH_LIMIT = limit;
+    }
 
     /* collect all input directories for the c pre-processor */
     if (env.has("include-dir")) {
@@ -171,7 +184,7 @@ int main(int argc, char **argv)
         for (const char& ch : env.get("include-dir")) {
             if (ch == ' ') {
                 if (!existDir(currentInclude)) {
-                    return fail("error: include directory " + currentInclude + " does not exists");
+                    fail("error: include directory " + currentInclude + " does not exists");
                 } else {
                     allIncludes += " -I ";
                     allIncludes += currentInclude;
@@ -188,7 +201,7 @@ int main(int argc, char **argv)
     if (optind < argc) {
         for (; optind < argc; optind++) {
             if (!existFile(argv[optind])) {
-                return fail("error: cannot open file " + std::string(argv[optind]));
+                fail("error: cannot open file " + std::string(argv[optind]));
             }
             if (filenames == "") {
                 filenames = argv[optind];
@@ -204,13 +217,13 @@ int main(int argc, char **argv)
 
     std::string programName = which(argv[0]);
     if (programName.empty())
-        return fail("error: return safeExited to determine souffle executable path");
+        fail("error: failed to determine souffle executable path");
 
     /* Create the pipe to establish a communication between cpp and souffle */
     std::string cmd = ::findTool("souffle-mcpp", programName, ".");
 
     if (!isExecutable(cmd))
-        return fail("error: return safeExited to locate souffle preprocessor");
+        fail("error: failed to locate souffle preprocessor");
 
     cmd  += " " + env.get("include-dir") + " " + filenames;
     FILE* in = popen(cmd.c_str(), "r");
@@ -227,7 +240,7 @@ int main(int argc, char **argv)
     int preprocessor_status = pclose(in);
     if (preprocessor_status == -1) {
         perror(NULL);
-        return fail("error: return safeExited to close pre-processor pipe");
+        fail("error: failed to close pre-processor pipe");
     }
 
     /* Report run-time of the parser if verbose flag is set */
@@ -239,7 +252,7 @@ int main(int argc, char **argv)
     // ------- check for parse errors -------------
     if (translationUnit->getErrorReport().getNumErrors() != 0) {
         std::cerr << translationUnit->getErrorReport();
-        return fail(std::to_string(translationUnit->getErrorReport().getNumErrors()) + " errors generated, evaluation aborted");
+        fail(std::to_string(translationUnit->getErrorReport().getNumErrors()) + " errors generated, evaluation aborted");
     }
 
     // ------- rewriting / optimizations -------------
@@ -274,7 +287,7 @@ int main(int argc, char **argv)
         /* Abort evaluation of the program if errors were encountered */
         if (translationUnit->getErrorReport().getNumErrors() != 0) {
             std::cerr << translationUnit->getErrorReport();
-            return fail(std::to_string(translationUnit->getErrorReport().getNumErrors()) + " errors generated, evaluation aborted");
+            fail(std::to_string(translationUnit->getErrorReport().getNumErrors()) + " errors generated, evaluation aborted");
         }
     }
     if (translationUnit->getErrorReport().getNumIssues() != 0) {
@@ -361,7 +374,7 @@ int main(int argc, char **argv)
 
     /* Fail if a souffle-compile executable is not found */
     if (!isExecutable(compileCmd))
-        return fail("error: return safeExited to locate souffle-compile");
+        fail("error: failed to locate souffle-compile");
 
     config.setCompileScript(compileCmd + " ");
 
@@ -372,7 +385,7 @@ int main(int argc, char **argv)
 		static_cast<const RamCompiler*>(executor.get())->generateCode(translationUnit->getSymbolTable(), *ramProg, env.get("generate"));
 
     	// check if this is a compile only
-    } else if (env.has("compile") && env.get("dl-program") != "") {
+    } else if (env.has("compile") && env.has("dl-program")) {
         // just compile, no execute
         static_cast<const RamCompiler*>(executor.get())->compileToBinary(translationUnit->getSymbolTable(), *ramProg);
     } else {
