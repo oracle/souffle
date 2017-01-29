@@ -311,7 +311,7 @@ arg: STRING {
      }
    | NUMBER {
        $$ = new AstNumberConstant($1);
-       // TODO: integer constant must be in range [-2147483648, 2147483647], currently preserves old behaviour
+       // TODO: integer constant should be in range [-2^31, 2^31-1] (i.e. [-2147483648, 2147483647])
        if ($1 > 2147483647)
           driver.error(@1, "int not in range");
        $$->setSrcLoc(@$);

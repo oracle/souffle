@@ -1,10 +1,16 @@
 Error: int not in range in file number_constants.dl at line 8
 R(2147483648). // error: out of range
 --^-----------------------------------
+Error: int not in range in file number_constants.dl at line 9
+R(-2147483648).
+---^------------
 Error: int not in range in file number_constants.dl at line 10
 R(-2147483649). // error: out of range
 ---^-----------------------------------
+Error: int not in range in file number_constants.dl at line 11
+R(2147483647--2147483648).
+--------------^------------
 Error: int not in range in file number_constants.dl at line 12
 R(2147483647-2147483648). // error: out of range
 -------------^-----------------------------------
-3 errors generated, evaluation aborted
+5 errors generated, evaluation aborted
