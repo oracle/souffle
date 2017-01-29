@@ -103,6 +103,7 @@ int main(int argc, char **argv)
                 {"output-dir",      'D', "DIR",     "",     "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
                 {"jobs",            'j', "N",       "1",    "Run interpreter/compiler in parallel using N threads, N=auto for system default."},
                 {"compile",         'c', "",        "",     "Compile datalog (translating to C++)."},
+                // if the short option is non-alphabetical, it is ommitted from the help text
                 {"auto-schedule",     1,  "",       "",     "Switch on automated clause scheduling for compiler."},
                 {"generate",        'g', "FILE",    "",     "Only generate sources of compilable analysis and write it to <FILE>."},
                 {"no-warn",         'w', "",        "",     "Disable warnings."},
@@ -110,6 +111,7 @@ int main(int argc, char **argv)
                 {"profile",         'p', "FILE",    "",     "Enable profiling and write profile data to <FILE>."},
                 {"debug",           'd', "",        "",     "Enable debug mode."},
                 {"bddbddb",         'b', "FILE",    "",     "Convert input into bddbddb file format."},
+                // if the short option is non-alphabetical, it is ommitted from the help text
                 {"debug-report",      2, "FILE",    "",     "Write debugging output to HTML report."},
                 {"verbose",         'v', "",        "",     "Verbose output."},
                 {"help",            'h', "",        "",     "Display this help message."},
