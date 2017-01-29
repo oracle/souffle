@@ -101,19 +101,19 @@ int main(int argc, char **argv)
                 {"output-dir",      'D', "DIR",     "",     "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
                 {"jobs",            'j', "N",       "1",    "Run interpreter/compiler in parallel using N threads, N=auto for system default."},
                 {"compile",         'c', "",        "",     "Compile datalog (translating to C++)."},
-                {"auto-schedule",   'a',  "",       "",     "Switch on automated clause scheduling for compiler."},
+                {"auto-schedule",     1,  "",       "",     "Switch on automated clause scheduling for compiler."},
                 {"generate",        'g', "FILE",    "",     "Only generate sources of compilable analysis and write it to <FILE>."},
                 {"no-warn",         'w', "",        "",     "Disable warnings."},
                 {"dl-program",      'o', "FILE",    "",     "Write executable program to <FILE> (without executing it)."},
                 {"profile",         'p', "FILE",    "",     "Enable profiling and write profile data to <FILE>."},
                 {"debug",           'd', "",        "",     "Enable debug mode."},
                 {"bddbddb",         'b', "FILE",    "",     "Convert input into bddbddb file format."},
-                {"debug-report",    'r', "FILE",    "",     "Write debugging output to HTML report."},
+                {"debug-report",      2, "FILE",    "",     "Write debugging output to HTML report."},
                 {"verbose",         'v', "",        "",     "Verbose output."},
                 {"help",            'h', "",        "",     "Display this help message."},
-
-                {"breadth-limit",   1,   "N",       "2",    "Specify the breadth limit used for the topological ordering of strongly connected components."},
-                {"depth-limit",     2,   "N",       "2",    "Specify the depth limit used for the topological ordering of strongly connected components."}
+                /// TODO
+                /// {"breadth-limit",   3,   "N",       "2",    "Specify the breadth limit used for the topological ordering of strongly connected components."},
+                /// {"depth-limit",     4,   "N",       "2",    "Specify the depth limit used for the topological ordering of strongly connected components."}
 
             };
             return std::vector<Option>(std::begin(opts), std::end(opts));
@@ -156,11 +156,12 @@ int main(int argc, char **argv)
     if (env.has("auto-schedule") && !env.has("dl-program"))
        return fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
 
-    /* set the breadth and depth limits for the topological ordering of strongly connected components */
-    if (env.has("breadth-limit"))
-        TopologicallySortedSCCGraph::BREADTH_LIMIT = ((unsigned)std::stoi(env.get("breadth-limit")));
-    if (env.has("depth-limit"))
-        TopologicallySortedSCCGraph::DEPTH_LIMIT = ((unsigned)std::stoi(env.get("depth-limit")));
+    /// TODO
+    /// /* set the breadth and depth limits for the topological ordering of strongly connected components */
+    /// if (env.has("breadth-limit"))
+        /// TopologicallySortedSCCGraph::BREADTH_LIMIT = ((unsigned)std::stoi(env.get("breadth-limit")));
+    /// if (env.has("depth-limit"))
+        /// TopologicallySortedSCCGraph::DEPTH_LIMIT = ((unsigned)std::stoi(env.get("depth-limit")));
 
     /* collect all input directories for the c pre-processor */
     if (env.has("include-dir")) {
