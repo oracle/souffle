@@ -85,7 +85,7 @@
 %token END 0                     "end of file"
 %token <std::string> STRING      "symbol"
 %token <std::string> IDENT       "identifier"
-%token <int> NUMBER              "number"
+%token <long long> NUMBER        "number"
 %token <std::string> RELOP       "relational operator"
 %token OUTPUT_QUALIFIER          "relation qualifier output"
 %token INPUT_QUALIFIER           "relation qualifier input"
@@ -311,6 +311,9 @@ arg: STRING {
      }
    | NUMBER {
        $$ = new AstNumberConstant($1);
+       // TODO: integer constant must be in range [-2147483648, 2147483647], currently preserves old behaviour
+       if ($1 > 2147483647)
+          driver.error(@1, "int not in range");
        $$->setSrcLoc(@$);
      }
    | LPAREN arg RPAREN {
@@ -372,7 +375,7 @@ arg: STRING {
        $$ = new AstTypeCast(std::unique_ptr<AstArgument>($1), $3); 
        $$->setSrcLoc(@$);
      }
-   |  MINUS arg %prec NEG { 
+   |  MINUS arg %prec NEG {
        $$ = new AstUnaryFunctor(UnaryOp::NEG, std::unique_ptr<AstArgument>($2));
        $$->setSrcLoc(@$); 
      }

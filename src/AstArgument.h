@@ -255,7 +255,8 @@ class AstNumberConstant : public AstConstant {
 public:
 
     AstNumberConstant(size_t num)
-        : AstConstant(num) {}
+        : AstConstant(num) {
+        }
 
     /** @brief Print argument to the given output stream */
     virtual void print(std::ostream &os) const {

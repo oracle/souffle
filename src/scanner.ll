@@ -156,7 +156,6 @@
                                      return yy::parser::make_NUMBER(0, yylloc);
                                    }
                                  }
-
 [_\?a-zA-Z][_\?a-zA-Z0-9]*       { if (!strcmp(yytext, "_")) {
                                      return yy::parser::make_UNDERSCORE(yylloc);
                                    } else {
