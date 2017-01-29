@@ -93,9 +93,11 @@ int main(int argc, char **argv)
             footer << "=======================================================================================================" << std::endl;
             return footer.str();
         }(),
+        /* new command line options, the environment will be filled with the arguments passed to them, or the empty string if they take none */
         []() {
             Option opts[] = {
 
+                /* each option is { long option, short option, argument name, default value, description } */
                 {"fact-dir",        'F', "DIR",     ".",    "Specify directory for fact files."},
                 {"include-dir",     'I', "DIR",     ".",    "Specify directory for include files."},
                 {"output-dir",      'D', "DIR",     "",     "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
