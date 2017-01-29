@@ -13,16 +13,11 @@ set -x
 if [ $TRAVIS_OS_NAME == linux ]
 then
     sudo apt-get -qq update # TODO comment this out if the apt repo is up-to-date
-    if [ "$TEST_FORMAT" == 1 ]
+    if [ "$MAKEPACKAGE" == 1 ]
     then
-        sudo apt-get -y install clang-format-3.6
-    else
-        if [ "$MAKEPACKAGE" == 1 ]
-        then
-          sudo apt-get -y install debhelper devscripts
-        fi
-        sudo apt-get -y install build-essential g++ automake autoconf bison flex openjdk-8-jdk lsb-release libtool libedit-dev
+      sudo apt-get -y install debhelper devscripts
     fi
+    sudo apt-get -y install build-essential g++ automake autoconf bison flex openjdk-8-jdk lsb-release libtool libedit-dev
     # The following lines are hacked because travis stopped working around 5/12/16, if you can remove them and travis still works, then great
 #    source /opt/jdk_switcher/jdk_switcher.sh
 #    jdk_switcher use openjdk7
