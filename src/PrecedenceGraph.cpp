@@ -442,14 +442,15 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
     // and mark all sccs as unvisited
     sccGraph->fillColors(WHITE);
 
-    // generate topological ordering using reverse DFS algorithm
-    // runReverseDFS(); // use this as a benchmark
-
     // generate topological ordering in naive manner (try all permutations)
     // naiveTopologicalOrdering(); // use this to assess performance
-
-    // generate topological ordering using custom algorithm
-    generateTopologicalOrdering();
+    if (BREADTH_LIMIT == 0 || DEPTH_LIMIT == 0) {
+        // generate topological ordering using reverse DFS algorithm
+        runReverseDFS(); // use this as a benchmark
+    } else {
+        // generate topological ordering using custom algorithm
+        generateTopologicalOrdering();
+    }
 
 }
 
