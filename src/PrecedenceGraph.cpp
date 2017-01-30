@@ -269,11 +269,13 @@ void TopologicallySortedSCCGraph::reverseDFS(int sv, std::vector<int>& unordered
             reverseDFS(scc, unorderedSCCs);
         }
         sccGraph->setColor(sv, BLACK);
+        /*
         std::cerr << "----------------" << std::endl;
         std::cerr << "Lookahead:      " << LOOKAHEAD << std::endl;
         std::cerr << "Unordered SCCs: " << unorderedSCCs << std::endl;
         std::cerr << "Ordered SCCs:   " << orderedSCCs << std::endl;
         std::cerr << "----------------" << std::endl;
+        */
         // TODO @wip
         if (LOOKAHEAD > 1) {
             if (unorderedSCCs.size() < LOOKAHEAD) {
