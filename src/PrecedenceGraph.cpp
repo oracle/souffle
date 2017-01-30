@@ -440,7 +440,7 @@ void TopologicallySortedSCCGraph::obtainTopologicalOrdering(int scc) {
 
         // if the original scc has any unvisited successors
         if (sccGraph->hasSuccessorOfColor(scc, WHITE)) {
-            // set its color to
+            // set its color to red
             sccGraph->setColor(scc, RED);
             obtainTopologicalOrdering(scc);
         } else {
