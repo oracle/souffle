@@ -77,7 +77,7 @@ int main(int argc, char **argv)
         []() {
             std::stringstream header;
             header << "=======================================================================================================" << std::endl;
-            header << "souffle -- Oracle Labs' datalog engine." << std::endl;
+            header << "souffle -- A datalog engine." << std::endl;
             header << "Usage: souffle [OPTION] FILE." << std::endl;
             header << "-------------------------------------------------------------------------------------------------------" << std::endl;
             header << "Options:" << std::endl;

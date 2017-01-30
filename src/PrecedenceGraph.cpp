@@ -389,7 +389,7 @@ void TopologicallySortedSCCGraph::findLookaheadSCCs(int scc, std::vector<int>& l
 void TopologicallySortedSCCGraph::obtainTopologicalOrdering(int scc) {
     // obtain the set of all lookahead sccs, i.e. those to be sorted in this round
     std::vector<int> lookaheadSCCs;
-    findLookaheadSCCs(scc, lookaheadSCCs, 0);
+    findLookaheadSCCs(scc, lookaheadSCCs, 1);
     // if there are none, simply return
     if (lookaheadSCCs.size() == 0) return;
     // compute the best cost topological ordering over the set of lookahead sccs
@@ -474,7 +474,7 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
     }
 
     // TODO @wip
-    std::cerr << topologicalOrderingCost(orderedSCCs);
+    /// std::cerr << topologicalOrderingCost(orderedSCCs);
 }
 
 void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream& os) {
