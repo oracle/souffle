@@ -387,37 +387,74 @@ void TopologicallySortedSCCGraph::findLookaheadSCCs(int scc, std::vector<int>& l
 }
 
 void TopologicallySortedSCCGraph::obtainTopologicalOrdering(int scc) {
-    // obtain the set of all lookahead sccs, i.e. those to be sorted in this round
-    std::vector<int> lookaheadSCCs;
-    findLookaheadSCCs(scc, lookaheadSCCs, 1);
-    // if there are none, simply return
-    if (lookaheadSCCs.size() == 0) return;
-    // compute the best cost topological ordering over the set of lookahead sccs
-    bestCostTopologicalOrdering(lookaheadSCCs);
-    // and append it to the final list of ordered sccs
-    orderedSCCs.insert(orderedSCCs.end(), lookaheadSCCs.begin(), lookaheadSCCs.end());
-    // prepend the root scc given as an argument to the list of lookahead sccs
-    lookaheadSCCs.insert(lookaheadSCCs.begin(), scc);
-    // for each scc in the lookahead set
-    for (auto scc_i : lookaheadSCCs) {
-        // if it has unvisited successors
-        if (sccGraph->hasSuccessorOfColor(scc_i, WHITE)) {
-            // give it an incomplete marking
-            sccGraph->setColor(scc_i, RED);
-            // and use it as the root scc in a recursive call to this function
-            obtainTopologicalOrdering(scc_i);
-        } else {
-            // otherwise, mark it as complete
-            sccGraph->setColor(scc_i, BLACK);
+    // if either the breadth or depth limit requires there be a lookahead set
+    if (BREADTH_LIMIT > 1 || DEPTH_LIMIT > 1) {
+        // obtain the set of all lookahead sccs, i.e. those to be sorted in this round
+        std::vector<int> lookaheadSCCs;
+        findLookaheadSCCs(scc, lookaheadSCCs, 1);
+        // if there are none, simply return
+        if (lookaheadSCCs.size() == 0) return;
+        // compute the best cost topological ordering over the set of lookahead sccs
+        bestCostTopologicalOrdering(lookaheadSCCs);
+        // and append it to the final list of ordered sccs
+        orderedSCCs.insert(orderedSCCs.end(), lookaheadSCCs.begin(), lookaheadSCCs.end());
+        // prepend the root scc given as an argument to the list of lookahead sccs
+        lookaheadSCCs.insert(lookaheadSCCs.begin(), scc);
+        // for each scc in the lookahead set
+        for (auto scc_i : lookaheadSCCs) {
+            // if it has unvisited successors
+            if (sccGraph->hasSuccessorOfColor(scc_i, WHITE)) {
+                // give it an incomplete marking
+                sccGraph->setColor(scc_i, RED);
+                // and use it as the root scc in a recursive call to this function
+                obtainTopologicalOrdering(scc_i);
+            } else {
+                // otherwise, mark it as complete
+                sccGraph->setColor(scc_i, BLACK);
+            }
         }
-    }
-    // if the original root node given as an argument has an incomplete marking, unvisited
-    // successors, and no unvisited predecessors
-    if (sccGraph->getColor(scc) == RED
-        && sccGraph->hasSuccessorOfColor(scc, WHITE)
-        && !sccGraph->hasPredecessorOfColor(scc, WHITE))
+        // if the original root node given as an argument has an incomplete marking, unvisited
+        // successors, and no unvisited predecessors
+        if (sccGraph->getColor(scc) == RED
+            && sccGraph->hasSuccessorOfColor(scc, WHITE)
+            && !sccGraph->hasPredecessorOfColor(scc, WHITE))
+            // use it as the root scc again in a recursive call to this function
+            obtainTopologicalOrdering(scc);
+    // both breadth and depth limits are 1, i.e. no lookahead
+    } else {
+
+        auto scc_i = sccGraph->getSuccessorSCCs(scc).begin();
+        for (; scc_i != sccGraph->getSuccessorSCCs(scc).end(); ++scc_i)
+            if (sccGraph->getColor(*scc_i) == WHITE
+                && !sccGraph->hasPredecessorOfColor(*scc_i, WHITE))
+                break;
+
         // use it as the root scc again in a recursive call to this function
-        obtainTopologicalOrdering(scc);
+        if (scc_i == sccGraph->getSuccessorSCCs(scc).end())
+            return;
+
+        sccGraph->setColor(*scc_i, GRAY);
+        orderedSCCs.push_back(*scc_i);
+
+        if (sccGraph->hasSuccessorOfColor(scc, WHITE)) {
+            sccGraph->setColor(scc, RED);
+            obtainTopologicalOrdering(scc);
+        } else {
+            sccGraph->setColor(scc, BLACK);
+        }
+
+        if (sccGraph->hasSuccessorOfColor(*scc_i, WHITE)) {
+            sccGraph->setColor(*scc_i, RED);
+            obtainTopologicalOrdering(*scc_i);
+        } else {
+            sccGraph->setColor(*scc_i, BLACK);
+        }
+
+        if (sccGraph->getColor(scc) == RED
+            && sccGraph->hasSuccessorOfColor(scc, WHITE)
+            && !sccGraph->hasPredecessorOfColor(scc, WHITE))
+            obtainTopologicalOrdering(scc);
+    }
 }
 
 void TopologicallySortedSCCGraph::generateTopologicalOrdering() {
@@ -450,10 +487,11 @@ void TopologicallySortedSCCGraph::naiveTopologicalOrdering() {
 }
 
 // TODO @wip
-unsigned int TopologicallySortedSCCGraph::BREADTH_LIMIT = 2;
-unsigned int TopologicallySortedSCCGraph::DEPTH_LIMIT = 2;
+unsigned int TopologicallySortedSCCGraph::BREADTH_LIMIT = 1;
+unsigned int TopologicallySortedSCCGraph::DEPTH_LIMIT = 1;
 unsigned int TopologicallySortedSCCGraph::LOOKAHEAD = 0;
 
+// TODO: implement a faster algorithm for breadth and depth = 1
 void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit) {
 
     // obtain the scc graph
@@ -474,7 +512,7 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
     }
 
     // TODO @wip
-    std::cerr << topologicalOrderingCost(orderedSCCs);
+    // std::cerr << topologicalOrderingCost(orderedSCCs);
 }
 
 void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream& os) {
