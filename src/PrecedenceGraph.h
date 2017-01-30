@@ -222,13 +222,6 @@ private:
         RED     = 0xFF0000
     };
 
-    // TODO @wip
-    /** Reverse DFS for computing topological order of SCC graph */
-    void reverseDFS(int su, std::vector<int>& unorderedSCCs);
-
-    /** Run reverse DFS to compute the topsort of the SCC graph. */
-    void runReverseDFS();
-
     /** Calculate the topological ordering cost of a permutation of as of yet unordered SCCs
     using the ordered SCCs. Returns -1 if the given vector is not a valid topological ordering. */
     const int topologicalOrderingCost(const std::vector<int>& permutationOfSCCs) const;
@@ -237,7 +230,13 @@ private:
     set using the ordered SCCs. */
     void bestCostTopologicalOrdering(std::vector<int>& lookaheadSCCs) const;
 
-    /** Recursive component of Khan's algorithm, gets the nodes for the current round. */
+    /** Reverse DFS for computing topological order of SCC graph */
+    void reverseDFS(int su, std::vector<int>& lookaheadSCCs);
+
+    /** Run reverse DFS to compute the topsort of the SCC graph. */
+    void runReverseDFS();
+
+    /** Get the nodes in the lookahead set for the topological ordering from the given scc. */
     void findLookaheadSCCs(int scc, std::vector<int>& lookaheadSCCs, unsigned int depth);
 
     /** Algorithm to compute the topological ordering, uses a breadth and depth lookahead. */
@@ -246,20 +245,14 @@ private:
     /** Run algorithm to compute the topological ordering of the SCC graph. */
     void generateTopologicalOrdering();
 
-    /** Naive algorithm to compute best cost topological ordering. Guaranteed to be optimal however runtime is factorial. */
-    void naiveTopologicalOrdering();
-
 public:
 
-    // TODO @wip
     /** Breadth limit for algorithm. */
     static unsigned int BREADTH_LIMIT;
 
-    // TODO @wip
     /** Depth limit for algorithm. */
     static unsigned int DEPTH_LIMIT;
 
-    // TODO @wip
     /** Lookahead limit for algorithm. */
     static unsigned int LOOKAHEAD;
 

@@ -259,45 +259,6 @@ void SCCGraph::outputSCCGraph(std::ostream& os) {
     os << "}\n";
 }
 
-// TODO @wip
-void TopologicallySortedSCCGraph::reverseDFS(int sv, std::vector<int>& unorderedSCCs) {
-    if (sccGraph->getColor(sv) == GRAY) {
-        assert("SCC graph is not a DAG");
-    } else if (sccGraph->getColor(sv) == WHITE) {
-        sccGraph->setColor(sv, GRAY);
-        for (int scc : sccGraph->getPredecessorSCCs(sv)) {
-            reverseDFS(scc, unorderedSCCs);
-        }
-        sccGraph->setColor(sv, BLACK);
-        // TODO @wip
-        if (LOOKAHEAD > 1) {
-            if (unorderedSCCs.size() < LOOKAHEAD) {
-                unorderedSCCs.push_back(sv);
-            }
-            if (unorderedSCCs.size() == LOOKAHEAD) {
-                bestCostTopologicalOrdering(unorderedSCCs);
-                orderedSCCs.insert(orderedSCCs.end(), unorderedSCCs.begin(), unorderedSCCs.end());
-                unorderedSCCs.clear();
-            }
-        } else {
-            orderedSCCs.push_back(sv);
-        }
-    }
-}
-
-void TopologicallySortedSCCGraph::runReverseDFS() {
-    std::vector<int> unorderedSCCs;
-    // run reverse DFS for each node in the scc graph
-    for (int su = 0; su < sccGraph->getNumSCCs(); ++su) {
-        reverseDFS(su, unorderedSCCs);
-    }
-    if (!unorderedSCCs.empty()) {
-        bestCostTopologicalOrdering(unorderedSCCs);
-        orderedSCCs.insert(orderedSCCs.end(), unorderedSCCs.begin(), unorderedSCCs.end());
-        unorderedSCCs.clear();
-    }
-}
-
 const int TopologicallySortedSCCGraph::topologicalOrderingCost(const std::vector<int>& permutationOfSCCs) const {
     // create variables to hold the cost of the current SCC and the permutation as a whole
     int costOfSCC = 0;
@@ -362,6 +323,43 @@ void TopologicallySortedSCCGraph::bestCostTopologicalOrdering(std::vector<int>& 
     lookaheadSCCs = bestPermutationOfSCCs;
 }
 
+void TopologicallySortedSCCGraph::reverseDFS(int sv, std::vector<int>& lookaheadSCCs) {
+    if (sccGraph->getColor(sv) == GRAY) {
+        assert("SCC graph is not a DAG");
+    } else if (sccGraph->getColor(sv) == WHITE) {
+        sccGraph->setColor(sv, GRAY);
+        for (int scc : sccGraph->getPredecessorSCCs(sv)) {
+            reverseDFS(scc, lookaheadSCCs);
+        }
+        sccGraph->setColor(sv, BLACK);
+        if (LOOKAHEAD > 1) {
+            if (lookaheadSCCs.size() < LOOKAHEAD) {
+                lookaheadSCCs.push_back(sv);
+            }
+            if (lookaheadSCCs.size() == LOOKAHEAD) {
+                bestCostTopologicalOrdering(lookaheadSCCs);
+                orderedSCCs.insert(orderedSCCs.end(), lookaheadSCCs.begin(), lookaheadSCCs.end());
+                lookaheadSCCs.clear();
+            }
+        } else {
+            orderedSCCs.push_back(sv);
+        }
+    }
+}
+
+void TopologicallySortedSCCGraph::runReverseDFS() {
+    std::vector<int> lookaheadSCCs;
+    // run reverse DFS for each node in the scc graph
+    for (int su = 0; su < sccGraph->getNumSCCs(); ++su) {
+        reverseDFS(su, lookaheadSCCs);
+    }
+    if (!lookaheadSCCs.empty()) {
+        bestCostTopologicalOrdering(lookaheadSCCs);
+        orderedSCCs.insert(orderedSCCs.end(), lookaheadSCCs.begin(), lookaheadSCCs.end());
+        lookaheadSCCs.clear();
+    }
+}
+
 void TopologicallySortedSCCGraph::findLookaheadSCCs(int scc, std::vector<int>& lookaheadSCCs, unsigned int depth) {
     // set the current breadth for this level to 0
     unsigned int breadth = 0;
@@ -423,20 +421,26 @@ void TopologicallySortedSCCGraph::obtainTopologicalOrdering(int scc) {
     // both breadth and depth limits are 1, i.e. no lookahead
     } else {
 
+        // get a successor of the input scc having no white predecessors
         auto scc_i = sccGraph->getSuccessorSCCs(scc).begin();
         for (; scc_i != sccGraph->getSuccessorSCCs(scc).end(); ++scc_i)
             if (sccGraph->getColor(*scc_i) == WHITE
                 && !sccGraph->hasPredecessorOfColor(*scc_i, WHITE))
                 break;
 
-        // use it as the root scc again in a recursive call to this function
+        // if no such successor exists, then return
         if (scc_i == sccGraph->getSuccessorSCCs(scc).end())
             return;
 
+        // set the color of that successor to gray
         sccGraph->setColor(*scc_i, GRAY);
+
+        // and add it to the permanent ordering
         orderedSCCs.push_back(*scc_i);
 
+        // if the original scc has any unvisited successors
         if (sccGraph->hasSuccessorOfColor(scc, WHITE)) {
+            // set its color to
             sccGraph->setColor(scc, RED);
             obtainTopologicalOrdering(scc);
         } else {
@@ -478,20 +482,10 @@ void TopologicallySortedSCCGraph::generateTopologicalOrdering() {
     }
 }
 
-void TopologicallySortedSCCGraph::naiveTopologicalOrdering() {
-    std::vector<int> lookaheadSCCs;
-    for (int i = 0; i < sccGraph->getNumSCCs(); ++i)
-        lookaheadSCCs.push_back(i);
-    bestCostTopologicalOrdering(lookaheadSCCs);
-    orderedSCCs = lookaheadSCCs;
-}
-
-// TODO @wip
 unsigned int TopologicallySortedSCCGraph::BREADTH_LIMIT = 1;
 unsigned int TopologicallySortedSCCGraph::DEPTH_LIMIT = 1;
 unsigned int TopologicallySortedSCCGraph::LOOKAHEAD = 0;
 
-// TODO: implement a faster algorithm for breadth and depth = 1
 void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit) {
 
     // obtain the scc graph
@@ -501,18 +495,14 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
     // and mark all sccs as unvisited
     sccGraph->fillColors(WHITE);
 
-    // generate topological ordering in naive manner (try all permutations)
-    // naiveTopologicalOrdering(); // use this to assess performance
     if (LOOKAHEAD != 0) {
         // generate topological ordering using reverse DFS algorithm
-        runReverseDFS(); // use this as a benchmark
+        runReverseDFS();
     } else {
         // generate topological ordering using custom algorithm
         generateTopologicalOrdering();
     }
 
-    // TODO @wip
-    std::cerr << topologicalOrderingCost(orderedSCCs);
 }
 
 void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream& os) {

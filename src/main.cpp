@@ -116,7 +116,7 @@ int main(int argc, char **argv)
                 {"verbose",         'v', "",        "",     "Verbose output."},
                 {"help",            'h', "",        "",     "Display this help message."},
 
-                // TODO @wip
+                // options for the topological ordering of strongly connected components, see TopologicallySortedSCCGraph class in PrecedenceGraph.cpp
                 {"breadth-limit",   3,   "N",       "",     "Specify the breadth limit used for the topological ordering of strongly connected components."},
                 {"depth-limit",     4,   "N",       "",     "Specify the depth limit used for the topological ordering of strongly connected components."},
                 {"lookahead",       5,   "N",       "",     "Specify the lookahead used for the topological ordering of strongly connected components."}
@@ -166,9 +166,7 @@ int main(int argc, char **argv)
     if (env.has("auto-schedule") && !env.has("dl-program"))
        fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
 
-    // TODO @wip
     /* set the breadth and depth limits for the topological ordering of strongly connected components */
-
     if (env.has("breadth-limit")) {
         int limit = std::stoi(env.get("breadth-limit"));
         if (limit <= 0)
