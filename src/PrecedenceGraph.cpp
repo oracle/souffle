@@ -295,11 +295,11 @@ void TopologicallySortedSCCGraph::runReverseDFS() {
     // run reverse DFS for each node in the scc graph
     for (int su = 0; su < sccGraph->getNumSCCs(); ++su) {
         reverseDFS(su, unorderedSCCs);
-        if (!unorderedSCCs.empty()) {
-            bestCostTopologicalOrdering(unorderedSCCs);
-            orderedSCCs.insert(orderedSCCs.end(), unorderedSCCs.begin(), unorderedSCCs.end());
-            unorderedSCCs.clear();
-        }
+    }
+    if (!unorderedSCCs.empty()) {
+        bestCostTopologicalOrdering(unorderedSCCs);
+        orderedSCCs.insert(orderedSCCs.end(), unorderedSCCs.begin(), unorderedSCCs.end());
+        unorderedSCCs.clear();
     }
 }
 
