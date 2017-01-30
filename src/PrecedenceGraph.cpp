@@ -259,23 +259,43 @@ void SCCGraph::outputSCCGraph(std::ostream& os) {
     os << "}\n";
 }
 
-void TopologicallySortedSCCGraph::reverseDFS(int sv) {
+// TODO @wip
+void TopologicallySortedSCCGraph::reverseDFS(int sv, std::vector<int>& unorderedSCCs) {
     if (sccGraph->getColor(sv) == GRAY) {
         assert("SCC graph is not a DAG");
     } else if (sccGraph->getColor(sv) == WHITE) {
         sccGraph->setColor(sv, GRAY);
         for (int scc : sccGraph->getPredecessorSCCs(sv)) {
-            reverseDFS(scc);
+            reverseDFS(scc, unorderedSCCs);
         }
         sccGraph->setColor(sv, BLACK);
-        orderedSCCs.push_back(sv);
+
+        // TODO @wip
+        if (LOOKAHEAD > 1) {
+            if (unorderedSCCs.size() < LOOKAHEAD) {
+                unorderedSCCs.push_back(sv);
+            }
+            if (unorderedSCCs.size() == LOOKAHEAD) {
+                bestCostTopologicalOrdering(unorderedSCCs);
+                orderedSCCs.insert(orderedSCCs.end(), unorderedSCCs.begin(), unorderedSCCs.end());
+                unorderedSCCs.clear();
+            }
+        } else {
+            orderedSCCs.push_back(sv);
+        }
     }
 }
 
 void TopologicallySortedSCCGraph::runReverseDFS() {
+    std::vector<int> unorderedSCCs;
     // run reverse DFS for each node in the scc graph
     for (int su = 0; su < sccGraph->getNumSCCs(); ++su) {
-        reverseDFS(su);
+        reverseDFS(su, unorderedSCCs);
+        if (!unorderedSCCs.empty()) {
+            bestCostTopologicalOrdering(unorderedSCCs);
+            orderedSCCs.insert(orderedSCCs.end(), unorderedSCCs.begin(), unorderedSCCs.end());
+            unorderedSCCs.clear();
+        }
     }
 }
 
@@ -430,8 +450,10 @@ void TopologicallySortedSCCGraph::naiveTopologicalOrdering() {
     orderedSCCs = lookaheadSCCs;
 }
 
+// TODO @wip
 unsigned int TopologicallySortedSCCGraph::BREADTH_LIMIT = 2;
 unsigned int TopologicallySortedSCCGraph::DEPTH_LIMIT = 2;
+unsigned int TopologicallySortedSCCGraph::LOOKAHEAD = 1;
 
 void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit) {
 

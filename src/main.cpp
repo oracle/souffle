@@ -116,8 +116,10 @@ int main(int argc, char **argv)
                 {"verbose",         'v', "",        "",     "Verbose output."},
                 {"help",            'h', "",        "",     "Display this help message."},
 
+                // TODO @wip
                 {"breadth-limit",   3,   "N",       "2",    "Specify the breadth limit used for the topological ordering of strongly connected components."},
-                {"depth-limit",     4,   "N",       "2",    "Specify the depth limit used for the topological ordering of strongly connected components."}
+                {"depth-limit",     4,   "N",       "2",    "Specify the depth limit used for the topological ordering of strongly connected components."},
+                {"lookahead",       5,   "N",       "1",    "Specify the lookahead used for the topological ordering of strongly connected components."}
 
             };
             return std::vector<Option>(std::begin(opts), std::end(opts));
@@ -164,19 +166,31 @@ int main(int argc, char **argv)
     if (env.has("auto-schedule") && !env.has("dl-program"))
        fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
 
+    // TODO @wip
     /* set the breadth and depth limits for the topological ordering of strongly connected components */
     if (env.has("breadth-limit")) {
+       if (!env.has("depth-limit", "0"))
+            fail("error: if breadth limit is 0 then depth limit must be also");
        int limit = std::stoi(env.get("breadth-limit"));
        if (limit < 0)
            fail("error: breadth limit must not be negative");
        TopologicallySortedSCCGraph::BREADTH_LIMIT = limit;
     }
     if (env.has("depth-limit")) {
+       if (!env.has("breadth-limit", "0"))
+            fail("error: if depth limit is 0 then breadth limit must be also");
         int limit = std::stoi(env.get("depth-limit"));
         if (limit < 0)
             fail("error: depth limit must not be negative");
         TopologicallySortedSCCGraph::DEPTH_LIMIT = limit;
     }
+    if (env.has("lookahead")) {
+       int lookahead = std::stoi(env.get("lookahead"));
+       if (lookahead <= 0)
+            fail("error: lookahead must not be negative or zero");
+        TopologicallySortedSCCGraph::LOOKAHEAD = lookahead;
+    }
+
 
     /* collect all input directories for the c pre-processor */
     if (env.has("include-dir")) {

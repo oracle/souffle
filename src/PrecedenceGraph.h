@@ -222,8 +222,9 @@ private:
         RED     = 0xFF0000
     };
 
+    // TODO @wip
     /** Reverse DFS for computing topological order of SCC graph */
-    void reverseDFS(int su);
+    void reverseDFS(int su, std::vector<int>& unorderedSCCs);
 
     /** Run reverse DFS to compute the topsort of the SCC graph. */
     void runReverseDFS();
@@ -250,11 +251,17 @@ private:
 
 public:
 
+    // TODO @wip
     /** Breadth limit for algorithm. */
     static unsigned int BREADTH_LIMIT;
 
+    // TODO @wip
     /** Depth limit for algorithm. */
     static unsigned int DEPTH_LIMIT;
+
+    // TODO @wip
+    /** Lookahead limit for algorithm. */
+    static unsigned int LOOKAHEAD;
 
     static constexpr const char *name = "topological-scc-graph";
 
