@@ -211,10 +211,10 @@ private:
     /** The strongly connected component (SCC) graph. */
     SCCGraph *sccGraph;
 
-    /** The final topological ordering over the SCCs. */
+    /** The final topological ordering of the SCCs. */
     std::vector<int> orderedSCCs;
 
-    /** Marker type for to compute topological ordering. */
+    /** Marker type to compute topological ordering. */
     enum Colour {
         WHITE   = 0xFFFFFF,
         GRAY    = 0x7f7f7f,
@@ -230,30 +230,30 @@ private:
     set using the ordered SCCs. */
     void bestCostTopologicalOrdering(std::vector<int>& lookaheadSCCs) const;
 
-    /** Reverse DFS for computing topological order of SCC graph */
-    void reverseDFS(int su, std::vector<int>& lookaheadSCCs);
+    /** Recursive component for the backwards algorithm computing the topological ordering of the SCCs. */
+    void backwardAlgorithmRecursive(int su, std::vector<int>& lookaheadSCCs);
 
-    /** Run reverse DFS to compute the topsort of the SCC graph. */
-    void runReverseDFS();
+    /** Backwards algorithm for computing the topological order of SCCs, based on reverse DFS. */
+    void backwardAlgorithm();
 
-    /** Get the nodes in the lookahead set for the topological ordering from the given scc. */
-    void findLookaheadSCCs(int scc, std::vector<int>& lookaheadSCCs, unsigned int depth);
+    /** Traverse the graph and construct the set of lookahead SCCs for the forwards algorithm. */
+    void findForwardLookahead(int scc, std::vector<int>& lookaheadSCCs, unsigned int depth);
 
-    /** Algorithm to compute the topological ordering, uses a breadth and depth lookahead. */
-    void obtainTopologicalOrdering(int scc);
+    /** Recursive component for the forwards algorithm computing the topological ordering of the SCCs. */
+    void forwardAlgorithmRecursive(int scc);
 
-    /** Run algorithm to compute the topological ordering of the SCC graph. */
-    void generateTopologicalOrdering();
+    /* Forwardss algorithm for computing the topological order of SCCs, based on Khan's algorithm. */
+    void forwardAlgorithm();
 
 public:
 
-    /** Breadth limit for algorithm. */
+    /** Breadth limit for algorithm, used for the forwards algorithm. */
     static unsigned int BREADTH_LIMIT;
 
-    /** Depth limit for algorithm. */
+    /** Depth limit for algorithm, used for the forwards algorithm. */
     static unsigned int DEPTH_LIMIT;
 
-    /** Lookahead limit for algorithm. */
+    /** Lookahead limit for algorithm, used for the backwards algorithm. */
     static unsigned int LOOKAHEAD;
 
     static constexpr const char *name = "topological-scc-graph";
