@@ -474,7 +474,7 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
     }
 
     // TODO @wip
-    /// std::cerr << topologicalOrderingCost(orderedSCCs);
+    std::cerr << topologicalOrderingCost(orderedSCCs);
 }
 
 void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream& os) {
