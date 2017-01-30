@@ -17,14 +17,15 @@
 #include "RamTranslator.h"
 
 #include "AstClause.h"
-#include "AstRelation.h"
+#include "AstIODirective.h"
 #include "AstProgram.h"
+#include "AstRelation.h"
+#include "AstTypeAnalysis.h"
 #include "AstUtils.h"
 #include "AstVisitor.h"
+#include "BinaryOperator.h"
 #include "PrecedenceGraph.h"
 #include "RamStatement.h"
-#include "BinaryOperator.h"
-#include "AstTypeAnalysis.h"
 
 namespace souffle {
 
@@ -67,10 +68,16 @@ namespace {
             }
         }
 
-        return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers,
-                                     getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), 
-                                     rel->isOutput(), rel->isBTree(), rel->isBrie(), rel->isEqRel(), rel->isData(), istemp);
+        AstIODirective astIODirective;
+        for (const auto& current : rel->getIODirectives()) {
+            astIODirective.addAstIODirectives(*current);
+        }
+        IODirectives ioDirectives(astIODirective.getIODirectiveMap());
+        ioDirectives.setRelationName(getRelationName(rel->getName()));
 
+        return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers,
+                getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), rel->isOutput(),
+                rel->isBTree(), rel->isBrie(), rel->isEqRel(), rel->isData(), ioDirectives, istemp);
     }
 }
 

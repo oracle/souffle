@@ -340,7 +340,7 @@ iodirective: iodecl IDENT LPAREN key_value_pairs RPAREN {
                   AstIODirective *psd = new AstIODirective(); 
                   psd->setName($2);
                   psd->setSrcLoc(@$);
-                  psd->setAsPrintsize();
+                  psd->setAsPrintSize();
                   $$ = psd;
               } 
             ;

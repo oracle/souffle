@@ -78,11 +78,37 @@ public:
         kvps[key] = value;
     }
 
+    const std::map<std::string, std::string>& getIODirectiveMap() {
+        return kvps;
+    }
+
+    void addAstIODirectives(const AstIODirective& ioDirectives) {
+        for (auto& current : ioDirectives.kvps) {
+            kvps[current.first] = current.second;
+        }
+        input |= ioDirectives.input;
+        output |= ioDirectives.output;
+        printSize |= ioDirectives.printSize;
+    }
+
     void setAsInput() {
         input = true;
     }
     void setAsOutput() {
-        input = false;
+        output = true;
+    }
+    void setAsPrintSize() {
+        printSize = true;
+    }
+
+    bool isInput() {
+        return input;
+    }
+    bool isOutput() {
+        return output;
+    }
+    bool isPrintSize() {
+        return printSize;
     }
 
 protected:
@@ -99,7 +125,9 @@ protected:
     /** kvp map */
     std::map<std::string, std::string> kvps;
     /** input = true, output = false */
-    bool input = true;
+    bool input = false;
+    bool output = false;
+    bool printSize = false;
 };
 
 }  // end of namespace souffle

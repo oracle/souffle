@@ -17,23 +17,23 @@
 
 #include <map>
 #include <memory>
+#include <sstream>
 #include <string>
 
 namespace souffle {
 
 class IODirectives {
 public:
+    IODirectives() {
+        setDefaults();
+    }
+
     IODirectives(const std::map<std::string, std::string>& directiveMap) {
         setDefaults();
         for (const auto& pair : directiveMap) {
                 directives[pair.first] = pair.second;
         }
-    }
-
-    IODirectives(const IODirectives& other) : directives(other.directives) {}
-
-    IODirectives(IODirectives&& other) {
-        directives.swap(other.directives);
+        set = !directiveMap.empty();
     }
 
     ~IODirectives() {}
@@ -46,12 +46,11 @@ public:
         return directives.at("delimiter").at(0);
     }
 
-    std::map<int, int> getColumnMap() {
+    std::map<int, int> getColumnMap() const {
         std::map<int, int> columnMap;
         if (directives.count("columns") == 0) {
             return columnMap;
         }
-
         std::istringstream iss(directives.at("columns"));
         std::string mapping;
         int index = 0;
@@ -71,9 +70,26 @@ public:
         return directives.at("filename");
     }
 
+    void setFileName(const std::string& filename) {
+        directives["filename"] = filename;
+    }
+
     const std::string& getRelationName() const {
         return directives.at("name");
     }
+
+    void setRelationName(const std::string& name) {
+        directives["name"] = name;
+    }
+
+    const std::string& getDBName() const {
+        return directives.at("dbname");
+    }
+
+    bool isSet() {
+        return set;
+    }
+
 private:
     void setDefaults() {
         directives["IO"] = "file";
@@ -81,6 +97,7 @@ private:
         directives["compress"] = "false";
     }
     std::map<std::string, std::string> directives;
+    bool set = false;
 };
 
 }

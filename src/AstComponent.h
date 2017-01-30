@@ -212,6 +212,11 @@ class AstComponent : public AstNode {
     std::vector<std::unique_ptr<AstClause>> clauses;
 
     /**
+     * A list of IO directives defined in this component.
+     */
+    std::vector<std::unique_ptr<AstIODirective>> ioDirectives;
+
+    /**
      * A list of nested components.
      */
     std::vector<std::unique_ptr<AstComponent>> components;
@@ -277,6 +282,14 @@ public:
         return toPtrVector(clauses);
     }
 
+    void addIODirective(std::unique_ptr<AstIODirective> c) {
+        ioDirectives.push_back(std::move(c));
+    }
+
+    std::vector<AstIODirective*> getIODirectives() const {
+        return toPtrVector(ioDirectives);
+    }
+
     void addComponent(std::unique_ptr<AstComponent> c) {
         components.push_back(std::move(c));
     }
@@ -313,6 +326,7 @@ public:
         for(const auto& cur : types)            res->types.push_back(std::unique_ptr<AstType>(cur->clone()));
         for(const auto& cur : relations)        res->relations.push_back(std::unique_ptr<AstRelation>(cur->clone()));
         for(const auto& cur : clauses)          res->clauses.push_back(std::unique_ptr<AstClause>(cur->clone()));
+        for(const auto& cur : ioDirectives)     res->ioDirectives.push_back(std::unique_ptr<AstIODirective>(cur->clone()));
         for(const auto& cur : overrideRules)    res->overrideRules.insert(cur);
 
         return res;
@@ -327,6 +341,7 @@ public:
         for(auto& cur : types)            cur = mapper(std::move(cur));
         for(auto& cur : relations)        cur = mapper(std::move(cur));
         for(auto& cur : clauses)          cur = mapper(std::move(cur));
+        for(auto& cur : ioDirectives)     cur = mapper(std::move(cur));
 
         return;
     }
@@ -340,6 +355,7 @@ public:
         for(const auto& cur : types)            res.push_back(cur.get());
         for(const auto& cur : relations)        res.push_back(cur.get());
         for(const auto& cur : clauses)          res.push_back(cur.get());
+        for(const auto& cur : ioDirectives)     res.push_back(cur.get());
 
         return res;
     }
@@ -361,6 +377,7 @@ public:
             os << ".override " << cur << "\n"; 
         } 
         if (!clauses.empty())           os << join(clauses, "\n\n", print_deref<std::unique_ptr<AstClause>>()) << "\n";
+        if (!ioDirectives.empty())      os << join(ioDirectives, "\n\n", print_deref<std::unique_ptr<AstIODirective>>()) << "\n";
 
         os << "}\n";
     }
@@ -377,6 +394,7 @@ protected:
         	   equal_targets(types, other.types) &&
                equal_targets(relations, other.relations) &&
                equal_targets(clauses, other.clauses) &&
+               equal_targets(ioDirectives, other.ioDirectives) &&
                equal_targets(components, other.components) &&
                equal_targets(instantiations, other.instantiations);
     }

@@ -114,6 +114,11 @@ public:
         return std::unique_ptr<WriteFileCSV>(
                 new WriteFileCSV(options.at("name"), symbolMask, symbolTable, getDelimiter(options)));
     }
+    virtual std::unique_ptr<WriteStream> getWriter(
+            const SymbolMask& symbolMask, const SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+        return std::unique_ptr<WriteFileCSV>(new WriteFileCSV(
+                ioDirectives.getFileName(), symbolMask, symbolTable, ioDirectives.getDelimiter()));
+    }
     virtual const std::string& getName() const { return name; }
     virtual ~WriteFileCSVFactory() {}
 private:
@@ -128,6 +133,11 @@ public:
             const std::map<std::string, std::string>& options) {
         return std::unique_ptr<WriteCoutCSV>(
                 new WriteCoutCSV(options.at("name"), symbolMask, symbolTable, getDelimiter(options)));
+    }
+    virtual std::unique_ptr<WriteStream> getWriter(
+            const SymbolMask& symbolMask, const SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+        return std::unique_ptr<WriteCoutCSV>(new WriteCoutCSV(
+                ioDirectives.getRelationName(), symbolMask, symbolTable, ioDirectives.getDelimiter()));
     }
     virtual const std::string& getName() const { return name; }
     virtual ~WriteCoutCSVFactory() {}

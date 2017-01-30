@@ -19,7 +19,7 @@
 #include <memory>
 #include <string>
 
-#include "IODirective.h"
+#include "IODirectives.h"
 #include "ReadStream.h"
 #include "ReadStreamCSV.h"
 #include "ReadStreamSQLite.h"
@@ -75,20 +75,16 @@ public:
     /**
      * Return a new WriteStream
      */
-    template <typename Rel>
-    std::unique_ptr<WriteStream> getWriter(const Rel& rel, const SymbolTable& symbolTable,
-            const SymbolMask& symbolMask, const IODirectives& directives) {
-        return outputFactories[rel.getIODirectives().getIOType()]->getWriter(rel, symbolTable, symbolMask,
-                directives);
+    std::unique_ptr<WriteStream> getWriter(
+            const SymbolMask& symbolMask, const SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+        return outputFactories.at(ioDirectives.getIOType())->getWriter(symbolMask, symbolTable, ioDirectives);
     }
     /**
      * Return a new ReadStream
      * */
-    template <typename Rel>
-    std::unique_ptr<ReadStream> getReader(const Rel& rel, const SymbolTable& symbolTable,
-            const SymbolMask& symbolMask, const IODirectives& directives) {
-        return inputFactories[rel.getIODirectives().getIOType()]->getReader(rel, symbolTable, symbolMask,
-                directives);
+    std::unique_ptr<ReadStream> getReader(
+            const SymbolMask& symbolMask, SymbolTable symbolTable, const IODirectives& ioDirectives) {
+        return inputFactories[ioDirectives.getIOType()]->getReader(symbolMask, symbolTable, ioDirectives);
     }
     ~IOSystem() {}
 private:

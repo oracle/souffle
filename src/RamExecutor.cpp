@@ -691,12 +691,13 @@ namespace {
 
                 std::string filename = Global::config().get("fact-dir") + "/" + load.getFileName();
                 try {
-                    // TODO: get option string from datalog file
-                    std::string optionString("IO=file");
-                    optionString += ",name=" + filename;
-                    std::unique_ptr<ReadStream> reader = IOSystem::getInstance().getReader(
-                            load.getRelation().getSymbolMask(), env.getSymbolTable(), optionString);
+                    IODirectives ioDirectives = load.getRelation().getIODirectives();
+                    if (!ioDirectives.isSet()) {
+                        ioDirectives.setFileName(filename);
+                    }
                     RamRelation& relation = env.getRelation(load.getRelation());
+                    std::unique_ptr<ReadStream> reader = IOSystem::getInstance().getReader(
+                            load.getRelation().getSymbolMask(), env.getSymbolTable(), ioDirectives);
                     reader->readAll(relation);
                 } catch (std::exception& e) {
                     std::cerr << e.what();

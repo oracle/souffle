@@ -160,6 +160,11 @@ public:
         return std::unique_ptr<ReadStreamSQLite>(
                 new ReadStreamSQLite(options.at("dbname"), options.at("name"), symbolMask, symbolTable));
     }
+    std::unique_ptr<ReadStream> getReader(
+            const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+        return std::unique_ptr<ReadStreamSQLite>(new ReadStreamSQLite(
+                ioDirectives.getDBName(), ioDirectives.getRelationName(), symbolMask, symbolTable));
+    }
     virtual const std::string& getName() const { return name; }
     virtual ~ReadStreamSQLiteFactory() {}
 private:

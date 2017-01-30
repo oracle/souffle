@@ -186,14 +186,45 @@ protected:
         }
         return delimiter;
     }
+    std::map<int, int> getInputColumnMap(const std::string& columnString, int arity) {
+        std::map<int, int> inputMap;
+        if (columnString.empty()) {
+            std::istringstream iss(columnString);
+            std::string mapping;
+            int index = 0;
+            while (std::getline(iss, mapping, ':')) {
+                // TODO (mmcgr): handle ranges like 4-7
+                inputMap[stoi(mapping)] = index++;
+            }
+            if (inputMap.size() < arity) {
+                throw std::invalid_argument("Invalid column set was given: <" + columnString + ">");
+            }
+        } else {
+            while (inputMap.size() < arity) {
+                int size = inputMap.size();
+                inputMap[size] = size;
+            }
+        }
+        return inputMap;
+    }
 };
 
 class ReadCinCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
 public:
     std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
             const std::map<std::string, std::string>& options) {
+        std::string columnMapString;
+        if (options.count("columns") > 0) {
+            columnMapString = options.at("columns");
+        }
+        std::map<int, int> inputMap = getInputColumnMap(columnMapString, symbolMask.getArity());
+        return std::unique_ptr<ReadStreamCSV>(
+                new ReadStreamCSV(std::cin, symbolMask, symbolTable, inputMap, getDelimiter(options)));
+    }
+    std::unique_ptr<ReadStream> getReader(
+            const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) {
         return std::unique_ptr<ReadStreamCSV>(new ReadStreamCSV(
-                std::cin, symbolMask, symbolTable, std::map<int, int>(), getDelimiter(options)));
+                std::cin, symbolMask, symbolTable, ioDirectives.getColumnMap(), ioDirectives.getDelimiter()));
     }
     virtual const std::string& getName() const { return name; }
     virtual ~ReadCinCSVFactory() {}
@@ -208,26 +239,18 @@ class ReadFileCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
 public:
     std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
             const std::map<std::string, std::string>& options) {
-        std::map<int, int> inputMap;
+        std::string columnMapString;
         if (options.count("columns") > 0) {
-            std::istringstream iss(options.at("columns"));
-            std::string mapping;
-            int index = 0;
-            while (std::getline(iss, mapping, ':')) {
-                // TODO (mmcgr): handle ranges like 4-7
-                inputMap[stoi(mapping)] = index++;
-            }
-            if (inputMap.size() < symbolMask.getArity()) {
-                throw std::invalid_argument("Invalid column set was given: <" + options.at("columns") + ">");
-            }
-        } else {
-            while (inputMap.size() < symbolMask.getArity()) {
-                int size = inputMap.size();
-                inputMap[size] = size;
-            }
+            columnMapString = options.at("columns");
         }
+        std::map<int, int> inputMap = getInputColumnMap(columnMapString, symbolMask.getArity());
         return std::unique_ptr<ReadFileCSV>(new ReadFileCSV(
                 options.at("name"), symbolMask, symbolTable, inputMap, getDelimiter(options)));
+    }
+    std::unique_ptr<ReadStream> getReader(
+            const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+        return std::unique_ptr<ReadFileCSV>(new ReadFileCSV(ioDirectives.getFileName(), symbolMask,
+                symbolTable, ioDirectives.getColumnMap(), ioDirectives.getDelimiter()));
     }
     virtual const std::string& getName() const { return name; }
     virtual ~ReadFileCSVFactory() {}

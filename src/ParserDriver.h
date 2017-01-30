@@ -48,7 +48,7 @@ public:
     std::unique_ptr<AstTranslationUnit> translationUnit;
 
     void addRelation(AstRelation *r);
-    void addIODirective(AstIODirective* r);
+    void addIODirective(AstIODirective* d);
     void addType(AstType *t);
     void addClause(AstClause *c);
     void addComponent(AstComponent *c);

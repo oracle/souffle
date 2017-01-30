@@ -84,6 +84,10 @@ protected:
       */ 
     std::vector<std::unique_ptr<AstClause>> clauses;
 
+    /** IO directives associated with this relation.
+      */
+    std::vector<std::unique_ptr<AstIODirective>> ioDirectives;
+
 public:
 
     AstRelation() : qualifier(0) { }
@@ -225,7 +229,24 @@ public:
         return res;
     }
 
-    void addIODirectives(std::unique_ptr<AstIODirective> directive) {}
+    void addIODirectives(std::unique_ptr<AstIODirective> directive) {
+        ASSERT(directive && "Undefined directive");
+        ioDirectives.push_back(std::move(directive));
+        // Make sure the old style qualifiers still work.
+        if (directive->isInput()) {
+            qualifier |= INPUT_RELATION;
+        }
+        if (directive->isOutput()) {
+            qualifier |= OUTPUT_RELATION;
+        }
+        if (directive->isPrintSize()) {
+            qualifier |= PRINTSIZE_RELATION;
+        }
+    }
+
+    std::vector<AstIODirective*> getIODirectives() const {
+        return toPtrVector(ioDirectives);
+    }
 
 protected:
 
@@ -253,4 +274,3 @@ struct AstNameComparison {
 typedef std::set<const AstRelation*, AstNameComparison> AstRelationSet;
 
 } // end of namespace souffle
-
