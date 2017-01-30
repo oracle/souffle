@@ -492,6 +492,8 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
         generateTopologicalOrdering();
     }
 
+    std::cerr << topologicalOrderingCost(orderedSCCs);
+
 }
 
 void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream& os) {
