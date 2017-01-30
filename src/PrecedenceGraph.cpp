@@ -421,6 +421,8 @@ void TopologicallySortedSCCGraph::obtainTopologicalOrdering(int scc) {
     // both breadth and depth limits are 1, i.e. no lookahead
     } else {
 
+        // TODO @wip
+
         // get a successor of the input scc having no white predecessors
         auto scc_i = sccGraph->getSuccessorSCCs(scc).begin();
         for (; scc_i != sccGraph->getSuccessorSCCs(scc).end(); ++scc_i)
