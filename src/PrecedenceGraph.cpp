@@ -421,44 +421,31 @@ void TopologicallySortedSCCGraph::obtainTopologicalOrdering(int scc) {
     // both breadth and depth limits are 1, i.e. no lookahead
     } else {
 
-        // TODO @wip
+        // create a flag to indicate that a successor was visited
+        bool found = false;
 
-        // get a successor of the input scc having no white predecessors
+        // for each white successor of the input scc having no white predecessors
         auto scc_i = sccGraph->getSuccessorSCCs(scc).begin();
-        for (; scc_i != sccGraph->getSuccessorSCCs(scc).end(); ++scc_i)
+        for (; scc_i != sccGraph->getSuccessorSCCs(scc).end(); ++scc_i) {
             if (sccGraph->getColor(*scc_i) == WHITE
-                && !sccGraph->hasPredecessorOfColor(*scc_i, WHITE))
-                break;
-
-        // if no such successor exists, then return
-        if (scc_i == sccGraph->getSuccessorSCCs(scc).end())
-            return;
-
-        // set the color of that successor to gray
-        sccGraph->setColor(*scc_i, GRAY);
-
-        // and add it to the permanent ordering
-        orderedSCCs.push_back(*scc_i);
-
-        // if the original scc has any unvisited successors
-        if (sccGraph->hasSuccessorOfColor(scc, WHITE)) {
-            // set its color to red
-            sccGraph->setColor(scc, RED);
-            obtainTopologicalOrdering(scc);
-        } else {
-            sccGraph->setColor(scc, BLACK);
+                && !sccGraph->hasPredecessorOfColor(*scc_i, WHITE)) {
+                // set the color of that successor to gray
+                sccGraph->setColor(*scc_i, GRAY);
+                // add it to the permanent ordering
+                orderedSCCs.push_back(*scc_i);
+                // and use it as a root node in a recursive call to this function
+                obtainTopologicalOrdering(*scc_i);
+                // finally, indicate that a successor has been found for this node
+                found = true;
+            }
         }
 
-        if (sccGraph->hasSuccessorOfColor(*scc_i, WHITE)) {
-            sccGraph->setColor(*scc_i, RED);
-            obtainTopologicalOrdering(*scc_i);
-        } else {
-            sccGraph->setColor(*scc_i, BLACK);
-        }
+        // return if no valid successors have been found; either it has none or they all have a better predecessor
+        if (!found) return;
 
-        if (sccGraph->getColor(scc) == RED
-            && sccGraph->hasSuccessorOfColor(scc, WHITE)
-            && !sccGraph->hasPredecessorOfColor(scc, WHITE))
+        // otherwise, if more white successors remain for the current scc, use it again as the root node in a
+        // recursive call to this function
+        if (sccGraph->hasSuccessorOfColor(scc, WHITE) && !sccGraph->hasPredecessorOfColor(scc, WHITE))
             obtainTopologicalOrdering(scc);
     }
 }
