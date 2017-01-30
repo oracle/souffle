@@ -453,7 +453,7 @@ void TopologicallySortedSCCGraph::naiveTopologicalOrdering() {
 // TODO @wip
 unsigned int TopologicallySortedSCCGraph::BREADTH_LIMIT = 2;
 unsigned int TopologicallySortedSCCGraph::DEPTH_LIMIT = 2;
-unsigned int TopologicallySortedSCCGraph::LOOKAHEAD = 1;
+unsigned int TopologicallySortedSCCGraph::LOOKAHEAD = 0;
 
 void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit) {
 
@@ -466,7 +466,7 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
 
     // generate topological ordering in naive manner (try all permutations)
     // naiveTopologicalOrdering(); // use this to assess performance
-    if (BREADTH_LIMIT == 0 || DEPTH_LIMIT == 0) {
+    if (LOOKAHEAD != 0) {
         // generate topological ordering using reverse DFS algorithm
         runReverseDFS(); // use this as a benchmark
     } else {
