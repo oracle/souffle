@@ -231,7 +231,6 @@ public:
 
     void addIODirectives(std::unique_ptr<AstIODirective> directive) {
         ASSERT(directive && "Undefined directive");
-        ioDirectives.push_back(std::move(directive));
         // Make sure the old style qualifiers still work.
         if (directive->isInput()) {
             qualifier |= INPUT_RELATION;
@@ -242,6 +241,7 @@ public:
         if (directive->isPrintSize()) {
             qualifier |= PRINTSIZE_RELATION;
         }
+        ioDirectives.push_back(std::move(directive));
     }
 
     std::vector<AstIODirective*> getIODirectives() const {
