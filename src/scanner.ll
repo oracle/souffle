@@ -128,7 +128,8 @@
 ":-"                             { return yy::parser::make_IF(yylloc); }
 (!=|>=|<=)                       { return yy::parser::make_RELOP(SLOOKUP(yytext), yylloc); }
 <INITIAL>{
-[0-9]+"."[0-9]+"."[0-9]+"."[0-9]+  { try {
+[0-9]+"."[0-9]+"."[0-9]+"."[0-9]+  { // TODO: BEGIN(FINAL);
+                                    try {
                                     char *token = std::strtok(yytext, ".");
                                     int i = 0;
                                     int vals[4];
@@ -149,34 +150,41 @@
                                      driver.error(yylloc, "IP out of range");
                                      return yy::parser::make_NUMBER(0, yylloc); 
                                    }                                                        }
-0b[0-1][0-1]*                    { try {
+0b[0-1][0-1]*                    { // TODO: BEGIN(FINAL);
+                                   try {
                                      return yy::parser::make_NUMBER(std::stoll(yytext+2, NULL, 2), yylloc);
                                    } catch(...) {
                                      driver.error(yylloc, "bool out of range");
                                      return yy::parser::make_NUMBER(0, yylloc); 
                                    }
                                  }
-0x[a-fA-F0-9]+                   { try {
+0x[a-fA-F0-9]+                   { // TODO: BEGIN(FINAL);
+                                    try {
                                      return yy::parser::make_NUMBER(std::stoll(yytext+2, NULL, 16), yylloc);
                                    } catch(...) {
                                      driver.error(yylloc, "hex out of range");
                                      return yy::parser::make_NUMBER(0, yylloc);
                                    }
                                  }
-0|([1-9][0-9]*)                  { try {
+0|([1-9][0-9]*)                  { // TODO: BEGIN(FINAL);
+                                   try {
                                      return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 10), yylloc);
                                    } catch (...) { 
                                      driver.error(yylloc, "int out of range");
                                      return yy::parser::make_NUMBER(0, yylloc);
                                    }
                                  }
-[_\?a-zA-Z][_\?a-zA-Z0-9]*       { if (!strcmp(yytext, "_")) {
-                                     return yy::parser::make_UNDERSCORE(yylloc);
+"_"                              { // TODO: BEGIN(FINAL);
+                                   return yy::parser::make_UNDERSCORE(yylloc);
+                                 }
+[\?a-zA-Z]|[_\?a-zA-Z0-9][_\?a-zA-Z0-9]+       { // TODO: BEGIN(FINAL);
+                                    if (!strcmp(yytext, "_")) {
                                    } else {
                                      return yy::parser::make_IDENT(SLOOKUP(yytext), yylloc); 
                                    }
                                  }
-\"[^\"]*\"                       { yytext[strlen(yytext)-1]=0; 
+\"[^\"]*\"                       { // TODO: BEGIN(FINAL);
+                                   yytext[strlen(yytext)-1]=0;
                                    if(strlen(&yytext[1]) == 0) {
                                      driver.error(yylloc, "string literal is empty"); 
                                    } 
