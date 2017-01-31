@@ -58,10 +58,12 @@
 %x IN_COMMENT
 %x FINAL
 
+
 /* Add line number tracking */
 %option yylineno noyywrap nounput
 
 %%
+<INITIAL>{
 ".decl"                          { return yy::parser::make_DECL(yylloc); }
 ".type"                          { return yy::parser::make_TYPE(yylloc); }
 ".comp"                          { return yy::parser::make_COMPONENT(yylloc); }
@@ -69,6 +71,7 @@
 ".number_type"                   { return yy::parser::make_NUMBER_TYPE(yylloc); }
 ".symbol_type"                   { return yy::parser::make_SYMBOL_TYPE(yylloc); }
 ".override"                      { return yy::parser::make_OVERRIDE(yylloc); }
+}
 "band"                           { return yy::parser::make_BW_AND(yylloc); }
 "bor"                            { return yy::parser::make_BW_OR(yylloc); }
 "bxor"                           { return yy::parser::make_BW_XOR(yylloc); }
@@ -96,12 +99,20 @@
 "["                              { return yy::parser::make_LBRACKET(yylloc); }
 "]"                              { return yy::parser::make_RBRACKET(yylloc); }
 "$"                              { return yy::parser::make_DOLLAR(yylloc); }
+"+"                              { return yy::parser::make_PLUS(yylloc); }
+"-"                              { return yy::parser::make_MINUS(yylloc); }
 "!"                              { return yy::parser::make_EXCLAMATION(yylloc); }
+"("                              { return yy::parser::make_LPAREN(yylloc); }
+")"                              { return yy::parser::make_RPAREN(yylloc); }
 ","                              { return yy::parser::make_COMMA(yylloc); }
 ":"                              { return yy::parser::make_COLON(yylloc); }
 ";"                              { return yy::parser::make_SEMICOLON(yylloc); }
 "."                              { return yy::parser::make_DOT(yylloc); }
 "="                              { return yy::parser::make_EQUALS(yylloc); }
+"*"                              { return yy::parser::make_STAR(yylloc); }
+"/"                              { return yy::parser::make_SLASH(yylloc); }
+"^"                              { return yy::parser::make_CARET(yylloc); }
+"%"                              { return yy::parser::make_PERCENT(yylloc); }
 "{"                              { return yy::parser::make_LBRACE(yylloc); }
 "}"                              { return yy::parser::make_RBRACE(yylloc); }
 "<"                              { return yy::parser::make_LT(yylloc); }
@@ -143,40 +154,19 @@
                                      return yy::parser::make_NUMBER(0, yylloc);
                                    }
                                  }
-
-<INITIAL>0|-?([1-9][0-9]*)          {
-                                       BEGIN(FINAL);
-                                       try {
-                                         return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 10), yylloc);
-                                       } catch (...) {
-                                         driver.error(yylloc, "int out of range");
-                                         return yy::parser::make_NUMBER(0, yylloc);
-                                       }
-                                    }
-<INITIAL>[_\?a-zA-Z][_\?a-zA-Z0-9]* {
-                                      BEGIN(FINAL);
-                                      if (!strcmp(yytext, "_")) {
-                                        return yy::parser::make_UNDERSCORE(yylloc);
-                                      } else {
-                                        return yy::parser::make_IDENT(SLOOKUP(yytext), yylloc);
-                                      }
-                                    }
-<INITIAL>"("                        { return yy::parser::make_LPAREN(yylloc); }
-
-<INITIAL>[-]                  return PREFIX_MINUS;
-<INITIAL>[+]                  return PREFIX_PLUS;
-
-<FINAL>")"                          { return yy::parser::make_RPAREN(yylloc); }
-
-<FINAL>"+" BEGIN(INITIAL);          { return yy::parser::make_PLUS(yylloc); }
-<FINAL>"-" BEGIN(INITIAL);          { return yy::parser::make_MINUS(yylloc); }
-<FINAL>"*" BEGIN(INITIAL);          { return yy::parser::make_STAR(yylloc); }
-<FINAL>"/" BEGIN(INITIAL);          { return yy::parser::make_SLASH(yylloc); }
-<FINAL>"^" BEGIN(INITIAL);          { return yy::parser::make_CARET(yylloc); }
-<FINAL>"%" BEGIN(INITIAL);          { return yy::parser::make_PERCENT(yylloc); }
-
-<*>.                          /* Signal invalid token */
-
+0|([1-9][0-9]*)                  { try {
+                                     return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 10), yylloc);
+                                   } catch (...) { 
+                                     driver.error(yylloc, "int out of range");
+                                     return yy::parser::make_NUMBER(0, yylloc);
+                                   }
+                                 }
+[_\?a-zA-Z][_\?a-zA-Z0-9]*       { if (!strcmp(yytext, "_")) {
+                                     return yy::parser::make_UNDERSCORE(yylloc);
+                                   } else {
+                                     return yy::parser::make_IDENT(SLOOKUP(yytext), yylloc); 
+                                   }
+                                 }
 \"[^\"]*\"                       { yytext[strlen(yytext)-1]=0; 
                                    if(strlen(&yytext[1]) == 0) {
                                      driver.error(yylloc, "string literal is empty"); 
@@ -225,12 +215,3 @@
 <<EOF>>                          { return yy::parser::make_END(yylloc); }
 .                                { driver.error(yylloc, std::string("unexpected ") + yytext); } 
 %%
-/* TODO @issue-285
-0|([1-9][0-9]*)                  { try {
-                                     return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 10), yylloc);
-                                   } catch (...) {
-                                     driver.error(yylloc, "int out of range");
-                                     return yy::parser::make_NUMBER(0, yylloc);
-                                   }
-                                 }
-*/
