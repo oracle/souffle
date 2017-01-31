@@ -368,7 +368,7 @@ arg: STRING {
        $$ = new AstUnaryFunctor(UnaryOp::ORD, std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
-   |  arg AS IDENT { 
+   | arg AS IDENT {
        $$ = new AstTypeCast(std::unique_ptr<AstArgument>($1), $3); 
        $$->setSrcLoc(@$);
      }
