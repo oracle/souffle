@@ -83,7 +83,7 @@ public:
      * Return a new ReadStream
      * */
     std::unique_ptr<ReadStream> getReader(
-            const SymbolMask& symbolMask, SymbolTable symbolTable, const IODirectives& ioDirectives) {
+            const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) {
         return inputFactories[ioDirectives.getIOType()]->getReader(symbolMask, symbolTable, ioDirectives);
     }
     ~IOSystem() {}
