@@ -188,7 +188,7 @@ protected:
     }
     std::map<int, int> getInputColumnMap(const std::string& columnString, int arity) {
         std::map<int, int> inputMap;
-        if (columnString.empty()) {
+        if (!columnString.empty()) {
             std::istringstream iss(columnString);
             std::string mapping;
             int index = 0;
