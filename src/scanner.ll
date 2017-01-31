@@ -72,13 +72,21 @@
 ".symbol_type"                   { return yy::parser::make_SYMBOL_TYPE(yylloc); }
 ".override"                      { return yy::parser::make_OVERRIDE(yylloc); }
 }
-"band"                           { return yy::parser::make_BW_AND(yylloc); }
-"bor"                            { return yy::parser::make_BW_OR(yylloc); }
-"bxor"                           { return yy::parser::make_BW_XOR(yylloc); }
+<FINAL>{
+"band"                           { BEGIN(INITIAL); return yy::parser::make_BW_AND(yylloc); }
+"bor"                            { BEGIN(INITIAL); return yy::parser::make_BW_OR(yylloc); }
+"bxor"                           { BEGIN(INITIAL); return yy::parser::make_BW_XOR(yylloc); }
+}
+<INITIAL>{
 "bnot"                           { return yy::parser::make_BW_NOT(yylloc); }
-"land"                           { return yy::parser::make_L_AND(yylloc); }
-"lor"                            { return yy::parser::make_L_OR(yylloc); }
+}
+<FINAL>{
+"land"                           { BEGIN(INITIAL); return yy::parser::make_L_AND(yylloc); }
+"lor"                            { BEGIN(INITIAL); return yy::parser::make_L_OR(yylloc); }
+}
+<INITIAL>{
 "lnot"                           { return yy::parser::make_L_NOT(yylloc); }
+}
 "match"                          { return yy::parser::make_TMATCH(yylloc); }
 "cat"                            { return yy::parser::make_CAT(yylloc); }
 "ord"                            { return yy::parser::make_ORD(yylloc); }
@@ -119,6 +127,7 @@
 ">"                              { return yy::parser::make_GT(yylloc); }
 ":-"                             { return yy::parser::make_IF(yylloc); }
 (!=|>=|<=)                       { return yy::parser::make_RELOP(SLOOKUP(yytext), yylloc); }
+<INITIAL>{
 [0-9]+"."[0-9]+"."[0-9]+"."[0-9]+  { try {
                                     char *token = std::strtok(yytext, ".");
                                     int i = 0;
@@ -185,7 +194,8 @@
                                    } 
                                    return yy::parser::make_STRING(SLOOKUP(&yytext[1]), yylloc); 
                                  }
-\#.*$                            { // processing line directive from cpp
+}
+<*>\#.*$                         { // processing line directive from cpp TODO @issue-285: any state or just initial? shouldn't it just be at SOL?
                                    char fname[yyleng+1];
                                    int lineno;
                                    if(sscanf(yytext,"# %d \"%s",&lineno,fname)>=2) {
@@ -213,5 +223,5 @@
 \n                               { yycolumn = 1; }
 [ \t\r\v\f]*                     { }
 <<EOF>>                          { return yy::parser::make_END(yylloc); }
-.                                { driver.error(yylloc, std::string("unexpected ") + yytext); } 
+<*>.                                { driver.error(yylloc, std::string("unexpected ") + yytext); }
 %%
