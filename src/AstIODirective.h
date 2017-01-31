@@ -20,7 +20,7 @@
 #include "AstRelationIdentifier.h"
 
 #include <map>
-#include <map>
+#include <regex>
 #include <string>
 
 namespace souffle {
@@ -75,7 +75,7 @@ public:
     }
 
     void addKVP(const std::string& key, const std::string& value) {
-        kvps[key] = value;
+        kvps[key] = unescape(value);
     }
 
     const std::map<std::string, std::string>& getIODirectiveMap() {
@@ -119,6 +119,13 @@ protected:
         return other.name == name && other.input == input && other.kvps == kvps;
     }
 
+    std::string unescape(const std::string& inputString) {
+        std::string unescaped = std::regex_replace(inputString, std::regex("\\\\\""), "\"");
+        unescaped = std::regex_replace(unescaped, std::regex("\\\\t"), "\t");
+        unescaped = std::regex_replace(unescaped, std::regex("\\\\r"), "\r");
+        unescaped = std::regex_replace(unescaped, std::regex("\\\\n"), "\n");
+        return unescaped;
+    }
     /** Name of the kvp */
     AstRelationIdentifier name;
 
