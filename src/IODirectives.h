@@ -9,7 +9,7 @@
 
 /************************************************************************
  *
- * @file IOSystem.h
+ * @file IODirectives.h
  *
  ***********************************************************************/
 
@@ -31,7 +31,7 @@ public:
     IODirectives(const std::map<std::string, std::string>& directiveMap) {
         setDefaults();
         for (const auto& pair : directiveMap) {
-                directives[pair.first] = pair.second;
+            directives[pair.first] = pair.second;
         }
         set = !directiveMap.empty();
     }
@@ -39,11 +39,11 @@ public:
     ~IODirectives() {}
 
     const std::string& getIOType() const {
-        return directives.at("IO");
+        return get("IO");
     }
 
     char getDelimiter() const {
-        return directives.at("delimiter").at(0);
+        return get("delimiter").at(0);
     }
 
     std::map<int, int> getColumnMap() const {
@@ -59,15 +59,15 @@ public:
             columnMap[stoi(mapping)] = index++;
         }
 
-		return columnMap;
+        return columnMap;
     }
 
     bool shouldCompress() const {
-        return directives.at("compress") != "false";
+        return get("compress") != "false";
     }
 
-    const std::string& getFileName() const { 
-        return directives.at("filename");
+    const std::string& getFileName() const {
+        return get("filename");
     }
 
     void setFileName(const std::string& filename) {
@@ -75,7 +75,7 @@ public:
     }
 
     const std::string& getRelationName() const {
-        return directives.at("name");
+        return get("name");
     }
 
     void setRelationName(const std::string& name) {
@@ -83,7 +83,7 @@ public:
     }
 
     const std::string& getDBName() const {
-        return directives.at("dbname");
+        return get("dbname");
     }
 
     bool isSet() {
@@ -95,6 +95,12 @@ private:
         directives["IO"] = "file";
         directives["delimiter"] = "\t";
         directives["compress"] = "false";
+    }
+    const std::string& get(const std::string& key) const {
+        if (directives.count(key) == 0) {
+            throw std::invalid_argument("Requested IO directive <" + key + "> was not specified");
+        }
+        return directives.at(key);
     }
     std::map<std::string, std::string> directives;
     bool set = false;
