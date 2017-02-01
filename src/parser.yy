@@ -311,9 +311,6 @@ arg: STRING {
      }
    | NUMBER {
        $$ = new AstNumberConstant($1);
-       // TODO: integer constant should be in range [-2^31, 2^31-1] (i.e. [-2147483648, 2147483647])
-       if ($1 > 2147483647)
-          driver.error(@1, "int not in range");
        $$->setSrcLoc(@$);
      }
    | LPAREN arg RPAREN {
@@ -371,7 +368,7 @@ arg: STRING {
        $$ = new AstUnaryFunctor(UnaryOp::ORD, std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
-   |  arg AS IDENT { 
+   | arg AS IDENT {
        $$ = new AstTypeCast(std::unique_ptr<AstArgument>($1), $3); 
        $$->setSrcLoc(@$);
      }

@@ -98,7 +98,7 @@ int main(int argc, char **argv)
             Option opts[] = {
                 /* each option is { long option, short option, argument name, default value, takes many arguments, description } */
                 {"fact-dir",      'F',  "DIR",  ".", false, "Specify directory for fact files."},
-                {"include-dir",   'I',  "DIR",  ".", false, "Specify directory for include files."},
+                {"include-dir",   'I',  "DIR",  ".",  true, "Specify directory for include files."},
                 {"output-dir",    'D',  "DIR",  ".", false, "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
                 {"jobs",          'j',    "N",  "1", false, "Run interpreter/compiler in parallel using N threads, N=auto for system default."},
                 {"compile",       'c',     "",   "", false, "Compile datalog (translating to C++)."},
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
                 // if the short option is non-alphabetical, it is ommitted from the help text
                 {"debug-report",    2, "FILE",   "", false, "Write debugging output to HTML report."},
                 {"verbose",       'v',     "",   "", false, "Verbose output."},
-                {"help",          'h',     "",   "", false, "Display this help message."}
+                {"help",          'h',     "",   "", false, "Display this help message."},
                 // options for the topological ordering of strongly connected components, see TopologicallySortedSCCGraph class in PrecedenceGraph.cpp
                 {"breadth-limit",   3,    "N",   "", false, "Specify the breadth limit used for the topological ordering of strongly connected components."},
                 {"depth-limit",     4,    "N",   "", false, "Specify the depth limit used for the topological ordering of strongly connected components."},

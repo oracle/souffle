@@ -12,11 +12,13 @@ Environment::Environment(int argc, char** argv, const std::string header, const 
 {
     option longOptions[options.size() + 1];
     std::map<const char, std::string> optionTable;
+    std::map<const char, bool> argumentTable;
     int i = 0;
     std::string shortOptions = "";
     for (const Option& opt : options) {
         longOptions[i] = (option) { opt.name.c_str(), (!opt.argument.empty()), nullptr, opt.flag };
         optionTable[opt.flag] = opt.name;
+        argumentTable[opt.flag] = opt.takes_many;
         shortOptions += opt.flag;
         if (!opt.argument.empty()) {
             shortOptions += ":";
@@ -34,16 +36,13 @@ Environment::Environment(int argc, char** argv, const std::string header, const 
             ASSERT("Default label in getopt switch.");
             abort();
         }
-        if (!has(iter->second))
-            set(iter->second);
-        else
-            set(iter->second, get(iter->second) + " ");
-        if (optarg)
-            set(iter->second, get(iter->second) + std::string(optarg));
+        std::string arg = (optarg) ? std::string(optarg) : std::string();
+        if (argumentTable[c]) {
+            set(iter->second, get(iter->second) + " " + arg);
+        } else {
+            set(iter->second, arg);
+        }
     }
-
-    // TODO
-    print(std::cerr);
 }
 
 void Environment::printOptions(std::ostream& os) {

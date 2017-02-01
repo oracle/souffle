@@ -55,6 +55,7 @@ struct Option {
        const char flag;
        const std::string argument;
        const std::string by_default;
+       const bool takes_many;
        const std::string description;
 };
 
