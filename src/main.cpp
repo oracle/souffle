@@ -100,7 +100,7 @@ int main(int argc, char **argv)
                 /* each option is { long option, short option, argument name, default value, description } */
                 {"fact-dir",        'F', "DIR",     ".",    "Specify directory for fact files."},
                 {"include-dir",     'I', "DIR",     ".",    "Specify directory for include files."},
-                {"output-dir",      'D', "DIR",     "",     "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
+                {"output-dir",      'D', "DIR",     ".",     "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
                 {"jobs",            'j', "N",       "1",    "Run interpreter/compiler in parallel using N threads, N=auto for system default."},
                 {"compile",         'c', "",        "",     "Compile datalog (translating to C++)."},
                 // if the short option is non-alphabetical, it is ommitted from the help text
