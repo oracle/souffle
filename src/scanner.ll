@@ -58,7 +58,7 @@
 %x COMMENT
 
 /* Add line number tracking */
-%option yylineno noyywrap nounput
+%option yylineno noyywrap
 
 %%
 
@@ -138,7 +138,7 @@
                                           return yy::parser::make_NUMBER(0, yylloc);
                                         }
                                       }
--?0b[0-1][0-1]*                       {
+0b[0-1][0-1]*                         {
                                         try {
                                           return yy::parser::make_NUMBER(std::stoi(yytext+2, NULL, 2), yylloc);
                                         } catch(...) {
@@ -146,7 +146,7 @@
                                           return yy::parser::make_NUMBER(0, yylloc);
                                         }
                                       }
--?0x[a-fA-F0-9]+                      {
+0x[a-fA-F0-9]+                        {
                                         try {
                                           return yy::parser::make_NUMBER(std::stoi(yytext+2, NULL, 16), yylloc);
                                         } catch(...) {
@@ -154,7 +154,7 @@
                                           return yy::parser::make_NUMBER(0, yylloc);
                                         }
                                       }
-0|-?([1-9][0-9]*)                     {
+0|([1-9][0-9]*)                       {
                                         try {
                                           return yy::parser::make_NUMBER(std::stoi(yytext, NULL, 10), yylloc);
                                         } catch (...) {
