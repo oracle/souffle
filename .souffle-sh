@@ -15,25 +15,25 @@ alias souffle=$SOUFFLE/src/souffle
 alias souffle-profile=$SOUFFLE/src/souffle-profile
 
 souffle_setup() {
-cd $SOUFFLE && \
-chmod 775 bootstrap && \
-./bootstrap && \
-chmod 775 configure && \
-./configure && \
-make -j $JOBS
+    cd $SOUFFLE && \
+    chmod 775 bootstrap && \
+    ./bootstrap && \
+    chmod 775 configure && \
+    ./configure && \
+    make -j $JOBS
 }
 
 souffle_teardown() {
-cd $SOUFFLE && \
-git clean -xdf
+    cd $SOUFFLE && \
+    git clean -xdf
 }
 
 souffle_make() {
-cd $SOUFFLE && \
-make -j $JOBS
+    cd $SOUFFLE && \
+    make -j $JOBS
 }
 
 souffle_test() {
-cd $SOUFFLE/test && \
-./testsuite -j $JOBS $@
+    cd $SOUFFLE/test && \
+    ./testsuite -j $JOBS $@
 }
