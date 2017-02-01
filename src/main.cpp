@@ -77,7 +77,7 @@ int main(int argc, char **argv)
         []() {
             std::stringstream header;
             header << "=======================================================================================================" << std::endl;
-            header << "souffle -- Oracle Labs' datalog engine." << std::endl;
+            header << "souffle -- A datalog engine." << std::endl;
             header << "Usage: souffle [OPTION] FILE." << std::endl;
             header << "-------------------------------------------------------------------------------------------------------" << std::endl;
             header << "Options:" << std::endl;
@@ -96,26 +96,28 @@ int main(int argc, char **argv)
         /* new command line options, the environment will be filled with the arguments passed to them, or the empty string if they take none */
         []() {
             Option opts[] = {
-
                 /* each option is { long option, short option, argument name, default value, takes many arguments, description } */
-                {"fact-dir",        'F', "DIR",     ".",  false, "Specify directory for fact files."},
-                {"include-dir",     'I', "DIR",     ".",  false, "Specify directory for include files."},
-                {"output-dir",      'D', "DIR",     ".",  false, "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
-                {"jobs",            'j', "N",       "1",  false, "Run interpreter/compiler in parallel using N threads, N=auto for system default."},
-                {"compile",         'c', "",        "",   false, "Compile datalog (translating to C++)."},
+                {"fact-dir",      'F',  "DIR",  ".", false, "Specify directory for fact files."},
+                {"include-dir",   'I',  "DIR",  ".", false, "Specify directory for include files."},
+                {"output-dir",    'D',  "DIR",  ".", false, "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
+                {"jobs",          'j',    "N",  "1", false, "Run interpreter/compiler in parallel using N threads, N=auto for system default."},
+                {"compile",       'c',     "",   "", false, "Compile datalog (translating to C++)."},
                 // if the short option is non-alphabetical, it is ommitted from the help text
-                {"auto-schedule",     1,  "",       "",   false, "Switch on automated clause scheduling for compiler."},
-                {"generate",        'g', "FILE",    "",   false, "Only generate sources of compilable analysis and write it to <FILE>."},
-                {"no-warn",         'w', "",        "",   false, "Disable warnings."},
-                {"dl-program",      'o', "FILE",    "",   false, "Write executable program to <FILE> (without executing it)."},
-                {"profile",         'p', "FILE",    "",   false, "Enable profiling and write profile data to <FILE>."},
-                {"debug",           'd', "",        "",   false, "Enable debug mode."},
-                {"bddbddb",         'b', "FILE",    "",   false, "Convert input into bddbddb file format."},
+                {"auto-schedule",   1,     "",   "", false, "Switch on automated clause scheduling for compiler."},
+                {"generate",      'g', "FILE",   "", false, "Only generate sources of compilable analysis and write it to <FILE>."},
+                {"no-warn",       'w',     "",   "", false, "Disable warnings."},
+                {"dl-program",    'o', "FILE",   "", false, "Write executable program to <FILE> (without executing it)."},
+                {"profile",       'p', "FILE",   "", false, "Enable profiling and write profile data to <FILE>."},
+                {"debug",         'd',     "",   "", false, "Enable debug mode."},
+                {"bddbddb",       'b', "FILE",   "", false, "Convert input into bddbddb file format."},
                 // if the short option is non-alphabetical, it is ommitted from the help text
-                {"debug-report",      2, "FILE",    "",   false, "Write debugging output to HTML report."},
-                {"verbose",         'v', "",        "",   false, "Verbose output."},
-                {"help",            'h', "",        "",   false, "Display this help message."}
-
+                {"debug-report",    2, "FILE",   "", false, "Write debugging output to HTML report."},
+                {"verbose",       'v',     "",   "", false, "Verbose output."},
+                {"help",          'h',     "",   "", false, "Display this help message."}
+                // options for the topological ordering of strongly connected components, see TopologicallySortedSCCGraph class in PrecedenceGraph.cpp
+                {"breadth-limit",   3,    "N",   "", false, "Specify the breadth limit used for the topological ordering of strongly connected components."},
+                {"depth-limit",     4,    "N",   "", false, "Specify the depth limit used for the topological ordering of strongly connected components."},
+                {"lookahead",       5,    "N",   "", false, "Specify the lookahead used for the topological ordering of strongly connected components."}
             };
             return std::vector<Option>(std::begin(opts), std::end(opts));
         }()
@@ -160,6 +162,28 @@ int main(int argc, char **argv)
     /* ensure that if auto-scheduling is enabled an output file is given */
     if (env.has("auto-schedule") && !env.has("dl-program"))
        fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
+
+    /* set the breadth and depth limits for the topological ordering of strongly connected components */
+    if (env.has("breadth-limit")) {
+        int limit = std::stoi(env.get("breadth-limit"));
+        if (limit <= 0)
+            fail("error: breadth limit must be 1 or more");
+        TopologicallySortedSCCGraph::BREADTH_LIMIT = limit;
+     }
+     if (env.has("depth-limit")) {
+        int limit = std::stoi(env.get("depth-limit"));
+        if (limit <= 0)
+            fail("error: depth limit must be 1 or more");
+        TopologicallySortedSCCGraph::DEPTH_LIMIT = limit;
+     }
+     if (env.has("lookahead")) {
+        if (env.has("breadth-limit") || env.has("depth-limit"))
+            fail("error: only one of either lookahead or depth-limit and breadth-limit may be specified");
+        int lookahead = std::stoi(env.get("lookahead"));
+        if (lookahead <= 0)
+            fail("error: lookahead must be 1 or more");
+        TopologicallySortedSCCGraph::LOOKAHEAD = lookahead;
+     }
 
     /* collect all input directories for the c pre-processor */
     if (env.has("include-dir")) {
