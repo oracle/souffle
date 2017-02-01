@@ -258,18 +258,16 @@ private:
 
 class WriteSQLiteFactory : public WriteStreamFactory {
 public:
-    std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask, const SymbolTable& symbolTable,
-            const std::map<std::string, std::string>& options) {
-        return std::unique_ptr<WriteStreamSQLite>(
-                new WriteStreamSQLite(options.at("dbname"), options.at("name"), symbolMask, symbolTable));
-    }
     std::unique_ptr<WriteStream> getWriter(
             const SymbolMask& symbolMask, const SymbolTable& symbolTable, const IODirectives& ioDirectives) {
-        return std::unique_ptr<WriteStreamSQLite>(new WriteStreamSQLite(
-                ioDirectives.getDBName(), ioDirectives.getRelationName(), symbolMask, symbolTable));
+        std::string dbName = ioDirectives.get("dbname");
+        std::string relationName = ioDirectives.getRelationName();
+        return std::unique_ptr<WriteStreamSQLite>(
+                new WriteStreamSQLite(dbName, relationName, symbolMask, symbolTable));
     }
     virtual const std::string& getName() const { return name; }
     virtual ~WriteSQLiteFactory() {}
+
 private:
     static const std::string name;
 };

@@ -16,7 +16,6 @@
 #pragma once
 
 #include <map>
-#include <memory>
 #include <sstream>
 #include <string>
 
@@ -46,28 +45,15 @@ public:
         directives["IO"] = type;
     }
 
-    char getDelimiter() const {
-        return get("delimiter").at(0);
+    const std::string& get(const std::string& key) const {
+        if (directives.count(key) == 0) {
+            throw std::invalid_argument("Requested IO directive <" + key + "> was not specified");
+        }
+        return directives.at(key);
     }
 
-    std::map<int, int> getColumnMap() const {
-        std::map<int, int> columnMap;
-        if (directives.count("columns") == 0) {
-            return columnMap;
-        }
-        std::istringstream iss(directives.at("columns"));
-        std::string mapping;
-        int index = 0;
-        while (std::getline(iss, mapping, ':')) {
-            // TODO (mmcgr): handle ranges like 4-7
-            columnMap[stoi(mapping)] = index++;
-        }
-
-        return columnMap;
-    }
-
-    bool shouldCompress() const {
-        return get("compress") != "false";
+    bool has(const std::string& key) const {
+        return directives.count(key) > 0;
     }
 
     const std::string& getFileName() const {
@@ -87,10 +73,6 @@ public:
             directives["filename"] = name + ".facts";
         }
         directives["name"] = name;
-    }
-
-    const std::string& getDBName() const {
-        return get("dbname");
     }
 
     bool isSet() {
@@ -119,14 +101,6 @@ public:
 private:
     void setDefaults() {
         directives["IO"] = "file";
-        directives["delimiter"] = "\t";
-        directives["compress"] = "false";
-    }
-    const std::string& get(const std::string& key) const {
-        if (directives.count(key) == 0) {
-            throw std::invalid_argument("Requested IO directive <" + key + "> was not specified");
-        }
-        return directives.at(key);
     }
 
     std::string escape(const std::string& inputString) const {

@@ -155,15 +155,12 @@ private:
 
 class ReadStreamSQLiteFactory : public ReadStreamFactory {
 public:
-    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
-            const std::map<std::string, std::string>& options) {
-        return std::unique_ptr<ReadStreamSQLite>(
-                new ReadStreamSQLite(options.at("dbname"), options.at("name"), symbolMask, symbolTable));
-    }
     std::unique_ptr<ReadStream> getReader(
             const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) {
-        return std::unique_ptr<ReadStreamSQLite>(new ReadStreamSQLite(
-                ioDirectives.getDBName(), ioDirectives.getRelationName(), symbolMask, symbolTable));
+        std::string dbName = ioDirectives.get("dbname");
+        std::string relationName = ioDirectives.getRelationName();
+        return std::unique_ptr<ReadStreamSQLite>(
+                new ReadStreamSQLite(dbName, relationName, symbolMask, symbolTable));
     }
     virtual const std::string& getName() const { return name; }
     virtual ~ReadStreamSQLiteFactory() {}

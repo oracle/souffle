@@ -145,11 +145,7 @@ public:
         std::stringstream baseNameStream(basename(bfn));
         baseName = baseNameStream.str();
         if (!fileHandle.is_open()) {
-            char bfn[filename.size()];
-            strcpy(bfn, filename.c_str());
-            std::stringstream errorMessage;
-            errorMessage << "Cannot open fact file " << baseName << "\n";
-            throw std::invalid_argument(errorMessage.str());
+            throw std::invalid_argument("Cannot open fact file " + baseName + "\n");
         }
     }
     /**
@@ -179,15 +175,20 @@ private:
 
 class ReadCSVFactory {
 protected:
-    char getDelimiter(const std::map<std::string, std::string>& options) {
+    char getDelimiter(const IODirectives& ioDirectives) {
         char delimiter = '\t';
-        if (options.count("delimiter") > 0) {
-            delimiter = options.at("delimiter").at(0);
+        if (ioDirectives.has("delimiter")) {
+            delimiter = ioDirectives.get("delimiter").at(0);
         }
         return delimiter;
     }
-    std::map<int, int> getInputColumnMap(const std::string& columnString, int arity) {
+    std::map<int, int> getInputColumnMap(const IODirectives& ioDirectives, int arity) {
+        std::string columnString = "";
+        if (ioDirectives.has("columns")) {
+            columnString = ioDirectives.get("columns");
+        }
         std::map<int, int> inputMap;
+
         if (!columnString.empty()) {
             std::istringstream iss(columnString);
             std::string mapping;
@@ -211,20 +212,12 @@ protected:
 
 class ReadCinCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
 public:
-    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
-            const std::map<std::string, std::string>& options) {
-        std::string columnMapString;
-        if (options.count("columns") > 0) {
-            columnMapString = options.at("columns");
-        }
-        std::map<int, int> inputMap = getInputColumnMap(columnMapString, symbolMask.getArity());
-        return std::unique_ptr<ReadStreamCSV>(
-                new ReadStreamCSV(std::cin, symbolMask, symbolTable, inputMap, getDelimiter(options)));
-    }
     std::unique_ptr<ReadStream> getReader(
             const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) {
-        return std::unique_ptr<ReadStreamCSV>(new ReadStreamCSV(
-                std::cin, symbolMask, symbolTable, ioDirectives.getColumnMap(), ioDirectives.getDelimiter()));
+        std::map<int, int> inputMap = getInputColumnMap(ioDirectives, symbolMask.getArity());
+        char delimiter = getDelimiter(ioDirectives);
+        return std::unique_ptr<ReadStreamCSV>(
+                new ReadStreamCSV(std::cin, symbolMask, symbolTable, inputMap, delimiter));
     }
     virtual const std::string& getName() const { return name; }
     virtual ~ReadCinCSVFactory() {}
@@ -237,20 +230,12 @@ const std::string ReadCinCSVFactory::name = "stdin";
 
 class ReadFileCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
 public:
-    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
-            const std::map<std::string, std::string>& options) {
-        std::string columnMapString;
-        if (options.count("columns") > 0) {
-            columnMapString = options.at("columns");
-        }
-        std::map<int, int> inputMap = getInputColumnMap(columnMapString, symbolMask.getArity());
-        return std::unique_ptr<ReadFileCSV>(new ReadFileCSV(
-                options.at("name"), symbolMask, symbolTable, inputMap, getDelimiter(options)));
-    }
     std::unique_ptr<ReadStream> getReader(
             const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) {
-        return std::unique_ptr<ReadFileCSV>(new ReadFileCSV(ioDirectives.getFileName(), symbolMask,
-                symbolTable, ioDirectives.getColumnMap(), ioDirectives.getDelimiter()));
+        std::map<int, int> inputMap = getInputColumnMap(ioDirectives, symbolMask.getArity());
+        char delimiter = getDelimiter(ioDirectives);
+        return std::unique_ptr<ReadFileCSV>(
+                new ReadFileCSV(ioDirectives.getFileName(), symbolMask, symbolTable, inputMap, delimiter));
     }
     virtual const std::string& getName() const { return name; }
     virtual ~ReadFileCSVFactory() {}
