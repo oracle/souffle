@@ -21,6 +21,7 @@ Environment::Environment(int argc, char** argv, const std::string header, const 
         if (!opt.argument.empty()) {
             shortOptions += ":";
         }
+        if (!opt.by_default.empty()) set(opt.name, opt.by_default);
         ++i;
     }
     longOptions[i] = {nullptr, false, nullptr, 0}; // the terminal option, needs to be null
@@ -41,6 +42,8 @@ Environment::Environment(int argc, char** argv, const std::string header, const 
             set(iter->second, get(iter->second) + std::string(optarg));
     }
 
+    // TODO
+    print(std::cerr);
 }
 
 void Environment::printOptions(std::ostream& os) {
