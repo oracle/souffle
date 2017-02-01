@@ -42,6 +42,10 @@ public:
         return get("IO");
     }
 
+    void setIOType(const std::string& type) {
+        directives["IO"] = type;
+    }
+
     char getDelimiter() const {
         return get("delimiter").at(0);
     }
@@ -79,6 +83,9 @@ public:
     }
 
     void setRelationName(const std::string& name) {
+        if (directives.count("filename") == 0) {
+            directives["filename"] = name + ".facts";
+        }
         directives["name"] = name;
     }
 
@@ -88,6 +95,25 @@ public:
 
     bool isSet() {
         return set;
+    }
+
+    void print(std::ostream& out) const {
+        auto cur = directives.begin();
+        if (cur == directives.end()) {
+            return;
+        }
+
+        out << "{{\"" << cur->first << "\",\"" << escape(cur->second) << "\"}";
+        ++cur;
+        for(;cur != directives.end(); ++cur) {
+            out << ",{\"" << cur->first << "\",\"" << escape(cur->second) << "\"}";
+        }
+        out << '}';
+    }
+
+    friend std::ostream& operator<<(std::ostream& out, const IODirectives ioDirectives) {
+        ioDirectives.print(out);
+        return out;
     }
 
 private:
@@ -102,6 +128,26 @@ private:
         }
         return directives.at(key);
     }
+
+    std::string escape(const std::string& inputString) const {
+        std::string escaped = escape(inputString, "\"", "\\\"");
+        escaped = escape(escaped, "\t", "\\t");
+        escaped = escape(escaped, "\r", "\\r");
+        escaped = escape(escaped, "\n", "\\n");
+        return escaped;
+    }
+
+    std::string escape(
+            const std::string& inputString, const std::string& needle, const std::string replacement) const {
+        std::string result = inputString;
+        size_t pos = 0;
+        while ((pos = result.find(needle, pos)) != std::string::npos) {
+            result = result.replace(pos, needle.length(), replacement);
+            pos += replacement.length();
+        }
+        return result;
+    }
+
     std::map<std::string, std::string> directives;
     bool set = false;
 };
