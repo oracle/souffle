@@ -20,7 +20,6 @@
 #include "AstRelationIdentifier.h"
 
 #include <map>
-#include <regex>
 #include <string>
 
 namespace souffle {
@@ -120,11 +119,21 @@ protected:
     }
 
     std::string unescape(const std::string& inputString) {
-        std::string unescaped = std::regex_replace(inputString, std::regex("\\\\\""), "\"");
-        unescaped = std::regex_replace(unescaped, std::regex("\\\\t"), "\t");
-        unescaped = std::regex_replace(unescaped, std::regex("\\\\r"), "\r");
-        unescaped = std::regex_replace(unescaped, std::regex("\\\\n"), "\n");
+        std::string unescaped = unescape(inputString, "\\\"", "\"");
+        unescaped = unescape(unescaped, "\\t", "\t");
+        unescaped = unescape(unescaped, "\\r", "\r");
+        unescaped = unescape(unescaped, "\\n", "\n");
         return unescaped;
+    }
+
+    std::string unescape(
+            const std::string& inputString, const std::string& needle, const std::string replacement) {
+        std::string result = inputString;
+        size_t pos;
+        while ((pos = result.find(needle)) != std::string::npos) {
+            result = result.replace(pos, needle.length(), replacement);
+        }
+        return result;
     }
     /** Name of the kvp */
     AstRelationIdentifier name;
