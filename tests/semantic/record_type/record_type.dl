@@ -9,20 +9,18 @@
 
 .decl MyRelation( X:record )
 
-// No Error
-MyRelation(nil).
-MyRelation([7, 7]).
-MyRelation([-7, -7]).
+MyRelation(nil).        // no error
+MyRelation([7, 7]).     // no error
+MyRelation([-7, -7]).   // no error
 
-// Error
-MyRelation(0).
-MyRelation(7).
-MyRelation(-7).
-MyRelation("7").
-MyRelation(7, 7).
-MyRelation(-7, -7).
-MyRelation([7]).
-MyRelation([7, 7, 7]).
+MyRelation(0).          // error
+MyRelation(7).          // error
+MyRelation(-7).         // TODO: should error but doesn't
+MyRelation("7").        // error
+MyRelation(7, 7).       // error
+MyRelation(-7, -7).     // error
+MyRelation([7]).        // TODO: should error but doesn't
+MyRelation([7, 7, 7]).  // error
 
 .decl YourRelation( X:number ) output
 
