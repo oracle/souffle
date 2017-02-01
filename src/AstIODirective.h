@@ -118,7 +118,7 @@ protected:
         return other.name == name && other.input == input && other.kvps == kvps;
     }
 
-    std::string unescape(const std::string& inputString) {
+    std::string unescape(const std::string& inputString) const {
         std::string unescaped = unescape(inputString, "\\\"", "\"");
         unescaped = unescape(unescaped, "\\t", "\t");
         unescaped = unescape(unescaped, "\\r", "\r");
@@ -127,11 +127,12 @@ protected:
     }
 
     std::string unescape(
-            const std::string& inputString, const std::string& needle, const std::string replacement) {
+            const std::string& inputString, const std::string& needle, const std::string replacement) const {
         std::string result = inputString;
-        size_t pos;
-        while ((pos = result.find(needle)) != std::string::npos) {
+        size_t pos = 0;
+        while ((pos = result.find(needle, pos)) != std::string::npos) {
             result = result.replace(pos, needle.length(), replacement);
+            pos += replacement.length();
         }
         return result;
     }
