@@ -1,11 +1,11 @@
 #!/bin/bash
 
-###############################################################################
-#                                                                             #
-# This script provides a nice shell environment for working with Souffle.     #
-# Simply do a 'source .souffle-sh' to get started using it.                   #
-#                                                                             #
-###############################################################################
+#
+# .souffle-sh
+#
+# This script provides a nice shell environment for working with Souffle.
+# Simply do a 'source .souffle-sh' from the terminal to start using it.
+#
 
 export SOUFFLE=$(pwd)
 
