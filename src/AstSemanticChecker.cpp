@@ -117,9 +117,16 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
        report.addError("Null constant used as a non-record", cnst.getSrcLoc());
     });
 
+    // all record initialisations are used as records
+    visitDepthFirst(nodes, [&](const AstRecordInit& cnst) {
+       TypeSet types = typeAnalysis.getTypes(&cnst);
+       if (isRecordType(types)) return;
+       report.addError("Record initialisation (type mismatch)", cnst.getSrcLoc());
+    });
+
     // - unary functors -
     visitDepthFirst(nodes, [&](const AstUnaryFunctor& fun) {
-        // check left and right side
+        // check arg
         auto arg = fun.getOperand();
 
         // check numerical functions
@@ -553,7 +560,7 @@ void AstSemanticChecker::checkComponent(ErrorReport& report, const AstComponent 
     // components with type parameters, we are only interested in whether
     // component references refer to existing components or some type parameter.
     // Type parameter for us here is unknown type that will be bound at the template
-    // instation time.
+    // instantiation time.
     auto parentTypeParameters = component.getComponentType().getTypeParameters();
     std::vector<AstTypeIdentifier> actualParams(parentTypeParameters.size(), "<type parameter>");
     TypeBinding activeBinding = binding.extend(parentTypeParameters,actualParams );

@@ -444,8 +444,6 @@ bool isSubtypeOf(const Type& a, const Type& b);
  */
 bool areSubtypesOf(const TypeSet& s, const Type& b);
 
-
-
 // -- Least Common Super Types ----------------------------------------
 
 /**
