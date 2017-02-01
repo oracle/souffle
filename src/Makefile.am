@@ -107,6 +107,7 @@ souffle_sources = \
               ReadStream.h                              \
               ReadStreamCSV.h                           \
               WriteStream.h                             \
+	      IODirectives.h                            \
               WriteStreamCSV.h      WriteStreamSQLite.h \
               IOSystem.h                                \
               Global.cpp            Global.h
@@ -144,6 +145,7 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
 				        SymbolTable.h           \
 				        RamLogger.h             \
 				        SqliteRelationWriter.h  \
+                        IODirectives.h
 				        IOSystem.h              \
 				        ReadStream.h            \
 				        ReadStreamCSV.h         \
