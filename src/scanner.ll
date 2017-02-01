@@ -58,7 +58,7 @@
 %x COMMENT
 
 /* Add line number tracking */
-%option yylineno noyywrap
+%option yylineno noyywrap nounput
 
 %%
 
@@ -200,9 +200,7 @@
                                         }
                                       }
 "//".*$                               { }
-<INITIAL>{
 "/*"                                  { BEGIN(COMMENT); }
-}
 <COMMENT>{
 "*/"                                  { BEGIN(INITIAL); }
 [^*\n]+                               { }
