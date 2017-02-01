@@ -2,7 +2,6 @@
 // Negative Numbers
 //
 // This test checks that negative numbers and minus signs are handled correctly.
-// It was created for issue #276 "Souffle interpreter cannot ingest -2^31".
 //
 
 .decl expr(x:number) output
@@ -10,40 +9,43 @@
 // First Expression
 
 // no spaces
-expr(-2^31).
+expr((-2^31) - 1).
 
 // one space
-expr(- 2^31).
-expr(-2 ^31).
-expr(-2^ 31).
+expr((- 2^31) - 1).
+expr((-2 ^31) - 1).
+expr((-2^ 31) - 1).
 
 // two spaces
-expr(- 2 ^31).
-expr(-2 ^ 31).
-expr(- 2^ 31).
+expr((- 2 ^31) - 1).
+expr((-2 ^ 31) - 1).
+expr((- 2^ 31) - 1).
 
 // three spaces
-expr(- 2 ^ 31).
+expr((- 2 ^ 31) - 1).
 
 // Second Expression
 
 // no spaces
-expr(-(2^31)).
+expr(-(2^31) - 1).
 
 // one space
-expr(- (2^31)).
-expr(-(2 ^31)).
-expr(-(2^ 31)).
+expr(- (2^31) - 1).
+expr(-(2 ^31) - 1).
+expr(-(2^ 31) - 1).
 
 // two spaces
-expr(- (2 ^31)).
-expr(-(2 ^ 31)).
-expr(- (2^ 31)).
+expr(- (2 ^31) - 1).
+expr(-(2 ^ 31) - 1).
+expr(- (2^ 31) - 1).
 
 // three spaces
-expr(- (2 ^ 31)).
+expr(- (2 ^ 31) - 1).
 
 // Third Expression
 
 // no spaces
-expr(-2147483648).
+expr(-2147483647).
+
+// one space
+expr(- 2147483647).
