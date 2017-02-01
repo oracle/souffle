@@ -84,15 +84,14 @@ namespace test {
         {
             std::fstream in(BUILDDIR "../tests/evaluation/hmmer/facts/DirectFlow.facts");
 
-            std::string options("name=");
-            options += (BUILDDIR "../tests/evaluation/hmmer/facts/DirectFlow.facts");
-            options += ",delimiter=\t,";
-	    options += "IO=file";
+            IODirectives ioDirectives({{"IO", "file"},
+                {"filename", BUILDDIR "../tests/evaluation/hmmer/facts/DirectFlow.facts"},
+                {"delimiter", "\t"}});
             // if file not found => be done
             if (!in.is_open()) return;
 
             std::unique_ptr<ReadStream> reader =
-                    IOSystem::getInstance().getReader(mask, symTable, options);
+                    IOSystem::getInstance().getReader(mask, symTable, ioDirectives);
 
             while (auto next = reader->readNextTuple()) {
                 rel.insert(next.get());
