@@ -1,21 +1,3 @@
-Warning: Record types in output relations are not printed verbatim: attribute X has record type single_number in file type_system1.dl at line 20
-.decl SingleNumberRelation( X:single_number ) output
-------------------------------^----------------------
-Warning: Record types in output relations are not printed verbatim: attribute X has record type double_number in file type_system1.dl at line 21
-.decl DoubleNumberRelation( X:double_number ) output
-------------------------------^----------------------
-Warning: Record types in output relations are not printed verbatim: attribute X has record type triple_number in file type_system1.dl at line 22
-.decl TripleNumberRelation( X:triple_number ) output
-------------------------------^----------------------
-Warning: Record types in output relations are not printed verbatim: attribute X has record type single_symbol in file type_system1.dl at line 24
-.decl SingleSymbolRelation( X:single_symbol ) output
-------------------------------^----------------------
-Warning: Record types in output relations are not printed verbatim: attribute X has record type double_symbol in file type_system1.dl at line 25
-.decl DoubleSymbolRelation( X:double_symbol ) output
-------------------------------^----------------------
-Warning: Record types in output relations are not printed verbatim: attribute X has record type triple_symbol in file type_system1.dl at line 26
-.decl TripleSymbolRelation( X:triple_symbol ) output
-------------------------------^----------------------
 Error: Symbol constant (type mismatch) in file type_system1.dl at line 34
 NumberRelation("1").                   // error
 ---------------^--------------------------------

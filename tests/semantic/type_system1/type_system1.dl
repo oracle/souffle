@@ -14,16 +14,16 @@
 .type double_symbol = [ X:symbol, Y:symbol ]
 .type triple_symbol = [ X:symbol, Y:symbol, Z:symbol ]
 
-.decl SymbolRelation( X:symbol ) output
-.decl NumberRelation( X:number ) output
+.decl SymbolRelation( X:symbol )
+.decl NumberRelation( X:number )
 
-.decl SingleNumberRelation( X:single_number ) output
-.decl DoubleNumberRelation( X:double_number ) output
-.decl TripleNumberRelation( X:triple_number ) output
+.decl SingleNumberRelation( X:single_number )
+.decl DoubleNumberRelation( X:double_number )
+.decl TripleNumberRelation( X:triple_number )
 
-.decl SingleSymbolRelation( X:single_symbol ) output
-.decl DoubleSymbolRelation( X:double_symbol ) output
-.decl TripleSymbolRelation( X:triple_symbol ) output
+.decl SingleSymbolRelation( X:single_symbol )
+.decl DoubleSymbolRelation( X:double_symbol )
+.decl TripleSymbolRelation( X:triple_symbol )
 
 // Number Relation
 
