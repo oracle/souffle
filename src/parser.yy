@@ -327,14 +327,17 @@ key_value_pairs: non_empty_key_value_pairs { $$ = $1; }
                }
              ;
 
-iodecl: INPUT_DECL 
-      | OUTPUT_DECL;
-
-iodirective: iodecl IDENT LPAREN key_value_pairs RPAREN {
+iodirective: INPUT_DECL IDENT LPAREN key_value_pairs RPAREN {
                   $$ = $4;
                   $4->setName($2);
                   $4->setSrcLoc(@$);
-                  $4->setAsInput(); // FIX THIS
+                  $4->setAsInput();
+             }
+            | OUTPUT_DECL IDENT LPAREN key_value_pairs RPAREN {
+                  $$ = $4;
+                  $4->setName($2);
+                  $4->setSrcLoc(@$);
+                  $4->setAsOutput();
              }
             | PRINTSIZE_DECL IDENT { 
                   AstIODirective *psd = new AstIODirective(); 
