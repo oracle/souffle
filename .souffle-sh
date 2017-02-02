@@ -45,14 +45,13 @@ souffle_test() {
 
 souffle_debug() {
     souffle_make &&
-    mkdir -p tests/testsuite.dir/$1/$2 &&
+    mkdir -p $SOUFFLE/tests/testsuite.dir/$1/$2 &&
     $SOUFFLE/src/souffle $SOUFFLE/tests/$1/$2/$2.dl \
         -F $SOUFFLE/tests/$1/$2/facts \
-        -D $SOUFLE/tests/testsuite.dir/$1/$2 \
+        -D $SOUFFLE/tests/testsuite.dir/$1/$2 \
         -j$JOBS \
-        --debug-report=$SOUFFLE/tests/testsuite.dir/$1/$2/$2.html
-        ${3}..${N} \
+        --debug-report=$SOUFFLE/tests/testsuite.dir/$1/$2/$2.html \
+        $3 \
         1> $SOUFFLE/tests/testsuite.dir/$1/$2/$2.out \
-        2> $SOUFFLE/tests/testsuite.dir/$1/$2/$2.err \
-
+        2> $SOUFFLE/tests/testsuite.dir/$1/$2/$2.err
 }
