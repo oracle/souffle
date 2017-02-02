@@ -172,9 +172,8 @@ void AstProgram::print(std::ostream &os) const
         const std::unique_ptr<AstRelation> &rel = cur.second;
         os << "\n\n// -- " << rel->getName() << " --\n" ;
         os << *rel << "\n\n";
-        for (size_t i = 0 ; i< rel->clauseSize(); i++) {
-            os << *rel->getClause(i) << "\n\n";
-        }
+        for (const auto clause : rel->getClauses()) { os << *clause << "\n\n"; }
+        for (const auto ioDirective : rel->getIODirectives()) { os << *ioDirective << "\n\n"; }
     }
 
     if (!clauses.empty()) {

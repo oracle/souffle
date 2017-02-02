@@ -358,6 +358,22 @@ bool ComponentInstantiationTransformer::transform(AstTranslationUnit& translatio
     program.clauses.clear();
     program.clauses.swap(unbound);
 
+    // unbound directives with no relation defined
+    std::vector<std::unique_ptr<AstIODirective>> unboundDirectives;
+
+    // add IO directives
+    for (auto& cur : program.ioDirectives) {
+        auto pos = program.relations.find(cur->getName());
+        if (pos != program.relations.end()) {
+            pos->second->addIODirectives(std::move(cur));
+        } else {
+            unboundDirectives.push_back(std::move(cur));
+        }
+    }
+    // remember the remaining orphan directives
+    program.ioDirectives.clear();
+    program.ioDirectives.swap(unboundDirectives);
+
     return true;
 }
 
