@@ -119,17 +119,17 @@ namespace {
                 switch(op.getOperator()) {
 
                 // arithmetic
-                case BinaryOp::ADD: return visit(op.getLHS()) + visit(op.getRHS());
-                case BinaryOp::SUB: return visit(op.getLHS()) - visit(op.getRHS());
-                case BinaryOp::MUL: return visit(op.getLHS()) * visit(op.getRHS());
-                case BinaryOp::DIV: return visit(op.getLHS()) / visit(op.getRHS());
-                case BinaryOp::EXP: return std::pow(visit(op.getLHS()), visit(op.getRHS()));
-                case BinaryOp::MOD: return visit(op.getLHS()) % visit(op.getRHS());
+                case BinaryOp::ADD:  return visit(op.getLHS()) + visit(op.getRHS());
+                case BinaryOp::SUB:  return visit(op.getLHS()) - visit(op.getRHS());
+                case BinaryOp::MUL:  return visit(op.getLHS()) * visit(op.getRHS());
+                case BinaryOp::DIV:  return visit(op.getLHS()) / visit(op.getRHS());
+                case BinaryOp::EXP:  return std::pow(visit(op.getLHS()), visit(op.getRHS()));
+                case BinaryOp::MOD:  return visit(op.getLHS()) % visit(op.getRHS());
                 case BinaryOp::BAND: return visit(op.getLHS()) & visit(op.getRHS());
-                case BinaryOp::BOR: return visit(op.getLHS()) | visit(op.getRHS());
+                case BinaryOp::BOR:  return visit(op.getLHS()) | visit(op.getRHS());
                 case BinaryOp::BXOR: return visit(op.getLHS()) ^ visit(op.getRHS());
                 case BinaryOp::LAND: return visit(op.getLHS()) && visit(op.getRHS());
-                case BinaryOp::LOR: return visit(op.getLHS()) || visit(op.getRHS());
+                case BinaryOp::LOR:  return visit(op.getLHS()) || visit(op.getRHS());
 
                 // strings
                 case BinaryOp::CAT: {
