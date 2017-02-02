@@ -14,16 +14,16 @@
 .type double_symbol = [ X:symbol, Y:symbol ]
 .type triple_symbol = [ X:symbol, Y:symbol, Z:symbol ]
 
-.decl SymbolRelation( X:symbol )
-.decl NumberRelation( X:number )
+.decl SymbolRelation( X:symbol ) output
+.decl NumberRelation( X:number ) output
 
-.decl SingleNumberRelation( X:single_number )
-.decl DoubleNumberRelation( X:double_number )
-.decl TripleNumberRelation( X:triple_number )
+.decl SingleNumberRelation( X:single_number ) output
+.decl DoubleNumberRelation( X:double_number ) output
+.decl TripleNumberRelation( X:triple_number ) output
 
-.decl SingleSymbolRelation( X:single_symbol )
-.decl DoubleSymbolRelation( X:double_symbol )
-.decl TripleSymbolRelation( X:triple_symbol )
+.decl SingleSymbolRelation( X:single_symbol ) output
+.decl DoubleSymbolRelation( X:double_symbol ) output
+.decl TripleSymbolRelation( X:triple_symbol ) output
 
 // Number Relation
 
@@ -32,7 +32,7 @@ NumberRelation(1).                     // no error
 NumberRelation(-1).                    // no error
 NumberRelation(1+1).                   // no error
 
-NumberRelation(nil).                   // error
+// NumberRelation(nil).                   // error
 
 // NumberRelation([1]).                   // error
 // NumberRelation([-1]).                  // error
@@ -55,8 +55,8 @@ NumberRelation(nil).                   // error
 
 // SymbolRelation(0).                     // error
 // SymbolRelation(1).                     // error
-// SymbolRelation(-1).                    // error
-// SymbolRelation(1+1).                   // error
+SymbolRelation(-1).                    // TODO: error
+SymbolRelation(1+1).                   // TODO: error
 
 // SymbolRelation(nil).                   // error
 
@@ -81,8 +81,8 @@ SymbolRelation("1").                   // no error
 
 // SingleNumberRelation(0).               // error
 // SingleNumberRelation(1).               // error
-// SingleNumberRelation(-1).              // error
-// SingleNumberRelation(1+1).             // error
+SingleNumberRelation(-1).              // TODO: error
+SingleNumberRelation(1+1).             // TODO: error
 
 SingleNumberRelation(nil).             // no error
 
@@ -107,14 +107,14 @@ SingleNumberRelation([1+1]).           // no error
 
 // DoubleNumberRelation(0).               // error
 // DoubleNumberRelation(1).               // error
-// DoubleNumberRelation(-1).              // error
-// DoubleNumberRelation(1+1).             // error
+DoubleNumberRelation(-1).              // TODO: error
+DoubleNumberRelation(1+1).             // TODO: error
 
 DoubleNumberRelation(nil).             // no error
 
-// DoubleNumberRelation([1]).             // error
-// DoubleNumberRelation([-1]).            // error
-// DoubleNumberRelation([1+1]).           // error
+DoubleNumberRelation([1]).             // TODO: error
+DoubleNumberRelation([-1]).            // TODO: error
+DoubleNumberRelation([1+1]).           // TODO: error
 
 DoubleNumberRelation([1, 1]).          // no error
 DoubleNumberRelation([-1, -1]).        // no error
@@ -133,18 +133,18 @@ DoubleNumberRelation([1+1, 1+1]).      // no error
 
 // TripleNumberRelation(0).               // error
 // TripleNumberRelation(1).               // error
-// TripleNumberRelation(-1).              // error
-// TripleNumberRelation(1+1).             // error
+TripleNumberRelation(-1).              // TODO: error
+TripleNumberRelation(1+1).             // TODO: error
 
 TripleNumberRelation(nil).             // no error
 
-// TripleNumberRelation([1]).             // error
-// TripleNumberRelation([-1]).            // error
-// TripleNumberRelation([1+1]).           // error
+TripleNumberRelation([1]).             // TODO: error
+TripleNumberRelation([-1]).            // TODO: error
+TripleNumberRelation([1+1]).           // TODO: error
 
-// TripleNumberRelation([1, 1]).          // error
-// TripleNumberRelation([-1, -1]).        // error
-// TripleNumberRelation([1+1, 1+1]).      // error
+TripleNumberRelation([1, 1]).          // TODO: error
+TripleNumberRelation([-1, -1]).        // TODO: error
+TripleNumberRelation([1+1, 1+1]).      // TODO: error
 
 TripleNumberRelation([1, 1, 1]).       // no error
 TripleNumberRelation([-1, -1, -1]).    // no error
@@ -159,14 +159,14 @@ TripleNumberRelation([1+1, 1+1, 1+1]). // no error
 
 // SingleSymbolRelation(0).               // error
 // SingleSymbolRelation(1).               // error
-// SingleSymbolRelation(-1).              // error
-// SingleSymbolRelation(1+1).             // error
+SingleSymbolRelation(-1).              // TODO: error
+SingleSymbolRelation(1+1).             // TODO: error
 
 SingleSymbolRelation(nil).             // no error
 
 // SingleSymbolRelation([1]).             // error
-// SingleSymbolRelation([-1]).            // error
-// SingleSymbolRelation([1+1]).           // error
+SingleSymbolRelation([-1]).            // TODO: error
+SingleSymbolRelation([1+1]).           // TODO: error
 
 // SingleSymbolRelation([1, 1]).          // error
 // SingleSymbolRelation([-1, -1]).        // error
@@ -185,25 +185,25 @@ SingleSymbolRelation(["1"]).           // no error
 
 // DoubleSymbolRelation(0).               // error
 // DoubleSymbolRelation(1).               // error
-// DoubleSymbolRelation(-1).              // error
-// DoubleSymbolRelation(1+1).             // error
+DoubleSymbolRelation(-1).              // TODO: error
+DoubleSymbolRelation(1+1).             // TODO: error
 
 DoubleSymbolRelation(nil).             // no error
 
 // DoubleSymbolRelation([1]).             // error
-// DoubleSymbolRelation([-1]).            // error
-// DoubleSymbolRelation([1+1]).           // error
+DoubleSymbolRelation([-1]).            // TODO: error
+DoubleSymbolRelation([1+1]).           // TODO: error
 
 // DoubleSymbolRelation([1, 1]).          // error
-// DoubleSymbolRelation([-1, -1]).        // error
-// DoubleSymbolRelation([1+1, 1+1]).      // error
+DoubleSymbolRelation([-1, -1]).        // TODO: error
+DoubleSymbolRelation([1+1, 1+1]).      // TODO: error
 
 // DoubleSymbolRelation([1, 1, 1]).       // error
 // DoubleSymbolRelation([-1, -1, -1]).    // error
 // DoubleSymbolRelation([1+1, 1+1, 1+1]). // error
 
 // DoubleSymbolRelation("1").             // error
-// DoubleSymbolRelation(["1"]).           // error
+DoubleSymbolRelation(["1"]).           // TODO: error
 DoubleSymbolRelation(["1", "1"]).      // no error
 // DoubleSymbolRelation(["1", "1", "1"]). // error
 
@@ -211,24 +211,24 @@ DoubleSymbolRelation(["1", "1"]).      // no error
 
 // TripleSymbolRelation(0).               // error
 // TripleSymbolRelation(1).               // error
-// TripleSymbolRelation(-1).              // error
-// TripleSymbolRelation(1+1).             // error
+TripleSymbolRelation(-1).              // TODO: error
+TripleSymbolRelation(1+1).             // TODO: error
 
 TripleSymbolRelation(nil).             // no error
 
 // TripleSymbolRelation([1]).             // error
-// TripleSymbolRelation([-1]).            // error
-// TripleSymbolRelation([1+1]).           // error
+TripleSymbolRelation([-1]).            // TODO: error
+TripleSymbolRelation([1+1]).           // TODO: error
 
 // TripleSymbolRelation([1, 1]).          // error
-// TripleSymbolRelation([-1, -1]).        // error
-// TripleSymbolRelation([1+1, 1+1]).      // error
+TripleSymbolRelation([-1, -1]).        // TODO: error
+TripleSymbolRelation([1+1, 1+1]).      // TODO: error
 
 // TripleSymbolRelation([1, 1, 1]).       // error
-// TripleSymbolRelation([-1, -1, -1]).    // error
-// TripleSymbolRelation([1+1, 1+1, 1+1]). // error
+TripleSymbolRelation([-1, -1, -1]).    // TODO: error
+TripleSymbolRelation([1+1, 1+1, 1+1]). // TODO: error
 
 // TripleSymbolRelation("1").             // error
-// TripleSymbolRelation(["1"]).           // error
-// TripleSymbolRelation(["1", "1"]).      // error
+TripleSymbolRelation(["1"]).           // TODO: error
+TripleSymbolRelation(["1", "1"]).      // TODO: error
 TripleSymbolRelation(["1", "1", "1"]). // no error
