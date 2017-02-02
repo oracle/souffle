@@ -84,7 +84,7 @@ inline bool unaryOpAcceptsNumbers(const UnaryOp op) {
     switch (op) {
     case UnaryOp::NEG:
     case UnaryOp::BNOT:
-    case UnaryOp::LNOT:
+    case UnaryOp::LNOT: return true;
     case UnaryOp::ORD: return false;
     default: break;
     }
@@ -93,15 +93,7 @@ inline bool unaryOpAcceptsNumbers(const UnaryOp op) {
 }
 
 inline bool unaryOpAcceptsSymbols(const UnaryOp op) {
-    switch (op) {
-    case UnaryOp::NEG:
-    case UnaryOp::BNOT:
-    case UnaryOp::LNOT: return false;
-    case UnaryOp::ORD: return true;
-    default: break;
-    }
-    assert(false && "Unsupported operator encountered!");
-    return false;
+    return !unaryOpAcceptsNumbers(op);
 }
 
 } // end of namespace souffle

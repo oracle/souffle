@@ -129,14 +129,28 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
         // check arg
         auto arg = fun.getOperand();
 
-        // check numerical functions
+        // check numerical operators
+        if (fun.isNumerical()) {
+            if (!isNumberType(typeAnalysis.getTypes(&fun))) {
+                report.addError("FOO", fun.getSrcLoc());
+            }
+        }
+
+        // check numerical operands
         if (fun.acceptsNumbers()) {
             if (!isNumberType(typeAnalysis.getTypes(arg))) {
                 report.addError("Non-numerical operand for numeric function", arg->getSrcLoc());
             }
         }
 
-        // check symbol functions
+        // check symbolic operators
+        if (fun.isSymbolic()) {
+            if (!isSymbolType(typeAnalysis.getTypes(&fun))) {
+                report.addError("BAR", fun.getSrcLoc());
+            }
+        }
+
+        // check symbolic operands
         if (fun.acceptsSymbols()) {
             if (!isSymbolType(typeAnalysis.getTypes(arg))) {
                 report.addError("Non-symbol operand for string function", arg->getSrcLoc());

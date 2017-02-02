@@ -44,8 +44,9 @@ souffle_test() {
 }
 
 souffle_debug() {
-    souffle_make &&
-    mkdir -p $SOUFFLE/tests/testsuite.dir/$1/$2 &&
+    souffle_make && \
+    mkdir -p $SOUFFLE/tests/testsuite.dir/$1/$2 && \
+    ln -sf $SOUFFLE/tests/$1/$2/$2.dl $SOUFFLE/tests/testsuite.dir/$1/$2/$2.dl && \
     $SOUFFLE/src/souffle $SOUFFLE/tests/$1/$2/$2.dl \
         -F $SOUFFLE/tests/$1/$2/facts \
         -D $SOUFFLE/tests/testsuite.dir/$1/$2 \
