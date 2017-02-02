@@ -99,29 +99,32 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
     // all string constants are used as symbols
     visitDepthFirst(nodes, [&](const AstStringConstant& cnst) {
         TypeSet types = typeAnalysis.getTypes(&cnst);
-        if (isSymbolType(types)) return;
-        report.addError("Symbol constant (type mismatch)", cnst.getSrcLoc());
+        if (!isSymbolType(types))
+            report.addError("Symbol constant (type mismatch)", cnst.getSrcLoc());
     });
 
     // all number constants are used as numbers
     visitDepthFirst(nodes, [&](const AstNumberConstant& cnst) {
         TypeSet types = typeAnalysis.getTypes(&cnst);
-        if (isNumberType(types)) return;
-        report.addError("Number constant (type mismatch)", cnst.getSrcLoc());
+        if (!isNumberType(types))
+            report.addError("Number constant (type mismatch)", cnst.getSrcLoc());
+        long long idx = (long long) cnst.getIndex();
+        if (idx > 2147483647 || idx < -2147483648)
+            report.addError("Number constant not in range [-2^31, 2^31-1]", cnst.getSrcLoc());
     });
 
     // all null constants are used as records
     visitDepthFirst(nodes, [&](const AstNullConstant& cnst) {
        TypeSet types = typeAnalysis.getTypes(&cnst);
-       if (isRecordType(types)) return;
-       report.addError("Null constant used as a non-record", cnst.getSrcLoc());
+       if (!isRecordType(types))
+           report.addError("Null constant used as a non-record", cnst.getSrcLoc());
     });
 
     // all record initialisations are used as records
     visitDepthFirst(nodes, [&](const AstRecordInit& cnst) {
        TypeSet types = typeAnalysis.getTypes(&cnst);
-       if (isRecordType(types)) return;
-       report.addError("Record initialisation (type mismatch)", cnst.getSrcLoc());
+       if (!isRecordType(types))
+           report.addError("Record initialisation (type mismatch)", cnst.getSrcLoc());
     });
 
     // - unary functors -
