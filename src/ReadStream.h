@@ -6,7 +6,6 @@
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
-
 /************************************************************************
  *
  * @file ReadStream.h
@@ -18,13 +17,30 @@
 #include <memory>
 
 #include "RamTypes.h"
+#include "SymbolMask.h"
+#include "SymbolTable.h"
 
 namespace souffle {
 
 class ReadStream {
 public:
+    template <typename T>
+    void readAll(T& relation) {
+        while (const auto next = readNextTuple()) {
+            const RamDomain* ramDomain = next.get();
+            relation.insert(ramDomain);
+        }
+    }
+
     virtual std::unique_ptr<RamDomain[]> readNextTuple() = 0;
-    virtual ~ReadStream() {};
+    virtual ~ReadStream(){};
+};
+
+class ReadStreamFactory {
+public:
+    virtual std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
+            const std::map<std::string, std::string>& options) = 0;
+    virtual ~ReadStreamFactory() {}
 };
 
 } /* namespace souffle */

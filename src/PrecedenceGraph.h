@@ -23,6 +23,7 @@
 #include <string>
 #include <stack>
 #include <list>
+#include <iomanip>
 
 #include "AstProgram.h"
 #include "AstAnalysis.h"
@@ -107,6 +108,9 @@ private:
     /** Map from node number to SCC number */
     std::map<const AstRelation *, int> nodeToSCC;
 
+    /** List of colors of SCC nodes, default is black. */
+    std::vector <unsigned int> sccColor;
+
     /** Adjacency lists for the SCC graph */
     std::vector <std::set<int> > succSCC;
 
@@ -121,6 +125,7 @@ private:
             std::stack<const AstRelation *> &S, std::stack<const AstRelation *> &P, int &numSCCs);
 
 public:
+
     static constexpr const char *name = "scc-graph";
 
     virtual void run(const AstTranslationUnit &translationUnit);
@@ -149,10 +154,39 @@ public:
         return succSCC.size();
     }
 
+    /** Get the color of an SCC. */
+    const unsigned int getColor(const int scc) {
+        return sccColor[scc];
+    }
+
+    /** Set the color of an SCC. */
+    void setColor(const int scc, const unsigned int color) {
+        sccColor[scc] = color;
+    }
+
+    /** Fill all SCCs to the given color. */
+    void fillColors(const unsigned int color) {
+        std::fill(sccColor.begin(), sccColor.end(), color);
+    }
+
+    /** Check if a given SCC has a predecessor of the specified color. */
+    const bool hasPredecessorOfColor(int scc, const unsigned int color) {
+        for (auto pred : getPredecessorSCCs(scc)) if (getColor(pred) == color) return true;
+        return false;
+    }
+
+    /** Check if a given SCC has a successor of the specified color. */
+    const bool hasSuccessorOfColor(int scc, const unsigned int color) {
+        for (auto succ : getSuccessorSCCs(scc)) if (getColor(succ) == color) return true;
+        return false;
+    }
+
+    /** Get all successor SCCs of a specified scc. */
     const std::set<int> &getSuccessorSCCs(int scc) {
         return succSCC[scc];
     }
 
+    /** Get all predecessor SCCs of a specified scc. */
     const std::set<int> &getPredecessorSCCs(int scc) {
         return predSCC[scc];
     }
@@ -170,19 +204,28 @@ public:
  * Analysis pass computing a topologically sorted strongly connected component (SCC) graph.
  */
 class TopologicallySortedSCCGraph : public AstAnalysis {
+
 private:
+
+    /** The strongly connected component (SCC) graph. */
     SCCGraph *sccGraph;
+
+    /** The final topological ordering over the SCCs. */
     std::vector<int> orderedSCCs;
 
-    /** Depth lookahead for khan's algorithm, chosen as a compromise between
-    improvement to the cost of the ordering and increased runtime. */
-    const unsigned int LOOKAHEAD = 1;
-
-    /** Marker type for to compute topsort */
-    enum Colour {WHITE, GRAY, BLACK};
+    /** Marker type for to compute topological ordering. */
+    enum Colour {
+        WHITE   = 0xFFFFFF,
+        GRAY    = 0x7f7f7f,
+        BLACK   = 0x000000,
+        RED     = 0xFF0000
+    };
 
     /** Reverse DFS for computing topological order of SCC graph */
-    void reverseDFS(int su, std::vector<enum Colour> &sccMarkers);
+    void reverseDFS(int su);
+
+    /** Run reverse DFS to compute the topsort of the SCC graph. */
+    void runReverseDFS();
 
     /** Calculate the topological ordering cost of a permutation of as of yet unordered SCCs
     using the ordered SCCs. Returns -1 if the given vector is not a valid topological ordering. */
@@ -190,18 +233,30 @@ private:
 
     /** Compute the best cost topological ordering of the as of yet unordered SCCs in the lookahead
     set using the ordered SCCs. */
-    void bestCostTopologicalOrdering(std::deque<int>& lookaheadSCCs) const;
+    void bestCostTopologicalOrdering(std::vector<int>& lookaheadSCCs) const;
 
-    /** Khan's algorithm to compute the topological ordering, uses an additional lookahead. */
-    void khansAlgorithm(std::deque<int>& lookaheadSCCs, std::vector<enum Colour>& sccMarkers);
+    /** Recursive component of Khan's algorithm, gets the nodes for the current round. */
+    void findLookaheadSCCs(int scc, std::vector<int>& lookaheadSCCs, unsigned int depth);
 
-    /** Run reverse DFS to compute the topsort of the SCC graph. */
-    void runReverseDFS(std::vector<enum Colour>& sccMarkers);
+    /** Algorithm to compute the topological ordering, uses a breadth and depth lookahead. */
+    void obtainTopologicalOrdering(int scc);
 
-    /** Run khan's algorithm to compute the topsort of the SCC graph. */
-    void runKhansAlgorithm(std::vector<enum Colour>& sccMarkers);
+    /** Run algorithm to compute the topological ordering of the SCC graph. */
+    void generateTopologicalOrdering();
+
+    /** Naive algorithm to compute best cost topological ordering. Guaranteed to be optimal however runtime is factorial. */
+    void naiveTopologicalOrdering();
 
 public:
+
+    // TODO
+    /** Breadth limit for algorithm, set by command line arguments. */
+    static const unsigned int BREADTH = 2;
+
+    // TODO
+    /** Depth limit for algorithm, set by command line arguments. */
+    static const unsigned int DEPTH = 2;
+
     static constexpr const char *name = "topological-scc-graph";
 
     virtual void run(const AstTranslationUnit &translationUnit);

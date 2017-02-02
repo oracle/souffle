@@ -665,16 +665,10 @@ namespace {
                     // TODO: get option string from datalog file
                     std::string optionString("IO=file");
                     optionString += ",name=" + filename;
-                    std::unique_ptr<ReadStream> reader =
-                            IOSystem::getInstance().getReader(
-                                    load.getRelation().getSymbolMask(),
-                                    env.getSymbolTable(),
-                                    optionString);
+                    std::unique_ptr<ReadStream> reader = IOSystem::getInstance().getReader(
+                            load.getRelation().getSymbolMask(), env.getSymbolTable(), optionString);
                     RamRelation& relation = env.getRelation(load.getRelation());
-
-                    while (auto next = reader->readNextTuple()) {
-                        relation.insert(next.get());
-                    }
+                    reader->readAll(relation);
                 } catch (std::exception& e) {
                     std::cerr << e.what();
                     return false;
@@ -683,8 +677,8 @@ namespace {
             }
 
             bool visitStore(const RamStore& store) {
-                if(store.getRelation().isData()){
-                  return true;
+                if (store.getRelation().isData()) {
+                    return true;
                 }
 
                 std::unique_ptr<WriteStream> writeStream = nullptr;
@@ -699,12 +693,8 @@ namespace {
                     optionString += "name=" + config.getOutputDir() + "/" + store.getFileName();
                 }
                 writeStream = IOSystem::getInstance().getWriter(
-                        store.getRelation().getSymbolMask(),
-                        env.getSymbolTable(),
-                        optionString);
-                for(auto it=rel.begin(); it!=rel.end(); ++it) {
-                    writeStream->writeNextTuple(*it);
-                }
+                        store.getRelation().getSymbolMask(), env.getSymbolTable(), optionString);
+                writeStream->writeAll(rel);
                 return true;
             }
 
@@ -1482,9 +1472,12 @@ namespace {
             }
 
             // create projected tuple
-            out << "Tuple<RamDomain," << arity << "> tuple({"
-                    << join(project.getValues(), ",", rec)
-                << "});\n";
+            if (project.getValues().size() == 0)
+                out << "Tuple<RamDomain," << arity << "> tuple({});\n";
+            else
+                out << "Tuple<RamDomain," << arity << "> tuple({(RamDomain)("
+                    << join(project.getValues(), "),(RamDomain)(", rec)
+                    << ")});\n";
 
             // check filter
             if (project.hasFilter()) {
@@ -1652,7 +1645,7 @@ namespace {
                 out << "(" << print(op.getLHS()) << ") / (" << print(op.getRHS()) << ")";
                 break;
             case BinaryOp::EXP: {
-                out << "(RamDomain)(std::pow((long)" << print(op.getLHS()) << "," << "(long)" << print(op.getRHS()) << "))";
+                out << "(long)(std::pow((long)" << print(op.getLHS()) << "," << "(long)" << print(op.getRHS()) << "))";
                 break;
             }
             case BinaryOp::MOD: {
@@ -2009,27 +2002,19 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
             std::string fname = "dirname + \"/" + store->getFileName() + "\"";
             auto target = (toConsole) ? "nullptr" : fname;
 
-	    //TODO(mmcg): move printCSV functionality out of CompiledRamRelation entirely.
-            // create call
-            os << relName << "->" << "printCSV(";
-            os << "symTable,SymbolMask({";
-
-            const SymbolMask& mask = store->getRelation().getSymbolMask();
-            if (mask.getArity() > 0) {
-                os << ((mask.isSymbol(0)) ? "1" : "0");
-                // add format parameters
-                for(size_t i = 1; i < mask.getArity(); i++) {
-                    os << ((mask.isSymbol(i)) ? ", 1" : ", 0");
-                }
-            }
-
-            os << "}), \"";
+            os << "try {";
+            os << "IOSystem::getInstance().getWriter(";
+            os << "SymbolMask({" << store->getRelation().getSymbolMask() << "})";
+            os << ", symTable, \"";
             if (toConsole) {
                 os << "IO=stdout,name=" << name;
             } else {
                 os << "IO=file,name=\" + " << fname + "\"";
             }
-            os << "\");\n";
+            os << "\")->writeAll(*" << relName << ");\n";
+
+            os << "} catch (std::exception& e) {std::cerr << e.what();exit(1);}\n";
+
         } else if (auto print = dynamic_cast<const RamPrintSize*>(&node)) {
             auto relName = getRelationName(print->getRelation());
             os << "{ auto lease = getOutputLock().acquire(); \n";
@@ -2044,14 +2029,13 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "void loadAll(std::string dirname=\"" << getConfig().getOutputDir() << "\") {\n";
     visitDepthFirst(stmt, [&](const RamLoad& load) {
         // get some table details
-        os <<  getRelationName(load.getRelation());
-        os << "->" << "loadCSV(dirname + \"/";
-        os << load.getFileName() << "\"";
+        os << "try {";
+        os << "IOSystem::getInstance().getReader(";
+        os << "SymbolMask({" << load.getRelation().getSymbolMask() << "})";
         os << ", symTable";
-        for(size_t i=0;i<load.getRelation().getArity();i++) {
-            os << (load.getRelation().getSymbolMask().isSymbol(i) ? ", 1" : ", 0");
-        }
-        os << ");\n";
+        os << ", \"IO=file,name=\" + " << "dirname + \"/";
+        os << load.getFileName() << "\")->readAll(*" << getRelationName(load.getRelation()) << ");\n";
+        os << "} catch (std::exception& e) {std::cerr << e.what();exit(1);}\n";
     });
     os << "}\n";  // end of loadAll() method
 
@@ -2059,22 +2043,13 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     auto dumpRelation = [&](const std::string& name, const SymbolMask& mask, size_t arity) {
         auto relName = name;
 
-        os << "out << \"---------------\\n" << name << "\\n===============\\n\";\n";
-
-        // create call
-        os << relName << "->" << "printCSV(symTable, SymbolMask({";
-
-        if (arity > 0) {
-            os << ((mask.isSymbol(0)) ? "1" : "0");
-            // add format parameters
-            for(size_t i = 1; i < arity; i++) {
-                os << ((mask.isSymbol(i)) ? ", 1" : ", 0");
-            }
-        }
-
-        os << "}),\"IO=stdout,name=" << relName << "\");\n";
-
-        os << "out << \"===============\\n\";\n";
+        os << "try {";
+        os << "IOSystem::getInstance().getWriter(";
+        os << "SymbolMask({" << mask << "})";
+        os << ", symTable, \"";
+        os << "IO=stdout,name=" << name;
+        os << "\")->writeAll(*" << relName << ");\n";
+        os << "} catch (std::exception& e) {std::cerr << e.what();exit(1);}\n";
     };
 
     // dump inputs
