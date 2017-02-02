@@ -32,7 +32,7 @@ NumberRelation(1).                     // no error
 NumberRelation(-1).                    // no error
 NumberRelation(1+1).                   // no error
 
-// NumberRelation(nil).                   // error
+NumberRelation(nil).                   // error
 
 // NumberRelation([1]).                   // error
 // NumberRelation([-1]).                  // error
