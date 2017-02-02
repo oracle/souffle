@@ -325,18 +325,22 @@ public:
         return fun;
     }
 
+    /** Check if the return value of this function is a number type. */
     bool isNumerical() const {
         return isNumericUnaryOp(fun);
     }
 
+    /** Check if the return value of this function is a symbol type. */
     bool isSymbolic() const {
         return isSymbolicUnaryOp(fun);
     }
 
+    /** Check if the argument of this function is a number type. */
     bool acceptsNumbers() const {
         return unaryOpAcceptsNumbers(fun);
     }
 
+    /** Check if the argument of this function is a symbol type. */
     bool acceptsSymbols() const {
         return unaryOpAcceptsSymbols(fun);
     }
@@ -409,12 +413,24 @@ public:
         return fun;
     }
 
+    /** Check if the return value of this function is a number type. */
     bool isNumerical() const {
         return isNumericBinaryOp(fun);
     }
 
+    /** Check if the return value of this function is a symbol type. */
     bool isSymbolic() const {
         return isSymbolicBinaryOp(fun);
+    }
+
+    /** Check if the arguments of this function are number types. */
+    bool acceptsNumbers() const {
+        return binaryOpAcceptsNumbers(fun);
+    }
+
+    /** Check if the arguments of this function are symbol types. */
+    bool acceptsSymbols() const {
+        return binaryOpAcceptsSymbols(fun);
     }
 
     /** Print argument to the given output stream */

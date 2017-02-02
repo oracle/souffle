@@ -126,13 +126,14 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
 
     // - unary functors -
     visitDepthFirst(nodes, [&](const AstUnaryFunctor& fun) {
+
         // check arg
         auto arg = fun.getOperand();
 
         // check numerical operators
         if (fun.isNumerical()) {
             if (!isNumberType(typeAnalysis.getTypes(&fun))) {
-                report.addError("FOO", fun.getSrcLoc());
+                report.addError("Non-numerical use for numeric function", fun.getSrcLoc());
             }
         }
 
@@ -146,7 +147,7 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
         // check symbolic operators
         if (fun.isSymbolic()) {
             if (!isSymbolType(typeAnalysis.getTypes(&fun))) {
-                report.addError("BAR", fun.getSrcLoc());
+                report.addError("Non-symbol use for string function", fun.getSrcLoc());
             }
         }
 
@@ -161,12 +162,20 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
 
     // - binary functors -
     visitDepthFirst(nodes, [&](const AstBinaryFunctor& fun) {
+
         // check left and right side
         auto lhs = fun.getLHS();
         auto rhs = fun.getRHS();
 
-        // check numerical functions
+        // check numerical operators
         if (fun.isNumerical()) {
+            if (!isNumberType(typeAnalysis.getTypes(&fun))) {
+                report.addError("Non-numerical use for numeric function", fun.getSrcLoc());
+            }
+        }
+
+        // check numerical operands
+        if (fun.acceptsNumbers()) {
             if (!isNumberType(typeAnalysis.getTypes(lhs))) {
                 report.addError("Non-numerical operand for numeric function", lhs->getSrcLoc());
             }
@@ -175,15 +184,23 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
             }
         }
 
-        // check symbolic functions
+        // check symbolic operators
         if (fun.isSymbolic()) {
-            if (!isSymbolType(typeAnalysis.getTypes(lhs))) {
-                report.addError("Non-string operand for string function", lhs->getSrcLoc());
-            }
-            if (!isSymbolType(typeAnalysis.getTypes(rhs))) {
-                report.addError("Non-string operand for string function", rhs->getSrcLoc());
+            if (!isSymbolType(typeAnalysis.getTypes(&fun))) {
+                report.addError("Non-symbol use for string function", fun.getSrcLoc());
             }
         }
+
+        // check symbolic operands
+        if (fun.acceptsSymbols()) {
+            if (!isSymbolType(typeAnalysis.getTypes(lhs))) {
+                report.addError("Non-symbol operand for string function", lhs->getSrcLoc());
+            }
+            if (!isSymbolType(typeAnalysis.getTypes(rhs))) {
+                report.addError("Non-symbol operand for string function", rhs->getSrcLoc());
+            }
+        }
+
     });
 
     // - binary relation -
