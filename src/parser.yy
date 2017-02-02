@@ -375,11 +375,9 @@ arg: STRING {
    |  MINUS arg %prec NEG {
        std::unique_ptr<AstArgument> arg;
        if (const AstNumberConstant* original = dynamic_cast<const AstNumberConstant*>($2)) {
-           AstNumberConstant* number = new AstNumberConstant(-1*original->getIndex());
-           number->setSrcLoc($2->getSrcLoc());
+           $$ = new AstNumberConstant(-1*original->getIndex());
+           $$->setSrcLoc($2->getSrcLoc());
            delete $2;
-           $$ = new AstUnaryFunctor(UnaryOp::NEG, std::unique_ptr<AstArgument>(number));
-           $$->setSrcLoc(@$);
        } else {
            $$ = new AstUnaryFunctor(UnaryOp::NEG, std::unique_ptr<AstArgument>($2));
            $$->setSrcLoc(@$);
