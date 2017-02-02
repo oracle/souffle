@@ -692,7 +692,9 @@ namespace {
                 std::string filename = Global::config().get("fact-dir") + "/" + load.getFileName();
                 try {
                     IODirectives ioDirectives = load.getRelation().getIODirectives();
-                    if (!ioDirectives.isSet()) {
+                    // TODO (mmcgr): Determine the defaults earlier so RamExecutor doesn't need to know IO.
+                    if (ioDirectives.isEmpty()) {
+                        ioDirectives.setIOType("file");
                         ioDirectives.setFileName(filename);
                     }
                     RamRelation& relation = env.getRelation(load.getRelation());
@@ -715,9 +717,10 @@ namespace {
                 auto& rel = env.getRelation(store.getRelation());
                 IODirectives ioDirectives = store.getRelation().getIODirectives();
                 // Support old style input directives.
-                if (!ioDirectives.isSet()) {
+                if (ioDirectives.isEmpty()) {
                     if (toConsole) {
                         ioDirectives.setIOType("stdout");
+                        ioDirectives.setRelationName(store.getRelation().getName());
                     } else {
                         ioDirectives.setIOType("file");
                         ioDirectives.setFileName(
@@ -2042,11 +2045,11 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     bool toConsole = (Global::config().get("output-dir") == "-");
     visitDepthFirst(stmt, [&](const RamStatement& node) {
         if (auto store = dynamic_cast<const RamStore*>(&node)) {
-
             IODirectives ioDirectives = store->getRelation().getIODirectives();
-            if (!ioDirectives.isSet()) {
+            if (ioDirectives.isEmpty()) {
                 if (toConsole) {
                     ioDirectives.setIOType("stdout");
+                    ioDirectives.setRelationName(store->getRelation().getName());
                 } else {
                     ioDirectives.setIOType("file");
                     ioDirectives.setFileName(Global::config().get("output-dir") + "/" + store->getFileName());
@@ -2075,7 +2078,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "void loadAll(std::string dirname=\"" << Global::config().get("fact-dir") << "\") {\n";
     visitDepthFirst(stmt, [&](const RamLoad& load) {
         IODirectives ioDirectives = load.getRelation().getIODirectives();
-        if (!ioDirectives.isSet()) {
+        if (ioDirectives.isEmpty()) {
             ioDirectives.setIOType("file");
             ioDirectives.setFileName(Global::config().get("fact-dir") + "/" + load.getFileName());
         }

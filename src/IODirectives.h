@@ -24,11 +24,9 @@ namespace souffle {
 class IODirectives {
 public:
     IODirectives() {
-        setDefaults();
     }
 
     IODirectives(const std::map<std::string, std::string>& directiveMap) {
-        setDefaults();
         for (const auto& pair : directiveMap) {
             directives[pair.first] = pair.second;
         }
@@ -69,14 +67,11 @@ public:
     }
 
     void setRelationName(const std::string& name) {
-        if (directives.count("filename") == 0) {
-            directives["filename"] = name + ".facts";
-        }
         directives["name"] = name;
     }
 
-    bool isSet() {
-        return set;
+    bool isEmpty() {
+        return directives.empty();
     }
 
     void print(std::ostream& out) const {
@@ -99,10 +94,6 @@ public:
     }
 
 private:
-    void setDefaults() {
-        directives["IO"] = "file";
-    }
-
     std::string escape(const std::string& inputString) const {
         std::string escaped = escape(inputString, "\"", "\\\"");
         escaped = escape(escaped, "\t", "\\t");

@@ -73,7 +73,9 @@ namespace {
             astIODirective.addAstIODirectives(*current);
         }
         IODirectives ioDirectives(astIODirective.getIODirectiveMap());
-        ioDirectives.setRelationName(getRelationName(rel->getName()));
+        if (!ioDirectives.isEmpty()) {
+            ioDirectives.setRelationName(getRelationName(rel->getName()));
+        }
 
         return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers,
                 getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), rel->isOutput(),
