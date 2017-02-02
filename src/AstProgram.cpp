@@ -268,8 +268,8 @@ void AstProgram::finishParsing() {
         }
     }
     // remember the remaining orphan directives
-    unboundDirectives.clear();
-    unboundDirectives.swap(unboundDirectives);
+    ioDirectives.clear();
+    ioDirectives.swap(unboundDirectives);
 }
 
 } // end of namespace souffle
