@@ -20,7 +20,7 @@ souffle_setup() {
     ./bootstrap && \
     chmod 775 configure && \
     ./configure && \
-    make -j $JOBS && \
+    make -j$JOBS && \
     cd -
 }
 
@@ -32,12 +32,12 @@ souffle_teardown() {
 
 souffle_make() {
     cd $SOUFFLE && \
-    make -j $JOBS && \
+    make -j$JOBS && \
     cd -
 }
 
 souffle_test() {
-    cd $SOUFFLE/test && \
-    ./testsuite -j $JOBS $@ && \
+    cd $SOUFFLE/tests && \
+    ./testsuite -j$JOBS $@ && \
     cd -
 }
