@@ -219,7 +219,20 @@ void Tui::outputJson() {
                 std::fprintf(outfile, "'%s',",rel_row[6]->getStringVal().c_str());
             }
         }
-        std::fprintf(outfile, "],{}],\n");
+        std::fprintf(outfile, "],{\"tot_t\":[");
+        std::vector <std::shared_ptr<Iteration>> iter = run->getRelation_map()[row[5]->getStringVal()]->getIterations();
+        for (auto &i : iter) {
+            std::fprintf(outfile, "%s,",Tools::cleanJsonOut(i->getRuntime()).c_str());
+        }
+        std::fprintf(outfile, "],\"copy_t\":[");
+        for (auto &i : iter) {
+            std::fprintf(outfile, "%s,",Tools::cleanJsonOut(i->getCopy_time()).c_str());
+        }
+        std::fprintf(outfile, "],\"tuples\":[");
+        for (auto &i : iter) {
+            std::fprintf(outfile, "%lu,",i->getNum_tuples());
+        }
+        std::fprintf(outfile,"]}],\n");
     }
     std::fprintf(outfile, "},'rul':{\n");
 
@@ -262,25 +275,60 @@ void Tui::outputJson() {
                          ver_row[4]->getLongVal(),src.c_str(),ver_row[8]->getLongVal());
 
         }
-        if (has_ver) {
+        if (row[6]->getStringVal().at(0) == 'C') {
+            std::fprintf(outfile, "],{\"tot_t\":[");
 
-            std::fprintf(outfile, "],{},{\"tot_t\":[\n");
 
-            for (auto &row : ver_table.rows) {
-                std::fprintf(outfile, "%s,",Tools::cleanJsonOut((*row)[0]->getDoubVal()).c_str());
+
+            std::vector<long> iteration_tuples;
+            for (auto &i : run->getRelation_map()[row[7]->getStringVal()]->getIterations()) {
+                bool add = false;
+                double tot_time = 0.0;
+                long tot_num = 0.0;
+                for (auto &rul : i->getRul_rec()) {
+                    if (rul.second->getId().compare(row[6]->getStringVal()) == 0) {
+                        tot_time += rul.second->getRuntime();
+
+                        tot_num += rul.second->getNum_tuples();
+                        add = true;
+                    }
+                }
+                if (add) {
+                    std::fprintf(outfile, "%s,",Tools::cleanJsonOut(tot_time).c_str());
+                    iteration_tuples.push_back(tot_num);
+                }
+
             }
-            std::fprintf(outfile, "],\n\"copy_t\":[");
-            for (auto &row : ver_table.rows) {
-                std::fprintf(outfile, "%s,",Tools::cleanJsonOut((*row)[3]->getDoubVal()).c_str());
+            std::fprintf(outfile, "], \"tuples\":[");
+            for (auto &i : iteration_tuples) {
+                std::fprintf(outfile, "%lu,",i);
             }
-            std::fprintf(outfile, "],\n\"tuples\":[");
-            for (auto &row : ver_table.rows) {
-                std::fprintf(outfile, "%ld,",(*row)[4]->getLongVal());
+
+            std::fprintf(outfile, "]},{");
+
+            if (has_ver) {
+                std::fprintf(outfile, "\"tot_t\":[\n");
+
+                for (auto &row : ver_table.rows) {
+                    std::fprintf(outfile, "%s,",Tools::cleanJsonOut((*row)[0]->getDoubVal()).c_str());
+                }
+                std::fprintf(outfile, "],\n\"copy_t\":[");
+                for (auto &row : ver_table.rows) {
+                    std::fprintf(outfile, "%s,",Tools::cleanJsonOut((*row)[3]->getDoubVal()).c_str());
+                }
+                std::fprintf(outfile, "],\n\"tuples\":[");
+                for (auto &row : ver_table.rows) {
+                    std::fprintf(outfile, "%ld,",(*row)[4]->getLongVal());
+                }
+                std::fprintf(outfile, "]}],\n");
+            } else {
+                std::fprintf(outfile, "}],\n");
             }
-            std::fprintf(outfile, "]}],\n");
         } else {
             std::fprintf(outfile, "],{},{}],\n");
         }
+
+
     }
     std::fprintf(outfile, "}};");
 
