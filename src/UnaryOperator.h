@@ -59,7 +59,7 @@ inline UnaryOp getUnaryOpForSymbol(const std::string &symbol) {
 }
 
 /**
- * Returns whether the given operator has numeric operands.
+ * Returns whether the given operator has a numeric return value.
  */
 inline bool isNumericUnaryOp(const UnaryOp op) {
     switch(op) {
@@ -74,17 +74,20 @@ inline bool isNumericUnaryOp(const UnaryOp op) {
 }
 
 /**
- * Returns whether the given operator has symbolic operands.
+ * Returns whether the given operator has a symbolic return value.
  */
 inline bool isSymbolicUnaryOp(const UnaryOp op) {
     return !isNumericUnaryOp(op);
 }
 
+/**
+ * Returns whether the given operator takes a numeric argument.
+ */
 inline bool unaryOpAcceptsNumbers(const UnaryOp op) {
     switch (op) {
     case UnaryOp::NEG:
     case UnaryOp::BNOT:
-    case UnaryOp::LNOT:
+    case UnaryOp::LNOT: return true;
     case UnaryOp::ORD: return false;
     default: break;
     }
@@ -92,16 +95,11 @@ inline bool unaryOpAcceptsNumbers(const UnaryOp op) {
     return false;
 }
 
+/**
+ * Returns whether the given operator takes a symbolic argument.
+ */
 inline bool unaryOpAcceptsSymbols(const UnaryOp op) {
-    switch (op) {
-    case UnaryOp::NEG:
-    case UnaryOp::BNOT:
-    case UnaryOp::LNOT: return false;
-    case UnaryOp::ORD: return true;
-    default: break;
-    }
-    assert(false && "Unsupported operator encountered!");
-    return false;
+    return !unaryOpAcceptsNumbers(op);
 }
 
 } // end of namespace souffle

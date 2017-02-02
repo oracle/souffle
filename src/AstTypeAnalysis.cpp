@@ -739,7 +739,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(const TypeEnvir
         }
 
         void visitNumberConstant(const AstNumberConstant& cnst) {
-            // this type has to be a sub-type of symbol
+            // this type has to be a sub-type of number
             addConstraint(isSubtypeOf(getVar(cnst), env.getNumberType()));
         }
 

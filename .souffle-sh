@@ -32,12 +32,27 @@ souffle_teardown() {
 
 souffle_make() {
     cd $SOUFFLE && \
-    make -j$JOBS && \
+    make -j$JOBS $1 && \
     cd -
 }
 
 souffle_test() {
+    souffle_make &&
     cd $SOUFFLE/tests && \
     ./testsuite -j$JOBS $@ && \
     cd -
+}
+
+souffle_debug() {
+    souffle_make && \
+    mkdir -p $SOUFFLE/tests/testsuite.dir/$1/$2 && \
+    ln -sf $SOUFFLE/tests/$1/$2/$2.dl $SOUFFLE/tests/testsuite.dir/$1/$2/$2.dl && \
+    $SOUFFLE/src/souffle $SOUFFLE/tests/$1/$2/$2.dl \
+        -F $SOUFFLE/tests/$1/$2/facts \
+        -D $SOUFFLE/tests/testsuite.dir/$1/$2 \
+        -j$JOBS \
+        --debug-report=$SOUFFLE/tests/testsuite.dir/$1/$2/$2.html \
+        $3 \
+        1> $SOUFFLE/tests/testsuite.dir/$1/$2/$2.out \
+        2> $SOUFFLE/tests/testsuite.dir/$1/$2/$2.err
 }
