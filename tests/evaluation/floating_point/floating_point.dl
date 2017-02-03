@@ -7,8 +7,8 @@
 //
 
 .decl test_modulo( x:number ) output
-test_modulo :- x = 1, y = 0, x % y = 0, x % 0 = 0.
+test_modulo(x) :- x = 1, y = 0, x % y = 0, x % 0 = 0.
 
 
 .decl test_divide( x:number ) output
-test_divide :- x = 1, y = 0, x / y = 0, x / 0 = 0.
+test_divide(x) :- x = 1, y = 0, x / y = 0, x / 0 = 0.
