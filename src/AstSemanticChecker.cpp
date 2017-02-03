@@ -120,13 +120,6 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
            report.addError("Null constant used as a non-record", cnst.getSrcLoc());
     });
 
-    // all record initialisations are used as records
-    visitDepthFirst(nodes, [&](const AstRecordInit& cnst) {
-       TypeSet types = typeAnalysis.getTypes(&cnst);
-       if (!isRecordType(types))
-           report.addError("Record initialisation (type mismatch)", cnst.getSrcLoc());
-    });
-
     // - unary functors -
     visitDepthFirst(nodes, [&](const AstUnaryFunctor& fun) {
 
