@@ -9,8 +9,9 @@ echo -n "Version: "
 git describe --tags --abbrev=0 --always
 if [ "$TEST_FORMAT" == 1 ]
 then
-  clang-format --version
+  /usr/bin/clang-format --version
   $(dirname $0)/checkStyle.sh HEAD~
+  exit 0
 fi
 
 # create configure files
