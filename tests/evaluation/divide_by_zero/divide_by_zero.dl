@@ -1,5 +1,5 @@
 //
-// Floating Point
+// Divide By Zero
 //
 // This test checks that division and modulo by zero are handled correctly.
 // It was created in response to issue #231 "Uninformative Exception
