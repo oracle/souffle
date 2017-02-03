@@ -241,9 +241,6 @@ std::string Tools::cleanString(std::string val) {
         return val;
     }
 
-    if (val.at(0) == '"' && val.at(val.size() - 1) == '"') {
-        val = val.substr(1, val.size() - 2);
-    }
 
     size_t start_pos = 0;
     while ((start_pos = val.find('\\', start_pos)) != std::string::npos) {
@@ -256,6 +253,11 @@ std::string Tools::cleanString(std::string val) {
             //}
         }
     }
+
+    if (val.at(0) == '"' && val.at(val.size() - 1) == '"') {
+        val = val.substr(1, val.size() - 2);
+    }
+
     return val;
 }
 

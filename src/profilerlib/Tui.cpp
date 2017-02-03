@@ -81,7 +81,7 @@ void Tui::runCommand(std::vector <std::string> c) {
     } else if (c[0].compare("help") == 0) {
         help();
     } else {
-        std::cout << "Unknown command. Type help for a list of commands.\n";
+        std::cout << "Unknown command. Use \"help\" for a list of commands.\n";
     }
 }
 
@@ -425,7 +425,7 @@ void Tui::help() {
                 "graph recursive(C) rule by type(tot_t/tuples).");
     std::printf("  %-30s%-5s %-10s\n",
                 "graph ver <rule id> <type>", "-",
-                "graph recusive(C) rule versions by type(tot_t/copy_t/tuples).");
+                "graph recursive(C) rule versions by type(tot_t/copy_t/tuples).");
     std::printf("  %-30s%-5s %-10s\n", "top", "-",
                 "display top-level summary of program run.");
     std::printf("  %-30s%-5s %-10s\n", "help", "-",
@@ -433,7 +433,7 @@ void Tui::help() {
 
     std::cout << "\nInteractive mode only commands:" << std::endl;
     std::printf("  %-30s%-5s %-10s\n", "load <filename>",
-                "-", "load the given proflier log file.");
+                "-", "load the given profiler log file.");
     std::printf("  %-30s%-5s %-10s\n", "open", "-",
                 "list stored souffle log files.");
     std::printf("  %-30s%-5s %-10s\n", "open <filename>",
@@ -744,7 +744,6 @@ void Tui::verGraph(std::string c, std::string col) {
     std::string strRel = "R" + part[0].substr(1);
 
     Table ver_table = out.getVersions(strRel, c);
-    // std::printf("%6s%2s%-25s\n\n", ver_table[0][6], "", ver_table[0][5])));
     std::printf("%6s%2s%-25s\n\n", (*ver_table.rows[0])[6]->getStringVal().c_str(), "",
                 (*ver_table.rows[0])[5]->getStringVal().c_str());
     if (col.compare("tot_t") == 0) {

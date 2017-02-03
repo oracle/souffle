@@ -990,6 +990,12 @@ inline std::string stringify(const std::string &input)
     }
     // replace double-quotes returns by escape sequence
     start_pos = 0;
+    while((start_pos = str.find('"', start_pos)) != std::string::npos) {
+        str.replace(start_pos, 1, "\\\"");
+        start_pos +=2;
+    }
+    // replace newlines returns by escape sequence
+    start_pos = 0;
     while((start_pos = str.find('\n', start_pos)) != std::string::npos) {
         str.replace(start_pos, 1, "\\n");
         start_pos +=2;
