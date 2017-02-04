@@ -16,6 +16,7 @@
 
 #include "WriteStream.h"
 
+#include "gzfstream.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
 
@@ -77,6 +78,22 @@ private:
     WriteStreamCSV writeStream;
 };
 
+class WriteGZipFileCSV : public WriteStream {
+public:
+    WriteGZipFileCSV(const std::string& filename, const SymbolMask& symbolMask,
+            const SymbolTable& symbolTable, char delimiter = '\t')
+            : file(filename), writeStream(file, symbolMask, symbolTable, delimiter) {}
+    virtual void writeNextTuple(const RamDomain* tuple) {
+        writeStream.writeNextTuple(tuple);
+    }
+
+    virtual ~WriteGZipFileCSV() {}
+
+private:
+    gzfstream::ogzfstream file;
+    WriteStreamCSV writeStream;
+};
+
 class WriteCoutCSV : public WriteStream {
 public:
     WriteCoutCSV(const std::string& relationName, const SymbolMask& symbolMask,
@@ -112,8 +129,13 @@ public:
     virtual std::unique_ptr<WriteStream> getWriter(
             const SymbolMask& symbolMask, const SymbolTable& symbolTable, const IODirectives& ioDirectives) {
         char delimiter = getDelimiter(ioDirectives);
-        return std::unique_ptr<WriteFileCSV>(
-                new WriteFileCSV(ioDirectives.get("filename"), symbolMask, symbolTable, delimiter));
+        if (ioDirectives.has("compress")) {
+            return std::unique_ptr<WriteGZipFileCSV>(
+                    new WriteGZipFileCSV(ioDirectives.get("filename"), symbolMask, symbolTable, delimiter));
+        } else {
+            return std::unique_ptr<WriteFileCSV>(
+                    new WriteFileCSV(ioDirectives.get("filename"), symbolMask, symbolTable, delimiter));
+        }
     }
     virtual const std::string& getName() const { return name; }
     virtual ~WriteFileCSVFactory() {}

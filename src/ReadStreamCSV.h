@@ -16,11 +16,11 @@
 
 #include "ReadStream.h"
 
+#include "gzfstream.h"
 #include "RamTypes.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
 
-#include <fstream>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -174,7 +174,7 @@ private:
     }
 
     std::string baseName;
-    std::ifstream fileHandle;
+    gzfstream::igzfstream fileHandle;
     ReadStreamCSV readStream;
 };
 
