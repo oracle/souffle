@@ -1,3 +1,12 @@
+/*
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2016, The Souffle Developers. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
+ */
+
+
 data={'top':[303.113000,208761997],
     'rel':{
         'R2':['cs_analysis.IsSecureClass','R2',2.533250e-01,2.533250e-01,0.000000e+00,0.000000e+00,481,'/home/scholz/index/benchmark/cs-pts2.dl [497:1-497:34]',['N2.32','N2.40','N2.1','N2.13','N2.4','N2.9','N2.28','N2.6','N2.18','N2.49','N2.21','N2.30','N2.44','N2.47','N2.25','N2.20','N2.15','N2.12','N2.27','N2.36','N2.46','N2.45','N2.24','N2.48','N2.35','N2.19','N2.7','N2.10','N2.34','N2.5','N2.3','N2.33','N2.16','N2.22','N2.14','N2.31','N2.43','N2.23','N2.8','N2.26','N2.2','N2.11','N2.41','N2.29','N2.17','N2.42','N2.37','N2.39','N2.38',],{"tot_t":[],"copy_t":[],"tuples":[]}],
