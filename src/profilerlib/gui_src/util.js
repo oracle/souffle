@@ -1,10 +1,11 @@
 /*
  * Souffle - A Datalog Compiler
- * Copyright (c) 2016, The Souffle Developers. All rights reserved
+ * Copyright (c) 2017, The Souffle Developers. All rights reserved
  * Licensed under the Universal Permissive License v 1.0 as shown at:
  * - https://opensource.org/licenses/UPL
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
+
 
 function clean_percentages(data) {
     if (data < 1) {
@@ -27,7 +28,6 @@ function humanize_time(time) {
         if (micro >= 1) {
             return micro.toFixed(1) + "µs"
         }
-        //return "-";
         return (micro*1000).toFixed(1) + "ns"
     } else {
         minutes = (time / 60.0);
@@ -47,22 +47,22 @@ function humanize_time(time) {
 function minify_numbers(num) {
     if (precision) return num.toString();
     kilo = (num / 1000);
-    if (kilo < 3) return num;
+    if (kilo < 1) return num;
     mil = (kilo / 1000);
-    if (mil < 3) return kilo.toFixed(1) + "K";
+    if (mil < 1) return kilo.toPrecision(3) + "K";
     bil = (mil / 1000);
-    if (bil < 3) return mil.toFixed(1) + "M";
+    if (bil < 1) return mil.toPrecision(3) + "M";
     tril = (bil / 1000);
-    if (tril < 3) return days.toFixed(1) + "B";
+    if (tril < 1) return days.toPrecision(3) + "B";
     quad = (tril / 1000);
-    if (quad < 3) return weeks.toFixed(1) + "T";
+    if (quad < 1) return weeks.toPrecision(3) + "T";
     quin = (quad / 1000);
-    if (quin < 3) return weeks.toFixed(1) + "q";
+    if (quin < 1) return weeks.toPrecision(3) + "q";
     sex = (quin / 1000);
-    if (sex < 3) return weeks.toFixed(1) + "Q";
+    if (sex < 1) return weeks.toPrecision(3) + "Q";
     sept = (quin / 1000);
-    if (sept < 3) return weeks.toFixed(1) + "s";
-    return sept.toFixed(1) + "S"
+    if (sept < 1) return weeks.toPrecision(3) + "s";
+    return sept.toFixed(2) + "S"
 }
 
 
