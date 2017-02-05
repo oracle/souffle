@@ -976,13 +976,13 @@ inline std::string baseName(std::string &filename)
 }
 
 /**
- * Stringify a string using escapes for newline, tab, and double-quotes
+ * Stringify a string using escapes for newline, tab, double-quotes and semicolons
  */
 inline std::string stringify(const std::string &input)
 {
     std::string str(input);
 
-    // replace double-quotes returns by escape sequence
+    // replace semicolons returns by escape sequence
     size_t start_pos = 0;
     while((start_pos = str.find(';', start_pos)) != std::string::npos) {
         str.replace(start_pos, 1, "\\;");
@@ -994,13 +994,13 @@ inline std::string stringify(const std::string &input)
         str.replace(start_pos, 1, "\\\"");
         start_pos +=2;
     }
-    // replace newlines returns by escape sequence
+    // replace newline returns by escape sequence
     start_pos = 0;
     while((start_pos = str.find('\n', start_pos)) != std::string::npos) {
         str.replace(start_pos, 1, "\\n");
         start_pos +=2;
     }
-    // replace double-quotes returns by escape sequence
+    // replace tab returns by escape sequence
     start_pos = 0;
     while((start_pos = str.find('\t', start_pos)) != std::string::npos) {
         str.replace(start_pos, 1, "\\t");
