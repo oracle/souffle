@@ -52,14 +52,6 @@ public:
     const std::string& getCompileScript() const { return compileScript; }
     const std::string& getOutputDatabaseName() const { return outputDatabaseName; }
 
-    const std::string& getSourceFileName() const { return Global::getInstance().get(""); }
-    const std::string& getFactFileDir() const { return Global::getInstance().get("fact-dir"); }
-    const std::string& getOutputDir() const { return Global::getInstance().get("output-dir"); }
-    size_t getNumThreads() const { return std::stoi(Global::getInstance().get("jobs")); }
-    bool isParallel() const { return !Global::getInstance().has("jobs", "1"); }
-    bool isLogging() const { return Global::getInstance().has("profile"); }
-    const std::string& getProfileName() const { return Global::getInstance().get("profile"); }
-    bool isDebug() const { return Global::getInstance().has("debug"); }
 };
 
 /**
