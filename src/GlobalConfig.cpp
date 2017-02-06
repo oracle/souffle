@@ -3,14 +3,11 @@
 namespace souffle {
 
 
-GlobalConfig::GlobalConfig(int argc, char** argv, const std::string header, const std::string footer, const std::vector<MainOption> mainOptions)
-    : simple::Table<std::string, std::string>()
-    , argc (argc)
-    , argv (argv)
-    , header (header)
-    , footer (footer)
-    , mainOptions (mainOptions)
-{
+GlobalConfig::GlobalConfig()
+    : simple::Table<std::string, std::string>() {}
+
+void GlobalConfig::processArgs() {
+
     option longNames[mainOptions.size()];
     std::string shortNames = "";
     std::map<const char, const MainOption*> optionTable;
@@ -44,6 +41,18 @@ GlobalConfig::GlobalConfig(int argc, char** argv, const std::string header, cons
             set(iter->second->longName, arg);
         }
     }
+}
+
+void GlobalConfig::initialize(int argc, char** argv, const std::string header, const std::string footer, const std::vector<MainOption> mainOptions) {
+
+    this->argc = argc;
+    this->argv = argv;
+    this->header = header;
+    this->footer = footer;
+    this->mainOptions = mainOptions;
+
+    processArgs();
+
 
 }
 

@@ -71,7 +71,7 @@ int main(int argc, char **argv)
     /* Time taking for overall runtime */
     auto souffle_start = std::chrono::high_resolution_clock::now();
 
-    Global::setInstance(GlobalConfig(
+    Global::getInstance().initialize(
         argc,
         argv,
         []() {
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
             };
             return std::vector<MainOption>(std::begin(opts), std::end(opts));
         }()
-    ));
+    );
 
     // ------ command line arguments -------------
 
@@ -283,7 +283,7 @@ int main(int argc, char **argv)
     }
     transforms.push_back(std::unique_ptr<AstTransformer>(new AstExecutionPlanChecker()));
     if (Global::getInstance().has("auto-schedule")) {
-        transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer(Global::getInstance().get("fact-dir"), Global::getInstance().has("verbose"), !Global::getInstance().get("debug-report").empty())));
+        transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer()));
     }
     if (!Global::getInstance().get("debug-report").empty()) {
         auto parser_end = std::chrono::high_resolution_clock::now();
@@ -357,16 +357,16 @@ int main(int argc, char **argv)
     std::unique_ptr<RamExecutor> executor;
     if (Global::getInstance().has("generate") || Global::getInstance().has("compile")) {
         // configure compiler
-        executor = std::unique_ptr<RamExecutor>(new RamCompiler(Global::getInstance(), Global::getInstance().get("dl-program")));
+        executor = std::unique_ptr<RamExecutor>(new RamCompiler());
         if (Global::getInstance().has("verbose")) {
            executor -> setReportTarget(std::cout);
         }
     } else {
         // configure interpreter
         if (Global::getInstance().has("auto-schedule")) {
-            executor = std::unique_ptr<RamExecutor>(new RamGuidedInterpreter(Global::getInstance()));
+            executor = std::unique_ptr<RamExecutor>(new RamGuidedInterpreter());
         } else {
-            executor = std::unique_ptr<RamExecutor>(new RamInterpreter(Global::getInstance()));
+            executor = std::unique_ptr<RamExecutor>();
         }
     }
 

@@ -34,31 +34,20 @@ class Table {
         void print(std::ostream& os) { os << _data << std::endl; }
 };
 
-template<typename T>
-class Singleton {
-    private:
-        Singleton() {}
-        static T _instance;
-    public:
-        Singleton(const Singleton&) = delete;
-        Singleton& operator=(const Singleton&) = delete;
-        static const T& getInstance() { return _instance; }
-        static void setInstance(const T& instance) { _instance = instance; }
-};
+
 
 
 }
 
 
 
-class MainOption {
-    public:
-       const std::string longName;
-       const char shortName;
-       const std::string argument;
-       const std::string byDefault;
-       const std::string delimiter;
-       const std::string description;
+struct MainOption {
+       std::string longName;
+       char shortName;
+       std::string argument;
+       std::string byDefault;
+       std::string delimiter;
+       std::string description;
 };
 
 
@@ -68,21 +57,29 @@ class GlobalConfig : public simple::Table<std::string, std::string> {
     private:
         int argc;
         char** argv;
-        const std::string header;
-        const std::string footer;
-        const std::vector<MainOption> mainOptions;
+        std::string header;
+        std::string footer;
+        std::vector<MainOption> mainOptions;
+        void processArgs();
     public:
-        GlobalConfig(int argc, char** argv, const std::string header, const std::string footer, const std::vector<MainOption> mainOptions);
-        GlobalConfig(const GlobalConfig& other) { data(other.data()); }
-        GlobalConfig& operator=(const GlobalConfig& other) { data(other.data()); return *this; }
+        GlobalConfig();
+        void initialize(int argc, char** argv, const std::string header, const std::string footer, const std::vector<MainOption> mainOptions);
         void printHelp(std::ostream& os);
         void error();
 
 };
 
-
-class Global : public simple::Singleton<GlobalConfig> {
-
+class Global {
+    private:
+        Global() {}
+    public:
+        Global(const Global&) = delete;
+        Global& operator=(const Global&) = delete;
+        static GlobalConfig& getInstance() {
+            static GlobalConfig _instance;
+            return _instance;
+        }
 };
+
 
 };

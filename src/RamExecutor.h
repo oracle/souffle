@@ -24,6 +24,7 @@
 
 #include "RamRelation.h"
 #include "RamData.h"
+#include "GlobalConfig.h"
 
 namespace souffle {
 
@@ -40,60 +41,25 @@ class RamExecutorConfig {
     /** The name of the compile script */
     std::string compileScript;
 
+    std::string outputDatabaseName;
+
 public:
 
-    RamExecutorConfig() {}
+    RamExecutorConfig() : outputDatabaseName("") {}
 
     // TODO
+    void setCompileScript(const std::string& script) { compileScript = script; }
+    const std::string& getCompileScript() const { return compileScript; }
+    const std::string& getOutputDatabaseName() const { return outputDatabaseName; }
 
-    void setCompileScript(const std::string& script) {
-        compileScript = script;
-    }
-
-    const std::string& getCompileScript() const {
-        return compileScript;
-    }
-
-    // -- getters --
-
-    const std::string& getSourceFileName() const {
-        return Global::getInstance().get("");
-    }
-
-    const std::string& getFactFileDir() const {
-        return Global::getInstance().get("fact-dir");
-    }
-
-    const std::string& getOutputDir() const {
-        return Global::getInstance().get("output-dir");
-    }
-
-    const std::string& getOutputDatabaseName() const {
-        return "";
-    }
-
-    size_t getNumThreads() const {
-        return std::stoi(Global::getInstance().get("jobs"));
-    }
-
-    bool isParallel() const {
-        return !Global::getInstance().has("jobs", "1");
-    }
-
-    bool isLogging() const {
-        return Global::getInstance().has("profile");
-    }
-
-    const std::string& getProfileName() const {
-        return profileName;
-
-        return Global::getInstance().get("profile");
-    }
-
-    bool isDebug() const {
-        return Global::getInstance().has("debug");
-    }
-
+    const std::string& getSourceFileName() const { return Global::getInstance().get(""); }
+    const std::string& getFactFileDir() const { return Global::getInstance().get("fact-dir"); }
+    const std::string& getOutputDir() const { return Global::getInstance().get("output-dir"); }
+    size_t getNumThreads() const { return std::stoi(Global::getInstance().get("jobs")); }
+    bool isParallel() const { return !Global::getInstance().has("jobs", "1"); }
+    bool isLogging() const { return Global::getInstance().has("profile"); }
+    const std::string& getProfileName() const { return Global::getInstance().get("profile"); }
+    bool isDebug() const { return Global::getInstance().has("debug"); }
 };
 
 /**
@@ -297,6 +263,7 @@ public:
 
     /** A simple constructore */
     RamCompiler() {}
+    RamCompiler(const std::string& filename) { setBinaryFile(filename); }
 
     /**
      * Updates the file name of the binary to be utilized by
