@@ -15,10 +15,6 @@ Tui::Tui(std::string filename, bool live, bool gui) : out() {
 
     this->f_name = filename;
 
-    if (gui) {
-        std::cout << "Loading and processing file...\n";
-    }
-
     // out = OutputProcessor();
     std::shared_ptr <ProgramRun> &run = out.getProgramRun();
 

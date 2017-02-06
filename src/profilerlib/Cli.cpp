@@ -14,8 +14,7 @@
 
 
 void Cli::error() {
-    //std::cout << "\nExpected commands/args to run souffle-prof: \n";
-    std::cout << "./souffle-profile [-f|-j <file> [-c <command>] [-l]] [-h]\n";
+    std::cout << "souffle-profiler -v | -h | <log-file> [ -c <command> | -j | -l ]\n";
     exit(1);
 }
 
@@ -23,59 +22,67 @@ void Cli::parse() {
     std::vector<std::string> commands;
     std::string filename;
     bool alive = false;
+    bool gui = false;
 
     if (args.size() <= 1) {
         error();
     }
 
-    for (size_t i=1; i<args.size(); i++) {
-        std::string arg = args.at(i++);
-        if (arg.at(0) != '-') {
-            error();
-        }
+    size_t i = 1;
 
-        if (arg.compare("-h")==0) {
-            std::cout << "Souffle Profiler v3.0.1\n";
-            Tui::help();
-            error();
-        } else if (arg.compare("-c")==0) {
-            if (i < args.size()) {
-                // split at \s+ and save into commands
-                std::string& command_str = args.at(i++);
-                commands = Tools::split(command_str, " ");
+    std::string arg = args.at(i++);
+    if (arg.at(0) != '-') {
 
-            } else {
-                std::cout << "Parameters for option -c missing!\n";
-                error();
+        filename = arg;
+        if (args.size() > 2) {
+            arg = args.at(i++);
+
+            if (arg.compare("-c")==0) {
+                if (i < args.size()) {
+                    // split at \s+ and save into commands
+                    std::string& command_str = args.at(i++);
+                    commands = Tools::split(command_str, " ");
+                } else {
+                    std::cout << "Parameters for option -c missing!\n";
+                    error();
+                }
+            } else if (arg.compare("-l")==0) {
+                alive = true;
+            } else if (arg.compare("-j")==0) {
+                gui = true;
             }
-        } else if (arg.compare("-f")==0) {
-            if (i < args.size()) {
-                filename = args.at(i);
-            } else {
-                std::cout << "Parameters for option -f missing!\n";
-                error();
-            }
-        } else if (arg.compare("-j")==0) {
-            if (i < args.size()) {
-                filename = args.at(i);
-            } else {
-                std::cout << "Parameters for option -j missing!\n";
-                error();
-            }
-        } else if (arg.compare("-l")==0) {
-            alive = true;
-        } else {
-            std::cout << "Unknown argument " << args.at(i) << "\n";
-            error();
         }
+    } else if (arg.compare("-h")==0) {
+        std::cout << "Souffle Profiler v3.0.1\n";
+        std::cout << "usage: souffle-profiler -v | -h | <log-file> [ -c <command> | -j | -l ]\n"
+                <<  "<log-file>     the selected log file to profile\n"
+                <<  "-c <command>   run the given command on the log file (run -c \"help\" for a list of profiler commands)\n"
+                <<  "-j             generate a GUI(html/js) version of the profiler\n"
+                <<  "-l             run in live mode\n"
+                <<  "-v             print the profiler version\n"
+                <<  "-h             print this message" << std::endl;
+        error();
+    } else if (arg.compare("-v")==0) {
+        std::cout << "Souffle Profiler v3.0.1\n";
+        error();
+    } else if (arg.compare("-f")==0) {
+        std::cout << "Option -f has been phased out!\n";
+        error();
+    } else {
+        std::cout << "Unknown argument " << arg << "\n";
+        error();
     }
 
 
+    if (filename.empty()) {
+        error();
+    }
 
     if (commands.size() > 0) {
         Tui(filename, alive, false).runCommand(commands);
     } else {
-        if (args.at(1).compare("-j") == 0) {
+
+        if (gui) {
             Tui(filename, alive, true).outputJson();
         } else {
             Tui(filename, alive, false).runProf();
