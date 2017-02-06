@@ -16,19 +16,20 @@ GlobalConfig::GlobalConfig(int argc, char** argv, const std::string header, cons
     , footer (footer)
     , mainOptions (mainOptions)
 {
-    option longNames[mainOptions.size() + 1];
+    option longNames[mainOptions.size()];
     std::string shortNames = "";
     std::map<const char, const MainOption*> optionTable;
     int i = 0;
     for (const MainOption& opt : mainOptions) {
-        longNames[i] = (option) { opt.longName.c_str(), (!opt.argumentType.empty()), nullptr, opt.shortName };
-        shortNames += opt.shortName;
-        if (!opt.argumentType.empty()) {
-            shortNames += ":";
-        }
         optionTable[opt.shortName] = &opt;
         if (!opt.defaultValue.empty())
             set(opt.longName, opt.defaultValue);
+        if (opt.longName == "")
+            continue;
+        longNames[i] = (option) { opt.longName.c_str(), (!opt.argumentType.empty()), nullptr, opt.shortName };
+        shortNames += opt.shortName;
+        if (!opt.argumentType.empty())
+            shortNames += ":";
         ++i;
     }
     longNames[i] = {nullptr, false, nullptr, 0}; // the terminal option, needs to be null
