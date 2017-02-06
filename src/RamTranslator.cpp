@@ -69,7 +69,7 @@ namespace {
 
         return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers,
                                      getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), 
-                                     rel->isOutput(), rel->isData(), istemp);
+                                     rel->isOutput(), rel->isBTree, rel->isBrie(), rel->isEqRel(), rel->isData(), istemp);
 
     }
 }
