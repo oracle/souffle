@@ -174,9 +174,20 @@ struct Brie {
 // -------------------------------------------------------------
 
 /**
- * TODO: document this configuration ...
+ * A setup utilizing disjoint sets for binary relations exclusively
  */
-struct EqRel : public Auto {};      // for now, this is a synonym for Auto
+struct EqRel : public Auto {
+
+    // template<typename Tuple, typename Index, bool>
+    // struct eqrel_index_factory {
+    //     //TODO:
+    //     using type = typename index_utils::EqlRelIndex<Tuple,Index>;
+    // };
+    
+    // // determines the relation implementation for a given use case
+    // template<unsigned arity, typename ... Indices>
+    // using relation = detail::SingleIndexTypeRelation<eqrel_index_factory,arity,Indices...>;
+};
 
 
 

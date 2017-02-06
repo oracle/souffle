@@ -198,9 +198,9 @@ namespace ram {
     }
 
 
-    TEST(Relation, Basic) {
+       TEST(Relation, Basic) {
 
-        typedef Relation<2> relation_t;
+        typedef Relation<Auto,2> relation_t;
 
         relation_t data;
 
@@ -238,36 +238,36 @@ namespace ram {
 
     }
 
-    TEST(Relation, Structure) {
+    TEST(Relation, Structure_Auto) {
 
         // check the proper instantiation of a few relations
-        EXPECT_EQ("Nullary Relation",                                                              Relation<0>().getDescription());
-        EXPECT_EQ("Index-Organized Relation of arity=1 based on a trie-index(<0>)",                Relation<1>().getDescription());
-        EXPECT_EQ("Index-Organized Relation of arity=2 based on a trie-index(<0,1>)",              Relation<2>().getDescription());
-        EXPECT_EQ("Index-Organized Relation of arity=3 based on a direct-btree-index(<0,1,2>)",    Relation<3>().getDescription());
-        EXPECT_EQ("Index-Organized Relation of arity=4 based on a direct-btree-index(<0,1,2,3>)",  Relation<4>().getDescription());
+        EXPECT_EQ("Nullary Relation",                                                              (Relation<Auto,0>().getDescription()));
+        EXPECT_EQ("Index-Organized Relation of arity=1 based on a trie-index(<0>)",                (Relation<Auto,1>().getDescription()));
+        EXPECT_EQ("Index-Organized Relation of arity=2 based on a trie-index(<0,1>)",              (Relation<Auto,2>().getDescription()));
+        EXPECT_EQ("Index-Organized Relation of arity=3 based on a direct-btree-index(<0,1,2>)",    (Relation<Auto,3>().getDescription()));
+        EXPECT_EQ("Index-Organized Relation of arity=4 based on a direct-btree-index(<0,1,2,3>)",  (Relation<Auto,4>().getDescription()));
 
-        EXPECT_EQ("Index-Organized Relation of arity=1 based on a trie-index(<0>)",                 (Relation<1,index<0>>()).getDescription());
-        EXPECT_EQ("Index-Organized Relation of arity=2 based on a trie-index(<1,0>)",               (Relation<2,index<1>>()).getDescription());
-        EXPECT_EQ("Index-Organized Relation of arity=3 based on a direct-btree-index(<2,0,1>)",     (Relation<3,index<2>>()).getDescription());
-        EXPECT_EQ("Index-Organized Relation of arity=3 based on a direct-btree-index(<1,0,2>)",     (Relation<3,index<1>>()).getDescription());
+        EXPECT_EQ("Index-Organized Relation of arity=1 based on a trie-index(<0>)",                 (Relation<Auto,1,index<0>>()).getDescription());
+        EXPECT_EQ("Index-Organized Relation of arity=2 based on a trie-index(<1,0>)",               (Relation<Auto,2,index<1>>()).getDescription());
+        EXPECT_EQ("Index-Organized Relation of arity=3 based on a direct-btree-index(<2,0,1>)",     (Relation<Auto,3,index<2>>()).getDescription());
+        EXPECT_EQ("Index-Organized Relation of arity=3 based on a direct-btree-index(<1,0,2>)",     (Relation<Auto,3,index<1>>()).getDescription());
 
         // most of it should be direct indices
         EXPECT_EQ(
             "DirectIndexedRelation of arity=2 with indices [ trie-index(<0,1>) trie-index(<1,0>)  ] where <0,1> is the primary index",
-            (Relation<2,index<0,1>,index<1,0>>()).getDescription()
+            (Relation<Auto,2,index<0,1>,index<1,0>>()).getDescription()
         );
 
         // partial indices are becoming full indices for small arities
         EXPECT_EQ(
             "DirectIndexedRelation of arity=2 with indices [ trie-index(<0,1>) trie-index(<1,0>)  ] where <0,1> is the primary index",
-            (Relation<2,index<0,1>,index<1>>()).getDescription()
+            (Relation<Auto,2,index<0,1>,index<1>>()).getDescription()
         );
 
         // partial indices are becoming full indices for small arities
         EXPECT_EQ(
             "DirectIndexedRelation of arity=3 with indices [ direct-btree-index(<0,2,1>) direct-btree-index(<1,0,2>)  ] where <0,2,1> is the primary index",
-            (Relation<3,index<0,2,1>,index<1>>()).getDescription()
+            (Relation<Auto,3,index<0,2,1>,index<1>>()).getDescription()
         );
 
         // TODO: filter indices that are prefixes of others
@@ -275,15 +275,100 @@ namespace ram {
         // test larger relations
         EXPECT_EQ(
             "Relation of arity=8 with indices [ indirect-btree-index(<0,1,2,3,4,5,6,7>) indirect-btree-index(<0,1,2>) indirect-btree-index(<2,3,4>)  ] where <0,1,2,3,4,5,6,7> is the primary index",
-            (Relation<8,index<0,1,2>,index<2,3,4>>()).getDescription()
+            (Relation<Auto,8,index<0,1,2>,index<2,3,4>>()).getDescription()
         );
-
 
     }
 
+
+    TEST(Relation, Structure_BTree) {
+
+        // check the proper instantiation of a few relations
+        EXPECT_EQ("Nullary Relation",                                                              (Relation<BTree,0>().getDescription()));
+        EXPECT_EQ("Index-Organized Relation of arity=1 based on a direct-btree-index(<0>)",        (Relation<BTree,1>().getDescription()));
+        EXPECT_EQ("Index-Organized Relation of arity=2 based on a direct-btree-index(<0,1>)",      (Relation<BTree,2>().getDescription()));
+        EXPECT_EQ("Index-Organized Relation of arity=3 based on a direct-btree-index(<0,1,2>)",    (Relation<BTree,3>().getDescription()));
+        EXPECT_EQ("Index-Organized Relation of arity=4 based on a direct-btree-index(<0,1,2,3>)",  (Relation<BTree,4>().getDescription()));
+
+        EXPECT_EQ("Index-Organized Relation of arity=1 based on a direct-btree-index(<0>)",         (Relation<BTree,1,index<0>>()).getDescription());
+        EXPECT_EQ("Index-Organized Relation of arity=2 based on a direct-btree-index(<1,0>)",       (Relation<BTree,2,index<1>>()).getDescription());
+        EXPECT_EQ("Index-Organized Relation of arity=3 based on a direct-btree-index(<2,0,1>)",     (Relation<BTree,3,index<2>>()).getDescription());
+        EXPECT_EQ("Index-Organized Relation of arity=3 based on a direct-btree-index(<1,0,2>)",     (Relation<BTree,3,index<1>>()).getDescription());
+
+        // most of it should be direct indices
+        EXPECT_EQ(
+            "DirectIndexedRelation of arity=2 with indices [ direct-btree-index(<0,1>) direct-btree-index(<1,0>)  ] where <0,1> is the primary index",
+            (Relation<BTree,2,index<0,1>,index<1,0>>()).getDescription()
+        );
+
+        // partial indices are becoming full indices for small arities
+        EXPECT_EQ(
+            "DirectIndexedRelation of arity=2 with indices [ direct-btree-index(<0,1>) direct-btree-index(<1,0>)  ] where <0,1> is the primary index",
+            (Relation<BTree,2,index<0,1>,index<1>>()).getDescription()
+        );
+
+        // partial indices are becoming full indices for small arities
+        EXPECT_EQ(
+            "DirectIndexedRelation of arity=3 with indices [ direct-btree-index(<0,2,1>) direct-btree-index(<1,0,2>)  ] where <0,2,1> is the primary index",
+            (Relation<BTree,3,index<0,2,1>,index<1>>()).getDescription()
+        );
+
+        // TODO: filter indices that are prefixes of others
+
+        // test larger relations
+        EXPECT_EQ(
+            "DirectIndexedRelation of arity=8 with indices [ direct-btree-index(<0,1,2,3,4,5,6,7>) direct-btree-index(<2,3,4,0,1,5,6,7>)  ] where <0,1,2,3,4,5,6,7> is the primary index",
+            (Relation<BTree,8,index<0,1,2>,index<2,3,4>>()).getDescription()
+        );
+
+    }
+
+    TEST(Relation, Structure_Brie) {
+
+        // check the proper instantiation of a few relations
+        EXPECT_EQ("Nullary Relation",                                                              (Relation<Brie,0>().getDescription()));
+        EXPECT_EQ("Index-Organized Relation of arity=1 based on a trie-index(<0>)",                (Relation<Brie,1>().getDescription()));
+        EXPECT_EQ("Index-Organized Relation of arity=2 based on a trie-index(<0,1>)",              (Relation<Brie,2>().getDescription()));
+        EXPECT_EQ("Index-Organized Relation of arity=3 based on a trie-index(<0,1,2>)",            (Relation<Brie,3>().getDescription()));
+        EXPECT_EQ("Index-Organized Relation of arity=4 based on a trie-index(<0,1,2,3>)",          (Relation<Brie,4>().getDescription()));
+
+        EXPECT_EQ("Index-Organized Relation of arity=1 based on a trie-index(<0>)",                 (Relation<Brie,1,index<0>>()).getDescription());
+        EXPECT_EQ("Index-Organized Relation of arity=2 based on a trie-index(<1,0>)",               (Relation<Brie,2,index<1>>()).getDescription());
+        EXPECT_EQ("Index-Organized Relation of arity=3 based on a trie-index(<2,0,1>)",             (Relation<Brie,3,index<2>>()).getDescription());
+        EXPECT_EQ("Index-Organized Relation of arity=3 based on a trie-index(<1,0,2>)",             (Relation<Brie,3,index<1>>()).getDescription());
+
+        // most of it should be direct indices
+        EXPECT_EQ(
+            "DirectIndexedRelation of arity=2 with indices [ trie-index(<0,1>) trie-index(<1,0>)  ] where <0,1> is the primary index",
+            (Relation<Brie,2,index<0,1>,index<1,0>>()).getDescription()
+        );
+
+        // partial indices are becoming full indices for small arities
+        EXPECT_EQ(
+            "DirectIndexedRelation of arity=2 with indices [ trie-index(<0,1>) trie-index(<1,0>)  ] where <0,1> is the primary index",
+            (Relation<Brie,2,index<0,1>,index<1>>()).getDescription()
+        );
+
+        // partial indices are becoming full indices for small arities
+        EXPECT_EQ(
+            "DirectIndexedRelation of arity=3 with indices [ trie-index(<0,2,1>) trie-index(<1,0,2>)  ] where <0,2,1> is the primary index",
+            (Relation<Brie,3,index<0,2,1>,index<1>>()).getDescription()
+        );
+
+        // TODO: filter indices that are prefixes of others
+
+        // test larger relations
+        EXPECT_EQ(
+            "DirectIndexedRelation of arity=8 with indices [ trie-index(<0,1,2,3,4,5,6,7>) trie-index(<2,3,4,0,1,5,6,7>)  ] where <0,1,2,3,4,5,6,7> is the primary index",
+            (Relation<Brie,8,index<0,1,2>,index<2,3,4>>()).getDescription()
+        );
+
+    }
+
+
     TEST(Relation, BigTuple) {
 
-        typedef Relation<5> relation_t;
+        typedef Relation<Auto,5> relation_t;
 
         relation_t data;
 
@@ -320,7 +405,7 @@ namespace ram {
 
         int count = 0;
 
-        Relation<2, index<0>, index<1>> data;
+        Relation<Auto,2, index<0>, index<1>> data;
         typedef decltype(data)::tuple_type tuple_t;
 
         EXPECT_EQ(2*sizeof(RamDomain), sizeof(tuple_t));
@@ -420,7 +505,7 @@ namespace ram {
 
     TEST(Relation, EqualRange) {
 
-        Relation<2, index<0,1>, index<1,0>> rel;
+        Relation<Auto,2, index<0,1>, index<1,0>> rel;
         typedef decltype(rel)::tuple_type tuple_t;
 
         for(int i=0; i<5; i++) {
@@ -476,8 +561,8 @@ namespace ram {
 
     TEST(Relation, NullArity) {
 
-        Relation<0> rel;
-        EXPECT_EQ(0, sizeof(Relation<0>::tuple_type)); // strange, but true
+        Relation<Auto,0> rel;
+        EXPECT_EQ(0, sizeof(Relation<Auto,0>::tuple_type)); // strange, but true
 
         EXPECT_EQ(0, rel.size());
         EXPECT_TRUE(rel.empty());
@@ -521,7 +606,7 @@ namespace ram {
 
     TEST(Relation, SingleIndex) {
 
-        Relation<2,index<1,0>> rel;
+        Relation<Auto,2,index<1,0>> rel;
 
         EXPECT_TRUE(rel.empty());
         EXPECT_EQ(0, rel.size());
@@ -566,7 +651,7 @@ namespace ram {
 
     TEST(Relation, SingleIndexEqualRange) {
 
-        typedef Relation<3,index<0>>  rel_type;
+        typedef Relation<Auto,3,index<0>>  rel_type;
         typedef typename rel_type::tuple_type tuple_type;
 
         rel_type rel;
@@ -617,7 +702,7 @@ namespace ram {
 
     TEST(Relation, SingleIndexLowerUpperBound) {
 
-        typedef Relation<3,index<0>>  rel_type;
+        typedef Relation<Auto,3,index<0>>  rel_type;
         typedef typename rel_type::tuple_type tuple_type;
 
         rel_type rel;
@@ -689,7 +774,7 @@ namespace ram {
 
     TEST(Relation, Partition_0D) {
 
-        typedef Relation<0>  rel_type;
+        typedef Relation<Auto,0>  rel_type;
         typedef typename rel_type::tuple_type tuple_type;
 
         rel_type rel;
@@ -722,7 +807,7 @@ namespace ram {
     TEST(Relation, Partition_1D) {
         const int N = 1000;
 
-        typedef Relation<1,index<0>>  rel_type;
+        typedef Relation<Auto,1,index<0>>  rel_type;
         typedef typename rel_type::tuple_type tuple_type;
 
         rel_type rel;
@@ -757,7 +842,7 @@ namespace ram {
     TEST(Relation, Partition_2D) {
         const int N = 1000;
 
-        typedef Relation<2,index<0,1>>  rel_type;
+        typedef Relation<Auto,2,index<0,1>>  rel_type;
         typedef typename rel_type::tuple_type tuple_type;
 
         rel_type rel;
@@ -793,11 +878,11 @@ namespace ram {
 
     TEST(Relation, PartitionBug_InsertAll) {
 
-        typedef Relation<2>  rel_type;
+        typedef Relation<Auto,2>  rel_type;
         typedef typename rel_type::tuple_type tuple_type;
 
         // a bug encountered during development:
-        Relation<2,ram::index<0,1>> relA;
+        Relation<Auto,2,ram::index<0,1>> relA;
         relA.insert(2,0);
         relA.insert(0,3);
         relA.insert(3,4);
@@ -807,7 +892,7 @@ namespace ram {
         relA.insert(9,11);
         relA.insert(11,12);
 
-        Relation<2> rel;
+        Relation<Auto,2> rel;
         rel.insertAll(relA);
 
         std::set<tuple_type> all;
