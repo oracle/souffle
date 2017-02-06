@@ -119,25 +119,50 @@ namespace {
                 switch(op.getOperator()) {
 
                 // arithmetic
-                case BinaryOp::ADD: return visit(op.getLHS()) + visit(op.getRHS());
-                case BinaryOp::SUB: return visit(op.getLHS()) - visit(op.getRHS());
-                case BinaryOp::MUL: return visit(op.getLHS()) * visit(op.getRHS());
-                case BinaryOp::DIV: return visit(op.getLHS()) / visit(op.getRHS());
-                case BinaryOp::EXP: return std::pow(visit(op.getLHS()), visit(op.getRHS()));
-                case BinaryOp::MOD: return visit(op.getLHS()) % visit(op.getRHS());
-                case BinaryOp::BAND: return visit(op.getLHS()) & visit(op.getRHS());
-                case BinaryOp::BOR: return visit(op.getLHS()) | visit(op.getRHS());
-                case BinaryOp::BXOR: return visit(op.getLHS()) ^ visit(op.getRHS());
-                case BinaryOp::LAND: return visit(op.getLHS()) && visit(op.getRHS());
-                case BinaryOp::LOR: return visit(op.getLHS()) || visit(op.getRHS());
+                case BinaryOp::ADD: {
+                    return visit(op.getLHS()) + visit(op.getRHS());
+                }
+                case BinaryOp::SUB: {
+                    return visit(op.getLHS()) - visit(op.getRHS());
+                }
+                case BinaryOp::MUL: {
+                    return visit(op.getLHS()) * visit(op.getRHS());
+                }
+                case BinaryOp::DIV: {
+                    RamDomain rhs = visit(op.getRHS());
+                    assert(rhs != 0 && "unsupported operand (division by zero)");
+                    return visit(op.getLHS()) / rhs;
+                }
+                case BinaryOp::EXP: {
+                    return std::pow(visit(op.getLHS()), visit(op.getRHS()));
+                }
+                case BinaryOp::MOD: {
+                    RamDomain rhs = visit(op.getRHS());
+                    assert(rhs != 0 && "unsupported operand (modulo by zero)");
+                    return visit(op.getLHS()) % rhs;
+                }
+                case BinaryOp::BAND: {
+                    return visit(op.getLHS()) & visit(op.getRHS());
+                }
+                case BinaryOp::BOR: {
+                    return visit(op.getLHS()) | visit(op.getRHS());
+                }
+                case BinaryOp::BXOR: {
+                    return visit(op.getLHS()) ^ visit(op.getRHS());
+                }
+                case BinaryOp::LAND: {
+                    return visit(op.getLHS()) && visit(op.getRHS());
+                }
+                case BinaryOp::LOR: {
+                    return visit(op.getLHS()) || visit(op.getRHS());
+                }
 
                 // strings
                 case BinaryOp::CAT: {
-                    RamDomain a = visit(op.getLHS());
-                    RamDomain b = visit(op.getRHS());
-                    const std::string& l = env.getSymbolTable().resolve(a);
-                    const std::string& r = env.getSymbolTable().resolve(b);
-                    return env.getSymbolTable().lookup((l + r).c_str());
+                    return env.getSymbolTable().lookup((
+                        std::string(env.getSymbolTable().resolve(visit(op.getLHS()))) +
+                        std::string(env.getSymbolTable().resolve(visit(op.getRHS())))
+                    ).c_str());
                 }
                 default:
                     assert(0 && "unsupported operator");
@@ -172,8 +197,8 @@ namespace {
             // -- safety net --
 
             RamDomain visitNode(const RamNode& node) {
-                std::cout << "Unsupported node Type: " << typeid(node).name() << "\n";
-                assert(false && "Unsupported Node Type!");
+                std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
+                assert(false && "unsupported node type");
                 return 0;
             }
 
@@ -292,8 +317,8 @@ namespace {
             // -- safety net --
 
             bool visitNode(const RamNode& node) {
-                std::cout << "Unsupported node Type: " << typeid(node).name() << "\n";
-                assert(false && "Unsupported Node Type!");
+                std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
+                assert(false && "unsupported node type");
                 return 0;
             }
 
@@ -524,8 +549,8 @@ namespace {
 
             // -- safety net --
             void visitNode(const RamNode& node) {
-                std::cout << "Unsupported node Type: " << typeid(node).name() << "\n";
-                assert(false && "Unsupported Node Type!");
+                std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
+                assert(false && "unsupported node type");
             }
 
         };
@@ -740,8 +765,8 @@ namespace {
             // -- safety net --
 
             bool visitNode(const RamNode& node) {
-                std::cout << "Unsupported node Type: " << typeid(node).name() << "\n";
-                assert(false && "Unsupported Node Type!");
+                std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
+                assert(false && "unsupported node type");
                 return false;
             }
 
@@ -1632,18 +1657,22 @@ namespace {
             switch (op.getOperator()) {
 
             // arithmetic
-            case BinaryOp::ADD:
+            case BinaryOp::ADD: {
                 out << "(" << print(op.getLHS()) << ") + (" << print(op.getRHS()) << ")";
                 break;
-            case BinaryOp::SUB:
+            }
+            case BinaryOp::SUB: {
                 out << "(" << print(op.getLHS()) << ") - (" << print(op.getRHS()) << ")";
                 break;
-            case BinaryOp::MUL:
+            }
+            case BinaryOp::MUL: {
                 out << "(" << print(op.getLHS()) << ") * (" << print(op.getRHS()) << ")";
                 break;
-            case BinaryOp::DIV:
+            }
+            case BinaryOp::DIV: {
                 out << "(" << print(op.getLHS()) << ") / (" << print(op.getRHS()) << ")";
                 break;
+            }
             case BinaryOp::EXP: {
                 out << "(long)(std::pow((long)" << print(op.getLHS()) << "," << "(long)" << print(op.getRHS()) << "))";
                 break;
@@ -1723,8 +1752,8 @@ namespace {
         // -- safety net --
 
         void visitNode(const RamNode& node, std::ostream&) {
-            std::cout << "Unsupported node Type: " << typeid(node).name() << "\n";
-            assert(false && "Unsupported Node Type!");
+            std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
+            assert(false && "unsupported node type");
         }
 
     private:
