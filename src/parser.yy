@@ -94,6 +94,9 @@
 %token INPUT_QUALIFIER           "relation qualifier input"
 %token DATA_QUALIFIER            "relation qualifier data"
 %token PRINTSIZE_QUALIFIER       "relation qualifier printsize"
+%token BRIE_QUALIFIER            "BRIE datastructure qualifier"
+%token BTREE_QUALIFIER           "BTREE datastructure qualifier"
+%token EQREL_QUALIFIER           "equivalence relation qualifier"
 %token OVERRIDABLE_QUALIFIER     "relation qualifier overidable"
 %token TMATCH                    "match predicate"
 %token TCONTAINS                 "checks whether substring is contained in a string"
@@ -285,6 +288,9 @@ qualifiers: qualifiers OUTPUT_QUALIFIER { if($1 & OUTPUT_RELATION) driver.error(
           | qualifiers DATA_QUALIFIER { if($1 & DATA_RELATION) driver.error(@2, "input qualifier already set"); $$ = $1 | DATA_RELATION; }
           | qualifiers PRINTSIZE_QUALIFIER { if($1 & PRINTSIZE_RELATION) driver.error(@2, "printsize qualifier already set"); $$ = $1 | PRINTSIZE_RELATION; }
           | qualifiers OVERRIDABLE_QUALIFIER { if($1 & OVERRIDABLE_RELATION) driver.error(@2, "overridable qualifier already set"); $$ = $1 | OVERRIDABLE_RELATION; }
+          | qualifiers BRIE_QUALIFIER { if($1 & (BRIE_RELATION|BTREE_RELATION|EQREL_RELATION)) driver.error(@2, "btree/brie/eqrel qualifier already set"); $$ = $1 | BRIE_RELATION; }
+          | qualifiers BTREE_QUALIFIER { if($1 & (BRIE_RELATION|BTREE_RELATION|EQREL_RELATION)) driver.error(@2, "btree/brie/eqrel qualifier already set"); $$ = $1 | BTREE_RELATION; }
+          | qualifiers EQREL_QUALIFIER { if($1 & (BRIE_RELATION|BTREE_RELATION|EQREL_RELATION)) driver.error(@2, "btree/brie/eqrel qualifier already set"); $$ = $1 | EQREL_RELATION; }          
           | { $$ = 0; }
           ;
 

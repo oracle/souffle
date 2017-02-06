@@ -83,6 +83,9 @@
 "data"                           { return yy::parser::make_DATA_QUALIFIER(yylloc); }
 "overridable"                    { return yy::parser::make_OVERRIDABLE_QUALIFIER(yylloc); }
 "printsize"                      { return yy::parser::make_PRINTSIZE_QUALIFIER(yylloc); }
+"eqrel"                          { return yy::parser::make_EQREL_QUALIFIER(yylloc); } 
+"brie"                           { return yy::parser::make_BRIE_QUALIFIER(yylloc); } 
+"btree"                          { return yy::parser::make_BTREE_QUALIFIER(yylloc); } 
 "min"                            { return yy::parser::make_MIN(yylloc); }
 "max"                            { return yy::parser::make_MAX(yylloc); }
 "nil"                            { return yy::parser::make_NIL(yylloc); }
