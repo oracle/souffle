@@ -96,7 +96,7 @@ class GlobalConfig : public StringTable {
         GlobalConfig();
 
         /** Constructor for the environment. */
-        GlobalConfig(int argc, char** argv, const std::string header, const std::string footer, const std::vector<Option> options);
+        GlobalConfig(int argc, char** argv, const std::string header, const std::string footer, const std::vector<MainOption> mainOptions);
 
         /** Copy constructor for the environment. */
         GlobalConfig(const GlobalConfig& other) { data(other.data()); }

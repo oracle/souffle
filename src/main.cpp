@@ -122,7 +122,7 @@ int main(int argc, char **argv)
                 {"depth-limit",     4,    "N",   "", false, "Specify the depth limit used for the topological ordering of strongly connected components."},
                 {"lookahead",       5,    "N",   "", false, "Specify the lookahead used for the topological ordering of strongly connected components."}
             };
-            return std::vector<Option>(std::begin(opts), std::end(opts));
+            return std::vector<MainOption>(std::begin(opts), std::end(opts));
         }()
     );
 
@@ -190,7 +190,6 @@ int main(int argc, char **argv)
     if (globalConfig.has("include-dir")) {
         std::string currentInclude = "";
         std::string allIncludes = "";
-        globalConfig.set("include-dir");
         for (const char& ch : globalConfig.get("include-dir")) {
             if (ch == ' ') {
                 if (!existDir(currentInclude)) {

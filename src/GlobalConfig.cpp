@@ -8,34 +8,33 @@ GlobalConfig::GlobalConfig()
 
 }
 
-GlobalConfig::GlobalConfig(int argc, char** argv, const std::string header, const std::string footer, const std::vector<Option> options)
+GlobalConfig::GlobalConfig(int argc, char** argv, const std::string header, const std::string footer, const std::vector<MainOption> mainOptions)
     : StringTable()
     , argc (argc)
     , argv (argv)
     , header (header)
     , footer (footer)
-    , options (options)
+    , mainOptions (mainOptions)
 {
-    option longOptions[options.size() + 1];
-    std::map<const char, std::string> optionTable; // table to map flags to options
-    std::map<const char, bool> argumentTable; // table to map flags to argument quantities
+    option longNames[mainOptions.size() + 1];
+    std::string shortNames = "";
+    std::map<const char, const MainOption*> optionTable;
     int i = 0;
-    std::string shortOptions = "";
-    for (const Option& opt : options) {
-        longOptions[i] = (option) { opt.name.c_str(), (!opt.argument.empty()), nullptr, opt.flag };
-        optionTable[opt.flag] = opt.name;
-        argumentTable[opt.flag] = opt.takes_many;
-        shortOptions += opt.flag;
-        if (!opt.argument.empty()) {
-            shortOptions += ":";
+    for (const MainOption& opt : mainOptions) {
+        longNames[i] = (option) { opt.longName.c_str(), (!opt.argumentType.empty()), nullptr, opt.shortName };
+        shortNames += opt.shortName;
+        if (!opt.argumentType.empty()) {
+            shortNames += ":";
         }
-        if (!opt.by_default.empty()) set(opt.name, opt.by_default);
+        optionTable[opt.shortName] = &opt;
+        if (!opt.defaultValue.empty())
+            set(opt.longName, opt.defaultValue);
         ++i;
     }
-    longOptions[i] = {nullptr, false, nullptr, 0}; // the terminal option, needs to be null
+    longNames[i] = {nullptr, false, nullptr, 0}; // the terminal option, needs to be null
 
     int c;     /* command-line arguments processing */
-    while ((c = getopt_long(argc, argv, shortOptions.c_str(), longOptions, nullptr)) != EOF) {
+    while ((c = getopt_long(argc, argv, shortNames.c_str(), longNames, nullptr)) != EOF) {
         if (c == '?') error();
         auto iter = optionTable.find(c);
         if (iter == optionTable.end()) {
@@ -43,10 +42,10 @@ GlobalConfig::GlobalConfig(int argc, char** argv, const std::string header, cons
             abort();
         }
         std::string arg = (optarg) ? std::string(optarg) : std::string();
-        if (argumentTable[c]) {
-            set(iter->second, get(iter->second) + " " + arg);
+        if (iter->second->takesManyArguments) {
+            set(iter->second->longName, get(iter->second->longName) + ' ' + arg);
         } else {
-            set(iter->second, arg);
+            set(iter->second->longName, arg);
         }
     }
 
@@ -59,18 +58,18 @@ void GlobalConfig::printHelp(std::ostream& os) {
 
     // iterate over the options and obtain the maximum name and argument lengths
     int maxLongNameLength = 0, maxArgumentIdLength = 0;
-    for (const Option& opt : options) {
+    for (const MainOption& opt : mainOptions) {
         // if it is the main option, do nothing
         if (opt.longName == "") continue;
         // otherwise, proceed with the calculation
         maxLongNameLength = ((int) opt.longName.size() > maxLongNameLength) ? opt.longName.size() : maxLongNameLength;
-        maxArgumentIdLength = ((int) opt.argumentId.size() > maxArgumentIdLength) ? opt.argumentId.size() : maxArgumentIdLength;
+        maxArgumentIdLength = ((int) opt.argumentType.size() > maxArgumentIdLength) ? opt.argumentType.size() : maxArgumentIdLength;
     }
 
     // iterator over the options and pretty print them, using padding as determined
     // by the maximum name and argument lengths
     int length;
-    for (const Option& opt : options) {
+    for (const MainOption& opt : mainOptions) {
 
         // if it is the main option, do nothing
         if (opt.longName == "") continue;
@@ -80,9 +79,9 @@ void GlobalConfig::printHelp(std::ostream& os) {
         os << "\t";
         if (isalpha(opt.shortName)) {
             os << "-" << opt.shortName;
-            if (!opt.argumentId.empty()) {
-                os << "<" << opt.argumentId << ">";
-                length = opt.argumentId.size() + 2;
+            if (!opt.argumentType.empty()) {
+                os << "<" << opt.argumentType << ">";
+                length = opt.argumentType.size() + 2;
             }
         } else {
             os << "  ";
@@ -94,9 +93,9 @@ void GlobalConfig::printHelp(std::ostream& os) {
         // print the long form name and the argument parameter
         length = 0;
         os << "\t" << "--" << opt.longName;
-        if (!opt.argumentId.empty()) {
-            os << "=<" << opt.argumentId << ">";
-            length = opt.argumentId.size() + 3;
+        if (!opt.argumentType.empty()) {
+            os << "=<" << opt.argumentType << ">";
+            length = opt.argumentType.size() + 3;
         }
 
         // again, pad with empty space for prettiness
@@ -116,7 +115,7 @@ void GlobalConfig::error() {
         std::cerr << argv[i] << " ";
     }
     std::cerr << "\nError parsing command-line arguments.\n";
-    printOptions(std::cerr);
+    printHelp(std::cerr);
     exit(1);
 }
 
