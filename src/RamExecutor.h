@@ -43,7 +43,7 @@ private:
     /** The global configuration, used to establish this configuration. */
     GlobalConfig globalConfig;
 
-    /** The name of the DATALOG source file */
+    /** The name of the datalog source file */
     std::string sourceFileName;
 
     /** The directory utilized for loading fact files */
