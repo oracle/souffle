@@ -46,7 +46,7 @@
 #include "SymbolTable.h"
 #include "ParserDriver.h"
 #include "ComponentModel.h"
-#include "Environment.h"
+#include "GlobalConfig.h"
 
 #include "RamTranslator.h"
 #include "RamExecutor.h"
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
     /* Time taking for overall runtime */
     auto souffle_start = std::chrono::high_resolution_clock::now();
 
-    Environment env = Environment(
+    GlobalConfig globalConfig = GlobalConfig(
         argc,
         argv,
         []() {
@@ -126,70 +126,70 @@ int main(int argc, char **argv)
     // ------ command line arguments -------------
 
     /* for the help option, if given simply print the help text then exit */
-    if (env.has("help")) {
-        env.printOptions(std::cerr);
+    if (globalConfig.has("help")) {
+        globalConfig.printOptions(std::cerr);
         return 1;
    }
 
    /* turn on compilation of executables */
-   if (env.has("dl-program"))
-        env.set("compile");
+   if (globalConfig.has("dl-program"))
+        globalConfig.set("compile");
 
     /* for the jobs option, to determine the number of threads used */
-    static unsigned num_threads = 1; /* the number of threads to use for execution, 0 system-choice, 1 sequential */
-    if (env.has("jobs")) {
-        if (env.has("jobs", "auto")) {
-            num_threads = 0;
-        } else if (isNumber(env.get("jobs").c_str())) {
-            num_threads = atoi(env.get("jobs").c_str());
-            if (num_threads == 0) {
-               fail("Number of jobs in the -j/--jobs options must be greater than zero!");
-            }
+    if (globalConfig.has("jobs")) {
+        if (isNumber(globalConfig.get("jobs").c_str())) {
+            if (std::stoi(globalConfig.get("jobs")) < 1)
+                   fail("Number of jobs in the -j/--jobs options must be greater than zero!");
         } else {
-            fail("Wrong parameter " + env.get("jobs") + " for option -j/--jobs!");
+            if (!globalConfig.has("jobs", "auto"))
+                fail("Wrong parameter " + globalConfig.get("jobs") + " for option -j/--jobs!");
+            globalConfig.set("jobs", "0");
         }
+    } else {
+        fail("Wrong parameter " + globalConfig.get("jobs") + " for option -j/--jobs!");
     }
 
+
     /* if an output directory is given, check it exists */
-    if (env.has("output-dir") && !env.has("output-dir", "-") && !existDir(env.get("output-dir")))
-        fail("error: output directory " + env.get("output-dir") + " does not exists");
+    if (globalConfig.has("output-dir") && !globalConfig.has("output-dir", "-") && !existDir(globalConfig.get("output-dir")))
+        fail("error: output directory " + globalConfig.get("output-dir") + " does not exists");
 
     /* turn on compilation if auto-scheduling is enabled */
-    if (env.has("auto-schedule") && !env.has("compile"))
-        env.set("compile");
+    if (globalConfig.has("auto-schedule") && !globalConfig.has("compile"))
+        globalConfig.set("compile");
 
     /* ensure that if auto-scheduling is enabled an output file is given */
-    if (env.has("auto-schedule") && !env.has("dl-program"))
+    if (globalConfig.has("auto-schedule") && !globalConfig.has("dl-program"))
        fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
 
     /* set the breadth and depth limits for the topological ordering of strongly connected components */
-    if (env.has("breadth-limit")) {
-        int limit = std::stoi(env.get("breadth-limit"));
+    if (globalConfig.has("breadth-limit")) {
+        int limit = std::stoi(globalConfig.get("breadth-limit"));
         if (limit <= 0)
             fail("error: breadth limit must be 1 or more");
         TopologicallySortedSCCGraph::BREADTH_LIMIT = limit;
      }
-     if (env.has("depth-limit")) {
-        int limit = std::stoi(env.get("depth-limit"));
+     if (globalConfig.has("depth-limit")) {
+        int limit = std::stoi(globalConfig.get("depth-limit"));
         if (limit <= 0)
             fail("error: depth limit must be 1 or more");
         TopologicallySortedSCCGraph::DEPTH_LIMIT = limit;
      }
-     if (env.has("lookahead")) {
-        if (env.has("breadth-limit") || env.has("depth-limit"))
+     if (globalConfig.has("lookahead")) {
+        if (globalConfig.has("breadth-limit") || globalConfig.has("depth-limit"))
             fail("error: only one of either lookahead or depth-limit and breadth-limit may be specified");
-        int lookahead = std::stoi(env.get("lookahead"));
+        int lookahead = std::stoi(globalConfig.get("lookahead"));
         if (lookahead <= 0)
             fail("error: lookahead must be 1 or more");
         TopologicallySortedSCCGraph::LOOKAHEAD = lookahead;
      }
 
     /* collect all input directories for the c pre-processor */
-    if (env.has("include-dir")) {
+    if (globalConfig.has("include-dir")) {
         std::string currentInclude = "";
         std::string allIncludes = "";
-        env.set("include-dir");
-        for (const char& ch : env.get("include-dir")) {
+        globalConfig.set("include-dir");
+        for (const char& ch : globalConfig.get("include-dir")) {
             if (ch == ' ') {
                 if (!existDir(currentInclude)) {
                     fail("error: include directory " + currentInclude + " does not exists");
@@ -201,7 +201,7 @@ int main(int argc, char **argv)
                 currentInclude += ch;
             }
         }
-        env.set("include-dir", allIncludes);
+        globalConfig.set("include-dir", allIncludes);
     }
 
     /* collect all input files for the C pre-processor */
@@ -218,7 +218,7 @@ int main(int argc, char **argv)
             }
         }
     } else {
-        env.error();
+        globalConfig.error();
     }
 
     // ------ start souffle -------------
@@ -233,7 +233,7 @@ int main(int argc, char **argv)
     if (!isExecutable(cmd))
         fail("error: failed to locate souffle preprocessor");
 
-    cmd  += " " + env.get("include-dir") + " " + filenames;
+    cmd  += " " + globalConfig.get("include-dir") + " " + filenames;
     FILE* in = popen(cmd.c_str(), "r");
 
     /* Time taking for parsing */
@@ -242,7 +242,7 @@ int main(int argc, char **argv)
     // ------- parse program -------------
 
     // parse file
-    std::unique_ptr<AstTranslationUnit> translationUnit = ParserDriver::parseTranslationUnit("<stdin>", in, env.has("no-warn"));
+    std::unique_ptr<AstTranslationUnit> translationUnit = ParserDriver::parseTranslationUnit("<stdin>", in, globalConfig.has("no-warn"));
 
     // close input pipe
     int preprocessor_status = pclose(in);
@@ -252,7 +252,7 @@ int main(int argc, char **argv)
     }
 
     /* Report run-time of the parser if verbose flag is set */
-    if (env.has("verbose")) {
+    if (globalConfig.has("verbose")) {
         auto parser_end = std::chrono::high_resolution_clock::now();
         std::cout << "Parse Time: " << std::chrono::duration<double>(parser_end-parser_start).count()<< "sec\n";
     }
@@ -269,20 +269,20 @@ int main(int argc, char **argv)
     transforms.push_back(std::unique_ptr<AstTransformer>(new ComponentInstantiationTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new UniqueAggregationVariablesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new AstSemanticChecker()));
-    if (env.get("bddbddb").empty()) {
+    if (globalConfig.get("bddbddb").empty()) {
     	transforms.push_back(std::unique_ptr<AstTransformer>(new ResolveAliasesTransformer()));
     }
     transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRelationCopiesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new MaterializeAggregationQueriesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveEmptyRelationsTransformer()));
-    if (!env.has("debug")) {
+    if (!globalConfig.has("debug")) {
         transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRedundantRelationsTransformer()));
     }
     transforms.push_back(std::unique_ptr<AstTransformer>(new AstExecutionPlanChecker()));
-    if (env.has("auto-schedule")) {
-        transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer(env.get("fact-dir"), env.has("verbose"), !env.get("debug-report").empty())));
+    if (globalConfig.has("auto-schedule")) {
+        transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer(globalConfig.get("fact-dir"), globalConfig.has("verbose"), !globalConfig.get("debug-report").empty())));
     }
-    if (!env.get("debug-report").empty()) {
+    if (!globalConfig.get("debug-report").empty()) {
         auto parser_end = std::chrono::high_resolution_clock::now();
         std::string runtimeStr = "(" + std::to_string(std::chrono::duration<double>(parser_end-parser_start).count()) + "s)";
         DebugReporter::generateDebugReport(*translationUnit, "Parsing", "After Parsing " + runtimeStr);
@@ -305,14 +305,14 @@ int main(int argc, char **argv)
     // ------- (optional) conversions -------------
 
     // conduct the bddbddb file export
-    if (!env.get("bddbddb").empty()) {
+    if (!globalConfig.get("bddbddb").empty()) {
     	try {
-			if (env.get("bddbddb") == "-") {
+			if (globalConfig.get("bddbddb") == "-") {
 				// use STD-OUT
 				toBddbddb(std::cout,*translationUnit);
 			} else {
 				// create an output file
-				std::ofstream out(env.get("bddbddb").c_str());
+				std::ofstream out(globalConfig.get("bddbddb").c_str());
 				toBddbddb(out,*translationUnit);
 			}
     	} catch(const UnsupportedConstructException& uce) {
@@ -328,9 +328,9 @@ int main(int argc, char **argv)
     auto ram_start = std::chrono::high_resolution_clock::now();
 
     /* translate AST to RAM */
-    std::unique_ptr<RamStatement> ramProg = RamTranslator(env.has("profile")).translateProgram(*translationUnit);
+    std::unique_ptr<RamStatement> ramProg = RamTranslator(globalConfig.has("profile")).translateProgram(*translationUnit);
 
-    if (!env.get("debug-report").empty()) {
+    if (!globalConfig.get("debug-report").empty()) {
         if (ramProg) {
             auto ram_end = std::chrono::high_resolution_clock::now();
             std::string runtimeStr = "(" + std::to_string(std::chrono::duration<double>(ram_end-ram_start).count()) + "s)";
@@ -340,7 +340,7 @@ int main(int argc, char **argv)
         }
 
         if (!translationUnit->getDebugReport().empty()) {
-            std::ofstream debugReportStream(env.get("debug-report"));
+            std::ofstream debugReportStream(globalConfig.get("debug-report"));
             debugReportStream << translationUnit->getDebugReport();
         }
     }
@@ -352,15 +352,15 @@ int main(int argc, char **argv)
     // pick executor
 
     std::unique_ptr<RamExecutor> executor;
-    if (env.has("generate") || env.has("compile")) {
+    if (globalConfig.has("generate") || globalConfig.has("compile")) {
         // configure compiler
-        executor = std::unique_ptr<RamExecutor>(new RamCompiler(env.get("dl-program")));
-        if (env.has("verbose")) {
+        executor = std::unique_ptr<RamExecutor>(new RamCompiler(globalConfig.get("dl-program")));
+        if (globalConfig.has("verbose")) {
            executor -> setReportTarget(std::cout);
         }
     } else {
         // configure interpreter
-        if (env.has("auto-schedule")) {
+        if (globalConfig.has("auto-schedule")) {
             executor = std::unique_ptr<RamExecutor>(new RamGuidedInterpreter());
         } else {
             executor = std::unique_ptr<RamExecutor>(new RamInterpreter());
@@ -370,12 +370,12 @@ int main(int argc, char **argv)
     // configure executor
     auto& config = executor->getConfig();
     config.setSourceFileName(filenames);
-    config.setFactFileDir(env.get("fact-dir"));
-    config.setOutputDir(env.get("output-dir"));
-    config.setNumThreads(num_threads);
-    config.setLogging(env.has("profile"));
-    config.setProfileName(env.get("profile"));
-    config.setDebug(env.has("debug"));
+    config.setFactFileDir(globalConfig.get("fact-dir"));
+    config.setOutputDir(globalConfig.get("output-dir"));
+    config.setNumThreads(std::stoi(globalConfig.get("jobs")));
+    config.setLogging(globalConfig.has("profile"));
+    config.setProfileName(globalConfig.get("profile"));
+    config.setDebug(globalConfig.has("debug"));
 
     /* Locate souffle-compile script */
     std::string compileCmd = ::findTool("souffle-compile", programName, ".");
@@ -387,13 +387,13 @@ int main(int argc, char **argv)
     config.setCompileScript(compileCmd + " ");
 
     // check if this is code generation only
-    if (env.has("generate")) {
+    if (globalConfig.has("generate")) {
 
     	// just generate, no compile, no execute
-		static_cast<const RamCompiler*>(executor.get())->generateCode(translationUnit->getSymbolTable(), *ramProg, env.get("generate"));
+		static_cast<const RamCompiler*>(executor.get())->generateCode(translationUnit->getSymbolTable(), *ramProg, globalConfig.get("generate"));
 
     	// check if this is a compile only
-    } else if (env.has("compile") && env.has("dl-program")) {
+    } else if (globalConfig.has("compile") && globalConfig.has("dl-program")) {
         // just compile, no execute
         static_cast<const RamCompiler*>(executor.get())->compileToBinary(translationUnit->getSymbolTable(), *ramProg);
     } else {
@@ -402,7 +402,7 @@ int main(int argc, char **argv)
     }
 
     /* Report overall run-time in verbose mode */
-    if (env.has("verbose")) {
+    if (globalConfig.has("verbose")) {
         auto souffle_end = std::chrono::high_resolution_clock::now();
         std::cout << "Total Time: " << std::chrono::duration<double>(souffle_end-souffle_start).count() << "sec\n";
     }
