@@ -32,13 +32,15 @@
 
 namespace souffle {
 
+typedef Graph<const AstRelation*, AstNameComparison> AstRelationGraph;
+
 /**
  * Analysis pass computing the precedence graph of the relations of the datalog progam.
  */
 class PrecedenceGraph : public AstAnalysis {
 private:
     /** Adjacency list of precedence graph (determined by the dependencies of the relations) */
-    Graph<const AstRelation *> precedenceGraph;
+    AstRelationGraph precedenceGraph;
 
 public:
     static constexpr const char *name = "precedence-graph";
@@ -48,12 +50,12 @@ public:
     /** Output precedence graph in graphviz format to a given stream */
     void outputPrecedenceGraph(std::ostream &os);
 
-    const std::set<const AstRelation *> &getPredecessors(const AstRelation *relation) {
+    const AstRelationSet& getPredecessors(const AstRelation* relation) {
         assert(precedenceGraph.contains(relation) && "Relation not present in precedence graph!");
         return precedenceGraph.getEdges(relation);
     }
 
-    const Graph<const AstRelation *> getGraph() const {
+    const AstRelationGraph getGraph() const {
         return precedenceGraph;
     }
 };
