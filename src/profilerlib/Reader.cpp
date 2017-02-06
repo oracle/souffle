@@ -193,7 +193,7 @@ std::string Reader::createId() {
 
 
 void Reader::livereadinit() {
-    live_file = std::ifstream(this->file_loc);
+    live_file = std::move(std::ifstream(this->file_loc));
 
     if(!live_file.is_open())
     {
