@@ -131,7 +131,7 @@ public:
     bool isBrie() const { return (qualifier & BRIE_RELATION) != 0; }
 
     /** Check whether relation is a btree relation */
-    bool isBtree() const { return (qualifier & BTREE_RELATION) != 0; }
+    bool isBTree() const { return (qualifier & BTREE_RELATION) != 0; }
  
     /** Check whether relation is a equivalence relation */
     bool isEqRel() const { return (qualifier & EQREL_RELATION) != 0; }
