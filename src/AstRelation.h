@@ -123,8 +123,6 @@ public:
     bool isInput() const { return (qualifier & INPUT_RELATION) != 0; }
 
     /** Check whether relation is to/from memory */
-    // XXX: fixme, is this correct?
-    // bool isData() const { return (qualifier & DATA_RELATION) != 0; }
     bool isData() const { return (qualifier & DATA_RELATION) != 0; }
 
     /** Check whether relation is a brie relation */

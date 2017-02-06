@@ -1,7 +1,7 @@
 Error: Equivalence relation A is not binary in file qualifiers2.dl at line 1
 .decl A(x:number, y:number, z:number) eqrel output input
 ^--------------------------------------------------------
-Error: Domains of equivalence B are different in file qualifiers2.dl at line 3
+Error: Domains of equivalence relation B are different in file qualifiers2.dl at line 3
 .decl B(x:number, y:name) eqrel output input
 ^--------------------------------------------
 2 errors generated, evaluation aborted
