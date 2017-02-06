@@ -472,6 +472,17 @@ void AstSemanticChecker::checkRelationDeclaration(ErrorReport& report, const Typ
 
 void AstSemanticChecker::checkRelation(ErrorReport& report, const TypeEnvironment &typeEnv, const AstProgram& program, const AstRelation& relation) {
 
+    if (relation.isEqRel()) {
+        if(relation.getArity() == 2) {
+            if (relation.getAttribute(0)->getTypeName() !=
+                relation.getAttribute(1)->getTypeName()) { 
+                report.addError("Domains of equivalence relation " + toString(relation.getName())+" are different", relation.getSrcLoc());
+            } 
+        } else { 
+            report.addError("Equivalence relation " + toString(relation.getName())+" is not binary", relation.getSrcLoc());
+        }
+    }
+
     // start with declaration
     checkRelationDeclaration(report, typeEnv, program, relation);
 

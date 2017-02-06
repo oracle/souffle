@@ -45,7 +45,15 @@
 /* Rules of a relation defined in a component can be overwritten by sub-component */ 
 #define OVERRIDABLE_RELATION (0x8)
 
-#define DATA_RELATION (0x10)
+//#define DATA_RELATION (0x10)
+/* Relation uses a brie data structure */
+#define BRIE_RELATION (0x10)
+
+/* Relation uses a btree data structure */
+#define BTREE_RELATION (0x20)
+
+/* Relation uses a union relation */
+#define EQREL_RELATION (0x40)
 
 namespace souffle {
 
@@ -114,7 +122,16 @@ public:
     bool isInput() const { return (qualifier & INPUT_RELATION) != 0; }
 
     /** Check whether relation is to/from memory */
-    bool isData() const { return (qualifier & DATA_RELATION) != 0; }
+    bool isData() const { return (qualifier & (BRIE_RELATION | BTREE_RELATION | EQREL_RELATION)) != 0; }
+
+    /** Check whether relation is a brie relation */
+    bool isBrie() const { return (qualifier & BRIE_RELATION) != 0; }
+
+    /** Check whether relation is a btree relation */
+    bool isBtree() const { return (qualifier & BTREE_RELATION) != 0; }
+ 
+    /** Check whether relation is a equivalence relation */
+    bool isEqRel() const { return (qualifier & EQREL_RELATION) != 0; }
 
     /** Check whether relation is an input relation */
     bool isPrintSize() const { return (qualifier & PRINTSIZE_RELATION) != 0; }
