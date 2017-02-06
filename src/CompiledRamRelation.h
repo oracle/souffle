@@ -52,31 +52,31 @@ namespace ram {
  * @tparam Indicies ... a list of indices to be maintained for fast access
  */
 template<typename Setup, unsigned arity, typename ... Indices>
-class Relation : public Setup::template relation<arity, Indices..> {};
+class Relation : public Setup::template relation<arity, Indices...> {};
 
 /**
  * A generic, tuned setup, using a combination of direct and indirect
  * b-trees, bries and ordinary tables.
  */
-class Auto;
+struct Auto;
 
 
 /**
  * A setup utilizing direct b-trees for relations exclusively.
  */
-class BTree;
+struct BTree;
 
 
 /**
  * A setup utilizing bries for relations exclusively.
  */
-class Brie;
+struct Brie;
 
 
 /**
  * A setup utilizing disjoint set data structures
  */
-class EqRel;
+struct EqRel;
 
 
 
@@ -787,7 +787,7 @@ public:
  * A specialization of the relation requesting a single index.
  */
 template<unsigned arity, typename Index, template<typename T,typename I, bool d> class table_factory>
-class SingleIndexRelation<arity, Index> : public RelationBase<arity,SingleIndexRelation<arity, Index, table_factory>> {
+class SingleIndexRelation : public RelationBase<arity,SingleIndexRelation<arity, Index, table_factory>> {
 
     // expand only index to a full index
     typedef typename index_utils::extend_to_full_index<arity,Index>::type primary_index_t;
