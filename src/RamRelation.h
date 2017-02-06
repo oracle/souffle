@@ -131,6 +131,10 @@ public:
         return istemp;
     }
 
+    const bool isData() const {
+        return isBrie() || isBTree() || isEqRel();
+    }
+
     unsigned getArity() const {
         return arity;
     }

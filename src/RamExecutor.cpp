@@ -954,7 +954,7 @@ namespace {
         res << "ram::Relation";
         res << "<";
 
-        if (rel.isBtree()) { 
+        if (rel.isBTree()) { 
             res << "BTree,";
         } else if (rel.isBrie()) { 
             res << "Brie,";
