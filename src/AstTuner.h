@@ -32,15 +32,11 @@ class AstTranslationUnit;
  */
 class AutoScheduleTransformer : public AstTransformer {
 private:
-    std::string factDir;
-    bool verbose;
-    bool generateScheduleReport;
 
     virtual bool transform(AstTranslationUnit &translationUnit);
 
 public:
-    AutoScheduleTransformer(const std::string &factDir, bool verbose = false, bool generateScheduleReport = false) :
-        factDir(factDir), verbose(verbose), generateScheduleReport(generateScheduleReport) { }
+    AutoScheduleTransformer() {}
 
     virtual ~AutoScheduleTransformer() { }
 
@@ -52,7 +48,7 @@ public:
      * Perform auto-scheduling for the given program.
      * @return whether the program was modified
      */
-    static bool autotune(AstTranslationUnit& translationUnit, const std::string& factDir, std::ostream* report, bool verbose = false, const QueryExecutionStrategy& strategy = ScheduledExecution);
+    bool autotune(AstTranslationUnit& translationUnit, std::ostream* report);
 };
 
 } // end of namespace souffle

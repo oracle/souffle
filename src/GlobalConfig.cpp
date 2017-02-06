@@ -2,14 +2,9 @@
 
 namespace souffle {
 
-GlobalConfig::GlobalConfig()
-    : StringTable()
-{
-
-}
 
 GlobalConfig::GlobalConfig(int argc, char** argv, const std::string header, const std::string footer, const std::vector<MainOption> mainOptions)
-    : StringTable()
+    : simple::Table<std::string, std::string>()
     , argc (argc)
     , argv (argv)
     , header (header)
@@ -22,13 +17,13 @@ GlobalConfig::GlobalConfig(int argc, char** argv, const std::string header, cons
     int i = 0;
     for (const MainOption& opt : mainOptions) {
         optionTable[opt.shortName] = &opt;
-        if (!opt.defaultValue.empty())
-            set(opt.longName, opt.defaultValue);
+        if (!opt.byDefault.empty())
+            set(opt.longName, opt.byDefault);
         if (opt.longName == "")
             continue;
-        longNames[i] = (option) { opt.longName.c_str(), (!opt.argumentType.empty()), nullptr, opt.shortName };
+        longNames[i] = (option) { opt.longName.c_str(), (!opt.argument.empty()), nullptr, opt.shortName };
         shortNames += opt.shortName;
-        if (!opt.argumentType.empty())
+        if (!opt.argument.empty())
             shortNames += ":";
         ++i;
     }
@@ -43,8 +38,8 @@ GlobalConfig::GlobalConfig(int argc, char** argv, const std::string header, cons
             abort();
         }
         std::string arg = (optarg) ? std::string(optarg) : std::string();
-        if (iter->second->takesManyArguments) {
-            set(iter->second->longName, get(iter->second->longName) + ' ' + arg);
+        if (!iter->second->delimiter.empty()) {
+            set(iter->second->longName, get(iter->second->longName) + iter->second->delimiter + arg);
         } else {
             set(iter->second->longName, arg);
         }
@@ -64,7 +59,7 @@ void GlobalConfig::printHelp(std::ostream& os) {
         if (opt.longName == "") continue;
         // otherwise, proceed with the calculation
         maxLongNameLength = ((int) opt.longName.size() > maxLongNameLength) ? opt.longName.size() : maxLongNameLength;
-        maxArgumentIdLength = ((int) opt.argumentType.size() > maxArgumentIdLength) ? opt.argumentType.size() : maxArgumentIdLength;
+        maxArgumentIdLength = ((int) opt.argument.size() > maxArgumentIdLength) ? opt.argument.size() : maxArgumentIdLength;
     }
 
     // iterator over the options and pretty print them, using padding as determined
@@ -80,9 +75,9 @@ void GlobalConfig::printHelp(std::ostream& os) {
         os << "\t";
         if (isalpha(opt.shortName)) {
             os << "-" << opt.shortName;
-            if (!opt.argumentType.empty()) {
-                os << "<" << opt.argumentType << ">";
-                length = opt.argumentType.size() + 2;
+            if (!opt.argument.empty()) {
+                os << "<" << opt.argument << ">";
+                length = opt.argument.size() + 2;
             }
         } else {
             os << "  ";
@@ -94,9 +89,9 @@ void GlobalConfig::printHelp(std::ostream& os) {
         // print the long form name and the argument parameter
         length = 0;
         os << "\t" << "--" << opt.longName;
-        if (!opt.argumentType.empty()) {
-            os << "=<" << opt.argumentType << ">";
-            length = opt.argumentType.size() + 3;
+        if (!opt.argument.empty()) {
+            os << "=<" << opt.argument << ">";
+            length = opt.argument.size() + 3;
         }
 
         // again, pad with empty space for prettiness

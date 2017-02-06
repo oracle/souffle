@@ -24,7 +24,6 @@
 
 #include "RamRelation.h"
 #include "RamData.h"
-#include "GlobalConfig.h"
 
 namespace souffle {
 
@@ -38,76 +37,62 @@ class RamInsert;
  */
 class RamExecutorConfig {
 
-private:
-
-    /** The global configuration, used to establish this configuration. */
-    GlobalConfig globalConfig;
-
-    /** The name of the datalog source file */
-    std::string sourceFileName;
-
-    /** The directory utilized for loading fact files */
-    std::string factFileDir;
-
-    /** The directory to store output files to */
-    std::string outputDir;
-
-    /** The file to store an output SQL3 DB to (empty string means do not output to sqldb)*/
-    std::string outputDatabaseName;
-
-    /** The number of threads to be used for the computation (0 = parallel system default) */
-    size_t num_threads;
-
-    /** A flag for enabling logging during the computation */
-    bool logging;
-
     /** The name of the compile script */
     std::string compileScript;
 
-    /** A filename for profile log */
-    std::string profileName;
-
-    /** A flag for enabling debug mode */
-    bool debug;
-
 public:
 
-    RamExecutorConfig()
-        : sourceFileName("-unknown-")
-        , factFileDir("./")
-        , outputDir("./")
-        , outputDatabaseName("")
-        , num_threads(1)
-        , logging(false)
-        , debug(false) {}
-
-    RamExecutorConfig(GlobalConfig globalConfig)
-        : globalConfig(globalConfig)
-        , sourceFileName(globalConfig.get(""))
-        , factFileDir(globalConfig.get("fact-dir"))
-        , outputDir(globalConfig.get("output-dir"))
-        , outputDatabaseName("")
-        , num_threads(std::stoi(globalConfig.get("jobs")))
-        , logging(globalConfig.has("profile"))
-        , profileName(globalConfig.get("profile"))
-        , debug(globalConfig.has("debug")) {}
-
-    // -- getters and setters --
+    RamExecutorConfig() {}
 
     // TODO
-    void setFactFileDir(const std::string& dir) { factFileDir = dir; }
-    void setCompileScript(const std::string& script) { compileScript = script; }
 
-    const std::string& getSourceFileName() const { return sourceFileName; }
-    const std::string& getFactFileDir() const { return factFileDir; }
-    const std::string& getOutputDir() const { return outputDir; }
-    const std::string& getOutputDatabaseName() const { return outputDatabaseName; }
-    size_t getNumThreads() const { return num_threads; }
-    bool isParallel() const { return num_threads != 1; }
-    bool isLogging() const { return logging; }
-    const std::string& getCompileScript() const { return compileScript; }
-    const std::string& getProfileName() const { return profileName; }
-    bool isDebug() const { return debug; }
+    void setCompileScript(const std::string& script) {
+        compileScript = script;
+    }
+
+    const std::string& getCompileScript() const {
+        return compileScript;
+    }
+
+    // -- getters --
+
+    const std::string& getSourceFileName() const {
+        return Global::getInstance().get("");
+    }
+
+    const std::string& getFactFileDir() const {
+        return Global::getInstance().get("fact-dir");
+    }
+
+    const std::string& getOutputDir() const {
+        return Global::getInstance().get("output-dir");
+    }
+
+    const std::string& getOutputDatabaseName() const {
+        return "";
+    }
+
+    size_t getNumThreads() const {
+        return std::stoi(Global::getInstance().get("jobs"));
+    }
+
+    bool isParallel() const {
+        return !Global::getInstance().has("jobs", "1");
+    }
+
+    bool isLogging() const {
+        return Global::getInstance().has("profile");
+    }
+
+    const std::string& getProfileName() const {
+        return profileName;
+
+        return Global::getInstance().get("profile");
+    }
+
+    bool isDebug() const {
+        return Global::getInstance().has("debug");
+    }
 
 };
 
@@ -126,7 +111,6 @@ protected:
 public:
     using SymbolTable = souffle::SymbolTable; // XXX pending namespace cleanup
     RamExecutor() : report(nullptr) {}
-    RamExecutor(GlobalConfig globalConfig) : config(RamExecutorConfig(globalConfig)), report(nullptr) {}
 
     /** A virtual destructor to support safe inheritance */
     virtual ~RamExecutor() {}
@@ -277,9 +261,6 @@ class RamGuidedInterpreter : public RamExecutor {
 public:
 
     /** A constructor accepting a query executor strategy */
-    RamGuidedInterpreter(GlobalConfig globalConfig, const QueryExecutionStrategy& queryStrategy = ScheduledExecution)
-        : RamExecutor(globalConfig), queryStrategy(queryStrategy) {}
-
     RamGuidedInterpreter(const QueryExecutionStrategy& queryStrategy = ScheduledExecution)
         : queryStrategy(queryStrategy) {}
 
@@ -303,9 +284,6 @@ struct RamInterpreter : public RamGuidedInterpreter {
     RamInterpreter() : RamGuidedInterpreter(DirectExecution) {
     };
 
-    RamInterpreter(GlobalConfig globalConfig) : RamGuidedInterpreter(globalConfig, DirectExecution) {
-    };
-
 };
 
 
@@ -315,33 +293,24 @@ struct RamInterpreter : public RamGuidedInterpreter {
  */
 class RamCompiler : public RamExecutor {
 
-private:
-
-    /**
-     * The file name of the executable to be created, empty if a temporary
-     * file should be utilized.
-     */
-    mutable std::string fileName;
-
 public:
 
     /** A simple constructore */
-    RamCompiler(const std::string& fn = "") : fileName(fn) {}
-    RamCompiler(GlobalConfig globalConfig, const std::string& fn = "") : RamExecutor(globalConfig), fileName(fn) {}
+    RamCompiler() {}
 
     /**
      * Updates the file name of the binary to be utilized by
      * this executor.
      */
     void setBinaryFile(const std::string& name) {
-        fileName = name;
+        Global::getInstance().set("dl-program", name);
     }
 
     /**
      * Obtains the name of the binary utilized by this executer.
      */
     const std::string& getBinaryFile() const {
-        return fileName;
+        return Global::getInstance().get("dl-program");
     }
 
     /**

@@ -71,7 +71,7 @@ int main(int argc, char **argv)
     /* Time taking for overall runtime */
     auto souffle_start = std::chrono::high_resolution_clock::now();
 
-    GlobalConfig globalConfig = GlobalConfig(
+    Global::setInstance(GlobalConfig(
         argc,
         argv,
         []() {
@@ -96,101 +96,101 @@ int main(int argc, char **argv)
         /* new command line options, the environment will be filled with the arguments passed to them, or the empty string if they take none */
         []() {
             MainOption opts[] = {
-                /* each option is { longName, shortName, argumentType, defaultValue, takesManyArguments, description } */
+                /* each option is { longName, shortName, argument, byDefault, delimiter, description } */
                 // main option, the datalog program, key is always empty
-                {"", 0, "",  "-unknown-", false, ""},
+                {"", 0, "",  "-unknown-", "", ""},
                 // other options
-                {"fact-dir",      'F',  "DIR",  ".", false, "Specify directory for fact files."},
-                {"include-dir",   'I',  "DIR",  ".",  true, "Specify directory for include files."},
-                {"output-dir",    'D',  "DIR",  ".", false, "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
-                {"jobs",          'j',    "N",  "1", false, "Run interpreter/compiler in parallel using N threads, N=auto for system default."},
-                {"compile",       'c',     "",   "", false, "Compile datalog (translating to C++)."},
+                {"fact-dir",      'F',  "DIR",  ".",    "", "Specify directory for fact files."},
+                {"include-dir",   'I',  "DIR",  ".", " -I", "Specify directory for include files."},
+                {"output-dir",    'D',  "DIR",  ".",    "", "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
+                {"jobs",          'j',    "N",  "1",    "", "Run interpreter/compiler in parallel using N threads, N=auto for system default."},
+                {"compile",       'c',     "",   "",    "", "Compile datalog (translating to C++)."},
                 // if the short option is non-alphabetical, it is ommitted from the help text
-                {"auto-schedule",   1,     "",   "", false, "Switch on automated clause scheduling for compiler."},
-                {"generate",      'g', "FILE",   "", false, "Only generate sources of compilable analysis and write it to <FILE>."},
-                {"no-warn",       'w',     "",   "", false, "Disable warnings."},
-                {"dl-program",    'o', "FILE",   "", false, "Write executable program to <FILE> (without executing it)."},
-                {"profile",       'p', "FILE",   "", false, "Enable profiling and write profile data to <FILE>."},
-                {"debug",         'd',     "",   "", false, "Enable debug mode."},
-                {"bddbddb",       'b', "FILE",   "", false, "Convert input into bddbddb file format."},
+                {"auto-schedule",   1,     "",   "",    "", "Switch on automated clause scheduling for compiler."},
+                {"generate",      'g', "FILE",   "",    "", "Only generate sources of compilable analysis and write it to <FILE>."},
+                {"no-warn",       'w',     "",   "",    "", "Disable warnings."},
+                {"dl-program",    'o', "FILE",   "",    "", "Write executable program to <FILE> (without executing it)."},
+                {"profile",       'p', "FILE",   "",    "", "Enable profiling and write profile data to <FILE>."},
+                {"debug",         'd',     "",   "",    "", "Enable debug mode."},
+                {"bddbddb",       'b', "FILE",   "",    "", "Convert input into bddbddb file format."},
                 // if the short option is non-alphabetical, it is ommitted from the help text
-                {"debug-report",    2, "FILE",   "", false, "Write debugging output to HTML report."},
-                {"verbose",       'v',     "",   "", false, "Verbose output."},
-                {"help",          'h',     "",   "", false, "Display this help message."},
+                {"debug-report",    2, "FILE",   "",    "", "Write debugging output to HTML report."},
+                {"verbose",       'v',     "",   "",    "", "Verbose output."},
+                {"help",          'h',     "",   "",    "", "Display this help message."},
                 // options for the topological ordering of strongly connected components, see TopologicallySortedSCCGraph class in PrecedenceGraph.cpp
-                {"breadth-limit",   3,    "N",   "", false, "Specify the breadth limit used for the topological ordering of strongly connected components."},
-                {"depth-limit",     4,    "N",   "", false, "Specify the depth limit used for the topological ordering of strongly connected components."},
-                {"lookahead",       5,    "N",   "", false, "Specify the lookahead used for the topological ordering of strongly connected components."}
+                {"breadth-limit",   3,    "N",   "",    "", "Specify the breadth limit used for the topological ordering of strongly connected components."},
+                {"depth-limit",     4,    "N",   "",    "", "Specify the depth limit used for the topological ordering of strongly connected components."},
+                {"lookahead",       5,    "N",   "",    "", "Specify the lookahead used for the topological ordering of strongly connected components."}
             };
             return std::vector<MainOption>(std::begin(opts), std::end(opts));
         }()
-    );
+    ));
 
     // ------ command line arguments -------------
 
     /* for the help option, if given simply print the help text then exit */
-    if (globalConfig.has("help")) {
-        globalConfig.printHelp(std::cerr);
+    if (Global::getInstance().has("help")) {
+        Global::getInstance().printHelp(std::cerr);
         return 1;
    }
 
    /* turn on compilation of executables */
-   if (globalConfig.has("dl-program"))
-        globalConfig.set("compile");
+   if (Global::getInstance().has("dl-program"))
+        Global::getInstance().set("compile");
 
     /* for the jobs option, to determine the number of threads used */
-    if (globalConfig.has("jobs")) {
-        if (isNumber(globalConfig.get("jobs").c_str())) {
-            if (std::stoi(globalConfig.get("jobs")) < 1)
+    if (Global::getInstance().has("jobs")) {
+        if (isNumber(Global::getInstance().get("jobs").c_str())) {
+            if (std::stoi(Global::getInstance().get("jobs")) < 1)
                    fail("Number of jobs in the -j/--jobs options must be greater than zero!");
         } else {
-            if (!globalConfig.has("jobs", "auto"))
-                fail("Wrong parameter " + globalConfig.get("jobs") + " for option -j/--jobs!");
-            globalConfig.set("jobs", "0");
+            if (!Global::getInstance().has("jobs", "auto"))
+                fail("Wrong parameter " + Global::getInstance().get("jobs") + " for option -j/--jobs!");
+            Global::getInstance().set("jobs", "0");
         }
     } else {
-        fail("Wrong parameter " + globalConfig.get("jobs") + " for option -j/--jobs!");
+        fail("Wrong parameter " + Global::getInstance().get("jobs") + " for option -j/--jobs!");
     }
 
     /* if an output directory is given, check it exists */
-    if (globalConfig.has("output-dir") && !globalConfig.has("output-dir", "-") && !existDir(globalConfig.get("output-dir")))
-        fail("error: output directory " + globalConfig.get("output-dir") + " does not exists");
+    if (Global::getInstance().has("output-dir") && !Global::getInstance().has("output-dir", "-") && !existDir(Global::getInstance().get("output-dir")))
+        fail("error: output directory " + Global::getInstance().get("output-dir") + " does not exists");
 
     /* turn on compilation if auto-scheduling is enabled */
-    if (globalConfig.has("auto-schedule") && !globalConfig.has("compile"))
-        globalConfig.set("compile");
+    if (Global::getInstance().has("auto-schedule") && !Global::getInstance().has("compile"))
+        Global::getInstance().set("compile");
 
     /* ensure that if auto-scheduling is enabled an output file is given */
-    if (globalConfig.has("auto-schedule") && !globalConfig.has("dl-program"))
+    if (Global::getInstance().has("auto-schedule") && !Global::getInstance().has("dl-program"))
        fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
 
     /* set the breadth and depth limits for the topological ordering of strongly connected components */
-    if (globalConfig.has("breadth-limit")) {
-        int limit = std::stoi(globalConfig.get("breadth-limit"));
+    if (Global::getInstance().has("breadth-limit")) {
+        int limit = std::stoi(Global::getInstance().get("breadth-limit"));
         if (limit <= 0)
             fail("error: breadth limit must be 1 or more");
         TopologicallySortedSCCGraph::BREADTH_LIMIT = limit;
      }
-     if (globalConfig.has("depth-limit")) {
-        int limit = std::stoi(globalConfig.get("depth-limit"));
+     if (Global::getInstance().has("depth-limit")) {
+        int limit = std::stoi(Global::getInstance().get("depth-limit"));
         if (limit <= 0)
             fail("error: depth limit must be 1 or more");
         TopologicallySortedSCCGraph::DEPTH_LIMIT = limit;
      }
-     if (globalConfig.has("lookahead")) {
-        if (globalConfig.has("breadth-limit") || globalConfig.has("depth-limit"))
+     if (Global::getInstance().has("lookahead")) {
+        if (Global::getInstance().has("breadth-limit") || Global::getInstance().has("depth-limit"))
             fail("error: only one of either lookahead or depth-limit and breadth-limit may be specified");
-        int lookahead = std::stoi(globalConfig.get("lookahead"));
+        int lookahead = std::stoi(Global::getInstance().get("lookahead"));
         if (lookahead <= 0)
             fail("error: lookahead must be 1 or more");
         TopologicallySortedSCCGraph::LOOKAHEAD = lookahead;
      }
 
     /* collect all input directories for the c pre-processor */
-    if (globalConfig.has("include-dir")) {
+    if (Global::getInstance().has("include-dir")) {
         std::string currentInclude = "";
         std::string allIncludes = "";
-        for (const char& ch : globalConfig.get("include-dir")) {
+        for (const char& ch : Global::getInstance().get("include-dir")) {
             if (ch == ' ') {
                 if (!existDir(currentInclude)) {
                     fail("error: include directory " + currentInclude + " does not exists");
@@ -202,7 +202,7 @@ int main(int argc, char **argv)
                 currentInclude += ch;
             }
         }
-        globalConfig.set("include-dir", allIncludes);
+        Global::getInstance().set("include-dir", allIncludes);
     }
 
     /* collect all input files for the C pre-processor */
@@ -219,9 +219,9 @@ int main(int argc, char **argv)
             }
         }
     } else {
-        globalConfig.error();
+        Global::getInstance().error();
     }
-    globalConfig.set("", filenames);
+    Global::getInstance().set("", filenames);
 
 
     // ------ start souffle -------------
@@ -236,7 +236,7 @@ int main(int argc, char **argv)
     if (!isExecutable(cmd))
         fail("error: failed to locate souffle preprocessor");
 
-    cmd  += " " + globalConfig.get("include-dir") + " " + globalConfig.get("");
+    cmd  += " " + Global::getInstance().get("include-dir") + " " + Global::getInstance().get("");
     FILE* in = popen(cmd.c_str(), "r");
 
     /* Time taking for parsing */
@@ -245,7 +245,7 @@ int main(int argc, char **argv)
     // ------- parse program -------------
 
     // parse file
-    std::unique_ptr<AstTranslationUnit> translationUnit = ParserDriver::parseTranslationUnit("<stdin>", in, globalConfig.has("no-warn"));
+    std::unique_ptr<AstTranslationUnit> translationUnit = ParserDriver::parseTranslationUnit("<stdin>", in, Global::getInstance().has("no-warn"));
 
     // close input pipe
     int preprocessor_status = pclose(in);
@@ -255,7 +255,7 @@ int main(int argc, char **argv)
     }
 
     /* Report run-time of the parser if verbose flag is set */
-    if (globalConfig.has("verbose")) {
+    if (Global::getInstance().has("verbose")) {
         auto parser_end = std::chrono::high_resolution_clock::now();
         std::cout << "Parse Time: " << std::chrono::duration<double>(parser_end-parser_start).count()<< "sec\n";
     }
@@ -272,20 +272,20 @@ int main(int argc, char **argv)
     transforms.push_back(std::unique_ptr<AstTransformer>(new ComponentInstantiationTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new UniqueAggregationVariablesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new AstSemanticChecker()));
-    if (globalConfig.get("bddbddb").empty()) {
+    if (Global::getInstance().get("bddbddb").empty()) {
     	transforms.push_back(std::unique_ptr<AstTransformer>(new ResolveAliasesTransformer()));
     }
     transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRelationCopiesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new MaterializeAggregationQueriesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveEmptyRelationsTransformer()));
-    if (!globalConfig.has("debug")) {
+    if (!Global::getInstance().has("debug")) {
         transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRedundantRelationsTransformer()));
     }
     transforms.push_back(std::unique_ptr<AstTransformer>(new AstExecutionPlanChecker()));
-    if (globalConfig.has("auto-schedule")) {
-        transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer(globalConfig.get("fact-dir"), globalConfig.has("verbose"), !globalConfig.get("debug-report").empty())));
+    if (Global::getInstance().has("auto-schedule")) {
+        transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer(Global::getInstance().get("fact-dir"), Global::getInstance().has("verbose"), !Global::getInstance().get("debug-report").empty())));
     }
-    if (!globalConfig.get("debug-report").empty()) {
+    if (!Global::getInstance().get("debug-report").empty()) {
         auto parser_end = std::chrono::high_resolution_clock::now();
         std::string runtimeStr = "(" + std::to_string(std::chrono::duration<double>(parser_end-parser_start).count()) + "s)";
         DebugReporter::generateDebugReport(*translationUnit, "Parsing", "After Parsing " + runtimeStr);
@@ -308,14 +308,14 @@ int main(int argc, char **argv)
     // ------- (optional) conversions -------------
 
     // conduct the bddbddb file export
-    if (!globalConfig.get("bddbddb").empty()) {
+    if (!Global::getInstance().get("bddbddb").empty()) {
     	try {
-			if (globalConfig.get("bddbddb") == "-") {
+			if (Global::getInstance().get("bddbddb") == "-") {
 				// use STD-OUT
 				toBddbddb(std::cout,*translationUnit);
 			} else {
 				// create an output file
-				std::ofstream out(globalConfig.get("bddbddb").c_str());
+				std::ofstream out(Global::getInstance().get("bddbddb").c_str());
 				toBddbddb(out,*translationUnit);
 			}
     	} catch(const UnsupportedConstructException& uce) {
@@ -331,9 +331,9 @@ int main(int argc, char **argv)
     auto ram_start = std::chrono::high_resolution_clock::now();
 
     /* translate AST to RAM */
-    std::unique_ptr<RamStatement> ramProg = RamTranslator(globalConfig.has("profile")).translateProgram(*translationUnit);
+    std::unique_ptr<RamStatement> ramProg = RamTranslator(Global::getInstance().has("profile")).translateProgram(*translationUnit);
 
-    if (!globalConfig.get("debug-report").empty()) {
+    if (!Global::getInstance().get("debug-report").empty()) {
         if (ramProg) {
             auto ram_end = std::chrono::high_resolution_clock::now();
             std::string runtimeStr = "(" + std::to_string(std::chrono::duration<double>(ram_end-ram_start).count()) + "s)";
@@ -343,7 +343,7 @@ int main(int argc, char **argv)
         }
 
         if (!translationUnit->getDebugReport().empty()) {
-            std::ofstream debugReportStream(globalConfig.get("debug-report"));
+            std::ofstream debugReportStream(Global::getInstance().get("debug-report"));
             debugReportStream << translationUnit->getDebugReport();
         }
     }
@@ -355,18 +355,18 @@ int main(int argc, char **argv)
     // pick executor
 
     std::unique_ptr<RamExecutor> executor;
-    if (globalConfig.has("generate") || globalConfig.has("compile")) {
+    if (Global::getInstance().has("generate") || Global::getInstance().has("compile")) {
         // configure compiler
-        executor = std::unique_ptr<RamExecutor>(new RamCompiler(globalConfig, globalConfig.get("dl-program")));
-        if (globalConfig.has("verbose")) {
+        executor = std::unique_ptr<RamExecutor>(new RamCompiler(Global::getInstance(), Global::getInstance().get("dl-program")));
+        if (Global::getInstance().has("verbose")) {
            executor -> setReportTarget(std::cout);
         }
     } else {
         // configure interpreter
-        if (globalConfig.has("auto-schedule")) {
-            executor = std::unique_ptr<RamExecutor>(new RamGuidedInterpreter(globalConfig));
+        if (Global::getInstance().has("auto-schedule")) {
+            executor = std::unique_ptr<RamExecutor>(new RamGuidedInterpreter(Global::getInstance()));
         } else {
-            executor = std::unique_ptr<RamExecutor>(new RamInterpreter(globalConfig));
+            executor = std::unique_ptr<RamExecutor>(new RamInterpreter(Global::getInstance()));
         }
     }
 
@@ -383,13 +383,13 @@ int main(int argc, char **argv)
     config.setCompileScript(compileCmd + " ");
 
     // check if this is code generation only
-    if (globalConfig.has("generate")) {
+    if (Global::getInstance().has("generate")) {
 
     	// just generate, no compile, no execute
-		static_cast<const RamCompiler*>(executor.get())->generateCode(translationUnit->getSymbolTable(), *ramProg, globalConfig.get("generate"));
+		static_cast<const RamCompiler*>(executor.get())->generateCode(translationUnit->getSymbolTable(), *ramProg, Global::getInstance().get("generate"));
 
     	// check if this is a compile only
-    } else if (globalConfig.has("compile") && globalConfig.has("dl-program")) {
+    } else if (Global::getInstance().has("compile") && Global::getInstance().has("dl-program")) {
         // just compile, no execute
         static_cast<const RamCompiler*>(executor.get())->compileToBinary(translationUnit->getSymbolTable(), *ramProg);
     } else {
@@ -398,7 +398,7 @@ int main(int argc, char **argv)
     }
 
     /* Report overall run-time in verbose mode */
-    if (globalConfig.has("verbose")) {
+    if (Global::getInstance().has("verbose")) {
         auto souffle_end = std::chrono::high_resolution_clock::now();
         std::cout << "Total Time: " << std::chrono::duration<double>(souffle_end-souffle_start).count() << "sec\n";
     }

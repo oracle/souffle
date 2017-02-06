@@ -71,38 +71,40 @@ namespace {
 
 bool AutoScheduleTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
-    if (generateScheduleReport) {
+    if (!Global::getInstance().get("debug-report").empty()) {
         std::stringstream report;
-        changed = autotune(translationUnit, factDir, &report, verbose);
+        changed = autotune(translationUnit, &report);
         translationUnit.getDebugReport().addSection(DebugReporter::getCodeSection("auto-schedule", "Auto Schedule Report", report.str()));
     } else {
-        changed = autotune(translationUnit, factDir, nullptr, verbose);
+        changed = autotune(translationUnit, nullptr);
     }
     return changed;
 }
 
-bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, const std::string& factDir, std::ostream* report, bool verbose, const QueryExecutionStrategy& strategy) {
+bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, std::ostream* report) {
+
+    const QueryExecutionStrategy& strategy = ScheduledExecution;
 
     // start with status message
-    if (verbose) std::cout << "\n";
-    if (verbose) std::cout << "----------------- Auto-Scheduling Started -----------------\n";
+    if (Global::getInstance().has("verbose")) std::cout << "\n";
+    if (Global::getInstance().has("verbose")) std::cout << "----------------- Auto-Scheduling Started -----------------\n";
 
     // step 1 - translate to RAM program
-    if (verbose) std::cout << "[ Converting to RAM Program ...                           ]\n";
+    if (Global::getInstance().has("verbose")) std::cout << "[ Converting to RAM Program ...                           ]\n";
     std::unique_ptr<RamStatement> stmt = RamTranslator().translateProgram(translationUnit);
 
     // check whether there is something to tune
     if (!stmt) {
-        if (verbose) std::cout << "[                                     No Rules in Program ]\n";
-        if (verbose) std::cout << "---------------- Auto-Scheduling Completed ----------------\n";
+        if (Global::getInstance().has("verbose")) std::cout << "[                                     No Rules in Program ]\n";
+        if (Global::getInstance().has("verbose")) std::cout << "---------------- Auto-Scheduling Completed ----------------\n";
         return false;
     }
 
-    if (verbose) std::cout << "[                                                    Done ]\n";
+    if (Global::getInstance().has("verbose")) std::cout << "[                                                    Done ]\n";
 
 
     // step 2 - run in interpreted mode, collect decisions
-    if (verbose) std::cout << "[ Profiling RAM Program ...                               ]\n";
+    if (Global::getInstance().has("verbose")) std::cout << "[ Profiling RAM Program ...                               ]\n";
 
     Profiler::Data data;
     Profiler profiler(strategy, data);
@@ -112,23 +114,22 @@ bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, cons
 
     // create interpreter instance
     RamGuidedInterpreter interpreter(profiler);
-    interpreter.getConfig().setFactFileDir(factDir);
 
-    if (report && verbose) {
+    if (report && Global::getInstance().has("verbose")) {
         SplitStream splitStream(report, &std::cout);
         interpreter.setReportTarget(splitStream);
     } else if (report) {
         interpreter.setReportTarget(*report);
-    } else if (verbose) {
+    } else if (Global::getInstance().has("verbose")) {
         interpreter.setReportTarget(std::cout);
     }
 
     // run interpreter
     interpreter.execute(table, *stmt);
 
-    if (verbose) std::cout << "[                                                    Done ]\n";
+    if (Global::getInstance().has("verbose")) std::cout << "[                                                    Done ]\n";
 
-    if (verbose) { 
+    if (Global::getInstance().has("verbose")) {
         std::cout << "Data:\n";
         for(const auto& cur : data) {
             std::cout << "Clause @ " << cur.first << "\n";
@@ -139,7 +140,7 @@ bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, cons
     } 
 
     // step 3 - process collected data ..
-    if (verbose) std::cout << "[ Selecting most significant schedules ...                ]\n";
+    if (Global::getInstance().has("verbose")) std::cout << "[ Selecting most significant schedules ...                ]\n";
 
     std::map<AstSrcLocation, const AstClause*> clauses;
     visitDepthFirst(*translationUnit.getProgram(), [&](const AstClause& clause) {
@@ -162,16 +163,16 @@ bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, cons
     }
 
 
-    if (verbose) { 
+    if (Global::getInstance().has("verbose")) {
         for(const auto& cur : bestOrders) {
             std::cout << *cur.first << "\n Best Order: " << cur.second << "\n Time: " << longestTime[cur.first] << "\n\n";
         }
     }
 
-    if (verbose) std::cout << "[                                                    Done ]\n";
+    if (Global::getInstance().has("verbose")) std::cout << "[                                                    Done ]\n";
 
     // step 4 - apply transformations
-    if (verbose) std::cout << "[ Re-scheduling rules ...                                 ]\n";
+    if (Global::getInstance().has("verbose")) std::cout << "[ Re-scheduling rules ...                                 ]\n";
 
     bool changed = false;
     for(const auto& cur : bestOrders) {
@@ -192,10 +193,10 @@ bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, cons
         }
     }
 
-    if (verbose) std::cout << "[                                                    Done ]\n";
+    if (Global::getInstance().has("verbose")) std::cout << "[                                                    Done ]\n";
 
     // end with status message
-    if (verbose) std::cout << "---------------- Auto-Scheduling Completed ----------------\n";
+    if (Global::getInstance().has("verbose")) std::cout << "---------------- Auto-Scheduling Completed ----------------\n";
 
     return changed;
 }
