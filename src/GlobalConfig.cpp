@@ -46,7 +46,9 @@ GlobalConfig::GlobalConfig(int argc, char** argv, const std::string header, cons
 }
 
 void GlobalConfig::printOptions(std::ostream& os) {
+
     os << header;
+
     int namelen = 0, arglen = 0;
     for (const Option& opt : options) {
         namelen = ((int) opt.name.size() > namelen) ? opt.name.size() : namelen;
@@ -83,6 +85,7 @@ void GlobalConfig::printOptions(std::ostream& os) {
     }
 
     os << footer;
+
 }
 
 void GlobalConfig::error() {
