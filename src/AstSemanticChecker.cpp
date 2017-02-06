@@ -120,6 +120,15 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
            report.addError("Null constant used as a non-record", cnst.getSrcLoc());
     });
 
+    // record initializations have the same size as their types
+    visitDepthFirst(nodes, [&](const AstRecordInit& cnst) {
+        TypeSet types = typeAnalysis.getTypes(&cnst);
+        if (isRecordType(types))
+            for (const Type& type : types)
+                if (cnst.getArguments().size() != dynamic_cast<const RecordType*>(&type)->getFields().size())
+                    report.addError("Wrong number of arguments given to record", cnst.getSrcLoc());
+    });
+
     // - unary functors -
     visitDepthFirst(nodes, [&](const AstUnaryFunctor& fun) {
 

@@ -30,14 +30,14 @@ SingleNumberRelation([1, 1, 1]).       // error
 
 // Double Number Relation
 
-DoubleNumberRelation([1]).             // TODO: error
+DoubleNumberRelation([1]).             // error
 DoubleNumberRelation([1, 1]).          // no error
 DoubleNumberRelation([1, 1, 1]).       // error
 
 // Triple Number Relation
 
-TripleNumberRelation([1]).             // TODO: error
-TripleNumberRelation([1, 1]).          // TODO: error
+TripleNumberRelation([1]).             // error
+TripleNumberRelation([1, 1]).          // error
 TripleNumberRelation([1, 1, 1]).       // no error
 
 // Single Symbol Relation
@@ -48,12 +48,12 @@ SingleSymbolRelation(["1", "1", "1"]). // error
 
 // Double Symbol Relation
 
-DoubleSymbolRelation(["1"]).           // TODO: error
+DoubleSymbolRelation(["1"]).           // error
 DoubleSymbolRelation(["1", "1"]).      // no error
 DoubleSymbolRelation(["1", "1", "1"]). // error
 
 // Triple Symbol Relation
 
-TripleSymbolRelation(["1"]).           // TODO: error
-TripleSymbolRelation(["1", "1"]).      // TODO: error
+TripleSymbolRelation(["1"]).           // error
+TripleSymbolRelation(["1", "1"]).      // error
 TripleSymbolRelation(["1", "1", "1"]). // no error

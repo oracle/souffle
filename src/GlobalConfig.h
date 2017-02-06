@@ -60,7 +60,7 @@ struct Option {
 };
 
 /** Class to handle the command line arguments. */
-class Environment : public StringTable {
+class GlobalConfig : public StringTable {
 
     private:
 
@@ -83,7 +83,7 @@ class Environment : public StringTable {
     public:
 
         /** Constructor for the environment. */
-        Environment(int argc, char** argv, const std::string header, const std::string footer, const std::vector<Option> options);
+        GlobalConfig(int argc, char** argv, const std::string header, const std::string footer, const std::vector<Option> options);
 
         /** Print all available options to the given stream. */
         void printOptions(std::ostream& os);
