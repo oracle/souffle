@@ -30,7 +30,6 @@ class Reader {
 private:
     std::string file_loc;
     std::ifstream file;
-    std::ifstream live_file;
     std::ios::streampos gpos;
 
     bool loaded = false;
@@ -44,7 +43,7 @@ public:
     std::shared_ptr <ProgramRun> run;
 
     Reader(std::string arg, std::shared_ptr <ProgramRun> run, bool vFlag, bool online) :
-            file_loc(arg), file(arg), live_file(arg), online(online), runtime(-1.0),
+            file_loc(arg), file(arg), online(online), runtime(-1.0),
             relation_map(std::unordered_map < std::string, std::shared_ptr < Relation >>()) {
         this->run = run;
     }

@@ -193,25 +193,25 @@ std::string Reader::createId() {
 
 
 void Reader::livereadinit() {
-    //std::ifstream live_file(this->file_loc);
+    //live_file = std::unique_ptr< std::basic_ifstream< char>>(this->file_loc.c_str());
 
-    if(!live_file.is_open())
+    if(!file.is_open())
     {
         std::cerr << "ERROR: opening log file: " << this->file_loc << '\n';
         return;
     }
     std::cout << this->file_loc << " open" <<std::endl;
-    gpos = live_file.tellg();
+    gpos = file.tellg();
     std::string line;
     bool finished = false;
     while(1)
     {
         // get line, if reached eof, reset reader to last valid line
         // otherwise break, and start thread
-        if(!std::getline(live_file, line) || live_file.eof())
+        if(!std::getline(file, line) || file.eof())
         {
-            live_file.clear();
-            live_file.seekg(gpos);
+            file.clear();
+            file.seekg(gpos);
             break;
         }
 
@@ -228,7 +228,7 @@ void Reader::livereadinit() {
             }
 
             // save position in case eof reached
-            gpos = live_file.tellg();
+            gpos = file.tellg();
         }
     }
 
@@ -247,10 +247,10 @@ void Reader::liveread() {
     bool done = false;
     while(!done)
     {
-        if(!std::getline(live_file, line) || live_file.eof())
+        if(!std::getline(file, line) || file.eof())
         {
-            live_file.clear();
-            live_file.seekg(gpos);
+            file.clear();
+            file.seekg(gpos);
             std::this_thread::sleep_for(std::chrono::seconds(1));
             continue;
         }
@@ -258,7 +258,7 @@ void Reader::liveread() {
         if (found!=std::string::npos && found==0) {
             done=true;
         }
-        gpos = live_file.tellg();
+        gpos = file.tellg();
         std::vector <std::string> part = Tools::splitAtSemiColon(line.substr(1));
         process(part);
     }
