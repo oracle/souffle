@@ -126,6 +126,7 @@ EXTRA_DIST = parser.yy scanner.ll  test/test.h
 soufflepublicdir = $(includedir)/souffle
 
 soufflepublic_HEADERS = CompiledRamOptions.h    \
+                        CompiledRamIndexUtils.h \
                         CompiledRamRelation.h   \
                         CompiledRamTuple.h      \
                         CompiledRamRecord.h     \
