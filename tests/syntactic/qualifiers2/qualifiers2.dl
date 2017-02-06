@@ -1,0 +1,3 @@
+.decl A(x:number, y:number, z:number) eqrel output input
+.type name 
+.decl B(x:number, y:name) eqrel output input

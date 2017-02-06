@@ -1,0 +1,15 @@
+.decl A(x:number, y:number) eqrel output
+A(1,2).
+.decl B(x:number, y:number) btree output
+B(1,2).
+.decl C(x:number, y:number) brie output
+C(1,2).
+.decl D(x:number, y:number) brie brie output
+.decl E(x:number, y:number) brie btree output
+.decl F(x:number, y:number) brie eqrel output
+.decl G(x:number, y:number) btree brie output
+.decl H(x:number, y:number) btree btree output
+.decl I(x:number, y:number) btree eqrel output
+.decl J(x:number, y:number) eqrel brie output
+.decl K(x:number, y:number) eqrel btree output
+.decl L(x:number, y:number) eqrel eqrel output
