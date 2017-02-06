@@ -1,8 +1,8 @@
-#include "Environment.h"
+#include "GlobalConfig.h"
 
 namespace souffle {
 
-Environment::Environment(int argc, char** argv, const std::string header, const std::string footer, const std::vector<Option> options)
+GlobalConfig::GlobalConfig(int argc, char** argv, const std::string header, const std::string footer, const std::vector<Option> options)
     : StringTable()
     , argc (argc)
     , argv (argv)
@@ -45,7 +45,7 @@ Environment::Environment(int argc, char** argv, const std::string header, const 
     }
 }
 
-void Environment::printOptions(std::ostream& os) {
+void GlobalConfig::printOptions(std::ostream& os) {
     os << header;
     int namelen = 0, arglen = 0;
     for (const Option& opt : options) {
@@ -85,7 +85,7 @@ void Environment::printOptions(std::ostream& os) {
     os << footer;
 }
 
-void Environment::error() {
+void GlobalConfig::error() {
     for(int i = 0; i < argc; i++) {
         std::cerr << argv[i] << " ";
     }

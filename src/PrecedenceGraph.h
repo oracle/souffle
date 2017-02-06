@@ -29,7 +29,6 @@
 #include "AstAnalysis.h"
 #include "AstTranslationUnit.h"
 #include "GraphUtils.h"
-#include "Environment.h"
 
 namespace souffle {
 
