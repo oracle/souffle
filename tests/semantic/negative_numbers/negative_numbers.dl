@@ -9,43 +9,43 @@
 // First Expression
 
 // no spaces
-expr((-2^31) - 1).
+expr(-2^31).
 
 // one space
-expr((- 2^31) - 1).
-expr((-2 ^31) - 1).
-expr((-2^ 31) - 1).
+expr(- 2^31).
+expr(-2 ^31).
+expr(-2^ 31).
 
 // two spaces
-expr((- 2 ^31) - 1).
-expr((-2 ^ 31) - 1).
-expr((- 2^ 31) - 1).
+expr(- 2 ^31).
+expr(-2 ^ 31).
+expr(- 2^ 31).
 
 // three spaces
-expr((- 2 ^ 31) - 1).
+expr(- 2 ^ 31).
 
 // Second Expression
 
 // no spaces
-expr(-(2^31) - 1).
+expr(-(2^31)).
 
 // one space
-expr(- (2^31) - 1).
-expr(-(2 ^31) - 1).
-expr(-(2^ 31) - 1).
+expr(- (2^31)).
+expr(-(2 ^31)).
+expr(-(2^ 31)).
 
 // two spaces
-expr(- (2 ^31) - 1).
-expr(-(2 ^ 31) - 1).
-expr(- (2^ 31) - 1).
+expr(- (2 ^31)).
+expr(-(2 ^ 31)).
+expr(- (2^ 31)).
 
 // three spaces
-expr(- (2 ^ 31) - 1).
+expr(- (2 ^ 31)).
 
 // Third Expression
 
 // no spaces
-expr(-2147483647).
+expr(-2147483648).
 
 // one space
-expr(- 2147483647).
+expr(- 2147483648).

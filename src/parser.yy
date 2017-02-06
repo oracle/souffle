@@ -373,8 +373,15 @@ arg: STRING {
        $$->setSrcLoc(@$);
      }
    |  MINUS arg %prec NEG {
-       $$ = new AstUnaryFunctor(UnaryOp::NEG, std::unique_ptr<AstArgument>($2));
-       $$->setSrcLoc(@$); 
+       std::unique_ptr<AstArgument> arg;
+       if (const AstNumberConstant* original = dynamic_cast<const AstNumberConstant*>($2)) {
+           $$ = new AstNumberConstant(-1*original->getIndex());
+           $$->setSrcLoc($2->getSrcLoc());
+           delete $2;
+       } else {
+           $$ = new AstUnaryFunctor(UnaryOp::NEG, std::unique_ptr<AstArgument>($2));
+           $$->setSrcLoc(@$);
+       }
      }
    |  BW_NOT arg { 
        $$ = new AstUnaryFunctor(UnaryOp::BNOT, std::unique_ptr<AstArgument>($2));

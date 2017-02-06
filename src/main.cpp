@@ -144,7 +144,6 @@ int main(int argc, char **argv)
             num_threads = atoi(env.get("jobs").c_str());
             if (num_threads == 0) {
                fail("Number of jobs in the -j/--jobs options must be greater than zero!");
-
             }
         } else {
             fail("Wrong parameter " + env.get("jobs") + " for option -j/--jobs!");
