@@ -24,6 +24,7 @@
 
 #include "RamRelation.h"
 #include "RamData.h"
+#include "GlobalConfig.h"
 
 namespace souffle {
 
@@ -36,6 +37,11 @@ class RamInsert;
  * the execution of a RAM program.
  */
 class RamExecutorConfig {
+
+private:
+
+    /** The global configuration, used to establish this configuration. */
+    GlobalConfig globalConfig;
 
     /** The name of the DATALOG source file */
     std::string sourceFileName;
@@ -66,81 +72,42 @@ class RamExecutorConfig {
 
 public:
 
-    RamExecutorConfig() : sourceFileName("-unknown-"), factFileDir("./"), outputDir("./"), outputDatabaseName(""), num_threads(1), logging(false), debug(false) {}
+    RamExecutorConfig()
+        : sourceFileName("-unknown-")
+        , factFileDir("./")
+        , outputDir("./")
+        , outputDatabaseName("")
+        , num_threads(1)
+        , logging(false)
+        , debug(false) {}
+
+    RamExecutorConfig(GlobalConfig globalConfig)
+        : globalConfig(globalConfig)
+        , sourceFileName(globalConfig.get(""))
+        , factFileDir(globalConfig.get("fact-dir"))
+        , outputDir(globalConfig.get("output-dir"))
+        , outputDatabaseName("")
+        , num_threads(std::stoi(globalConfig.get("jobs")))
+        , logging(globalConfig.has("profile"))
+        , profileName(globalConfig.get("profile"))
+        , debug(globalConfig.has("debug")) {}
 
     // -- getters and setters --
 
-    void setSourceFileName(const std::string& name) {
-        sourceFileName = name;
-    }
+    // TODO
+    void setFactFileDir(const std::string& dir) { factFileDir = dir; }
+    void setCompileScript(const std::string& script) { compileScript = script; }
 
-    const std::string& getSourceFileName() const {
-        return sourceFileName;
-    }
-
-    void setFactFileDir(const std::string& dir) {
-        factFileDir = dir;
-    }
-
-    const std::string& getFactFileDir() const {
-        return factFileDir;
-    }
-
-    void setOutputDir(const std::string& dir) {
-        outputDir = dir;
-    }
-
-    const std::string& getOutputDir() const {
-        return outputDir;
-    }
-
-    const std::string& getOutputDatabaseName() const {
-        return outputDatabaseName;
-    }
-
-    void setNumThreads(size_t num) {
-        num_threads = num;
-    }
-
-    size_t getNumThreads() const {
-        return num_threads;
-    }
-
-    bool isParallel() const {
-        return num_threads != 1;
-    }
-
-    void setLogging(bool val = true) {
-        logging = val;
-    }
-
-    bool isLogging() const {
-        return logging;
-    }
-
-    void setCompileScript(const std::string& script) {
-        compileScript = script;
-    }
-
-    const std::string& getCompileScript() const {
-        return compileScript;
-    }
-
-    void setProfileName(const std::string& name) {
-        profileName = name;
-    }
-
-    const std::string& getProfileName() const {
-        return profileName;
-    }
-
-    void setDebug(bool val = true) {
-        debug = val;
-    }
-
-    bool isDebug() const {
-        return debug;
-    }
+    const std::string& getSourceFileName() const { return sourceFileName; }
+    const std::string& getFactFileDir() const { return factFileDir; }
+    const std::string& getOutputDir() const { return outputDir; }
+    const std::string& getOutputDatabaseName() const { return outputDatabaseName; }
+    size_t getNumThreads() const { return num_threads; }
+    bool isParallel() const { return num_threads != 1; }
+    bool isLogging() const { return logging; }
+    const std::string& getCompileScript() const { return compileScript; }
+    const std::string& getProfileName() const { return profileName; }
+    bool isDebug() const { return debug; }
 
 };
 
@@ -159,6 +126,7 @@ protected:
 public:
     using SymbolTable = souffle::SymbolTable; // XXX pending namespace cleanup
     RamExecutor() : report(nullptr) {}
+    RamExecutor(GlobalConfig globalConfig) : config(RamExecutorConfig(globalConfig)), report(nullptr) {}
 
     /** A virtual destructor to support safe inheritance */
     virtual ~RamExecutor() {}
@@ -309,6 +277,9 @@ class RamGuidedInterpreter : public RamExecutor {
 public:
 
     /** A constructor accepting a query executor strategy */
+    RamGuidedInterpreter(GlobalConfig globalConfig, const QueryExecutionStrategy& queryStrategy = ScheduledExecution)
+        : RamExecutor(globalConfig), queryStrategy(queryStrategy) {}
+
     RamGuidedInterpreter(const QueryExecutionStrategy& queryStrategy = ScheduledExecution)
         : queryStrategy(queryStrategy) {}
 
@@ -332,6 +303,9 @@ struct RamInterpreter : public RamGuidedInterpreter {
     RamInterpreter() : RamGuidedInterpreter(DirectExecution) {
     };
 
+    RamInterpreter(GlobalConfig globalConfig) : RamGuidedInterpreter(globalConfig, DirectExecution) {
+    };
+
 };
 
 
@@ -340,6 +314,8 @@ struct RamInterpreter : public RamGuidedInterpreter {
  * the actual computation.
  */
 class RamCompiler : public RamExecutor {
+
+private:
 
     /**
      * The file name of the executable to be created, empty if a temporary
@@ -351,6 +327,7 @@ public:
 
     /** A simple constructore */
     RamCompiler(const std::string& fn = "") : fileName(fn) {}
+    RamCompiler(GlobalConfig globalConfig, const std::string& fn = "") : RamExecutor(globalConfig), fileName(fn) {}
 
     /**
      * Updates the file name of the binary to be utilized by

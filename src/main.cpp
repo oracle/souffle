@@ -95,8 +95,11 @@ int main(int argc, char **argv)
         }(),
         /* new command line options, the environment will be filled with the arguments passed to them, or the empty string if they take none */
         []() {
-            Option opts[] = {
-                /* each option is { long option, short option, argument name, default value, takes many arguments, description } */
+            MainOption opts[] = {
+                /* each option is { longName, shortName, argumentType, defaultValue, takesManyArguments, description } */
+                // main option, the datalog program, key is always empty
+                {"", 0, "",  "-unknown-", false, ""},
+                // other options
                 {"fact-dir",      'F',  "DIR",  ".", false, "Specify directory for fact files."},
                 {"include-dir",   'I',  "DIR",  ".",  true, "Specify directory for include files."},
                 {"output-dir",    'D',  "DIR",  ".", false, "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
@@ -127,7 +130,7 @@ int main(int argc, char **argv)
 
     /* for the help option, if given simply print the help text then exit */
     if (globalConfig.has("help")) {
-        globalConfig.printOptions(std::cerr);
+        globalConfig.printHelp(std::cerr);
         return 1;
    }
 
@@ -148,7 +151,6 @@ int main(int argc, char **argv)
     } else {
         fail("Wrong parameter " + globalConfig.get("jobs") + " for option -j/--jobs!");
     }
-
 
     /* if an output directory is given, check it exists */
     if (globalConfig.has("output-dir") && !globalConfig.has("output-dir", "-") && !existDir(globalConfig.get("output-dir")))
@@ -220,6 +222,8 @@ int main(int argc, char **argv)
     } else {
         globalConfig.error();
     }
+    globalConfig.set("", filenames);
+
 
     // ------ start souffle -------------
 
@@ -233,7 +237,7 @@ int main(int argc, char **argv)
     if (!isExecutable(cmd))
         fail("error: failed to locate souffle preprocessor");
 
-    cmd  += " " + globalConfig.get("include-dir") + " " + filenames;
+    cmd  += " " + globalConfig.get("include-dir") + " " + globalConfig.get("");
     FILE* in = popen(cmd.c_str(), "r");
 
     /* Time taking for parsing */
@@ -354,28 +358,21 @@ int main(int argc, char **argv)
     std::unique_ptr<RamExecutor> executor;
     if (globalConfig.has("generate") || globalConfig.has("compile")) {
         // configure compiler
-        executor = std::unique_ptr<RamExecutor>(new RamCompiler(globalConfig.get("dl-program")));
+        executor = std::unique_ptr<RamExecutor>(new RamCompiler(globalConfig, globalConfig.get("dl-program")));
         if (globalConfig.has("verbose")) {
            executor -> setReportTarget(std::cout);
         }
     } else {
         // configure interpreter
         if (globalConfig.has("auto-schedule")) {
-            executor = std::unique_ptr<RamExecutor>(new RamGuidedInterpreter());
+            executor = std::unique_ptr<RamExecutor>(new RamGuidedInterpreter(globalConfig));
         } else {
-            executor = std::unique_ptr<RamExecutor>(new RamInterpreter());
+            executor = std::unique_ptr<RamExecutor>(new RamInterpreter(globalConfig));
         }
     }
 
     // configure executor
     auto& config = executor->getConfig();
-    config.setSourceFileName(filenames);
-    config.setFactFileDir(globalConfig.get("fact-dir"));
-    config.setOutputDir(globalConfig.get("output-dir"));
-    config.setNumThreads(std::stoi(globalConfig.get("jobs")));
-    config.setLogging(globalConfig.has("profile"));
-    config.setProfileName(globalConfig.get("profile"));
-    config.setDebug(globalConfig.has("debug"));
 
     /* Locate souffle-compile script */
     std::string compileCmd = ::findTool("souffle-compile", programName, ".");

@@ -130,7 +130,7 @@ namespace {
                 }
                 case BinaryOp::DIV: {
                     RamDomain rhs = visit(op.getRHS());
-                    assert(rhs != 0 && "unsupported operand (division by zero)");
+                    assert(rhs != 0 && "Unsupported Operand! (division by zero)");
                     return visit(op.getLHS()) / rhs;
                 }
                 case BinaryOp::EXP: {
@@ -138,7 +138,7 @@ namespace {
                 }
                 case BinaryOp::MOD: {
                     RamDomain rhs = visit(op.getRHS());
-                    assert(rhs != 0 && "unsupported operand (modulo by zero)");
+                    assert(rhs != 0 && "Unsupported Operand! (modulo by zero)");
                     return visit(op.getLHS()) % rhs;
                 }
                 case BinaryOp::BAND: {
@@ -198,7 +198,7 @@ namespace {
 
             RamDomain visitNode(const RamNode& node) {
                 std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
-                assert(false && "unsupported node type");
+                assert(false && "Unsupported Node Type!");
                 return 0;
             }
 
@@ -318,7 +318,7 @@ namespace {
 
             bool visitNode(const RamNode& node) {
                 std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
-                assert(false && "unsupported node type");
+                assert(false && "Unsupported Node Type!");
                 return 0;
             }
 
@@ -550,7 +550,7 @@ namespace {
             // -- safety net --
             void visitNode(const RamNode& node) {
                 std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
-                assert(false && "unsupported node type");
+                assert(false && "Unsupported Node Type!");
             }
 
         };
@@ -766,7 +766,7 @@ namespace {
 
             bool visitNode(const RamNode& node) {
                 std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
-                assert(false && "unsupported node type");
+                assert(false && "Unsupported Node Type!");
                 return false;
             }
 
@@ -1604,7 +1604,7 @@ namespace {
                 break;
             }
             default:
-                assert(0 && "unsupported operation");
+                assert(0 && "Unsupported Operation!");
                 break;
             }
         }
@@ -1713,7 +1713,7 @@ namespace {
                 break;
             }
             default:
-                assert(0 && "unsupported operation");
+                assert(0 && "Unsupported Operation!");
 
             }
         }
@@ -1743,7 +1743,7 @@ namespace {
                 out << "(!(" << print(op.getValue()) << "))";
                 break;
             default:
-                assert(0 && "unsupported operation");
+                assert(0 && "Unsupported Operation!");
                 break;
 
             }
@@ -1753,7 +1753,7 @@ namespace {
 
         void visitNode(const RamNode& node, std::ostream&) {
             std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
-            assert(false && "unsupported node type");
+            assert(false && "Unsupported Node Type!");
         }
 
     private:

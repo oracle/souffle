@@ -18,44 +18,54 @@ class StringTable {
     private:
 
         /** An empty string object, used to return by reference. */
-        const std::string empty;
+        const std::string _empty;
 
-        /** A table of key value pairs. */
-        std::map<std::string, std::string> table;
+        /** A data of key value pairs. */
+        std::map<std::string, std::string> _data;
 
     public:
 
-        /** Constructor for the table class. */
-        StringTable() : empty (std::string()), table (std::map<std::string, std::string>())  {}
+        /** Constructor for the data class. */
+        StringTable() : _empty(std::string()), _data(std::map<std::string, std::string>())  {}
 
-        /** Get the value for a given key from the table, returning an empty string if it does not exist. */
-        const std::string& get(const std::string& key) const { return (has(key)) ? table.at(key) : empty; }
+        /** Copy constructor for the data class. */
+        StringTable(const StringTable& other) { data(other.data()); }
 
-        /** Get the value for a given key from the table, returning the specified value if it does not exist. */
-        const std::string& get(const std::string& key, const std::string& value) const  { return (has(key)) ? table.at(key) : value; }
+        /** Assignment operator for the data class. */
+        StringTable& operator=(const StringTable& other) { data(other.data()); return *this; }
 
-        /** Check if the table has any value for the given key. */
-        const bool has(const std::string& key) const { return table.find(key) != table.end(); }
+        const std::map<std::string, std::string>& data() const { return _data; }
 
-        /** Check if the table has the specified value for the given key. */
-        const bool has(const std::string& key, const std::string& value) const { return has(key) && table.at(key) == value; }
+        void data(const std::map<std::string, std::string>& rhs) { _data = rhs; }
 
-        /** Set the value for a key in the table to an empty string. */
-        void set(const std::string& key) { table[key] = empty; }
+        /** Get the value for a given key from the data, returning an _empty string if it does not exist. */
+        const std::string& get(const std::string& key) const { return (has(key)) ? _data.at(key) : _empty; }
 
-        /** Set the value for a key in the table to the given value. */
-        void set(const std::string& key, const std::string& value) { table[key] = value; }
+        /** Get the value for a given key from the data, returning the specified value if it does not exist. */
+        const std::string& get(const std::string& key, const std::string& value) const  { return (has(key)) ? _data.at(key) : value; }
 
-        /** Print the table to the specified output stream. */
-        void print(std::ostream& os) { os << table << std::endl; }
+        /** Check if the data has any value for the given key. */
+        const bool has(const std::string& key) const { return _data.find(key) != _data.end(); }
+
+        /** Check if the data has the specified value for the given key. */
+        const bool has(const std::string& key, const std::string& value) const { return has(key) && _data.at(key) == value; }
+
+        /** Set the value for a key in the data to an _empty string. */
+        void set(const std::string& key) { _data[key] = _empty; }
+
+        /** Set the value for a key in the data to the given value. */
+        void set(const std::string& key, const std::string& value) { _data[key] = value; }
+
+        /** Print the data to the specified output stream. */
+        void print(std::ostream& os) { os << _data << std::endl; }
 };
 
-struct Option {
-       const std::string name;
-       const char flag;
-       const std::string argument;
-       const std::string by_default;
-       const bool takes_many;
+struct MainOption {
+       const std::string longName;
+       const char shortName;
+       const std::string argumentType;
+       const std::string defaultValue;
+       const bool takesManyArguments;
        const std::string description;
 };
 
@@ -77,16 +87,25 @@ class GlobalConfig : public StringTable {
         const std::string footer;
 
         /** Options, for both the command line arguments and the help text. */
-        const std::vector<Option> options;
+        const std::vector<MainOption> mainOptions;
 
 
     public:
 
+        /** Empty constructor for the environment. */
+        GlobalConfig();
+
         /** Constructor for the environment. */
         GlobalConfig(int argc, char** argv, const std::string header, const std::string footer, const std::vector<Option> options);
 
-        /** Print all available options to the given stream. */
-        void printOptions(std::ostream& os);
+        /** Copy constructor for the environment. */
+        GlobalConfig(const GlobalConfig& other) { data(other.data()); }
+
+        /** Assignment operator for the environment. */
+        GlobalConfig& operator=(const GlobalConfig& other) { data(other.data()); return *this; }
+
+        /** Print the help message to the given output stream. */
+        void printHelp(std::ostream& os);
 
         /** Print an error message, the help text, and exit. */
         void error();

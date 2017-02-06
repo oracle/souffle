@@ -2,6 +2,12 @@
 
 namespace souffle {
 
+GlobalConfig::GlobalConfig()
+    : StringTable()
+{
+
+}
+
 GlobalConfig::GlobalConfig(int argc, char** argv, const std::string header, const std::string footer, const std::vector<Option> options)
     : StringTable()
     , argc (argc)
@@ -11,8 +17,8 @@ GlobalConfig::GlobalConfig(int argc, char** argv, const std::string header, cons
     , options (options)
 {
     option longOptions[options.size() + 1];
-    std::map<const char, std::string> optionTable;
-    std::map<const char, bool> argumentTable;
+    std::map<const char, std::string> optionTable; // table to map flags to options
+    std::map<const char, bool> argumentTable; // table to map flags to argument quantities
     int i = 0;
     std::string shortOptions = "";
     for (const Option& opt : options) {
@@ -43,49 +49,66 @@ GlobalConfig::GlobalConfig(int argc, char** argv, const std::string header, cons
             set(iter->second, arg);
         }
     }
+
 }
 
-void GlobalConfig::printOptions(std::ostream& os) {
+void GlobalConfig::printHelp(std::ostream& os) {
 
+    // print the header
     os << header;
 
-    int namelen = 0, arglen = 0;
+    // iterate over the options and obtain the maximum name and argument lengths
+    int maxLongNameLength = 0, maxArgumentIdLength = 0;
     for (const Option& opt : options) {
-        namelen = ((int) opt.name.size() > namelen) ? opt.name.size() : namelen;
-        arglen = ((int) opt.argument.size() > arglen) ? opt.argument.size() : arglen;
+        // if it is the main option, do nothing
+        if (opt.longName == "") continue;
+        // otherwise, proceed with the calculation
+        maxLongNameLength = ((int) opt.longName.size() > maxLongNameLength) ? opt.longName.size() : maxLongNameLength;
+        maxArgumentIdLength = ((int) opt.argumentId.size() > maxArgumentIdLength) ? opt.argumentId.size() : maxArgumentIdLength;
     }
 
+    // iterator over the options and pretty print them, using padding as determined
+    // by the maximum name and argument lengths
     int length;
     for (const Option& opt : options) {
 
+        // if it is the main option, do nothing
+        if (opt.longName == "") continue;
+
+        // print the short form name and the argument parameter
         length = 0;
         os << "\t";
-        if (isalpha(opt.flag)) {
-            os << "-" << opt.flag;
-            if (!opt.argument.empty()) {
-                os << "<" << opt.argument << ">";
-                length = opt.argument.size() + 2;
+        if (isalpha(opt.shortName)) {
+            os << "-" << opt.shortName;
+            if (!opt.argumentId.empty()) {
+                os << "<" << opt.argumentId << ">";
+                length = opt.argumentId.size() + 2;
             }
         } else {
             os << "  ";
         }
 
-        for (; length < arglen + 2; ++length) os << " ";
+        // pad with empty space for prettiness
+        for (; length < maxArgumentIdLength + 2; ++length) os << " ";
 
+        // print the long form name and the argument parameter
         length = 0;
-        os << "\t" << "--" << opt.name;
-        if (!opt.argument.empty()) {
-            os << "=<" << opt.argument << ">";
-            length = opt.argument.size() + 3;
+        os << "\t" << "--" << opt.longName;
+        if (!opt.argumentId.empty()) {
+            os << "=<" << opt.argumentId << ">";
+            length = opt.argumentId.size() + 3;
         }
-        for (length += opt.name.size(); length < arglen + namelen + 3; ++length) os << " ";
 
+        // again, pad with empty space for prettiness
+        for (length += opt.longName.size(); length < maxArgumentIdLength + maxLongNameLength + 3; ++length) os << " ";
+
+        // print the description
         os << "\t" << opt.description << std::endl;
 
     }
 
+    // print the footer
     os << footer;
-
 }
 
 void GlobalConfig::error() {
