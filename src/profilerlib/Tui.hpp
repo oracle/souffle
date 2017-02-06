@@ -59,7 +59,7 @@ public:
 
     void load(std::string method, std::string load_file);
 
-    void help();
+    static void help();
 
     void top();
 

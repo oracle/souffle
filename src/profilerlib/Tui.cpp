@@ -93,7 +93,7 @@ void Tui::runProf() {
         return;
     }
     if (loaded) {
-        std::cout << "SouffleProf v2.1.8\n";
+        std::cout << "SouffleProf v3.0.1\n";
         top();
     }
 
@@ -153,7 +153,7 @@ void Tui::runProf() {
 }
 
 void Tui::outputJson() {
-    std::cout << "SouffleProf v2.1.8\n";
+    std::cout << "SouffleProf v3.0.1\n";
     std::cout << "Generating JSON files...\n";
 
 

@@ -35,7 +35,8 @@ void Cli::parse() {
         }
 
         if (arg.compare("-h")==0) {
-            std::cout << "Souffle Profiler Alpha 4 (14/12/16)\n";
+            std::cout << "Souffle Profiler v3.0.1\n";
+            Tui::help();
             error();
         } else if (arg.compare("-c")==0) {
             if (i < args.size()) {
