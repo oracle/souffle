@@ -977,9 +977,23 @@ namespace {
 
     };
 
-    std::string getRelationType(std::size_t arity, const RamAutoIndex& indices) {
+    std::string getRelationType(const RamRelationIdentifier &rel, std::size_t arity, const RamAutoIndex& indices) {
+
         std::stringstream res;
-        res << "ram::Relation<" << arity;
+        res << "ram::Relation";
+        res << "<";
+
+        if (rel.isBTree()) { 
+            res << "BTree,";
+        } else if (rel.isBrie()) { 
+            res << "Brie,";
+        } else if (rel.isEqRel()) { 
+            res << "EqRel,";
+        } else {
+            res << "Auto,";
+        } 
+        
+        res << arity;
         if (!useNoIndex()) {
             for(auto &cur : indices.getAllOrders() ) {
                 res << ", ram::index<";
@@ -1913,8 +1927,8 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         const std::string &name = getRelationName(rel);
 
         // ensure that the type of the new knowledge is the same as that of the delta knowledge
-        tempType = (rel.isTemp() && raw_name.find("@delta") != std::string::npos) ? getRelationType(rel.getArity(), indices[rel]) : tempType;
-        const std::string& type = (rel.isTemp()) ? tempType : getRelationType(rel.getArity(), indices[rel]);
+        tempType = (rel.isTemp() && raw_name.find("@delta") != std::string::npos) ? getRelationType(rel, rel.getArity(), indices[rel]) : tempType;
+        const std::string& type = (rel.isTemp()) ? tempType : getRelationType(rel, rel.getArity(), indices[rel]);
 
         // defining table
         os << "// -- Table: " << raw_name << "\n";

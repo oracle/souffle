@@ -49,6 +49,10 @@ class RamRelationIdentifier {
     bool input;
     bool computed;
     bool output;
+    bool btree;
+    bool brie;
+    bool eqrel;
+
     bool isdata;
     bool istemp;
 
@@ -60,7 +64,7 @@ class RamRelationIdentifier {
 public:
 
     RamRelationIdentifier() : arity(0), mask(arity), input(false), computed(false), output(false), 
-      isdata(false), istemp(false), last(nullptr), rel(nullptr) {
+      btree(false), brie(false), eqrel(false), isdata(false), istemp(false), last(nullptr), rel(nullptr) {
     }
 
     RamRelationIdentifier(const std::string& name, unsigned arity, const bool istemp)
@@ -71,9 +75,9 @@ public:
     RamRelationIdentifier(const std::string& name, unsigned arity,
             std::vector<std::string> attributeNames = {},
             std::vector<std::string> attributeTypeQualifiers = {}, const SymbolMask& mask = SymbolMask(0),
-            const bool input = false, const bool computed = false, const bool output = false, const bool isdata = false, const bool istemp = false)
+            const bool input = false, const bool computed = false, const bool output = false, const bool btree=false, const bool brie=false, const bool eqrel=false, const bool isdata=false, const bool istemp = false)
         : name(name), arity(arity), attributeNames(attributeNames), attributeTypeQualifiers(attributeTypeQualifiers),
-          mask(mask), input(input), computed(computed), output(output), isdata(isdata), istemp(istemp), last(nullptr), rel(nullptr)   {
+          mask(mask), input(input), computed(computed), output(output), btree(btree), brie(brie), eqrel(eqrel), isdata(isdata), istemp(istemp), last(nullptr), rel(nullptr)   {
         assert(this->attributeNames.size() == arity || this->attributeNames.empty());
         assert(this->attributeTypeQualifiers.size() == arity || this->attributeTypeQualifiers.empty());
     }
@@ -112,12 +116,24 @@ public:
         return output;
     }
 
-    const bool isData() const {
-        return isdata;
+    const bool isBTree() const {
+        return btree;
+    }
+
+    const bool isBrie() const {
+        return brie;
+    }
+
+    const bool isEqRel() const {
+        return eqrel;
     }
 
     const bool isTemp() const {
         return istemp;
+    }
+
+    const bool isData() const {
+        return isdata;
     }
 
     unsigned getArity() const {

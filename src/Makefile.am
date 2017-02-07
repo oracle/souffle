@@ -34,7 +34,8 @@ souffle_profile_SOURCES = souffle_prof.cpp profilerlib/Cell.hpp \
                           profilerlib/Table.cpp                 \
                           profilerlib/Table.hpp                 \
                           profilerlib/Tui.cpp                   \
-                          profilerlib/Tui.hpp
+                          profilerlib/Tui.hpp                   \
+                          profilerlib/html_string.hpp
 
 souffle_profile_CXXFLAGS = $(souffle_CPPFLAGS) -ledit
 
@@ -127,6 +128,7 @@ EXTRA_DIST = parser.yy scanner.ll  test/test.h
 soufflepublicdir = $(includedir)/souffle
 
 soufflepublic_HEADERS = CompiledRamOptions.h    \
+                        CompiledRamIndexUtils.h \
                         CompiledRamRelation.h   \
                         CompiledRamTuple.h      \
                         CompiledRamRecord.h     \
