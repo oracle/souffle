@@ -51,9 +51,147 @@ namespace ram {
  * @tparam arity    ... the arity of the represented relation
  * @tparam Indicies ... a list of indices to be maintained for fast access
  */
-template<unsigned arity, typename ... Indices>
-class Relation;
+template<typename Setup, unsigned arity, typename ... Indices>
+class Relation : public Setup::template relation<arity, Indices...> {};
 
+/**
+ * A generic, tuned setup, using a combination of direct and indirect
+ * b-trees, bries and ordinary tables.
+ */
+struct Auto;
+
+
+/**
+ * A setup utilizing direct b-trees for relations exclusively.
+ */
+struct BTree;
+
+
+/**
+ * A setup utilizing bries for relations exclusively.
+ */
+struct Brie;
+
+
+/**
+ * A setup utilizing disjoint set data structures
+ */
+struct EqRel;
+
+
+
+// -------------------------------------------------------------
+//                  Auto Setup Implementation
+// -------------------------------------------------------------
+
+namespace detail {
+
+    /**
+     * The relation implementing the type if relation utilizing a mixture of different
+     * types of data structures for its representation. The actual data structures
+     * are implementation dependent.
+     */
+    template<unsigned arity, typename ... Indices>
+    class AutoRelation;
+
+}
+
+/**
+ * A generic, tuned setup, using a combination of direct and indirect
+ * b-trees, bries and ordinary tables. The actual data structures
+ * are implementation dependent.
+ */
+struct Auto {
+
+    // determines the relation implementation for a given use case
+    template<unsigned arity, typename ... Indices>
+    using relation = detail::AutoRelation<arity,Indices...>;
+
+};
+
+
+// -------------------------------------------------------------
+//                  BTree Setup Implementation
+// -------------------------------------------------------------
+
+namespace detail {
+
+    /**
+     * The relation type utilized to implement relations only utilizing a single
+     * type of data structure (for the pure BTree and Brie mode).
+     */
+    template<
+        template<typename Tuple, typename Index, bool direct> class IndexFactory,
+        unsigned arity, typename ... Indices
+    >
+    class SingleIndexTypeRelation;
+
+}
+
+/**
+ * A setup utilizing direct b-trees for relations exclusively.
+ */
+struct BTree {
+
+    // a index factory selecting in any case a BTree index
+    template<typename Tuple, typename Index, bool>
+    struct btree_index_factory {
+        using type = typename index_utils::DirectIndex<Tuple,Index>;
+    };
+
+    // determines the relation implementation for a given use case
+    template<unsigned arity, typename ... Indices>
+    using relation = detail::SingleIndexTypeRelation<btree_index_factory,arity,Indices...>;
+
+};
+
+
+// -------------------------------------------------------------
+//                  Brie Setup Implementation
+// -------------------------------------------------------------
+
+/**
+ * A setup utilizing bries for relations exclusively.
+ */
+struct Brie {
+
+    // a index factory selecting in any case a Brie index
+    template<typename Tuple, typename Index, bool>
+    struct brie_index_factory {
+        using type = typename index_utils::TrieIndex<Index>;
+    };
+
+    // determines the relation implementation for a given use case
+    template<unsigned arity, typename ... Indices>
+    using relation = detail::SingleIndexTypeRelation<brie_index_factory,arity,Indices...>;
+
+};
+
+
+
+// -------------------------------------------------------------
+//                  EqRel Setup Implementation
+// -------------------------------------------------------------
+
+/**
+ * A setup utilizing disjoint sets for binary relations exclusively
+ * TODO: implement core DisjointSet factory
+ */
+struct EqRel : public Auto {
+
+    // template<typename Tuple, typename Index, bool>
+    // struct eqrel_index_factory {
+    //     using type = typename index_utils::DisjointSetIndex<Tuple,Index>;
+    // };
+    
+    // // determines the relation implementation for a given use case
+    // template<unsigned arity, typename ... Indices>
+    // using relation = detail::SingleIndexTypeRelation<eqrel_index_factory,arity,Indices...>;
+};
+
+
+
+namespace detail {
 /**
  * A base class for partially specialized relation templates following below.
  * This base class provides generic interfaces and adapters forwarding requests
@@ -137,13 +275,13 @@ private:
  * @tparam Indices .. the indices to be maintained on top
  */
 template<unsigned arity, typename ... Indices>
-class Relation : public RelationBase<arity,Relation<arity,Indices...>> {
+class AutoRelation : public RelationBase<arity,AutoRelation<arity,Indices...>> {
 
 	// check validity of indices
     static_assert(index_utils::check<arity,Indices...>::value, "Warning: invalid indices combination!");
 
     // shortcut for the base class
-    typedef RelationBase<arity,Relation<arity,Indices...>> base;
+    typedef RelationBase<arity,AutoRelation<arity,Indices...>> base;
 
 public:
 
@@ -243,8 +381,8 @@ public:
         return true;
     }
 
-    template<typename ... Idxs>
-    void insertAll(const Relation<arity,Idxs...>& other) {
+    template<typename Setup, typename ... Idxs>
+    void insertAll(const Relation<Setup,arity,Idxs...>& other) {
         operation_context context;
         for(const tuple_type& cur : other) {
             insert(cur, context);
@@ -318,8 +456,8 @@ public:
  * @tparam arity .. the arity of the resulting relation
  * @tparam Indices .. the indices to be maintained on top
  */
-template<unsigned arity, typename Primary, typename ... Indices>
-class DirectIndexedRelation : public RelationBase<arity,Relation<arity,Primary,Indices...>> {
+template<template<typename V, typename I, bool> class IndexFactory, unsigned arity, typename Primary, typename ... Indices>
+class DirectIndexedRelation : public RelationBase<arity,DirectIndexedRelation<IndexFactory,arity,Primary,Indices...>> {
 
 //    // check validity of indices
 //    static_assert(
@@ -330,7 +468,7 @@ class DirectIndexedRelation : public RelationBase<arity,Relation<arity,Primary,I
 //            "Warning: invalid indices combination!");
 
     // shortcut for the base class
-    typedef RelationBase<arity,Relation<arity,Primary,Indices...>> base;
+    typedef RelationBase<arity,DirectIndexedRelation<IndexFactory,arity,Primary,Indices...>> base;
 
 public:
     /* The type of tuple stored in this relation. */
@@ -341,7 +479,7 @@ private:
 
     // obtain type of index collection
     typedef typename index_utils::Indices<
-                tuple_type,index_utils::direct_index_factory,
+                tuple_type, IndexFactory,
                 typename index_utils::extend_to_full_index<arity,Primary>::type,
                 typename index_utils::extend_to_full_index<arity,Indices>::type...
             > indices_t;
@@ -401,8 +539,8 @@ public:
         indices.insertAll(other.indices);
     }
 
-    template<typename ... Idxs>
-    void insertAll(const Relation<arity,Idxs...>& other) {
+    template<typename Setup, typename ... Idxs>
+    void insertAll(const Relation<Setup,arity,Idxs...>& other) {
         operation_context context;
         for(const tuple_type& cur : other) {
             insert(cur, context);
@@ -469,23 +607,23 @@ public:
 
 // every 2-ary relation shall be directly indexed
 template<typename First, typename Second, typename ... Rest>
-class Relation<2,First,Second,Rest...> : public DirectIndexedRelation<2,First,Second,Rest...> {};
+class AutoRelation<2,First,Second,Rest...> : public DirectIndexedRelation<index_utils::direct_index_factory,2,First,Second,Rest...> {};
 
 // every 3-ary relation shall be directly indexed
 template<typename First, typename Second, typename ... Rest>
-class Relation<3,First,Second,Rest...> : public DirectIndexedRelation<3,First,Second,Rest...> {};
+class AutoRelation<3,First,Second,Rest...> : public DirectIndexedRelation<index_utils::direct_index_factory,3,First,Second,Rest...> {};
 
 // every 4-ary relation shall be directly indexed
 template<typename First, typename Second, typename ... Rest>
-class Relation<4,First,Second,Rest...> : public DirectIndexedRelation<4,First,Second,Rest...> {};
+class AutoRelation<4,First,Second,Rest...> : public DirectIndexedRelation<index_utils::direct_index_factory,4,First,Second,Rest...> {};
 
 // every 5-ary relation shall be directly indexed
 template<typename First, typename Second, typename ... Rest>
-class Relation<5,First,Second,Rest...> : public DirectIndexedRelation<5,First,Second,Rest...> {};
+class AutoRelation<5,First,Second,Rest...> : public DirectIndexedRelation<index_utils::direct_index_factory,5,First,Second,Rest...> {};
 
 // every 6-ary relation shall be directly indexed
 template<typename First, typename Second, typename ... Rest>
-class Relation<6,First,Second,Rest...> : public DirectIndexedRelation<6,First,Second,Rest...> {};
+class AutoRelation<6,First,Second,Rest...> : public DirectIndexedRelation<index_utils::direct_index_factory,6,First,Second,Rest...> {};
 
 
 /**
@@ -496,15 +634,15 @@ class Relation<6,First,Second,Rest...> : public DirectIndexedRelation<6,First,Se
  * TODO: consider using a hash table since no range or equality queries are needed
  */
 template<unsigned arity>
-class Relation<arity> : public Relation<arity, typename index_utils::get_full_index<arity>::type> {};
+class AutoRelation<arity> : public AutoRelation<arity, typename index_utils::get_full_index<arity>::type> {};
 
 /**
  * A specialization of a 0-ary relation.
  */
 template<>
-class Relation<0> : public RelationBase<0,Relation<0>> {
+class AutoRelation<0> : public RelationBase<0,AutoRelation<0>> {
 
-    typedef RelationBase<0,Relation<0>> base;
+    typedef RelationBase<0,AutoRelation<0>> base;
 
     /* The flag indicating whether the empty tuple () is present or not. */
     bool present;
@@ -569,7 +707,7 @@ public:
     struct operation_context {};
 
     /* A constructor for this relation. */
-    Relation() : present(false) {};
+    AutoRelation() : present(false) {};
 
     // --- specialized implementation ---
 
@@ -599,8 +737,8 @@ public:
         return res;
     }
 
-    template<typename ... Idxs>
-    void insertAll(const Relation<0,Idxs...>& other) {
+    template<typename Setup, typename ... Idxs>
+    void insertAll(const Relation<Setup, 0,Idxs...>& other) {
         present = present || other.present;
     }
 
@@ -659,15 +797,15 @@ public:
 /**
  * A specialization of the relation requesting a single index.
  */
-template<unsigned arity, typename Index>
-class Relation<arity, Index> : public RelationBase<arity,Relation<arity, Index>> {
+template<unsigned arity, typename Index, template<typename T,typename I, bool d> class table_factory>
+class SingleIndexRelation : public RelationBase<arity,SingleIndexRelation<arity, Index, table_factory>> {
 
     // expand only index to a full index
     typedef typename index_utils::extend_to_full_index<arity,Index>::type primary_index_t;
     static_assert(primary_index_t::size == arity, "Single index is not a full index!");
 
     // a shortcut for the base class
-    typedef RelationBase<arity,Relation<arity, Index>> base;
+    typedef RelationBase<arity,SingleIndexRelation<arity, Index, table_factory>> base;
 
 public:
 
@@ -677,7 +815,7 @@ public:
 private:
 
     // this variant stores all tuples in the one index
-    typedef typename index_utils::direct_index_factory<tuple_type, primary_index_t,true>::type table_t;
+    typedef typename table_factory<tuple_type,primary_index_t,true>::type table_t;
 
     /* The indexed data stored in this relation. */
     table_t data;
@@ -715,12 +853,12 @@ public:
         return data.insert(tuple, ctxt);
     }
 
-    void insertAll(const Relation& other) {
+    void insertAll(const SingleIndexRelation& other) {
         data.insertAll(other.data);
     }
 
-    template<typename ... Idxs>
-    void insertAll(const Relation<arity,Idxs...>& other) {
+    template<typename Setup, typename ... Idxs>
+    void insertAll(const Relation<Setup,arity,Idxs...>& other) {
         operation_context ctxt;
         for(const tuple_type& cur : other) {
             insert(cur, ctxt);
@@ -796,6 +934,57 @@ public:
         return out;
     }
 };
+
+
+/**
+ * A specialization of the relation requesting a single index.
+ */
+template<unsigned arity, typename Index>
+class AutoRelation<arity, Index> : public SingleIndexRelation<arity,Index,index_utils::direct_index_factory> {};
+
+
+
+// ------------------------------------------------------------------------------------------
+//                              SingleIndexTypeRelation
+// ------------------------------------------------------------------------------------------
+
+
+/**
+ * The implementation of a relation using the same kind of index for all its internally
+ * maintained data structures.
+ */
+template<
+    template<typename Tuple, typename Index, bool direct> class IndexFactory,
+    unsigned arity, typename ... Indices
+>
+class SingleIndexTypeRelation : public DirectIndexedRelation<IndexFactory,arity,Indices...> {};
+
+
+/**
+ * A specialization of the single index type relation if there is only a single index
+ * required.
+ */
+template<template<typename Tuple, typename Index, bool direct> class IndexFactory, unsigned arity, typename Index>
+class SingleIndexTypeRelation<IndexFactory,arity,Index> : public SingleIndexRelation<arity,Index,IndexFactory> {
+
+};
+
+/**
+ * A specialization of the single index type relation for the case that there
+ * is no index required. In this case, we treat it like a single, full index.
+ */
+template<template<typename Tuple, typename Index, bool direct> class IndexFactory, unsigned arity>
+class SingleIndexTypeRelation<IndexFactory,arity> : public SingleIndexTypeRelation<IndexFactory,arity,typename index_utils::get_full_index<arity>::type> {};
+
+/**
+ * A specialization for the case of a 0-arity relation. In this case, we will reuse
+ * the default, since creating any data structure is a weast of resources.
+ */
+template<template<typename Tuple, typename Index, bool direct> class IndexFactory>
+class SingleIndexTypeRelation<IndexFactory,0> : public AutoRelation<0> {};
+
+
+} //end of namespace detail
 
 } // end of namespace ram
 } // end of namespace souffle
