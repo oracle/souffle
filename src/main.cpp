@@ -118,19 +118,18 @@ int main(int argc, char **argv)
                     // if the short option is non-alphabetical, it is ommitted from the help text
                     {"debug-report",  'r', "FILE",   "",    "", "Write debugging output to HTML report."},
                     {"verbose",       'v',     "",   "",    "", "Verbose output."},
-                    {"help",          'h',     "",   "",    "", "Display this help message."},
+                    {"help",          'h',     "",   "",    "", "Display this help message."}
+                    /// TODO
                     // options for the topological ordering of strongly connected components, see TopologicallySortedSCCGraph class in PrecedenceGraph.cpp
+                    /*
                     {"breadth-limit",   1,    "N",   "",    "", "Specify the breadth limit used for the topological ordering of strongly connected components."},
                     {"depth-limit",     2,    "N",   "",    "", "Specify the depth limit used for the topological ordering of strongly connected components."},
                     {"lookahead",       3,    "N",   "",    "", "Specify the lookahead used for the topological ordering of strongly connected components."},
+                    */
                 };
                 return std::vector<MainOption>(std::begin(opts), std::end(opts));
             }()
         );
-
-        /// TODO
-        // BREAKPOINT;
-        // Global::getInstance().print(std::cerr);
 
         // ------ command line arguments -------------
 
@@ -171,7 +170,9 @@ int main(int argc, char **argv)
         if (Global::getInstance().has("auto-schedule") && !Global::getInstance().has("dl-program"))
            fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
 
+        /// TODO
         /* set the breadth and depth limits for the topological ordering of strongly connected components */
+        /*
         if (Global::getInstance().has("breadth-limit")) {
             int limit = std::stoi(Global::getInstance().get("breadth-limit"));
             if (limit <= 0)
@@ -192,6 +193,7 @@ int main(int argc, char **argv)
                 fail("error: lookahead must be 1 or more");
             TopologicallySortedSCCGraph::LOOKAHEAD = lookahead;
          }
+        */
 
         /* collect all input directories for the c pre-processor */
         if (Global::getInstance().has("include-dir")) {
@@ -230,10 +232,6 @@ int main(int argc, char **argv)
         }
         Global::getInstance().set("", filenames);
     }
-
-    /// TODO
-    // BREAKPOINT;
-    // Global::getInstance().print(std::cerr);
 
     // ------ start souffle -------------
 
@@ -410,8 +408,8 @@ int main(int argc, char **argv)
     }
 
     /// TODO
-    // BREAKPOINT;
-    // Global::getInstance().print(std::cerr);
+    BREAKPOINT;
+    Global::getInstance().print(std::cerr);
 
     return 0;
 }
