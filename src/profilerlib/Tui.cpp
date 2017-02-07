@@ -18,7 +18,7 @@ Tui::Tui(std::string filename, bool live, bool gui) : out() {
     // out = OutputProcessor();
     std::shared_ptr <ProgramRun> &run = out.getProgramRun();
 
-    this->reader = std::make_shared<Reader>(Reader(filename, run, false, live));
+    this->reader = std::make_shared<Reader>(filename, run, false, live);
     reader->readFile();
 
     this->loaded = reader->isLoaded();
