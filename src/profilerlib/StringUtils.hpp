@@ -14,6 +14,10 @@
 #include <vector>
 #include <cmath>
 #include <fstream>
+#include <ios>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 
 #include <sys/types.h> // required for stat.h
 #include <sys/stat.h>
@@ -57,4 +61,6 @@ namespace Tools {
     std::string getworkingdir();
 
     std::string cleanString(std::string val);
+    std::string cleanJsonOut(std::string val);
+    std::string cleanJsonOut(double val);
 }

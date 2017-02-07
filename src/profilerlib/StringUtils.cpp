@@ -7,8 +7,6 @@
 */
 
 
-
-
 #include "StringUtils.hpp"
 
 
@@ -201,31 +199,28 @@ std::vector <std::string> Tools::split(std::string str, std::string split_str) {
 
 std::vector <std::string> Tools::splitAtSemiColon(std::string str) {
 
-    bool in_str = false;
 
     for (size_t i = 0; i < str.size(); i++) {
-        if (in_str) {
-            if (str[i] == '"' && str[i - 1] != '\\') {
-                in_str = false;
-            } else if (str[i] == ';') {
-                str[i] = '\n';
+        if (i>0 && str[i] == ';' && str[i - 1] == '\\') {
+            str[i-1] = '\b'; // im assuming this isnt a thing that will be naturally found in souffle profiler files
+            str.erase(i--,1);
+
+        }
+    }
+    bool changed =false;
+    std::vector <std::string> result = split(str, ";");
+    for (size_t i=0; i<result.size(); i++) {
+        for (size_t j = 0; j < result[i].size(); j++) {
+            if (result[i][j] == '\b') {
+                result[i][j] = ';';
+                changed = true;
             }
-        } else {
-            if (str[i] == '"') {
-                in_str = true;
-            }
+        }
+        if (changed) {
+            changed = false;
         }
     }
 
-    std::vector <std::string> result = split(str, ";");
-    for (auto &st : result) {
-        std::string s = st;
-        for (size_t i = 0; i < st.size(); i++) {
-            if (st[i] == '\n') {
-                st[i] = ';';
-            }
-        }
-    }
     return result;
 }
 
@@ -244,9 +239,6 @@ std::string Tools::cleanString(std::string val) {
         return val;
     }
 
-    if (val.at(0) == '"' && val.at(val.size() - 1) == '"') {
-        val = val.substr(1, val.size() - 2);
-    }
 
     size_t start_pos = 0;
     while ((start_pos = val.find('\\', start_pos)) != std::string::npos) {
@@ -259,5 +251,37 @@ std::string Tools::cleanString(std::string val) {
             //}
         }
     }
+
+    if (val.at(0) == '"' && val.at(val.size() - 1) == '"') {
+        val = val.substr(1, val.size() - 2);
+    }
+
     return val;
+}
+
+
+std::string Tools::cleanJsonOut(std::string val) {
+    if (val.size() < 2) {
+        return val;
+    }
+
+    if (val.at(0) == '"' && val.at(val.size() - 1) == '"') {
+        val = val.substr(1, val.size() - 2);
+    }
+
+    size_t start_pos = 0;
+    while ((start_pos = val.find('"', start_pos)) != std::string::npos) {
+        val.replace(start_pos, 1, "\"");
+        start_pos++;
+    }
+    return val;
+}
+
+std::string Tools::cleanJsonOut(double val) {
+    if (std::isnan(val)) {
+        return "NaN";
+    }
+    std::ostringstream ss;
+    ss << std::scientific << std::setprecision(6) << val;
+    return ss.str();
 }
