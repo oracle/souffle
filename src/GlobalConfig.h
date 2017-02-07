@@ -3,7 +3,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-#include <unordered_map>
+#include <map>
 #include <vector>
 #include <ctype.h>
 #include <getopt.h>
@@ -18,13 +18,13 @@ template<typename K, typename V>
 class Table {
     private:
         const V _default;
-        std::unordered_map<K, V> _data;
+        std::map<K, V> _data;
     public:
-        Table() : _default(V()), _data(std::unordered_map<K, V>()) {}
+        Table() : _default(V()), _data(std::map<K, V>()) {}
         Table(const Table& other) { data(other.data()); }
         Table& operator=(const Table& other) { data(other.data()); return *this; }
-        const std::unordered_map<K, V>& data() const { return _data; }
-        void data(const std::unordered_map<K, V>& otherData) { _data = otherData; }
+        const std::map<K, V>& data() const { return _data; }
+        void data(const std::map<K, V>& otherData) { _data = otherData; }
         const V& get(const K& key) const { return (has(key)) ? _data.at(key) : _default; }
         const V& get(const K& key, const V& value) const  { return (has(key)) ? _data.at(key) : value; }
         const bool has(const K& key) const { return _data.find(key) != _data.end(); }

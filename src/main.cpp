@@ -128,6 +128,10 @@ int main(int argc, char **argv)
             }()
         );
 
+        /// TODO
+        // BREAKPOINT;
+        // Global::getInstance().print(std::cerr);
+
         // ------ command line arguments -------------
 
 
@@ -226,6 +230,10 @@ int main(int argc, char **argv)
         }
         Global::getInstance().set("", filenames);
     }
+
+    /// TODO
+    // BREAKPOINT;
+    // Global::getInstance().print(std::cerr);
 
     // ------ start souffle -------------
 
@@ -376,7 +384,7 @@ int main(int argc, char **argv)
         if (Global::getInstance().has("auto-schedule")) {
             executor = std::unique_ptr<RamExecutor>(new RamGuidedInterpreter());
         } else {
-            executor = std::unique_ptr<RamExecutor>();
+            executor = std::unique_ptr<RamExecutor>(new RamInterpreter());
         }
     }
 
@@ -402,7 +410,8 @@ int main(int argc, char **argv)
     }
 
     /// TODO
-    Global::getInstance().print(std::cerr);
+    // BREAKPOINT;
+    // Global::getInstance().print(std::cerr);
 
     return 0;
 }
