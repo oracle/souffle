@@ -113,12 +113,14 @@ int main(int argc, char **argv)
                     // if the short option is non-alphabetical, it is ommitted from the help text
                     {"debug-report",  'r', "FILE",   "",    "", "Write debugging output to HTML report."},
                     {"verbose",       'v',     "",   "",    "", "Verbose output."},
-                    {"help",          'h',     "",   "",    "", "Display this help message."},
-                    /// TODO
+                    {"help",          'h',     "",   "",    "", "Display this help message."}
+                    // TODO: this code is depreciated, however is still in use in development -- it will be removed properly once it is no longer needed
+                    /*
                     // options for the topological ordering of strongly connected components, see TopologicallySortedSCCGraph class in PrecedenceGraph.cpp
                     {"breadth-limit",   1,    "N",   "",    "", "Specify the breadth limit used for the topological ordering of strongly connected components."},
                     {"depth-limit",     2,    "N",   "",    "", "Specify the depth limit used for the topological ordering of strongly connected components."},
                     {"lookahead",       3,    "N",   "",    "", "Specify the lookahead used for the topological ordering of strongly connected components."},
+                    */
                 };
                 return std::vector<MainOption>(std::begin(opts), std::end(opts));
             }()
@@ -128,7 +130,7 @@ int main(int argc, char **argv)
 
         /* for the help option, if given simply print the help text then exit */
         if (Global::config().has("help")) {
-            Error::error("unexpected command line argument", []() { Global::config().printHelp(); });
+            Error::error("unexpected command line argument", []() { std::cerr << Global::config.help(); });
         }
 
         /* turn on compilation of executables */
@@ -161,8 +163,9 @@ int main(int argc, char **argv)
         if (Global::config().has("auto-schedule") && !Global::config().has("dl-program"))
            Error::error("no executable is specified for auto-scheduling (option -o <FILE>)");
 
-        /// TODO
+        // TODO: this code is depreciated, however is still in use in development -- it will be removed properly once it is no longer needed
         /* set the breadth and depth limits for the topological ordering of strongly connected components */
+        /*
         if (Global::config().has("breadth-limit")) {
             int limit = std::stoi(Global::config().get("breadth-limit"));
             if (limit <= 0)
@@ -183,6 +186,7 @@ int main(int argc, char **argv)
                 Error::error("lookahead must be 1 or more");
             TopologicallySortedSCCGraph::LOOKAHEAD = lookahead;
          }
+         */
 
         /* collect all input directories for the c pre-processor */
         if (Global::config().has("include-dir")) {

@@ -23,11 +23,11 @@ struct MainOption {
 
 class MainConfig : public BaseTable<std::string, std::string> {
     private:
-         std::string helpText;
+         std::string _help;
     public:
-        Global() : BaseTable<std::string, std::string>() {}
+        MainConfig() : BaseTable<std::string, std::string>() {}
         void processArgs(int argc, char** argv, const std::string header, const std::string footer, const std::vector<MainOption> mainOptions);
-        void printHelp(std::ostream& os) { os << helpText; }
+        const std::string& help() const { return _help; }
 };
 
 class Global {
