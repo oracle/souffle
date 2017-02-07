@@ -30,7 +30,6 @@ public:
         for (const auto& pair : directiveMap) {
             directives[pair.first] = pair.second;
         }
-        set = !directiveMap.empty();
     }
 
     ~IODirectives() {}
@@ -48,6 +47,10 @@ public:
             throw std::invalid_argument("Requested IO directive <" + key + "> was not specified");
         }
         return directives.at(key);
+    }
+
+    void set(const std::string& key, const std::string& value) {
+        directives[key] = value;
     }
 
     bool has(const std::string& key) const {
@@ -114,7 +117,6 @@ private:
     }
 
     std::map<std::string, std::string> directives;
-    bool set = false;
 };
 
 }

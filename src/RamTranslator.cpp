@@ -68,18 +68,28 @@ namespace {
             }
         }
 
-        AstIODirective astIODirective;
+        IODirectives inputDirectives;
+        IODirectives outputDirectives;
         for (const auto& current : rel->getIODirectives()) {
-            astIODirective.addAstIODirectives(*current);
+            if (!current->isInput() && !current->isOutput()) {
+                continue;
+            }
+            IODirectives& ioDirectives = current->isInput() ? inputDirectives : outputDirectives;
+            for (const auto& currentPair : current->getIODirectiveMap()) {
+                ioDirectives.set(currentPair.first, currentPair.second);
+            }
         }
-        IODirectives ioDirectives(astIODirective.getIODirectiveMap());
-        if (!ioDirectives.isEmpty()) {
-            ioDirectives.setRelationName(getRelationName(rel->getName()));
+        if (!inputDirectives.isEmpty()) {
+            inputDirectives.setRelationName(getRelationName(rel->getName()));
+        }
+        if (!outputDirectives.isEmpty()) {
+            outputDirectives.setRelationName(getRelationName(rel->getName()));
         }
 
         return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers,
                 getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), rel->isOutput(),
-                rel->isBTree(), rel->isBrie(), rel->isEqRel(), rel->isData(), ioDirectives, istemp);
+                rel->isBTree(), rel->isBrie(), rel->isEqRel(), rel->isData(), inputDirectives,
+                outputDirectives, istemp);
     }
 }
 

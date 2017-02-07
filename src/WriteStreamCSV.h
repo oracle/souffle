@@ -113,7 +113,7 @@ public:
             const SymbolMask& symbolMask, const SymbolTable& symbolTable, const IODirectives& ioDirectives) {
         char delimiter = getDelimiter(ioDirectives);
         return std::unique_ptr<WriteFileCSV>(
-                new WriteFileCSV(ioDirectives.getFileName(), symbolMask, symbolTable, delimiter));
+                new WriteFileCSV(ioDirectives.get("filename"), symbolMask, symbolTable, delimiter));
     }
     virtual const std::string& getName() const { return name; }
     virtual ~WriteFileCSVFactory() {}

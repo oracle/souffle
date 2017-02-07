@@ -56,7 +56,8 @@ class RamRelationIdentifier {
 
     bool isdata;
     bool istemp;
-    IODirectives ioDirectives;
+    IODirectives inputDirectives;
+    IODirectives outputDirectives;
 
     // allow the ram environment to cache lookup results
     friend class RamEnvironment;
@@ -78,12 +79,14 @@ public:
             std::vector<std::string> attributeNames = {},
             std::vector<std::string> attributeTypeQualifiers = {}, const SymbolMask& mask = SymbolMask(0),
             const bool input = false, const bool computed = false, const bool output = false,
-            const bool btree=false, const bool brie=false, const bool eqrel=false, const bool isdata=false,
-            const IODirectives& ioDirectives(ioDirectives), const bool istemp = false)
-        : name(name), arity(arity), attributeNames(attributeNames),
-          attributeTypeQualifiers(attributeTypeQualifiers),
-          mask(mask), input(input), computed(computed), output(output), btree(btree), brie(brie), eqrel(eqrel),
-          isdata(isdata), istemp(istemp), ioDirectives(ioDirectives), last(nullptr), rel(nullptr)   {
+            const bool btree = false, const bool brie = false, const bool eqrel = false,
+            const bool isdata = false, const IODirectives& inputDirectives = IODirectives(),
+            const IODirectives& outputDirectives = IODirectives(), const bool istemp = false)
+            : name(name), arity(arity), attributeNames(attributeNames),
+              attributeTypeQualifiers(attributeTypeQualifiers), mask(mask), input(input), computed(computed),
+              output(output), btree(btree), brie(brie), eqrel(eqrel), isdata(isdata), istemp(istemp),
+              inputDirectives(inputDirectives), outputDirectives(outputDirectives), last(nullptr),
+              rel(nullptr) {
         assert(this->attributeNames.size() == arity || this->attributeNames.empty());
         assert(this->attributeTypeQualifiers.size() == arity || this->attributeTypeQualifiers.empty());
     }
@@ -146,8 +149,12 @@ public:
         return arity;
     }
 
-    const IODirectives& getIODirectives() const {
-        return ioDirectives;
+    const IODirectives& getInputDirectives() const {
+        return inputDirectives;
+    }
+
+    const IODirectives& getOutputDirectives() const {
+        return outputDirectives;
     }
 
     bool operator==(const RamRelationIdentifier& other) const {

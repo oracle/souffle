@@ -691,7 +691,7 @@ namespace {
 
                 std::string filename = Global::config().get("fact-dir") + "/" + load.getFileName();
                 try {
-                    IODirectives ioDirectives = load.getRelation().getIODirectives();
+                    IODirectives ioDirectives = load.getRelation().getInputDirectives();
                     // TODO (mmcgr): Determine the defaults earlier so RamExecutor doesn't need to know IO.
                     if (ioDirectives.isEmpty()) {
                         ioDirectives.setIOType("file");
@@ -715,7 +715,7 @@ namespace {
                 }
 
                 auto& rel = env.getRelation(store.getRelation());
-                IODirectives ioDirectives = store.getRelation().getIODirectives();
+                IODirectives ioDirectives = store.getRelation().getOutputDirectives();
                 // Support old style input directives.
                 if (ioDirectives.isEmpty()) {
                     if (toConsole) {
@@ -727,9 +727,14 @@ namespace {
                                 Global::config().get("output-dir") + "/" + store.getFileName());
                     }
                 }
-                std::unique_ptr<WriteStream> writer = IOSystem::getInstance().getWriter(
-                        store.getRelation().getSymbolMask(), env.getSymbolTable(), ioDirectives);
-                writer->writeAll(rel);
+                try {
+                    std::unique_ptr<WriteStream> writer = IOSystem::getInstance().getWriter(
+                            store.getRelation().getSymbolMask(), env.getSymbolTable(), ioDirectives);
+                    writer->writeAll(rel);
+                } catch (std::exception e) {
+                    std::cerr << e.what();
+                    exit(1);
+                }
                 return true;
             }
 
@@ -2045,7 +2050,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     bool toConsole = (Global::config().get("output-dir") == "-");
     visitDepthFirst(stmt, [&](const RamStatement& node) {
         if (auto store = dynamic_cast<const RamStore*>(&node)) {
-            IODirectives ioDirectives = store->getRelation().getIODirectives();
+            IODirectives ioDirectives = store->getRelation().getOutputDirectives();
             if (ioDirectives.isEmpty()) {
                 if (toConsole) {
                     ioDirectives.setIOType("stdout");
@@ -2077,7 +2082,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "public:\n";
     os << "void loadAll(std::string dirname=\"" << Global::config().get("fact-dir") << "\") {\n";
     visitDepthFirst(stmt, [&](const RamLoad& load) {
-        IODirectives ioDirectives = load.getRelation().getIODirectives();
+        IODirectives ioDirectives = load.getRelation().getInputDirectives();
         if (ioDirectives.isEmpty()) {
             ioDirectives.setIOType("file");
             ioDirectives.setFileName(Global::config().get("fact-dir") + "/" + load.getFileName());

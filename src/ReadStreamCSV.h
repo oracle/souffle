@@ -235,7 +235,7 @@ public:
         std::map<int, int> inputMap = getInputColumnMap(ioDirectives, symbolMask.getArity());
         char delimiter = getDelimiter(ioDirectives);
         return std::unique_ptr<ReadFileCSV>(
-                new ReadFileCSV(ioDirectives.getFileName(), symbolMask, symbolTable, inputMap, delimiter));
+                new ReadFileCSV(ioDirectives.get("filename"), symbolMask, symbolTable, inputMap, delimiter));
     }
     virtual const std::string& getName() const { return name; }
     virtual ~ReadFileCSVFactory() {}

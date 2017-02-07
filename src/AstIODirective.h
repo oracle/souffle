@@ -42,6 +42,9 @@ public:
         auto res = new AstIODirective();
         res->name = name;
         res->kvps = kvps;
+        res->input = input;
+        res->output = output;
+        res->printSize = printSize;
         return res;
     }
 

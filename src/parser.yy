@@ -195,7 +195,7 @@ program: unit
 /* Top-level statement */
 unit: unit type { driver.addType($2); }
     | unit relation { driver.addRelation($2); }
-    | unit iodirective { driver.addIODirective($2); } 
+    | unit iodirective { driver.addIODirective($2); }
     | unit fact { driver.addClause($2); }
     | unit rule { for(const auto& cur : $2) driver.addClause(cur); }
     | unit component { driver.addComponent($2); }
@@ -327,25 +327,25 @@ key_value_pairs: non_empty_key_value_pairs { $$ = $1; }
                }
              ;
 
-iodirective: INPUT_DECL IDENT LPAREN key_value_pairs RPAREN {
+iodirective: INPUT_DECL rel_id LPAREN key_value_pairs RPAREN {
                   $$ = $4;
-                  $4->setName($2);
+                  $4->setName(*$2);
                   $4->setSrcLoc(@$);
                   $4->setAsInput();
              }
-            | OUTPUT_DECL IDENT LPAREN key_value_pairs RPAREN {
+            | OUTPUT_DECL rel_id LPAREN key_value_pairs RPAREN {
                   $$ = $4;
-                  $4->setName($2);
+                  $4->setName(*$2);
                   $4->setSrcLoc(@$);
                   $4->setAsOutput();
              }
-            | PRINTSIZE_DECL IDENT { 
-                  AstIODirective *psd = new AstIODirective(); 
-                  psd->setName($2);
+            | PRINTSIZE_DECL rel_id {
+                  AstIODirective *psd = new AstIODirective();
+                  psd->setName(*$2);
                   psd->setSrcLoc(@$);
                   psd->setAsPrintSize();
                   $$ = psd;
-              } 
+              }
             ;
 
 /* Atom */

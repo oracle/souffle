@@ -183,6 +183,9 @@ public:
         res->setSrcLoc(getSrcLoc());
         for(const auto& cur : attributes) res->attributes.push_back(std::unique_ptr<AstAttribute>(cur->clone()));
         for(const auto& cur : clauses)    res->clauses.push_back(std::unique_ptr<AstClause>(cur->clone()));
+        for (const auto& cur : ioDirectives) {
+            res->ioDirectives.push_back(std::unique_ptr<AstIODirective>(cur->clone()));
+        }
         res->qualifier = qualifier;
         return res;
     }
@@ -236,11 +239,9 @@ public:
         // Make sure the old style qualifiers still work.
         if (directive->isInput()) {
             qualifier |= INPUT_RELATION;
-        }
-        if (directive->isOutput()) {
+        } else if (directive->isOutput()) {
             qualifier |= OUTPUT_RELATION;
-        }
-        if (directive->isPrintSize()) {
+        } else if (directive->isPrintSize()) {
             qualifier |= PRINTSIZE_RELATION;
         }
         ioDirectives.push_back(std::move(directive));

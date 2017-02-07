@@ -52,22 +52,22 @@ public:
      */
     std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask, const SymbolTable& symbolTable,
             const IODirectives& ioDirectives) const {
-        if (outputFactories.count(ioDirectives.getIOType()) == 0) {
-            throw std::invalid_argument(
-                    "Requested output type <" + ioDirectives.getIOType() + "> is not supported.");
+        std::string ioType = ioDirectives.getIOType();
+        if (outputFactories.count(ioType) == 0) {
+            throw std::invalid_argument("Requested output type <" + ioType + "> is not supported.");
         }
-        return outputFactories.at(ioDirectives.getIOType())->getWriter(symbolMask, symbolTable, ioDirectives);
+        return outputFactories.at(ioType)->getWriter(symbolMask, symbolTable, ioDirectives);
     }
     /**
      * Return a new ReadStream
      */
     std::unique_ptr<ReadStream> getReader(
             const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) const {
-        if (inputFactories.count(ioDirectives.getIOType()) == 0) {
-            throw std::invalid_argument(
-                    "Requested input type <" + ioDirectives.getIOType() + "> is not supported.");
+        std::string ioType = ioDirectives.getIOType();
+        if (inputFactories.count(ioType) == 0) {
+            throw std::invalid_argument("Requested input type <" + ioType + "> is not supported.");
         }
-        return inputFactories.at(ioDirectives.getIOType())->getReader(symbolMask, symbolTable, ioDirectives);
+        return inputFactories.at(ioType)->getReader(symbolMask, symbolTable, ioDirectives);
     }
     ~IOSystem() {}
 private:
