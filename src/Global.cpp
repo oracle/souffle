@@ -6,6 +6,7 @@ namespace souffle {
 void MainConfig::processArgs(int argc, char** argv, const std::string header, const std::string footer, const std::vector<MainOption> mainOptions) {
 
     // START STAGE 1
+    /*
     {
         // print the header
         ss << header;
@@ -65,7 +66,7 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
 
         helpText = ss.str();
     } // END STAGE 1
-
+    */
     // START STAGE 2
     {
 
@@ -91,7 +92,7 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
         int c;     /* command-line arguments processing */
         while ((c = getopt_long(argc, argv, shortNames.c_str(), longNames, nullptr)) != EOF) {
             if (c == '?')
-                Error::error("unexpected command line argument", []() { Global::config().printHelp(std::cerr); });
+                Error::error("unexpected command line argument", []() { std::cerr << Global::config().help(); });
             auto iter = optionTable.find(c);
             if (iter == optionTable.end())
                 assert("unexpected case in getopt");
@@ -116,7 +117,7 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
                 }
             }
         } else {
-            if (c == '?') Error::error("unexpected command line argument", []() { Global::config().printHelp(std::cerr); });
+                Error::error("unexpected command line argument", []() { std::cerr << Global::config().help(); });
         }
         set("", filenames);
     }

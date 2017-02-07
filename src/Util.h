@@ -375,7 +375,7 @@ class BaseTable {
         const bool has(const K& key, const V& value) const { return has(key) && _data.at(key) == value; }
         void set(const K& key) { _data[key] = _default; }
         void set(const K& key, const V& value) { _data[key] = value; }
-        void print(std::ostream& os) { os << toString(_data) << std::endl; }
+        void print(std::ostream& os) { os << _data << std::endl; }
 };
 
 // -------------------------------------------------------------------------------

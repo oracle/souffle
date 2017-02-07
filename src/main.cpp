@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 
         /* for the help option, if given simply print the help text then exit */
         if (Global::config().has("help")) {
-            Error::error("unexpected command line argument", []() { std::cerr << Global::config.help(); });
+            Error::error("unexpected command line argument", []() { std::cerr << Global::config().help(); });
         }
 
         /* turn on compilation of executables */
