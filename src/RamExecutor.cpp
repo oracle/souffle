@@ -2264,6 +2264,7 @@ void RamCompiler::applyOn(const RamStatement& stmt, RamEnvironment& env, RamData
     if (result !=0) {
        exit(result);
     }
+
 }
 
 } // end of namespace souffle

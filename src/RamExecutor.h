@@ -48,7 +48,6 @@ public:
     /** A virtual destructor to support safe inheritance */
     virtual ~RamExecutor() {}
 
-    // -- getters and setters --
 
     /**
      * Updates the target this executor is reporting to.
@@ -64,7 +63,6 @@ public:
         report = nullptr;
     }
 
-    // -- actual evaluation --
 
     /**
      * Runs the given RAM statement on an empty environment and returns
