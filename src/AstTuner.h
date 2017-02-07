@@ -18,7 +18,7 @@
 
 #include "RamExecutor.h"
 #include "AstTransformer.h"
-#include "GlobalConfig.h"
+#include "Global.h"
 
 namespace souffle {
 

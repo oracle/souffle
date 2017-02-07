@@ -36,6 +36,12 @@ souffle_make() {
     cd -
 }
 
+souffle_reset() {
+    souffle_teardown && \
+    souffle_setup && \
+    souffle_make
+}
+
 souffle_test() {
     souffle_make &&
     cd $SOUFFLE/tests && \

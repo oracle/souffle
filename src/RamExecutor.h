@@ -24,7 +24,7 @@
 
 #include "RamRelation.h"
 #include "RamData.h"
-#include "GlobalConfig.h"
+#include "Global.h"
 
 namespace souffle {
 

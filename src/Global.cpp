@@ -1,12 +1,9 @@
-#include "GlobalConfig.h"
+#include "Global.h"
 
 namespace souffle {
 
 
-GlobalConfig::GlobalConfig()
-    : simple::Table<std::string, std::string>() {}
-
-void GlobalConfig::processArgs() {
+void MainConfig::processArgs(int argc, char** argv, const std::string header, const std::string footer, const std::vector<MainOption> mainOptions) {
 
     option longNames[mainOptions.size()];
     std::string shortNames = "";
@@ -28,7 +25,7 @@ void GlobalConfig::processArgs() {
 
     int c;     /* command-line arguments processing */
     while ((c = getopt_long(argc, argv, shortNames.c_str(), longNames, nullptr)) != EOF) {
-        if (c == '?') error();
+        if (c == '?') Error::error("unexpected command line argument", []() { Global::config().printHelp(std::cerr); });
         auto iter = optionTable.find(c);
         if (iter == optionTable.end()) {
             ASSERT("Default label in getopt switch.");
@@ -41,9 +38,28 @@ void GlobalConfig::processArgs() {
             set(iter->second->longName, arg);
         }
     }
+
+
+    std::string filenames = "";
+    if (optind < argc) {
+        for (; optind < argc; optind++) {
+            if (!existFile(argv[optind])) {
+                Error::error("error: cannot open file " + std::string(argv[optind]));
+            }
+            if (filenames == "") {
+                filenames = argv[optind];
+            } else {
+                filenames = filenames + " " + std::string(argv[optind]);
+            }
+        }
+    } else {
+        if (c == '?') Error::error("unexpected command line argument", []() { Global::config().printHelp(std::cerr); });
+    }
+    set("", filenames);
+
 }
 
-void GlobalConfig::initialize(int argc, char** argv, const std::string header, const std::string footer, const std::vector<MainOption> mainOptions) {
+void MainConfig::initialize
 
     this->argc = argc;
     this->argv = argv;
@@ -56,7 +72,7 @@ void GlobalConfig::initialize(int argc, char** argv, const std::string header, c
 
 }
 
-void GlobalConfig::printHelp(std::ostream& os) {
+void MainConfig::printHelp(std::ostream& os) {
 
     // print the header
     os << header;
@@ -115,13 +131,5 @@ void GlobalConfig::printHelp(std::ostream& os) {
     os << footer;
 }
 
-void GlobalConfig::error() {
-    for(int i = 0; i < argc; i++) {
-        std::cerr << argv[i] << " ";
-    }
-    std::cerr << "\nError parsing command-line arguments.\n";
-    printHelp(std::cerr);
-    exit(1);
-}
 
 };
