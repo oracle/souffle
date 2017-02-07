@@ -739,7 +739,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(const TypeEnvir
         }
 
         void visitNumberConstant(const AstNumberConstant& cnst) {
-            // this type has to be a sub-type of symbol
+            // this type has to be a sub-type of number
             addConstraint(isSubtypeOf(getVar(cnst), env.getNumberType()));
         }
 
@@ -789,6 +789,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(const TypeEnvir
             // link element types with sub-values
             auto rec = getVar(init);
             int i = 0;
+
             for(const AstArgument* value : init.getArguments()) {
                 addConstraint(isSubtypeOfComponent(getVar(value), rec, i++));
             }

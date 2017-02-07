@@ -188,7 +188,7 @@ inline BinaryOp getBinaryOpForSymbol(const std::string &symbol) {
 }
 
 /**
- * Returns whether the given operator has numeric operands.
+ * Returns whether the given operator has a numeric return value.
  */
 inline bool isNumericBinaryOp(const BinaryOp op) {
     switch(op) {
@@ -211,10 +211,40 @@ inline bool isNumericBinaryOp(const BinaryOp op) {
 }
 
 /**
- * Returns whether the given operator has symbolic operands.
- */
+* Returns whether the given operator has a numeric return value.
+*/
 inline bool isSymbolicBinaryOp(const BinaryOp op) {
     return !isNumericBinaryOp(op);
+}
+
+/**
+ * Returns whether the given operator takes numeric arguments.
+ */
+inline bool binaryOpAcceptsNumbers(const BinaryOp op) {
+    switch(op) {
+    case BinaryOp::ADD:
+    case BinaryOp::SUB:
+    case BinaryOp::MUL:
+    case BinaryOp::DIV:
+    case BinaryOp::EXP:
+    case BinaryOp::BAND:
+    case BinaryOp::BOR:
+    case BinaryOp::BXOR:
+    case BinaryOp::LAND:
+    case BinaryOp::LOR:
+    case BinaryOp::MOD: return true;
+    case BinaryOp::CAT: return false;
+    default: break;
+    }
+    assert(false && "Uncovered case!");
+    return false;
+}
+
+/**
+ * Returns whether the given operator takes symbolic arguments.
+ */
+inline bool binaryOpAcceptsSymbols(const BinaryOp op) {
+    return !binaryOpAcceptsNumbers(op);
 }
 
 } // end of namespace souffle

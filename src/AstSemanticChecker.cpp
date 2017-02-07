@@ -99,37 +99,64 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
     // all string constants are used as symbols
     visitDepthFirst(nodes, [&](const AstStringConstant& cnst) {
         TypeSet types = typeAnalysis.getTypes(&cnst);
-        if (isSymbolType(types)) return;
-        report.addError("Symbol constant (type mismatch)", cnst.getSrcLoc());
+        if (!isSymbolType(types))
+            report.addError("Symbol constant (type mismatch)", cnst.getSrcLoc());
     });
 
     // all number constants are used as numbers
     visitDepthFirst(nodes, [&](const AstNumberConstant& cnst) {
         TypeSet types = typeAnalysis.getTypes(&cnst);
-        if (isNumberType(types)) return;
-        report.addError("Number constant (type mismatch)", cnst.getSrcLoc());
+        if (!isNumberType(types))
+            report.addError("Number constant (type mismatch)", cnst.getSrcLoc());
+        long long idx = (long long) cnst.getIndex();
+        if (idx > 2147483647 || idx < -2147483648)
+            report.addError("Number constant not in range [-2^31, 2^31-1]", cnst.getSrcLoc());
     });
 
     // all null constants are used as records
     visitDepthFirst(nodes, [&](const AstNullConstant& cnst) {
        TypeSet types = typeAnalysis.getTypes(&cnst);
-       if (isRecordType(types)) return;
-       report.addError("Null constant used as a non-record", cnst.getSrcLoc());
+       if (!isRecordType(types))
+           report.addError("Null constant used as a non-record", cnst.getSrcLoc());
+    });
+
+    // record initializations have the same size as their types
+    visitDepthFirst(nodes, [&](const AstRecordInit& cnst) {
+        TypeSet types = typeAnalysis.getTypes(&cnst);
+        if (isRecordType(types))
+            for (const Type& type : types)
+                if (cnst.getArguments().size() != dynamic_cast<const RecordType*>(&type)->getFields().size())
+                    report.addError("Wrong number of arguments given to record", cnst.getSrcLoc());
     });
 
     // - unary functors -
     visitDepthFirst(nodes, [&](const AstUnaryFunctor& fun) {
-        // check left and right side
+
+        // check arg
         auto arg = fun.getOperand();
 
-        // check numerical functions
+        // check numerical operators
+        if (fun.isNumerical()) {
+            if (!isNumberType(typeAnalysis.getTypes(&fun))) {
+                report.addError("Non-numerical use for numeric function", fun.getSrcLoc());
+            }
+        }
+
+        // check numerical operands
         if (fun.acceptsNumbers()) {
             if (!isNumberType(typeAnalysis.getTypes(arg))) {
                 report.addError("Non-numerical operand for numeric function", arg->getSrcLoc());
             }
         }
 
-        // check symbol functions
+        // check symbolic operators
+        if (fun.isSymbolic()) {
+            if (!isSymbolType(typeAnalysis.getTypes(&fun))) {
+                report.addError("Non-symbol use for string function", fun.getSrcLoc());
+            }
+        }
+
+        // check symbolic operands
         if (fun.acceptsSymbols()) {
             if (!isSymbolType(typeAnalysis.getTypes(arg))) {
                 report.addError("Non-symbol operand for string function", arg->getSrcLoc());
@@ -140,12 +167,20 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
 
     // - binary functors -
     visitDepthFirst(nodes, [&](const AstBinaryFunctor& fun) {
+
         // check left and right side
         auto lhs = fun.getLHS();
         auto rhs = fun.getRHS();
 
-        // check numerical functions
+        // check numerical operators
         if (fun.isNumerical()) {
+            if (!isNumberType(typeAnalysis.getTypes(&fun))) {
+                report.addError("Non-numerical use for numeric function", fun.getSrcLoc());
+            }
+        }
+
+        // check numerical operands
+        if (fun.acceptsNumbers()) {
             if (!isNumberType(typeAnalysis.getTypes(lhs))) {
                 report.addError("Non-numerical operand for numeric function", lhs->getSrcLoc());
             }
@@ -154,15 +189,23 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
             }
         }
 
-        // check symbolic functions
+        // check symbolic operators
         if (fun.isSymbolic()) {
-            if (!isSymbolType(typeAnalysis.getTypes(lhs))) {
-                report.addError("Non-string operand for string function", lhs->getSrcLoc());
-            }
-            if (!isSymbolType(typeAnalysis.getTypes(rhs))) {
-                report.addError("Non-string operand for string function", rhs->getSrcLoc());
+            if (!isSymbolType(typeAnalysis.getTypes(&fun))) {
+                report.addError("Non-symbol use for string function", fun.getSrcLoc());
             }
         }
+
+        // check symbolic operands
+        if (fun.acceptsSymbols()) {
+            if (!isSymbolType(typeAnalysis.getTypes(lhs))) {
+                report.addError("Non-symbol operand for string function", lhs->getSrcLoc());
+            }
+            if (!isSymbolType(typeAnalysis.getTypes(rhs))) {
+                report.addError("Non-symbol operand for string function", rhs->getSrcLoc());
+            }
+        }
+
     });
 
     // - binary relation -
@@ -564,7 +607,7 @@ void AstSemanticChecker::checkComponent(ErrorReport& report, const AstComponent 
     // components with type parameters, we are only interested in whether
     // component references refer to existing components or some type parameter.
     // Type parameter for us here is unknown type that will be bound at the template
-    // instation time.
+    // instantiation time.
     auto parentTypeParameters = component.getComponentType().getTypeParameters();
     std::vector<AstTypeIdentifier> actualParams(parentTypeParameters.size(), "<type parameter>");
     TypeBinding activeBinding = binding.extend(parentTypeParameters,actualParams );

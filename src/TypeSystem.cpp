@@ -392,8 +392,6 @@ void TypeEnvironment::print(std::ostream& out) const {
     }
 }
 
-
-
 TypeSet getLeastCommonSupertypes(const Type& a, const Type& b) {
 
     // make sure they are in the same type environment
@@ -478,10 +476,6 @@ TypeSet getLeastCommonSupertypes(const TypeSet& a, const TypeSet& b) {
     }
     return res;
 }
-
-
-
-
 
 TypeSet getGreatestCommonSubtypes(const Type& a, const Type& b) {
 
