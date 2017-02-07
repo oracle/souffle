@@ -11,17 +11,18 @@
 #include "Tui.hpp"
 
 
-Tui::Tui(std::string filename, bool live) : out() {
+Tui::Tui(std::string filename, bool live, bool gui) : out() {
 
     this->f_name = filename;
 
     // out = OutputProcessor();
     std::shared_ptr <ProgramRun> &run = out.getProgramRun();
 
-    Reader read(filename, run, false, live);
-    read.readFile();
-    this->loaded = read.isLoaded();
+    this->reader = std::make_shared<Reader>(filename, run, false, live);
+    reader->readFile();
 
+    this->loaded = reader->isLoaded();
+    this->alive = live;
     rul_table_state = out.getRulTable();
     rel_table_state = out.getRelTable();
 }
@@ -31,6 +32,12 @@ void Tui::runCommand(std::vector <std::string> c) {
         std::cout << "Error: File cannot be loaded\n";
         return;
     }
+
+    if (alive) {
+        rul_table_state = out.getRulTable();
+        rel_table_state = out.getRelTable();
+    }
+
     if (c[0].compare("top") == 0) {
         top();
     } else if (c[0].compare("rel") == 0) {
@@ -40,7 +47,6 @@ void Tui::runCommand(std::vector <std::string> c) {
             rel(c[0]);
         } else {
             std::cout << "Invalid parameters to rel command.\n";
-            help();
         }
     } else if (c[0].compare("rul") == 0) {
         if (c.size() > 1) {
@@ -53,7 +59,6 @@ void Tui::runCommand(std::vector <std::string> c) {
                 verRul(c[1]);
             } else {
                 std::cout << "Invalid parameters to rul command.\n";
-                help();
             }
         } else {
             rul(c[0]);
@@ -68,13 +73,11 @@ void Tui::runCommand(std::vector <std::string> c) {
             verGraph(c[2], c[3]);
         } else {
             std::cout << "Invalid parameters to graph command.\n";
-            help();
         }
     } else if (c[0].compare("help") == 0) {
         help();
     } else {
-        std::cout << "Unknown command. Please select from the following commands:\n";
-        help();
+        std::cout << "Unknown command. Use \"help\" for a list of commands.\n";
     }
 }
 
@@ -86,7 +89,7 @@ void Tui::runProf() {
         return;
     }
     if (loaded) {
-        std::cout << "SouffleProf v2.1.8\n";
+        std::cout << "SouffleProf v3.0.1\n";
         top();
     }
 
@@ -109,8 +112,7 @@ void Tui::runProf() {
 
 
         if (input.empty()) {
-            std::cout << "Unknown command. Please select from the following commands:\n";
-            help();
+            std::cout << "Unknown command. Type help for a list of commands.\n";
             continue;
         }
 
@@ -119,22 +121,22 @@ void Tui::runProf() {
 
         std::vector <std::string> c = Tools::split(input, " ");
 
-        if (c[0].compare("q") == 0 || c[0].compare("quit") == 0) {
+        if (c[0]=="q" || c[0] == "quit") {
             quit();
             break;
-        } else if (c[0].compare("load") == 0 || c[0].compare("open") == 0) {
+        } else if (c[0]=="load" || c[0]=="open") {
             if (c.size() == 2) {
                 load(c[0], c[1]);
             } else {
                 loadMenu();
             }
-        } else if (c[0].compare("save") == 0) {
+        } else if (c[0]=="save") {
             if (c.size() == 1) {
                 std::cout << "Enter file name to save.\n";
             } else if (c.size() == 2) {
                 save(c[1]);
             }
-        } else if (c[0].compare("sort") == 0) {
+        } else if (c[0]=="sort") {
             if (c.size() == 2 && std::stoi(c[1]) < 7) {
                 sort_col = std::stoi(c[1]);
             } else {
@@ -144,6 +146,194 @@ void Tui::runProf() {
             runCommand(c);
         }
     }
+}
+
+void Tui::outputJson() {
+    std::cout << "SouffleProf v3.0.1\n";
+    std::cout << "Generating JSON files...\n";
+
+
+    std::string workingdir = Tools::getworkingdir();
+    if (workingdir.size() == 0) {
+        std::cerr << "Error getting working directory\nMaybe try run profiler with absolute path" << std::endl;
+        throw 1;
+    }
+    DIR *dir;
+    struct dirent *ent;
+    bool exists = false;
+
+    if ((dir = opendir((workingdir + std::string("/profiler_html")).c_str())) != NULL) {
+        exists = true;
+        closedir(dir);
+    }
+    if (!exists) {
+        std::string sPath = workingdir + std::string("/profiler_html");
+        mode_t nMode = 0733; // UNIX style permissions
+        int nError = 0;
+#if defined(_WIN32) || defined(_WIN64) || defined(WINDOWS)
+        nError = _mkdir(sPath.c_str()); // can be used on Windows
+#else
+        nError = mkdir(sPath.c_str(), nMode); // can be used on non-Windows
+#endif
+        if (nError != 0) {
+            std::cerr << "directory ./profiler_html/ failed to be created. Please create it and try again.";
+            exit(2);
+        }
+    }
+
+    std::string new_file = workingdir + std::string("/profiler_html/");
+    if (Tools::file_exists(new_file)) {
+        int i = 1;
+        while (Tools::file_exists(new_file + std::to_string(i) + ".html")) {
+            i++;
+        }
+
+        new_file = new_file + std::to_string(i) + ".html";
+    }
+
+    FILE * outfile;
+    outfile = std::fopen(new_file.c_str(), "w");
+
+    html_string html;
+
+    std::fprintf(outfile, "%s", html.get_first_half().c_str());
+
+
+    std::shared_ptr <ProgramRun> &run = out.getProgramRun();
+
+    std::fprintf(outfile, "data={'top':[%f,%lu],\n'rel':{\n", run->getDoubleRuntime(), run->getTotNumTuples());
+    for (auto &_row : rel_table_state.getRows()) {
+        Row row = *_row;
+        std::fprintf(outfile, "'%s':['%s','%s',%s,%s,%s,%s,%lu,'%s',[",
+                     row[6]->getStringVal().c_str(),Tools::cleanJsonOut(row[5]->getStringVal()).c_str(),row[6]->getStringVal().c_str(),
+                     Tools::cleanJsonOut(row[0]->getDoubVal()).c_str(),Tools::cleanJsonOut(row[1]->getDoubVal()).c_str(),
+                     Tools::cleanJsonOut(row[2]->getDoubVal()).c_str(),Tools::cleanJsonOut(row[3]->getDoubVal()).c_str(),
+                    row[4]->getLongVal(),row[7]->getStringVal().c_str());
+        for (auto &_rel_row : rul_table_state.getRows()) {
+            Row rel_row = *_rel_row;
+            if (rel_row[7]->getStringVal().compare(row[5]->getStringVal()) == 0) {
+                std::fprintf(outfile, "'%s',",rel_row[6]->getStringVal().c_str());
+            }
+        }
+        std::fprintf(outfile, "],{\"tot_t\":[");
+        std::vector <std::shared_ptr<Iteration>> iter = run->getRelation_map()[row[5]->getStringVal()]->getIterations();
+        for (auto &i : iter) {
+            std::fprintf(outfile, "%s,",Tools::cleanJsonOut(i->getRuntime()).c_str());
+        }
+        std::fprintf(outfile, "],\"copy_t\":[");
+        for (auto &i : iter) {
+            std::fprintf(outfile, "%s,",Tools::cleanJsonOut(i->getCopy_time()).c_str());
+        }
+        std::fprintf(outfile, "],\"tuples\":[");
+        for (auto &i : iter) {
+            std::fprintf(outfile, "%lu,",i->getNum_tuples());
+        }
+        std::fprintf(outfile,"]}],\n");
+    }
+    std::fprintf(outfile, "},'rul':{\n");
+
+
+    for (auto &_row: rul_table_state.getRows()) {
+        Row row = *_row;
+
+        std::vector <std::string> part = Tools::split(row[6]->getStringVal(), ".");
+        std::string strRel = "R" + part[0].substr(1);
+        Table ver_table = out.getVersions(strRel, row[6]->getStringVal());
+
+        std::string src;
+        if (ver_table.rows.size() > 0) {
+            if (ver_table.rows[0]->cells[9] != nullptr) {
+                 src = (*ver_table.rows[0])[9]->getStringVal();
+            } else {
+                src = "-";
+            }
+        } else {
+            src = row[10]->toString(-1);
+        }
+
+        std::fprintf(outfile, "\"%s\":[\"%s\",\"%s\",%s,%s,%s,%s,%lu,\"%s\",[",
+                    row[6]->getStringVal().c_str(),Tools::cleanJsonOut(row[5]->getStringVal()).c_str(),row[6]->getStringVal().c_str(),
+                     Tools::cleanJsonOut(row[0]->getDoubVal()).c_str(),Tools::cleanJsonOut(row[1]->getDoubVal()).c_str(),
+                     Tools::cleanJsonOut(row[2]->getDoubVal()).c_str(),Tools::cleanJsonOut(row[3]->getDoubVal()).c_str(),
+                     row[4]->getLongVal(),src.c_str());
+
+
+
+        bool has_ver = false;
+        for (auto &_ver_row : ver_table.getRows()) {
+            has_ver = true;
+            Row ver_row = *_ver_row;
+            std::fprintf(outfile, "[\"%s\",\"%s\",%s,%s,%s,%s,%lu,\"%s\",%lu],",
+
+                         Tools::cleanJsonOut(ver_row[5]->getStringVal()).c_str(),ver_row[6]->getStringVal().c_str(),
+                         Tools::cleanJsonOut(ver_row[0]->getDoubVal()).c_str(),Tools::cleanJsonOut(ver_row[1]->getDoubVal()).c_str(),
+                         Tools::cleanJsonOut(ver_row[2]->getDoubVal()).c_str(),Tools::cleanJsonOut(ver_row[3]->getDoubVal()).c_str(),
+                         ver_row[4]->getLongVal(),src.c_str(),ver_row[8]->getLongVal());
+
+        }
+        if (row[6]->getStringVal().at(0) == 'C') {
+            std::fprintf(outfile, "],{\"tot_t\":[");
+
+
+
+            std::vector<long> iteration_tuples;
+            for (auto &i : run->getRelation_map()[row[7]->getStringVal()]->getIterations()) {
+                bool add = false;
+                double tot_time = 0.0;
+                long tot_num = 0.0;
+                for (auto &rul : i->getRul_rec()) {
+                    if (rul.second->getId().compare(row[6]->getStringVal()) == 0) {
+                        tot_time += rul.second->getRuntime();
+
+                        tot_num += rul.second->getNum_tuples();
+                        add = true;
+                    }
+                }
+                if (add) {
+                    std::fprintf(outfile, "%s,",Tools::cleanJsonOut(tot_time).c_str());
+                    iteration_tuples.push_back(tot_num);
+                }
+
+            }
+            std::fprintf(outfile, "], \"tuples\":[");
+            for (auto &i : iteration_tuples) {
+                std::fprintf(outfile, "%lu,",i);
+            }
+
+            std::fprintf(outfile, "]},{");
+
+            if (has_ver) {
+                std::fprintf(outfile, "\"tot_t\":[\n");
+
+                for (auto &row : ver_table.rows) {
+                    std::fprintf(outfile, "%s,",Tools::cleanJsonOut((*row)[0]->getDoubVal()).c_str());
+                }
+                std::fprintf(outfile, "],\n\"copy_t\":[");
+                for (auto &row : ver_table.rows) {
+                    std::fprintf(outfile, "%s,",Tools::cleanJsonOut((*row)[3]->getDoubVal()).c_str());
+                }
+                std::fprintf(outfile, "],\n\"tuples\":[");
+                for (auto &row : ver_table.rows) {
+                    std::fprintf(outfile, "%ld,",(*row)[4]->getLongVal());
+                }
+                std::fprintf(outfile, "]}],\n");
+            } else {
+                std::fprintf(outfile, "}],\n");
+            }
+        } else {
+            std::fprintf(outfile, "],{},{}],\n");
+        }
+
+
+    }
+    std::fprintf(outfile, "}};");
+
+
+    std::fprintf(outfile, "%s", html.get_second_half().c_str());
+
+    fclose(outfile);
+
+    std::cout << "file output to: " << new_file << std::endl;
 }
 
 void Tui::loadMenu() {
@@ -170,7 +360,7 @@ void Tui::loadMenu() {
 
 void Tui::quit() {
     if (alive && loaded) {
-        std::cerr << "Liver reader not implemented\n";
+        // std::cerr << "Liver reader not implemented\n";
         // live_reader.stopRead();
     }
 }
@@ -199,10 +389,10 @@ void Tui::load(std::string method, std::string load_file) {
         std::cout << "Load success\n";
         this->loaded = true;
         this->f_name = f_name;
-        if (alive) {
-            std::cout << "Live reader not implemented\n" << std::endl;
-            throw;
-        }
+//        if (alive) {
+//            std::cout << "Live reader not implemented\n" << std::endl;
+//            throw;
+//        }
         top();
     } else {
         std::cout << "Error: File not found\n";
@@ -214,7 +404,7 @@ void Tui::help() {
     std::printf("  %-30s%-5s %-10s\n", "rel", "-",
                 "display relation table.");
     std::printf("  %-30s%-5s %-10s\n", "rel <relation id>",
-                "-", "display all rules of given relation.");
+                "-", "display all rules of a given relation.");
     std::printf("  %-30s%-5s %-10s\n", "rul", "-",
                 "display rule table");
     std::printf("  %-30s%-5s %-10s\n", "rul <rule id>", "-",
@@ -225,13 +415,13 @@ void Tui::help() {
                 "-", "display the rule name for the given rule id.");
     std::printf("  %-30s%-5s %-10s\n",
                 "graph <relation id> <type>", "-",
-                "graph the relation by type(tot_t/copy_t/tuples).");
+                "graph a relation by type: (tot_t/copy_t/tuples).");
     std::printf("  %-30s%-5s %-10s\n",
                 "graph <rule id> <type>", "-",
-                "graph the rule (C rules only)  by type(tot_t/tuples).");
+                "graph recursive(C) rule by type(tot_t/tuples).");
     std::printf("  %-30s%-5s %-10s\n",
                 "graph ver <rule id> <type>", "-",
-                "graph the rule versions (C rules only) by type(tot_t/tuples/copy_t).");
+                "graph recursive(C) rule versions by type(tot_t/copy_t/tuples).");
     std::printf("  %-30s%-5s %-10s\n", "top", "-",
                 "display top-level summary of program run.");
     std::printf("  %-30s%-5s %-10s\n", "help", "-",
@@ -239,26 +429,26 @@ void Tui::help() {
 
     std::cout << "\nInteractive mode only commands:" << std::endl;
     std::printf("  %-30s%-5s %-10s\n", "load <filename>",
-                "-", "load the given new log file.");
+                "-", "load the given profiler log file.");
     std::printf("  %-30s%-5s %-10s\n", "open", "-",
-                "list stored program run log files.");
+                "list stored souffle log files.");
     std::printf("  %-30s%-5s %-10s\n", "open <filename>",
                 "-", "open the given stored log file.");
     std::printf("  %-30s%-5s %-10s\n", "save <filename>",
-                "-", "store a log file.");
-    std::printf("  %-30s%-5s %-10s\n", "stop", "-",
-                "stop running live.");
+                "-", "store a copy of the souffle log file.");
+//    if (alive) std::printf("  %-30s%-5s %-10s\n", "stop", "-",
+//                "stop the current live run.");
     std::printf("  %-30s%-5s %-10s\n", "sort <col number>",
-                "-", "sets sorting to be by given column number (0 indexed).");
+                "-", "sort tables by given column number.");
     std::printf("  %-30s%-5s %-10s\n", "q", "-",
                 "exit program.");
 }
 
 void Tui::top() {
     std::shared_ptr <ProgramRun> &run = out.getProgramRun();
+    if (alive) run->update();
     std::string runtime = run->getRuntime();
     std::cout << "\n Total runtime: " << runtime << "\n";
-
 
     std::cout << "\n Total number of new tuples: " << run->formatNum(precision, run->getTotNumTuples()) << std::endl;
 }
@@ -550,7 +740,6 @@ void Tui::verGraph(std::string c, std::string col) {
     std::string strRel = "R" + part[0].substr(1);
 
     Table ver_table = out.getVersions(strRel, c);
-    // std::printf("%6s%2s%-25s\n\n", ver_table[0][6], "", ver_table[0][5])));
     std::printf("%6s%2s%-25s\n\n", (*ver_table.rows[0])[6]->getStringVal().c_str(), "",
                 (*ver_table.rows[0])[5]->getStringVal().c_str());
     if (col.compare("tot_t") == 0) {

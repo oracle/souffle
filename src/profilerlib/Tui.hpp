@@ -28,6 +28,7 @@
 #include "Reader.hpp"
 #include "StringUtils.hpp"
 #include "DataComparator.hpp"
+#include "html_string.hpp"
 
 
 class Tui {
@@ -40,13 +41,15 @@ private:
     int precision = -1;
     Table rel_table_state;
     Table rul_table_state;
-
+    std::shared_ptr<Reader> reader;
 public:
-    Tui(std::string filename, bool live);
+    Tui(std::string filename, bool live, bool gui);
 
     void runCommand(std::vector <std::string> c);
 
     void runProf();
+
+    void outputJson();
 
     void loadMenu();
 
@@ -56,7 +59,7 @@ public:
 
     void load(std::string method, std::string load_file);
 
-    void help();
+    static void help();
 
     void top();
 
