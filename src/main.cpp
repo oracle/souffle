@@ -120,7 +120,9 @@ int main(int argc, char **argv)
                 // options for the topological ordering of strongly connected components, see TopologicallySortedSCCGraph class in PrecedenceGraph.cpp
                 {"breadth-limit",   3,    "N",   "",    "", "Specify the breadth limit used for the topological ordering of strongly connected components."},
                 {"depth-limit",     4,    "N",   "",    "", "Specify the depth limit used for the topological ordering of strongly connected components."},
-                {"lookahead",       5,    "N",   "",    "", "Specify the lookahead used for the topological ordering of strongly connected components."}
+                {"lookahead",       5,    "N",   "",    "", "Specify the lookahead used for the topological ordering of strongly connected components."},
+                // TODO
+                {"database",        6,  "???", "",    "", "???"}
             };
             return std::vector<MainOption>(std::begin(opts), std::end(opts));
         }()
@@ -352,12 +354,21 @@ int main(int argc, char **argv)
     if (!ramProg)
         return 0;
 
+    /* Locate souffle-compile script */
+    std::string compileCmd = ::findTool("souffle-compile", programName, ".");
+
+    /* Fail if a souffle-compile executable is not found */
+    if (!isExecutable(compileCmd))
+        fail("error: failed to locate souffle-compile");
+
+    compileCmd += " ";
+
     // pick executor
 
     std::unique_ptr<RamExecutor> executor;
     if (Global::getInstance().has("generate") || Global::getInstance().has("compile")) {
         // configure compiler
-        executor = std::unique_ptr<RamExecutor>(new RamCompiler());
+        executor = std::unique_ptr<RamExecutor>(new RamCompiler(compileCmd));
         if (Global::getInstance().has("verbose")) {
            executor -> setReportTarget(std::cout);
         }
@@ -369,18 +380,6 @@ int main(int argc, char **argv)
             executor = std::unique_ptr<RamExecutor>();
         }
     }
-
-    // configure executor
-    auto& config = executor->getConfig();
-
-    /* Locate souffle-compile script */
-    std::string compileCmd = ::findTool("souffle-compile", programName, ".");
-
-    /* Fail if a souffle-compile executable is not found */
-    if (!isExecutable(compileCmd))
-        fail("error: failed to locate souffle-compile");
-
-    config.setCompileScript(compileCmd + " ");
 
     // check if this is code generation only
     if (Global::getInstance().has("generate")) {

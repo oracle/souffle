@@ -561,11 +561,10 @@ namespace {
     }
 
 
-    void run(const RamExecutorConfig& config, const QueryExecutionStrategy& executor, std::ostream* report, std::ostream* profile, const RamStatement& stmt, RamEnvironment& env, RamData* data) {
+    void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostream* profile, const RamStatement& stmt, RamEnvironment& env, RamData* data) {
 
         class Interpreter : public RamVisitor<bool> {
 
-            const RamExecutorConfig& config;
             RamEnvironment& env;
             const QueryExecutionStrategy& queryExecutor;
             std::ostream* report;
@@ -575,12 +574,17 @@ namespace {
         public:
 
             Interpreter(
-                    const RamExecutorConfig& config, RamEnvironment& env,
-                    const QueryExecutionStrategy& executor, std::ostream* report,
+                    RamEnvironment& env,
+                    const QueryExecutionStrategy& executor,
+                    std::ostream* report,
                     std::ostream* profile,
                     RamData* data
             )
-                : config(config), env(env), queryExecutor(executor), report(report), profile(profile), data(data) {}
+                    : env(env)
+                    , queryExecutor(executor)
+                    , report(report)
+                    , profile(profile)
+                    , data(data) {}
 
 
             // -- Statements -----------------------------
@@ -738,7 +742,7 @@ namespace {
 
             bool visitInsert(const RamInsert& insert) {
                 // run generic query executor
-                queryExecutor(config, insert, env, report);
+                queryExecutor(insert, env, report);
                 return true;
             }
 
@@ -773,7 +777,7 @@ namespace {
         };
 
         // create and run interpreter
-        Interpreter(config, env, executor, report, profile, data).visit(stmt);
+        Interpreter(env, executor, report, profile, data).visit(stmt);
     }
 
 }
@@ -789,9 +793,9 @@ void RamGuidedInterpreter::applyOn(const RamStatement& stmt, RamEnvironment& env
             std::cerr << "Cannot open fact file " << fname << " for profiling\n";
         }
         os << "@start-debug\n";
-        run(getConfig(), queryStrategy, report, &os, stmt, env, data);
+        run(queryStrategy, report, &os, stmt, env, data);
     } else {
-        run(getConfig(), queryStrategy, report, nullptr, stmt, env, data);
+        run(queryStrategy, report, nullptr, stmt, env, data);
     }
 
 }
@@ -890,7 +894,7 @@ namespace {
 
 /** With this strategy queries will be processed as they are stated by the user */
 const QueryExecutionStrategy DirectExecution =
-        [](const RamExecutorConfig& config, const RamInsert& insert, RamEnvironment& env, std::ostream*)->ExecutionSummary {
+        [](const RamInsert& insert, RamEnvironment& env, std::ostream*)->ExecutionSummary {
             // measure the time
             auto start = now();
 
@@ -904,7 +908,7 @@ const QueryExecutionStrategy DirectExecution =
 
 /** With this strategy queries will be dynamically rescheduled before each execution */
 const QueryExecutionStrategy ScheduledExecution =
-        [](const RamExecutorConfig& config, const RamInsert& insert, RamEnvironment& env, std::ostream* report)->ExecutionSummary {
+        [](const RamInsert& insert, RamEnvironment& env, std::ostream* report)->ExecutionSummary {
 
             // Report scheduling
             // TODO: only re-schedule atoms (avoid cloning entire clause)
@@ -1025,8 +1029,6 @@ namespace {
 
     class Printer : public RamVisitor<void, std::ostream&> {
 
-        const RamExecutorConfig& config;
-
         // const IndexMap& indices;
 
         std::function<void(std::ostream&,const RamNode*)> rec;
@@ -1044,8 +1046,7 @@ namespace {
 
     public:
 
-        Printer(const RamExecutorConfig& config, const IndexMap&) //indices)
-            : config(config) { // , indices(indices) {
+        Printer(const IndexMap&) /* indices) : indices(indices) */ {
             rec = [&](std::ostream& out, const RamNode* node) {
               this->visit(*node, out);
             };
@@ -1769,22 +1770,22 @@ namespace {
     };
 
 
-    void genCode(std::ostream& out, const RamStatement& stmt, const RamExecutorConfig& config, const IndexMap& indices) {
+    void genCode(std::ostream& out, const RamStatement& stmt, const IndexMap& indices) {
         // use printer
-        Printer(config, indices).visit(stmt,out);
+        Printer(indices).visit(stmt,out);
     }
 
 
 }
 
 std::string RamCompiler::resolveFileName() const {
-    if (getBinaryFile() == "") {
+    if (Global::getInstance().get("dl-program") == "") {
         // generate temporary file
         char templ[40] = "./fileXXXXXX";
         close(mkstemp(templ));
         return templ;
     }
-    return getBinaryFile();
+    return Global::getInstance().get("dl-program");
 }
 
 std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStatement& stmt, const std::string& filename) const {
@@ -2012,9 +2013,9 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     if (Global::getInstance().has("profile")) {
         os << "std::ofstream profile(profiling_fname);\n";
         os << "profile << \"@start-debug\\n\";\n";
-        genCode(os, stmt, getConfig(), indices);
+        genCode(os, stmt, indices);
     } else {
-        genCode(os, stmt, getConfig(), indices);
+        genCode(os, stmt, indices);
     }
     os << "}\n"; // end of run() method
 
@@ -2147,7 +2148,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
        os << "false,\n";
        os << "R\"()\",\n";
     }
-    os << "R\"(" << getConfig().getOutputDatabaseName() << ")\",\n";
+    os << "R\"(" << Global::getInstance().get("database") << ")\",\n";
     os << std::stoi(Global::getInstance().get("jobs")) << ",\n";
     os << ((Global::getInstance().has("debug"))?"R\"(true)\"":"R\"(false)\"");
     os << ");\n";
@@ -2187,7 +2188,7 @@ std::string RamCompiler::compileToLibrary(const SymbolTable& symTable, const Ram
     std::string source = generateCode(symTable, stmt, name + ".cpp");
 
     // execute shell script that compiles the generated C++ program
-    std::string cmd = "souffle-compilelib " + name;
+    std::string libCmd = "souffle-compilelib " + name;
 
     // separate souffle output form executable output
     if (Global::getInstance().has("profile")) {
@@ -2195,7 +2196,7 @@ std::string RamCompiler::compileToLibrary(const SymbolTable& symTable, const Ram
     }
 
     // run executable
-    if(system(cmd.c_str()) != 0) {
+    if(system(libCmd.c_str()) != 0) {
         std::cerr << "failed to compile C++ source " << name << "\n";
         std::cerr << "Have you installed souffle with java?\n";
         return "";
@@ -2218,8 +2219,7 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     //                    Compilation & Execution
     // ---------------------------------------------------------------
 
-    // execute shell script that compiles the generated C++ program
-    std::string cmd = getConfig().getCompileScript();
+    std::string cmd = compileCmd;
 
     // set up number of threads
     auto num_threads = std::stoi(Global::getInstance().get("jobs"));

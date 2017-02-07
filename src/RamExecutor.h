@@ -33,34 +33,9 @@ class RamStatement;
 class RamInsert;
 
 /**
- * The general configuration covering configurable details of
- * the execution of a RAM program.
- */
-class RamExecutorConfig {
-
-    /** The name of the compile script */
-    std::string compileScript;
-
-    std::string outputDatabaseName;
-
-public:
-
-    RamExecutorConfig() : outputDatabaseName("") {}
-
-    // TODO
-    void setCompileScript(const std::string& script) { compileScript = script; }
-    const std::string& getCompileScript() const { return compileScript; }
-    const std::string& getOutputDatabaseName() const { return outputDatabaseName; }
-
-};
-
-/**
  * An abstract base class for entities capable of processing a RAM program.
  */
 class RamExecutor {
-
-    /** The associated configuration */
-    RamExecutorConfig config;
 
 protected:
     /** An optional stream to print logging information to */
@@ -74,18 +49,6 @@ public:
     virtual ~RamExecutor() {}
 
     // -- getters and setters --
-
-    void setConfig(const RamExecutorConfig& config) {
-        this->config = config;
-    }
-
-    RamExecutorConfig& getConfig() {
-        return config;
-    }
-
-    const RamExecutorConfig& getConfig() const {
-        return config;
-    }
 
     /**
      * Updates the target this executor is reporting to.
@@ -193,7 +156,7 @@ struct ExecutionSummary {
 
 /** Defines the type of execution strategies */
 typedef std::function<
-        ExecutionSummary(const RamExecutorConfig& config, const RamInsert&, RamEnvironment& env, std::ostream*)
+        ExecutionSummary(const RamInsert&, RamEnvironment& env, std::ostream*)
 >  QueryExecutionStrategy;
 
 
@@ -251,26 +214,14 @@ struct RamInterpreter : public RamGuidedInterpreter {
  */
 class RamCompiler : public RamExecutor {
 
+private:
+
+    std::string compileCmd;
+
 public:
 
-    /** A simple constructore */
-    RamCompiler() {}
-    RamCompiler(const std::string& filename) { setBinaryFile(filename); }
-
-    /**
-     * Updates the file name of the binary to be utilized by
-     * this executor.
-     */
-    void setBinaryFile(const std::string& name) {
-        Global::getInstance().set("dl-program", name);
-    }
-
-    /**
-     * Obtains the name of the binary utilized by this executer.
-     */
-    const std::string& getBinaryFile() const {
-        return Global::getInstance().get("dl-program");
-    }
+    /** A simple constructor */
+    RamCompiler(const std::string& compileCmd) : compileCmd(compileCmd) {}
 
     /**
      * Generates the code for the given ram statement.The target file

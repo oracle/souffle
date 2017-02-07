@@ -54,10 +54,10 @@ namespace {
          * Processes the given query by forwarding the call to the nested strategy an
          * recording its performance.
          */
-        ExecutionSummary operator()(const RamExecutorConfig& config, const RamInsert& insert, RamEnvironment& env, std::ostream* report) const {
+        ExecutionSummary operator()(const RamInsert& insert, RamEnvironment& env, std::ostream* report) const {
 
             // run nested strategy
-            auto res = nested(config, insert, env, report);
+            auto res = nested(insert, env, report);
 
             // record the execution summary
             data[insert.getOrigin().getSrcLoc()].push_back(res);
@@ -114,6 +114,8 @@ bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, std:
 
     // create interpreter instance
     RamGuidedInterpreter interpreter(profiler);
+    /// TODO: may need to reset interpreter to base state
+    // BREAKPOINT;
 
     if (report && Global::getInstance().has("verbose")) {
         SplitStream splitStream(report, &std::cout);
