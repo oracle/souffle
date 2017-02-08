@@ -1,9 +1,0 @@
-#ifndef MY_MACRO
-#define MY_MACRO
-#endif
-
-.decl MyRelation(x:number)
-
-MyRelation(1).
-MyRelation(2).
-MyRelation(3).

@@ -1,6 +1,0 @@
-#include "my_program.dl"
-
-#ifndef MY_MACRO
-.decl MyOtherRelation(x:number) output
-MyOtherRelation(x) :- MyRelation(x).
-#endif
