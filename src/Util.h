@@ -33,21 +33,17 @@
 #include <set>
 #include <vector>
 #include <ostream>
+#include <iostream>
 #include <chrono>
 #include <assert.h>
 #include <memory>
-
-/* Macro for BREAKPOINT, useful for debugging. */
-#ifndef BREAKPOINT
-#define BREAKPOINT std::cerr << "BREAKPOINT: " << __FILE__ << " @" << __LINE__ << "." << std::endl
-#endif
 
 /* Macro for ASSERT */
 #ifndef ASSERT
 #ifndef OPT
 #define ASSERT(x) assert(x)
 #else
-#define ASSERT(x) 
+#define ASSERT(x)
 #endif
 #endif
 
@@ -232,7 +228,6 @@ struct comp_deref {
         return *a == *b;
     }
 };
-
 
 /**
  * A function testing whether two vectors are equal (same vector of elements).

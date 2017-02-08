@@ -24,6 +24,7 @@
 
 #include "RamRelation.h"
 #include "RamData.h"
+#include "Global.h"
 
 namespace souffle {
 
@@ -32,125 +33,9 @@ class RamStatement;
 class RamInsert;
 
 /**
- * The general configuration covering configurable details of
- * the execution of a RAM program.
- */
-class RamExecutorConfig {
-
-    /** The name of the DATALOG source file */
-    std::string sourceFileName;
-
-    /** The directory utilized for loading fact files */
-    std::string factFileDir;
-
-    /** The directory to store output files to */
-    std::string outputDir;
-
-    /** The file to store an output SQL3 DB to (empty string means do not output to sqldb)*/
-    std::string outputDatabaseName;
-
-    /** The number of threads to be used for the computation (0 = parallel system default) */
-    size_t num_threads;
-
-    /** A flag for enabling logging during the computation */
-    bool logging;
-
-    /** The name of the compile script */
-    std::string compileScript;
-
-    /** A filename for profile log */
-    std::string profileName;
-
-    /** A flag for enabling debug mode */
-    bool debug;
-
-public:
-
-    RamExecutorConfig() : sourceFileName("-unknown-"), factFileDir("./"), outputDir("./"), outputDatabaseName(""), num_threads(1), logging(false), debug(false) {}
-
-    // -- getters and setters --
-
-    void setSourceFileName(const std::string& name) {
-        sourceFileName = name;
-    }
-
-    const std::string& getSourceFileName() const {
-        return sourceFileName;
-    }
-
-    void setFactFileDir(const std::string& dir) {
-        factFileDir = dir;
-    }
-
-    const std::string& getFactFileDir() const {
-        return factFileDir;
-    }
-
-    void setOutputDir(const std::string& dir) {
-        outputDir = dir;
-    }
-
-    const std::string& getOutputDir() const {
-        return outputDir;
-    }
-
-    const std::string& getOutputDatabaseName() const {
-        return outputDatabaseName;
-    }
-
-    void setNumThreads(size_t num) {
-        num_threads = num;
-    }
-
-    size_t getNumThreads() const {
-        return num_threads;
-    }
-
-    bool isParallel() const {
-        return num_threads != 1;
-    }
-
-    void setLogging(bool val = true) {
-        logging = val;
-    }
-
-    bool isLogging() const {
-        return logging;
-    }
-
-    void setCompileScript(const std::string& script) {
-        compileScript = script;
-    }
-
-    const std::string& getCompileScript() const {
-        return compileScript;
-    }
-
-    void setProfileName(const std::string& name) {
-        profileName = name;
-    }
-
-    const std::string& getProfileName() const {
-        return profileName;
-    }
-
-    void setDebug(bool val = true) {
-        debug = val;
-    }
-
-    bool isDebug() const {
-        return debug;
-    }
-
-};
-
-/**
  * An abstract base class for entities capable of processing a RAM program.
  */
 class RamExecutor {
-
-    /** The associated configuration */
-    RamExecutorConfig config;
 
 protected:
     /** An optional stream to print logging information to */
@@ -163,19 +48,6 @@ public:
     /** A virtual destructor to support safe inheritance */
     virtual ~RamExecutor() {}
 
-    // -- getters and setters --
-
-    void setConfig(const RamExecutorConfig& config) {
-        this->config = config;
-    }
-
-    RamExecutorConfig& getConfig() {
-        return config;
-    }
-
-    const RamExecutorConfig& getConfig() const {
-        return config;
-    }
 
     /**
      * Updates the target this executor is reporting to.
@@ -191,7 +63,6 @@ public:
         report = nullptr;
     }
 
-    // -- actual evaluation --
 
     /**
      * Runs the given RAM statement on an empty environment and returns
@@ -283,7 +154,7 @@ struct ExecutionSummary {
 
 /** Defines the type of execution strategies */
 typedef std::function<
-        ExecutionSummary(const RamExecutorConfig& config, const RamInsert&, RamEnvironment& env, std::ostream*)
+        ExecutionSummary(const RamInsert&, RamEnvironment& env, std::ostream*)
 >  QueryExecutionStrategy;
 
 
@@ -341,31 +212,14 @@ struct RamInterpreter : public RamGuidedInterpreter {
  */
 class RamCompiler : public RamExecutor {
 
-    /**
-     * The file name of the executable to be created, empty if a temporary
-     * file should be utilized.
-     */
-    mutable std::string fileName;
+private:
+
+    std::string compileCmd;
 
 public:
 
-    /** A simple constructore */
-    RamCompiler(const std::string& fn = "") : fileName(fn) {}
-
-    /**
-     * Updates the file name of the binary to be utilized by
-     * this executor.
-     */
-    void setBinaryFile(const std::string& name) {
-        fileName = name;
-    }
-
-    /**
-     * Obtains the name of the binary utilized by this executer.
-     */
-    const std::string& getBinaryFile() const {
-        return fileName;
-    }
+    /** A simple constructor */
+    RamCompiler(const std::string& compileCmd) : compileCmd(compileCmd) {}
 
     /**
      * Generates the code for the given ram statement.The target file

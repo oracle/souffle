@@ -36,6 +36,28 @@ souffle_make() {
     cd -
 }
 
+souffle_reset() {
+    read -p "Continue?" && \
+    git reset --hard HEAD && \
+    souffle_teardown && \
+    souffle_setup && \
+    souffle_make
+}
+
+souffle_commit() {
+    cd $SOUFFLE && \
+    git add . && \
+    git commit -m "$(date)" && \
+    cd -
+}
+
+souffle_push() {
+    souffle_commit && \
+    cd $SOUFFLE && \
+    git push origin $(git branch | grep \* | sed 's/^\*\s//g') && \
+    cd -
+}
+
 souffle_test() {
     souffle_make &&
     cd $SOUFFLE/tests && \
