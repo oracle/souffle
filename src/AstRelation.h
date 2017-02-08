@@ -47,6 +47,15 @@
 
 #define DATA_RELATION (0x10)
 
+/* Relation uses a brie data structure */
+#define BRIE_RELATION (0x20)
+
+/* Relation uses a btree data structure */
+#define BTREE_RELATION (0x40)
+
+/* Relation uses a union relation */
+#define EQREL_RELATION (0x80)
+
 namespace souffle {
 
 /*!
@@ -115,6 +124,15 @@ public:
 
     /** Check whether relation is to/from memory */
     bool isData() const { return (qualifier & DATA_RELATION) != 0; }
+
+    /** Check whether relation is a brie relation */
+    bool isBrie() const { return (qualifier & BRIE_RELATION) != 0; }
+
+    /** Check whether relation is a btree relation */
+    bool isBTree() const { return (qualifier & BTREE_RELATION) != 0; }
+ 
+    /** Check whether relation is a equivalence relation */
+    bool isEqRel() const { return (qualifier & EQREL_RELATION) != 0; }
 
     /** Check whether relation is an input relation */
     bool isPrintSize() const { return (qualifier & PRINTSIZE_RELATION) != 0; }
