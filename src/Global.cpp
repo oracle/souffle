@@ -9,7 +9,7 @@
 #define __ERROR_2__(text, callback) { std::cerr << "Error: " << message << std::endl; callback(); exit(1); }
 #endif
 #define GET_MACRO(_1, _2, NAME, ...) NAME
-#define ERROR(...) GET_MACRO(__VA_ARGS__, __ERROR_2___, __ERROR_1___)(__VA_ARGS__)
+#define ERROR(...) GET_MACRO(__VA_ARGS__, __ERROR_2__, __ERROR_1__)(__VA_ARGS__)
 #endif
 
 
