@@ -49,7 +49,7 @@ public:
      * Perform auto-scheduling for the given program.
      * @return whether the program was modified
      */
-    bool autotune(AstTranslationUnit& translationUnit, std::ostream* report);
+    static bool autotune(AstTranslationUnit& translationUnit, std::ostream* report);
 };
 
 } // end of namespace souffle
