@@ -12,7 +12,6 @@
 #define ERROR(...) GET_MACRO(__VA_ARGS__, __ERROR_2__, __ERROR_1__)(__VA_ARGS__)
 #endif
 
-
 namespace souffle {
 
 void MainConfig::processArgs(int argc, char** argv, const std::string header, const std::string footer, const std::vector<MainOption> mainOptions) {
