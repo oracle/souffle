@@ -17,7 +17,7 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
     // construct the help text using the main options
     {
         // create a stream to be 'printed' to
-        std::stringstream ss = std::stringstream();
+        std::stringstream ss;
 
         // print the header
         ss << header;
