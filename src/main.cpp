@@ -52,9 +52,9 @@
 #include "RamExecutor.h"
 #include "RamStatement.h"
 
-/* ERROR macro */
+/* Macro for ERROR */
 #ifndef ERROR
-#define ERROR(message) { std::cerr << "Error: " << message << std::endl; exit(1); }
+#define ERROR(text) { std::cerr << "Error: " << text << std::endl; exit(1); }
 #endif
 
 namespace souffle {

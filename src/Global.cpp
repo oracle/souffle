@@ -1,14 +1,17 @@
 #include "Global.h"
 
-/* ERROR macro */
+/* Macro for ERROR */
 #ifndef ERROR
-#define ERROR(message) { std::cerr << "Error: " << message << std::endl; exit(1); }
+#ifndef __ERROR_1__
+#define __ERROR_1__(text) { souffle::macro::call("Error", std::cerr, text); exit(1); }
+#endif
+#ifndef __ERROR_2__
+#define __ERROR_2__(text, callback) { std::cerr << "Error: " << message << std::endl; callback(); exit(1); }
+#endif
+#define GET_MACRO(_1, _2, NAME, ...) NAME
+#define ERROR(...) GET_MACRO(__VA_ARGS__, __ERROR_2___, __ERROR_1___)(__VA_ARGS__)
 #endif
 
-/* ERROR_CALLBACK macro */
-#ifndef ERROR_CALLBACK
-#define ERROR_CALLBACK(message, callback) { std::cerr << "Error: " << message << std::endl; callback(); exit(1); }
-#endif
 
 namespace souffle {
 
@@ -119,7 +122,7 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
         while ((c = getopt_long(argc, argv, shortNames.c_str(), longNames, nullptr)) != EOF) {
             // case for the unknown option
             if (c == '?') {
-                ERROR_CALLBACK("unexpected command line argument", []() { std::cerr << Global::config().help(); });
+                ERROR("unexpected command line argument", []() { std::cerr << Global::config().help(); });
              }
             // obtain an iterator to the option in the table referenced by the current short name
             auto iter = optionTable.find(c);
@@ -151,7 +154,7 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
         std::string filename = "";
         // ensure that the optind is less than the total number of arguments
         if (optind >= argc)
-            ERROR_CALLBACK("unexpected command line argument", []() { std::cerr << Global::config().help(); });
+            ERROR("unexpected command line argument", []() { std::cerr << Global::config().help(); });
         // if only one datalog program is allowed
         if (mainOptions[0].longName == "" && mainOptions[0].takesMany) {
             // set the option in the global config for the main datalog file to that specified by the command line arguments
