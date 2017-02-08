@@ -3,7 +3,7 @@
 /* Macro for ERROR */
 #ifndef ERROR
 #ifndef __ERROR_1__
-#define __ERROR_1__(text) { souffle::macro::call("Error", std::cerr, text); exit(1); }
+#define __ERROR_1__(text) { std::cerr << "Error: " << text << std::endl; exit(1); }
 #endif
 #ifndef __ERROR_2__
 #define __ERROR_2__(text, callback) { std::cerr << "Error: " << text << std::endl; callback(); exit(1); }
