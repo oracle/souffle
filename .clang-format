@@ -2,7 +2,9 @@
 Language:        Cpp
 # BasedOnStyle:  Google
 AccessModifierOffset: -4
-AlignAfterOpenBracket: false
+AlignAfterOpenBracket: DontAlign
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
 AlignEscapedNewlinesLeft: true
 AlignOperands:   true
 AlignTrailingComments: false
@@ -12,8 +14,7 @@ AllowShortCaseLabelsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: true
-AlwaysBreakAfterDefinitionReturnType: false
-AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakBeforeMultilineStrings: true
 AlwaysBreakTemplateDeclarations: true
 BinPackArguments: true
 BinPackParameters: true
@@ -31,6 +32,13 @@ DerivePointerAlignment: false
 DisableFormat:   false
 ExperimentalAutoDetectBinPacking: false
 ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH ]
+IncludeCategories: 
+  - Regex:           '.*'
+    Priority:        1
+  - Regex:           '^<.*'
+    Priority:        2
+  - Regex:           '^<.*\.h>'
+    Priority:        3
 IndentCaseLabels: true
 IndentWidth:     4
 IndentWrappedFunctionNames: false
