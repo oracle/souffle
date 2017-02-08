@@ -124,6 +124,7 @@ int main(int argc, char **argv)
 
         // ------ command line arguments -------------
 
+
         /* for the help option, if given simply print the help text then exit */
         if (Global::config().has("help")) {
              std::cerr << Global::config().help();
