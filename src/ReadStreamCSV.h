@@ -140,10 +140,7 @@ public:
     ReadFileCSV(const std::string& filename, const SymbolMask& symbolMask, SymbolTable& symbolTable,
             std::map<int, int> inputMap = std::map<int, int>(), char delimiter = '\t')
             : fileHandle(filename), readStream(fileHandle, symbolMask, symbolTable, inputMap, delimiter) {
-        char bfn[filename.size()];
-        strcpy(bfn, filename.c_str());
-        std::stringstream baseNameStream(basename(bfn));
-        baseName = baseNameStream.str();
+        baseName = extractBaseName(filename);
         if (!fileHandle.is_open()) {
             throw std::invalid_argument("Cannot open fact file " + baseName + "\n");
         }
@@ -168,6 +165,14 @@ public:
     virtual ~ReadFileCSV() {}
 
 private:
+    std::string extractBaseName(const std::string& filename) {
+        size_t pos = filename.find_last_of('/');
+        if (pos == std::string::npos) {
+            return filename;
+        }
+        return filename.substr(pos + 1);
+    }
+
     std::string baseName;
     std::ifstream fileHandle;
     ReadStreamCSV readStream;
