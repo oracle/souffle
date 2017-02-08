@@ -81,7 +81,6 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
 
     // use the main options to define the global configuration
     {
-
         // array of long names for classic getopt processing
         option longNames[mainOptions.size()];
         // string of short names for classic getopt processing
@@ -119,8 +118,9 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
         int c;
         while ((c = getopt_long(argc, argv, shortNames.c_str(), longNames, nullptr)) != EOF) {
             // case for the unknown option
-            if (c == '?')
+            if (c == '?') {
                 ERROR_CALLBACK("unexpected command line argument", []() { std::cerr << Global::config().help(); });
+             }
             // obtain an iterator to the option in the table referenced by the current short name
             auto iter = optionTable.find(c);
             // case for the unknown option, again
@@ -136,7 +136,7 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
             // otherwise, set the value of the option in the global config
             else
                 // but only if it isn't set already
-                if (has(iter->second->longName))
+                if (has(iter->second->longName) && (iter->second->byDefault.empty() || !has(iter->second->longName, iter->second->byDefault)))
                     ERROR("only one argument allowed for option '" + iter->second->longName + "'");
                 set(iter->second->longName, arg);
         }
