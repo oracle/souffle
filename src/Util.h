@@ -38,40 +38,6 @@
 #include <assert.h>
 #include <memory>
 
-// -------------------------------------------------------------------------------
-//                             Macro Functions
-// -------------------------------------------------------------------------------
-
-namespace macro {
-
-        inline void breakpoint(const char* file, const int line) {
-            std::cerr << "Breakpoint: " << " @" << file << ":" << line << std::endl;
-        }
-
-        inline void warning(const std::string& message, const char* file, const int line) {
-            std::cerr << "Warning: " << message << " @" << file << ":" << line << std::endl;
-        }
-
-        template<typename T>
-        inline void warning(const std::string& message, T callback, const char* file, const int line) {
-            std::cerr << "Warning: " << message << " @" << file << ":" << line << std::endl;
-            callback();
-        }
-
-        inline void error(const std::string& message, const char* file, const int line) {
-            std::cerr << "Error: " << message << " @" << file << ":" << line << std::endl;
-            exit(1);
-        }
-
-        template<typename T>
-        inline void error(const std::string& message, T callback, const char* file, const int line) {
-            std::cerr << "Error: " << message << " @" << file << ":" << line << std::endl;
-            callback();
-            exit(1);
-        }
-
-}
-
 /* Macro for ASSERT */
 #ifndef ASSERT
 #ifndef OPT
@@ -79,27 +45,6 @@ namespace macro {
 #else
 #define ASSERT(x)
 #endif
-#endif
-
-/* Macro for BREAKPOINT */
-#ifndef BREAKPOINT
-#define BREAKPOINT macro::breakpoint(__FILE__, __LINE__);
-#endif
-
-/* Macro for WARNING */
-#ifndef WARNING
-#define WARNING(message) macro::warning(message, __FILE__, __LINE__);
-#endif
-#ifndef WARNING_CALLBACK
-#define WARNING_CALLBACK(message, callback) macro::warning(message, callback, __FILE__, __LINE__);
-#endif
-
-/* Macro for ERROR */
-#ifndef ERROR
-#define ERROR(message) macro::error(message, __FILE__, __LINE__);
-#endif
-#ifndef ERROR_CALLBACK
-#define ERROR_CALLBACK(message, callback) macro::error(message, callback, __FILE__, __LINE__);
 #endif
 
 namespace souffle {

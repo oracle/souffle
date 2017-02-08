@@ -1,5 +1,15 @@
 #include "Global.h"
 
+/* ERROR macro */
+#ifndef ERROR
+#define ERROR(message) std::cerr << "Error: " << message << std::endl; exit(1);
+#endif
+
+/* ERROR_CALLBACK macro */
+#ifndef ERROR_CALLBACK
+#define ERROR_CALLBACK(message, callback) std::cerr << "Error: " << message << std::endl; callback(); exit(1);
+#endif
+
 namespace souffle {
 
 

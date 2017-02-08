@@ -52,6 +52,11 @@
 #include "RamExecutor.h"
 #include "RamStatement.h"
 
+/* ERROR macro */
+#ifndef ERROR
+#define ERROR(message) std::cerr << "Error: " << message << std::endl; exit(1);
+#endif
+
 namespace souffle {
 
 
@@ -177,13 +182,6 @@ int main(int argc, char **argv)
         }
 
     }
-
-
-
-    /// TODO
-    BREAKPOINT;
-    Global::config().print(std::cerr);
-
 
     // ------ start souffle -------------
 
