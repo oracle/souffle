@@ -6,8 +6,9 @@ namespace souffle {
 void MainConfig::processArgs(int argc, char** argv, const std::string header, const std::string footer, const std::vector<MainOption> mainOptions) {
 
     // START STAGE 1
-    /*
     {
+        std::stringstream ss = std::stringstream();
+
         // print the header
         ss << header;
 
@@ -64,9 +65,9 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
         // print the footer
         ss << footer;
 
-        helpText = ss.str();
+        _help = ss.str();
     } // END STAGE 1
-    */
+
     // START STAGE 2
     {
 
@@ -92,7 +93,7 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
         int c;     /* command-line arguments processing */
         while ((c = getopt_long(argc, argv, shortNames.c_str(), longNames, nullptr)) != EOF) {
             if (c == '?')
-                Error::error("unexpected command line argument", []() { std::cerr << Global::config().help(); });
+                ERROR_CALLBACK("unexpected command line argument", []() { std::cerr << Global::config().help(); });
             auto iter = optionTable.find(c);
             if (iter == optionTable.end())
                 assert("unexpected case in getopt");
@@ -108,7 +109,7 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
         if (optind < argc) {
             for (; optind < argc; optind++) {
                 if (!existFile(argv[optind])) {
-                    Error::error("error: cannot open file " + std::string(argv[optind]));
+                    ERROR("error: cannot open file " + std::string(argv[optind]));
                 }
                 if (filenames == "") {
                     filenames = argv[optind];
@@ -117,7 +118,7 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
                 }
             }
         } else {
-                Error::error("unexpected command line argument", []() { std::cerr << Global::config().help(); });
+                ERROR_CALLBACK("unexpected command line argument", []() { std::cerr << Global::config().help(); });
         }
         set("", filenames);
     }

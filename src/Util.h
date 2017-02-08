@@ -38,18 +38,68 @@
 #include <assert.h>
 #include <memory>
 
-/* Macro for BREAKPOINT, useful for debugging. */
-#ifndef BREAKPOINT
-#define BREAKPOINT std::cerr << "BREAKPOINT: " << __FILE__ << " @" << __LINE__ << "." << std::endl
-#endif
+// -------------------------------------------------------------------------------
+//                             Macro Functions
+// -------------------------------------------------------------------------------
+
+namespace macro {
+
+        inline void breakpoint(const char* file, const int line) {
+            std::cerr << "Breakpoint: " << " @" << file << ":" << line << std::endl;
+        }
+
+        inline void warning(const std::string& message, const char* file, const int line) {
+            std::cerr << "Warning: " << message << " @" << file << ":" << line << std::endl;
+        }
+
+        template<typename T>
+        inline void warning(const std::string& message, T callback, const char* file, const int line) {
+            std::cerr << "Warning: " << message << " @" << file << ":" << line << std::endl;
+            callback();
+        }
+
+        inline void error(const std::string& message, const char* file, const int line) {
+            std::cerr << "Error: " << message << " @" << file << ":" << line << std::endl;
+            exit(1);
+        }
+
+        template<typename T>
+        inline void error(const std::string& message, T callback, const char* file, const int line) {
+            std::cerr << "Error: " << message << " @" << file << ":" << line << std::endl;
+            callback();
+            exit(1);
+        }
+
+}
 
 /* Macro for ASSERT */
 #ifndef ASSERT
 #ifndef OPT
 #define ASSERT(x) assert(x)
 #else
-#define ASSERT(x) 
+#define ASSERT(x)
 #endif
+#endif
+
+/* Macro for BREAKPOINT */
+#ifndef BREAKPOINT
+#define BREAKPOINT macro::breakpoint(__FILE__, __LINE__);
+#endif
+
+/* Macro for WARNING */
+#ifndef WARNING
+#define WARNING(message) macro::warning(message, __FILE__, __LINE__);
+#endif
+#ifndef WARNING_CALLBACK
+#define WARNING_CALLBACK(message, callback) macro::warning(message, callback, __FILE__, __LINE__);
+#endif
+
+/* Macro for ERROR */
+#ifndef ERROR
+#define ERROR(message) macro::error(message, __FILE__, __LINE__);
+#endif
+#ifndef ERROR_CALLBACK
+#define ERROR_CALLBACK(message, callback) macro::error(message, callback, __FILE__, __LINE__);
 #endif
 
 namespace souffle {
@@ -234,7 +284,6 @@ struct comp_deref {
     }
 };
 
-
 /**
  * A function testing whether two vectors are equal (same vector of elements).
  */
@@ -378,31 +427,7 @@ class BaseTable {
         void print(std::ostream& os) { os << _data << std::endl; }
 };
 
-// -------------------------------------------------------------------------------
-//                               Error Handling
-// -------------------------------------------------------------------------------
 
-class Error {
-    public:
-        static void warning(const std::string& message) {
-            std::cerr << "Warning: " << message << std::endl;
-        }
-        template<typename T>
-        static void warning(const std::string& message, T callback) {
-            std::cerr << "Warning: " << message << std::endl;
-            callback();
-        }
-        static void error(const std::string& message) {
-            std::cerr << "Error: " << message << std::endl;
-            exit(1);
-        }
-        template<typename T>
-        static void error(const std::string& message, T callback) {
-            std::cerr << "Error: " << message << std::endl;
-            callback();
-            exit(1);
-        }
-};
 
 // -------------------------------------------------------------------------------
 //                               I/O Utils

@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 
         /* for the help option, if given simply print the help text then exit */
         if (Global::config().has("help")) {
-            Error::error("unexpected command line argument", []() { std::cerr << Global::config().help(); });
+            ERROR_CALLBACK("unexpected command line argument", []() { std::cerr << Global::config().help(); });
         }
 
         /* turn on compilation of executables */
@@ -141,19 +141,19 @@ int main(int argc, char **argv)
         if (Global::config().has("jobs")) {
             if (isNumber(Global::config().get("jobs").c_str())) {
                 if (std::stoi(Global::config().get("jobs")) < 1)
-                       Error::error("Number of jobs in the -j/--jobs options must be greater than zero!");
+                       ERROR("Number of jobs in the -j/--jobs options must be greater than zero!");
             } else {
                 if (!Global::config().has("jobs", "auto"))
-                    Error::error("Wrong parameter " + Global::config().get("jobs") + " for option -j/--jobs!");
+                    ERROR("Wrong parameter " + Global::config().get("jobs") + " for option -j/--jobs!");
                 Global::config().set("jobs", "0");
             }
         } else {
-            Error::error("Wrong parameter " + Global::config().get("jobs") + " for option -j/--jobs!");
+            ERROR("Wrong parameter " + Global::config().get("jobs") + " for option -j/--jobs!");
         }
 
         /* if an output directory is given, check it exists */
         if (Global::config().has("output-dir") && !Global::config().has("output-dir", "-") && !existDir(Global::config().get("output-dir")))
-            Error::error("output directory " + Global::config().get("output-dir") + " does not exists");
+            ERROR("output directory " + Global::config().get("output-dir") + " does not exists");
 
         /* turn on compilation if auto-scheduling is enabled */
         if (Global::config().has("auto-schedule") && !Global::config().has("compile"))
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
 
         /* ensure that if auto-scheduling is enabled an output file is given */
         if (Global::config().has("auto-schedule") && !Global::config().has("dl-program"))
-           Error::error("no executable is specified for auto-scheduling (option -o <FILE>)");
+           ERROR("no executable is specified for auto-scheduling (option -o <FILE>)");
 
         // TODO: this code is depreciated, however is still in use in development -- it will be removed properly once it is no longer needed
         /* set the breadth and depth limits for the topological ordering of strongly connected components */
@@ -169,21 +169,21 @@ int main(int argc, char **argv)
         if (Global::config().has("breadth-limit")) {
             int limit = std::stoi(Global::config().get("breadth-limit"));
             if (limit <= 0)
-                Error::error("breadth limit must be 1 or more");
+                ERROR("breadth limit must be 1 or more");
             TopologicallySortedSCCGraph::BREADTH_LIMIT = limit;
          }
          if (Global::config().has("depth-limit")) {
             int limit = std::stoi(Global::config().get("depth-limit"));
             if (limit <= 0)
-                Error::error("depth limit must be 1 or more");
+                ERROR("depth limit must be 1 or more");
             TopologicallySortedSCCGraph::DEPTH_LIMIT = limit;
          }
          if (Global::config().has("lookahead")) {
             if (Global::config().has("breadth-limit") || Global::config().has("depth-limit"))
-                Error::error("only one of either lookahead or depth-limit and breadth-limit may be specified");
+                ERROR("only one of either lookahead or depth-limit and breadth-limit may be specified");
             int lookahead = std::stoi(Global::config().get("lookahead"));
             if (lookahead <= 0)
-                Error::error("lookahead must be 1 or more");
+                ERROR("lookahead must be 1 or more");
             TopologicallySortedSCCGraph::LOOKAHEAD = lookahead;
          }
          */
@@ -195,7 +195,7 @@ int main(int argc, char **argv)
             for (const char& ch : Global::config().get("include-dir")) {
                 if (ch == ' ') {
                     if (!existDir(currentInclude)) {
-                        Error::error("include directory " + currentInclude + " does not exists");
+                        ERROR("include directory " + currentInclude + " does not exists");
                     } else {
                         allIncludes += " -I ";
                         allIncludes += currentInclude;
@@ -214,13 +214,13 @@ int main(int argc, char **argv)
     std::string programName = which(argv[0]);
 
     if (programName.empty())
-        Error::error("failed to determine souffle executable path");
+        ERROR("failed to determine souffle executable path");
 
     /* Create the pipe to establish a communication between cpp and souffle */
     std::string cmd = ::findTool("souffle-mcpp", programName, ".");
 
     if (!isExecutable(cmd))
-        Error::error("failed to locate souffle preprocessor");
+        ERROR("failed to locate souffle preprocessor");
 
     cmd  += " " + Global::config().get("include-dir") + " " + Global::config().get("");
     FILE* in = popen(cmd.c_str(), "r");
@@ -237,7 +237,7 @@ int main(int argc, char **argv)
     int preprocessor_status = pclose(in);
     if (preprocessor_status == -1) {
         perror(NULL);
-        Error::error("failed to close pre-processor pipe");
+        ERROR("failed to close pre-processor pipe");
     }
 
     /* Report run-time of the parser if verbose flag is set */
@@ -249,7 +249,7 @@ int main(int argc, char **argv)
     // ------- check for parse errors -------------
     if (translationUnit->getErrorReport().getNumErrors() != 0) {
         std::cerr << translationUnit->getErrorReport();
-        Error::error(std::to_string(translationUnit->getErrorReport().getNumErrors()) + " errors generated, evaluation aborted");
+        ERROR(std::to_string(translationUnit->getErrorReport().getNumErrors()) + " errors generated, evaluation aborted");
     }
 
     // ------- rewriting / optimizations -------------
@@ -284,7 +284,7 @@ int main(int argc, char **argv)
         /* Abort evaluation of the program if errors were encountered */
         if (translationUnit->getErrorReport().getNumErrors() != 0) {
             std::cerr << translationUnit->getErrorReport();
-            Error::error(std::to_string(translationUnit->getErrorReport().getNumErrors()) + " errors generated, evaluation aborted");
+            ERROR(std::to_string(translationUnit->getErrorReport().getNumErrors()) + " errors generated, evaluation aborted");
         }
     }
     if (translationUnit->getErrorReport().getNumIssues() != 0) {
@@ -305,7 +305,7 @@ int main(int argc, char **argv)
 				toBddbddb(out,*translationUnit);
 			}
     	} catch(const UnsupportedConstructException& uce) {
-    	    Error::error("failed to convert input specification into bddbddb syntax because " + std::string(uce.what()));
+    	    ERROR("failed to convert input specification into bddbddb syntax because " + std::string(uce.what()));
     	}
     	return 0;
     }
@@ -344,7 +344,7 @@ int main(int argc, char **argv)
         std::string compileCmd = ::findTool("souffle-compile", programName, ".");
         /* Fail if a souffle-compile executable is not found */
         if (!isExecutable(compileCmd))
-            Error::error("failed to locate souffle-compile");
+            ERROR("failed to locate souffle-compile");
         compileCmd += " ";
         // configure compiler
         executor = std::unique_ptr<RamExecutor>(new RamCompiler(compileCmd));
