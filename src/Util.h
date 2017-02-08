@@ -404,32 +404,6 @@ bool equal_ptr(const std::unique_ptr<T> &a, const std::unique_ptr<T> &b) {
 }
 
 // -------------------------------------------------------------------------------
-//                               Base Classes
-// -------------------------------------------------------------------------------
-
-template<typename K, typename V>
-class BaseTable {
-    private:
-        const V _default;
-        std::map<K, V> _data;
-    public:
-        BaseTable() : _default(V()), _data(std::map<K, V>()) {}
-        BaseTable(const BaseTable& other) { data(other.data()); }
-        BaseTable& operator=(const BaseTable& other) { data(other.data()); return *this; }
-        const std::map<K, V>& data() const { return _data; }
-        void data(const std::map<K, V>& otherData) { _data = otherData; }
-        const V& get(const K& key) const { return (has(key)) ? _data.at(key) : _default; }
-        const V& get(const K& key, const V& value) const  { return (has(key)) ? _data.at(key) : value; }
-        const bool has(const K& key) const { return _data.find(key) != _data.end(); }
-        const bool has(const K& key, const V& value) const { return has(key) && _data.at(key) == value; }
-        void set(const K& key) { _data[key] = _default; }
-        void set(const K& key, const V& value) { _data[key] = value; }
-        void print(std::ostream& os) { os << _data << std::endl; }
-};
-
-
-
-// -------------------------------------------------------------------------------
 //                               I/O Utils
 // -------------------------------------------------------------------------------
 

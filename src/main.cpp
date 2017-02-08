@@ -94,33 +94,24 @@ int main(int argc, char **argv)
             []() {
                 MainOption opts[] = {
                     /* each option is { longName, shortName, argument, byDefault, delimiter, description } */
-                    // main option, the datalog program, key is always empty
+                    // main option, the datalog program file, key is always empty
                     {"", 0, "",  "-unknown-", "", ""},
                     // other options
-                    {"fact-dir",      'F',  "DIR",  ".",    "", "Specify directory for fact files."},
-                    {"include-dir",   'I',  "DIR",  ".", " -I", "Specify directory for include files."},
-                    {"output-dir",    'D',  "DIR",  ".",    "", "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
-                    {"jobs",          'j',    "N",  "1",    "", "Run interpreter/compiler in parallel using N threads, N=auto for system default."},
-                    {"compile",       'c',     "",   "",    "", "Compile datalog (translating to C++)."},
-                    // if the short option is non-alphabetical, it is ommitted from the help text
-                    {"auto-schedule", 'a',     "",   "",    "", "Switch on automated clause scheduling for compiler."},
-                    {"generate",      'g', "FILE",   "",    "", "Only generate sources of compilable analysis and write it to <FILE>."},
-                    {"no-warn",       'w',     "",   "",    "", "Disable warnings."},
-                    {"dl-program",    'o', "FILE",   "",    "", "Write executable program to <FILE> (without executing it)."},
-                    {"profile",       'p', "FILE",   "",    "", "Enable profiling and write profile data to <FILE>."},
-                    {"debug",         'd',     "",   "",    "", "Enable debug mode."},
-                    {"bddbddb",       'b', "FILE",   "",    "", "Convert input into bddbddb file format."},
-                    // if the short option is non-alphabetical, it is ommitted from the help text
-                    {"debug-report",  'r', "FILE",   "",    "", "Write debugging output to HTML report."},
-                    {"verbose",       'v',     "",   "",    "", "Verbose output."},
-                    {"help",          'h',     "",   "",    "", "Display this help message."}
-                    // TODO: this code is depreciated, however is still in use in development -- it will be removed properly once it is no longer needed
-                    /*
-                    // options for the topological ordering of strongly connected components, see TopologicallySortedSCCGraph class in PrecedenceGraph.cpp
-                    {"breadth-limit",   1,    "N",   "",    "", "Specify the breadth limit used for the topological ordering of strongly connected components."},
-                    {"depth-limit",     2,    "N",   "",    "", "Specify the depth limit used for the topological ordering of strongly connected components."},
-                    {"lookahead",       3,    "N",   "",    "", "Specify the lookahead used for the topological ordering of strongly connected components."},
-                    */
+                    {"fact-dir",      'F',  "DIR",  ".", false, "Specify directory for fact files."},
+                    {"include-dir",   'I',  "DIR",  ".", true, "Specify directory for include files."},
+                    {"output-dir",    'D',  "DIR",  ".", false, "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
+                    {"jobs",          'j',    "N",  "1", false, "Run interpreter/compiler in parallel using N threads, N=auto for system default."},
+                    {"compile",       'c',     "",   "", false, "Compile datalog (translating to C++)."},
+                    {"auto-schedule", 'a',     "",   "", false, "Switch on automated clause scheduling for compiler."},
+                    {"generate",      'g', "FILE",   "", false, "Only generate sources of compilable analysis and write it to <FILE>."},
+                    {"no-warn",       'w',     "",   "", false, "Disable warnings."},
+                    {"dl-program",    'o', "FILE",   "", false, "Write executable program to <FILE> (without executing it)."},
+                    {"profile",       'p', "FILE",   "", false, "Enable profiling and write profile data to <FILE>."},
+                    {"debug",         'd',     "",   "", false, "Enable debug mode."},
+                    {"bddbddb",       'b', "FILE",   "", false, "Convert input into bddbddb file format."},
+                    {"debug-report",  'r', "FILE",   "", false, "Write debugging output to HTML report."},
+                    {"verbose",       'v',     "",   "", false, "Verbose output."},
+                    {"help",          'h',     "",   "", false, "Display this help message."}
                 };
                 return std::vector<MainOption>(std::begin(opts), std::end(opts));
             }()
@@ -130,7 +121,8 @@ int main(int argc, char **argv)
 
         /* for the help option, if given simply print the help text then exit */
         if (Global::config().has("help")) {
-            ERROR_CALLBACK("unexpected command line argument", []() { std::cerr << Global::config().help(); });
+             std::cerr << Global::config().help();
+             return 0;
         }
 
         /* turn on compilation of executables */
@@ -163,51 +155,35 @@ int main(int argc, char **argv)
         if (Global::config().has("auto-schedule") && !Global::config().has("dl-program"))
            ERROR("no executable is specified for auto-scheduling (option -o <FILE>)");
 
-        // TODO: this code is depreciated, however is still in use in development -- it will be removed properly once it is no longer needed
-        /* set the breadth and depth limits for the topological ordering of strongly connected components */
-        /*
-        if (Global::config().has("breadth-limit")) {
-            int limit = std::stoi(Global::config().get("breadth-limit"));
-            if (limit <= 0)
-                ERROR("breadth limit must be 1 or more");
-            TopologicallySortedSCCGraph::BREADTH_LIMIT = limit;
-         }
-         if (Global::config().has("depth-limit")) {
-            int limit = std::stoi(Global::config().get("depth-limit"));
-            if (limit <= 0)
-                ERROR("depth limit must be 1 or more");
-            TopologicallySortedSCCGraph::DEPTH_LIMIT = limit;
-         }
-         if (Global::config().has("lookahead")) {
-            if (Global::config().has("breadth-limit") || Global::config().has("depth-limit"))
-                ERROR("only one of either lookahead or depth-limit and breadth-limit may be specified");
-            int lookahead = std::stoi(Global::config().get("lookahead"));
-            if (lookahead <= 0)
-                ERROR("lookahead must be 1 or more");
-            TopologicallySortedSCCGraph::LOOKAHEAD = lookahead;
-         }
-         */
-
         /* collect all input directories for the c pre-processor */
         if (Global::config().has("include-dir")) {
             std::string currentInclude = "";
-            std::string allIncludes = "";
+            std::string allIncludes = "-I";
             for (const char& ch : Global::config().get("include-dir")) {
                 if (ch == ' ') {
                     if (!existDir(currentInclude)) {
                         ERROR("include directory " + currentInclude + " does not exists");
                     } else {
-                        allIncludes += " -I ";
+                        allIncludes += " -I";
                         allIncludes += currentInclude;
+                        currentInclude = "";
                     }
                 } else {
                     currentInclude += ch;
                 }
             }
+            allIncludes += currentInclude;
             Global::config().set("include-dir", allIncludes);
         }
 
     }
+
+
+
+    /// TODO
+    BREAKPOINT;
+    Global::config().print(std::cerr);
+
 
     // ------ start souffle -------------
 
@@ -380,10 +356,6 @@ int main(int argc, char **argv)
         auto souffle_end = std::chrono::high_resolution_clock::now();
         std::cout << "Total Time: " << std::chrono::duration<double>(souffle_end-souffle_start).count() << "sec\n";
     }
-
-    /// TODO
-    BREAKPOINT;
-    Global::config().print(std::cerr);
 
     return 0;
 }
