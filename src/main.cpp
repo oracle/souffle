@@ -54,7 +54,7 @@
 
 /* ERROR macro */
 #ifndef ERROR
-#define ERROR(message) std::cerr << "Error: " << message << std::endl; exit(1);
+#define ERROR(message) { std::cerr << "Error: " << message << std::endl; exit(1); }
 #endif
 
 namespace souffle {
@@ -95,28 +95,25 @@ int main(int argc, char **argv)
                 footer << "=======================================================================================================" << std::endl;
                 return footer.str();
             }(),
-            /* new command line options, the environment will be filled with the arguments passed to them, or the empty string if they take none */
+            // command line options, the environment will be filled with the arguments passed to them, or the empty string if they take none
             []() {
                 MainOption opts[] = {
-                    /* each option is { longName, shortName, argument, byDefault, delimiter, description } */
-                    // main option, the datalog program file, key is always empty
-                    {"", 0, "",  "-unknown-", "", ""},
-                    // other options
-                    {"fact-dir",      'F',  "DIR",  ".", false, "Specify directory for fact files."},
-                    {"include-dir",   'I',  "DIR",  ".", true, "Specify directory for include files."},
-                    {"output-dir",    'D',  "DIR",  ".", false, "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
-                    {"jobs",          'j',    "N",  "1", false, "Run interpreter/compiler in parallel using N threads, N=auto for system default."},
-                    {"compile",       'c',     "",   "", false, "Compile datalog (translating to C++)."},
-                    {"auto-schedule", 'a',     "",   "", false, "Switch on automated clause scheduling for compiler."},
-                    {"generate",      'g', "FILE",   "", false, "Only generate sources of compilable analysis and write it to <FILE>."},
-                    {"no-warn",       'w',     "",   "", false, "Disable warnings."},
-                    {"dl-program",    'o', "FILE",   "", false, "Write executable program to <FILE> (without executing it)."},
-                    {"profile",       'p', "FILE",   "", false, "Enable profiling and write profile data to <FILE>."},
-                    {"debug",         'd',     "",   "", false, "Enable debug mode."},
-                    {"bddbddb",       'b', "FILE",   "", false, "Convert input into bddbddb file format."},
-                    {"debug-report",  'r', "FILE",   "", false, "Write debugging output to HTML report."},
-                    {"verbose",       'v',     "",   "", false, "Verbose output."},
-                    {"help",          'h',     "",   "", false, "Display this help message."}
+                    {"",                0,     "", "-unknown-", false, ""}, // main option, the datalog program itself, key is always empty
+                    {"fact-dir",      'F',  "DIR",         ".", false, "Specify directory for fact files."},
+                    {"include-dir",   'I',  "DIR",         ".", true,  "Specify directory for include files."},
+                    {"output-dir",    'D',  "DIR",         ".", false, "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
+                    {"jobs",          'j',    "N",         "1", false, "Run interpreter/compiler in parallel using N threads, N=auto for system default."},
+                    {"compile",       'c',     "",          "", false, "Compile datalog (translating to C++)."},
+                    {"auto-schedule", 'a',     "",          "", false, "Switch on automated clause scheduling for compiler."},
+                    {"generate",      'g', "FILE",          "", false, "Only generate sources of compilable analysis and write it to <FILE>."},
+                    {"no-warn",       'w',     "",          "", false, "Disable warnings."},
+                    {"dl-program",    'o', "FILE",          "", false, "Write executable program to <FILE> (without executing it)."},
+                    {"profile",       'p', "FILE",          "", false, "Enable profiling and write profile data to <FILE>."},
+                    {"debug",         'd',     "",          "", false, "Enable debug mode."},
+                    {"bddbddb",       'b', "FILE",          "", false, "Convert input into bddbddb file format."},
+                    {"debug-report",  'r', "FILE",          "", false, "Write debugging output to HTML report."},
+                    {"verbose",       'v',     "",          "", false, "Verbose output."},
+                    {"help",          'h',     "",          "", false, "Display this help message."}
                 };
                 return std::vector<MainOption>(std::begin(opts), std::end(opts));
             }()
@@ -124,12 +121,15 @@ int main(int argc, char **argv)
 
         // ------ command line arguments -------------
 
-
         /* for the help option, if given simply print the help text then exit */
         if (Global::config().has("help")) {
              std::cerr << Global::config().help();
              return 0;
         }
+
+        /* check that datalog program exists */
+        if (!Global::config().has("") || !existFile(Global::config().get("")))
+            ERROR("cannot open file " + std::string(argv[optind]));
 
         /* turn on compilation of executables */
         if (Global::config().has("dl-program"))
@@ -224,7 +224,8 @@ int main(int argc, char **argv)
     // ------- check for parse errors -------------
     if (translationUnit->getErrorReport().getNumErrors() != 0) {
         std::cerr << translationUnit->getErrorReport();
-        ERROR(std::to_string(translationUnit->getErrorReport().getNumErrors()) + " errors generated, evaluation aborted");
+        std::cerr << std::to_string(translationUnit->getErrorReport().getNumErrors()) + " errors generated, evaluation aborted" << std::endl;
+        exit(1);
     }
 
     // ------- rewriting / optimizations -------------
@@ -259,7 +260,8 @@ int main(int argc, char **argv)
         /* Abort evaluation of the program if errors were encountered */
         if (translationUnit->getErrorReport().getNumErrors() != 0) {
             std::cerr << translationUnit->getErrorReport();
-            ERROR(std::to_string(translationUnit->getErrorReport().getNumErrors()) + " errors generated, evaluation aborted");
+            std::cerr << std::to_string(translationUnit->getErrorReport().getNumErrors()) + " errors generated, evaluation aborted" << std::endl;
+            exit(1);
         }
     }
     if (translationUnit->getErrorReport().getNumIssues() != 0) {

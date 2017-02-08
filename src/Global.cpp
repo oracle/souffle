@@ -2,12 +2,12 @@
 
 /* ERROR macro */
 #ifndef ERROR
-#define ERROR(message) std::cerr << "Error: " << message << std::endl; exit(1);
+#define ERROR(message) { std::cerr << "Error: " << message << std::endl; exit(1); }
 #endif
 
 /* ERROR_CALLBACK macro */
 #ifndef ERROR_CALLBACK
-#define ERROR_CALLBACK(message, callback) std::cerr << "Error: " << message << std::endl; callback(); exit(1);
+#define ERROR_CALLBACK(message, callback) { std::cerr << "Error: " << message << std::endl; callback(); exit(1); }
 #endif
 
 namespace souffle {
@@ -129,18 +129,22 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
             // argument exists
             std::string arg = (optarg) ? std::string(optarg) : std::string();
             // if the option allows multiple arguments
-            if (iter->second->takesMany)
+            if (iter->second->takesMany) {
                 // set the value of the option in the global config to the concatenation of its previous value,
                 // a space and the current argument
                 set(iter->second->longName, get(iter->second->longName) + ' ' + arg);
             // otherwise, set the value of the option in the global config
-            else
+            } else {
                 // but only if it isn't set already
-                if (has(iter->second->longName) && (iter->second->byDefault.empty() || !has(iter->second->longName, iter->second->byDefault)))
+                if (has(iter->second->longName) && (iter->second->byDefault.empty() || !has(iter->second->longName, iter->second->byDefault))) {
                     ERROR("only one argument allowed for option '" + iter->second->longName + "'");
+                }
                 set(iter->second->longName, arg);
+            }
         }
     }
+
+
 
     // obtain the name of the datalog file, and store it in the option with the empty key
     {
@@ -150,9 +154,6 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
             ERROR_CALLBACK("unexpected command line argument", []() { std::cerr << Global::config().help(); });
         // if only one datalog program is allowed
         if (mainOptions[0].longName == "" && mainOptions[0].takesMany) {
-            // check that the given datalog file exists
-            if (!existFile(argv[optind]))
-                ERROR("cannot open file " + std::string(argv[optind]));
             // set the option in the global config for the main datalog file to that specified by the command line arguments
             set("", std::string(argv[optind]));
         // otherwise, if multiple input filenames are allowed
@@ -160,9 +161,6 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
             std::string filenames = "";
             // for each of the command line arguments not associated with an option
             for (; optind < argc; optind++) {
-                 // check that the given datalog file exists
-                 if (!existFile(argv[optind]))
-                     ERROR("cannot open file " + std::string(argv[optind]));
                  // append this filename to the concatenated string of filenames
                  if (filenames == "")
                      filenames = argv[optind];
