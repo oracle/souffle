@@ -197,7 +197,7 @@ public:
     }
 
     /** @return Return the index of this constant in the SymbolTable */
-    size_t getIndex() const { return idx; }
+    AstDomain getIndex() const { return idx; }
 
     /** Mutates this node */
     virtual void apply(const AstNodeMapper& mapper) {
