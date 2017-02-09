@@ -139,21 +139,21 @@ int main(int argc, char **argv)
 	if (Global::config().has("breadth-limit")) {
 	int limit = std::stoi(Global::config().get("breadth-limit"));
 	if (limit <= 0)
-	    fail("error: breadth limit must be 1 or more");
+	    ERROR("error: breadth limit must be 1 or more");
 	TopologicallySortedSCCGraph::BREADTH_LIMIT = limit;
 	}
 	if (Global::config().has("depth-limit")) {
 	int limit = std::stoi(Global::config().get("depth-limit"));
 	if (limit <= 0)
-	    fail("error: depth limit must be 1 or more");
+	    ERROR("error: depth limit must be 1 or more");
 	TopologicallySortedSCCGraph::DEPTH_LIMIT = limit;
 	}
 	if (Global::config().has("lookahead")) {
 	if (Global::config().has("breadth-limit") || Global::config().has("depth-limit"))
-	    fail("error: only one of either lookahead or depth-limit and breadth-limit may be specified");
+	    ERROR("error: only one of either lookahead or depth-limit and breadth-limit may be specified");
 	int lookahead = std::stoi(Global::config().get("lookahead"));
 	if (lookahead <= 0)
-	    fail("error: lookahead must be 1 or more");
+	    ERROR("error: lookahead must be 1 or more");
 	TopologicallySortedSCCGraph::LOOKAHEAD = lookahead;
 	}
 
