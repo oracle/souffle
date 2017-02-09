@@ -76,6 +76,19 @@
 "land"                                { return yy::parser::make_L_AND(yylloc); }
 "lor"                                 { return yy::parser::make_L_OR(yylloc); }
 "lnot"                                { return yy::parser::make_L_NOT(yylloc); }
+"cos"                                 { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"tan"                                 { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"asin"                                { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"acos"                                { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"atan"                                { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"sinh"                                { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"cosh"                                { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"tanh"                                { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"asinh"                               { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"acosh"                               { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"atanh"                               { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"log"                                 { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"exp"                                 { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
 "match"                               { return yy::parser::make_TMATCH(yylloc); }
 "cat"                                 { return yy::parser::make_CAT(yylloc); }
 "ord"                                 { return yy::parser::make_ORD(yylloc); }

@@ -202,9 +202,12 @@ inline bool isNumericBinaryOp(const BinaryOp op) {
     case BinaryOp::BXOR:
     case BinaryOp::LAND:
     case BinaryOp::LOR:
-    case BinaryOp::MOD: return true;
-    case BinaryOp::CAT: return false;
-    default: break;
+    case BinaryOp::MOD:
+        return true;
+    case BinaryOp::CAT:
+        return false;
+    default:
+        break;
     }
     assert(false && "Uncovered case!");
     return false;
@@ -232,9 +235,12 @@ inline bool binaryOpAcceptsNumbers(const BinaryOp op) {
     case BinaryOp::BXOR:
     case BinaryOp::LAND:
     case BinaryOp::LOR:
-    case BinaryOp::MOD: return true;
-    case BinaryOp::CAT: return false;
-    default: break;
+    case BinaryOp::MOD:
+        return true;
+    case BinaryOp::CAT:
+        return false;
+    default:
+        break;
     }
     assert(false && "Uncovered case!");
     return false;

@@ -52,13 +52,8 @@
 #include "RamExecutor.h"
 #include "RamStatement.h"
 
-/* Macro for ERROR */
-#ifndef ERROR
-#define ERROR(text) { std::cerr << "Error: " << text << std::endl; exit(1); }
-#endif
 
 namespace souffle {
-
 
 static void wrapPassesForDebugReporting(std::vector<std::unique_ptr<AstTransformer>> &transforms) {
     for (unsigned int i = 0; i < transforms.size(); i++) {
@@ -114,7 +109,7 @@ int main(int argc, char **argv)
                     {"debug-report",  'r', "FILE",          "", false, "Write debugging output to HTML report."},
                     {"verbose",       'v',     "",          "", false, "Verbose output."},
                     {"help",          'h',     "",          "", false, "Display this help message."},
-		    // TODO
+		            // TODO
                     {"breadth-limit",   3,    "N",          "", false, "Specify the breadth limit used for the topological ordering of strongly connected components."},
                     {"depth-limit",     4,    "N",          "", false, "Specify the depth limit used for the topological ordering of strongly connected components."},
                     {"lookahead",       5,    "N",          "", false, "Specify the lookahead used for the topological ordering of strongly connected components."}
@@ -135,27 +130,27 @@ int main(int argc, char **argv)
         if (!Global::config().has("") || !existFile(Global::config().get("")))
             ERROR("cannot open file " + std::string(argv[optind]));
 
-	// TODO
-	if (Global::config().has("breadth-limit")) {
-	int limit = std::stoi(Global::config().get("breadth-limit"));
-	if (limit <= 0)
-	    ERROR("error: breadth limit must be 1 or more");
-	TopologicallySortedSCCGraph::BREADTH_LIMIT = limit;
-	}
-	if (Global::config().has("depth-limit")) {
-	int limit = std::stoi(Global::config().get("depth-limit"));
-	if (limit <= 0)
-	    ERROR("error: depth limit must be 1 or more");
-	TopologicallySortedSCCGraph::DEPTH_LIMIT = limit;
-	}
-	if (Global::config().has("lookahead")) {
-	if (Global::config().has("breadth-limit") || Global::config().has("depth-limit"))
-	    ERROR("error: only one of either lookahead or depth-limit and breadth-limit may be specified");
-	int lookahead = std::stoi(Global::config().get("lookahead"));
-	if (lookahead <= 0)
-	    ERROR("error: lookahead must be 1 or more");
-	TopologicallySortedSCCGraph::LOOKAHEAD = lookahead;
-	}
+        // TODO
+        if (Global::config().has("breadth-limit")) {
+            int limit = std::stoi(Global::config().get("breadth-limit"));
+            if (limit <= 0)
+                ERROR("error: breadth limit must be 1 or more");
+            TopologicallySortedSCCGraph::BREADTH_LIMIT = limit;
+        }
+        if (Global::config().has("depth-limit")) {
+            int limit = std::stoi(Global::config().get("depth-limit"));
+            if (limit <= 0)
+                ERROR("error: depth limit must be 1 or more");
+            TopologicallySortedSCCGraph::DEPTH_LIMIT = limit;
+        }
+        if (Global::config().has("lookahead")) {
+            if (Global::config().has("breadth-limit") || Global::config().has("depth-limit"))
+                ERROR("error: only one of either lookahead or depth-limit and breadth-limit may be specified");
+            int lookahead = std::stoi(Global::config().get("lookahead"));
+            if (lookahead <= 0)
+                ERROR("error: lookahead must be 1 or more");
+            TopologicallySortedSCCGraph::LOOKAHEAD = lookahead;
+        }
 
 
         /* turn on compilation of executables */
@@ -300,7 +295,7 @@ int main(int argc, char **argv)
     // conduct the bddbddb file export
     if (!Global::config().get("bddbddb").empty()) {
     	try {
-			if (Global::config().get("bddbddb") == "-"/ {
+			if (Global::config().get("bddbddb") == "-") {
 				// use STD-OUT
 				toBddbddb(std::cout,*translationUnit);
 			} else {

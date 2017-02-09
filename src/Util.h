@@ -38,14 +38,7 @@
 #include <assert.h>
 #include <memory>
 
-/* Macro for ASSERT */
-#ifndef ASSERT
-#ifndef OPT
-#define ASSERT(x) assert(x)
-#else
-#define ASSERT(x)
-#endif
-#endif
+#include "Macro.h"
 
 namespace souffle {
 
