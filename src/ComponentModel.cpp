@@ -211,14 +211,6 @@ namespace {
             res.add(type, report);
         }
 
-        // and the local io directives
-        for (const auto& cur : component.getIODirectives()) {
-            // create a clone
-            std::unique_ptr<AstIODirective> io(cur->clone());
-
-            res.add(io, report);
-        }
-
         // and the local relations
         for (const auto& cur : component.getRelations()) {
             // create a clone
@@ -232,6 +224,14 @@ namespace {
 
             // add to result list (check existence first)
             res.add(rel, report);
+        }
+
+        // and the local io directives
+        for (const auto& cur : component.getIODirectives()) {
+            // create a clone
+            std::unique_ptr<AstIODirective> io(cur->clone());
+
+            res.add(io, report);
         }
 
         // index the available relations
@@ -325,12 +325,6 @@ namespace {
             cur->setName(newName);
         }
 
-        // update IO directive names
-        for (const auto& cur : res.ioDirectives) {
-            auto newName = componentInit.getInstanceName() + cur->getName();
-            cur->setName(newName);
-        }
-
         // create a helper function fixing type and relation references
         auto fixNames = [&](const AstNode& node) {
 
@@ -349,6 +343,14 @@ namespace {
                     const_cast<AstAtom&>(atom).setName(pos->second);
                 }
             });
+
+            // rename IO directives
+            visitDepthFirst(node, [&](const AstIODirective& ioDirective) {
+                    auto pos = relationNameMapping.find(ioDirective.getName());
+                    if (pos != relationNameMapping.end()) {
+                        const_cast<AstIODirective&>(ioDirective).setName(pos->second);
+                    }
+                });
         };
 
         // rename attribute type in headers and atoms in clauses of the relation
@@ -358,6 +360,11 @@ namespace {
 
         // rename orphans
         for (const auto& cur : orphans) {
+            fixNames(*cur);
+        }
+
+        // rename orphans
+        for (const auto& cur : res.ioDirectives) {
             fixNames(*cur);
         }
 
