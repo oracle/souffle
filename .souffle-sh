@@ -14,6 +14,25 @@ JOBS=8
 alias souffle=$SOUFFLE/src/souffle
 alias souffle-profile=$SOUFFLE/src/souffle-profile
 
+souffle_ubuntu() {
+sudo apt-get update && \
+sudo apt-get upgrade && \
+sudo apt-get install \
+	git \
+	automake \
+	autoconf \
+	libtool \
+	doxygen \
+	flex \
+	bison \
+	sqlite \
+	libsqlite3-dev \
+	libedit-dev \
+	valgrind \
+	gdb \
+	graphviz
+}
+
 souffle_setup() {
     cd $SOUFFLE && \
     chmod 775 bootstrap && \
