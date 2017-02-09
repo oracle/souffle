@@ -1689,7 +1689,7 @@ namespace {
                 break;
             }
             case BinaryOp::EXP: {
-                out << "(long)(std::pow((long)" << print(op.getLHS()) << "," << "(long)" << print(op.getRHS()) << "))";
+                out << "(AstDomain)(std::pow((AstDomain)" << print(op.getLHS()) << "," << "(AstDomain)" << print(op.getRHS()) << "))";
                 break;
             }
             case BinaryOp::MOD: {

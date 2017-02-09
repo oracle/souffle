@@ -24,6 +24,7 @@
 #include "CompiledRamRelation.h"
 #include "CompiledRamRecord.h"
 #include "CompiledRamOptions.h"
+#include "AstTypes.h"
 #include "RamLogger.h"
 #include "ParallelUtils.h"
 #include "SouffleInterface.h"
