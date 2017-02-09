@@ -30,7 +30,9 @@ sudo apt-get install \
 	libedit-dev \
 	valgrind \
 	gdb \
-	graphviz
+	graphviz \
+	default-jdk \
+	default-jre
 }
 
 souffle_setup() {
