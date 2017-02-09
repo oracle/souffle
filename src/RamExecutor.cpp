@@ -130,7 +130,7 @@ namespace {
                 }
                 case BinaryOp::DIV: {
                     RamDomain rhs = visit(op.getRHS());
-                    assert(rhs != 0 && "unsupported operand (division by zero)");
+                    assert(rhs != 0 && "Unsupported Operand! (division by zero)");
                     return visit(op.getLHS()) / rhs;
                 }
                 case BinaryOp::EXP: {
@@ -138,7 +138,7 @@ namespace {
                 }
                 case BinaryOp::MOD: {
                     RamDomain rhs = visit(op.getRHS());
-                    assert(rhs != 0 && "unsupported operand (modulo by zero)");
+                    assert(rhs != 0 && "Unsupported Operand! (modulo by zero)");
                     return visit(op.getLHS()) % rhs;
                 }
                 case BinaryOp::BAND: {
@@ -198,7 +198,7 @@ namespace {
 
             RamDomain visitNode(const RamNode& node) {
                 std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
-                assert(false && "unsupported node type");
+                assert(false && "Unsupported Node Type!");
                 return 0;
             }
 
@@ -318,7 +318,7 @@ namespace {
 
             bool visitNode(const RamNode& node) {
                 std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
-                assert(false && "unsupported node type");
+                assert(false && "Unsupported Node Type!");
                 return 0;
             }
 
@@ -550,7 +550,7 @@ namespace {
             // -- safety net --
             void visitNode(const RamNode& node) {
                 std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
-                assert(false && "unsupported node type");
+                assert(false && "Unsupported Node Type!");
             }
 
         };
@@ -561,11 +561,10 @@ namespace {
     }
 
 
-    void run(const RamExecutorConfig& config, const QueryExecutionStrategy& executor, std::ostream* report, std::ostream* profile, const RamStatement& stmt, RamEnvironment& env, RamData* data) {
+    void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostream* profile, const RamStatement& stmt, RamEnvironment& env, RamData* data) {
 
         class Interpreter : public RamVisitor<bool> {
 
-            const RamExecutorConfig& config;
             RamEnvironment& env;
             const QueryExecutionStrategy& queryExecutor;
             std::ostream* report;
@@ -575,12 +574,17 @@ namespace {
         public:
 
             Interpreter(
-                    const RamExecutorConfig& config, RamEnvironment& env,
-                    const QueryExecutionStrategy& executor, std::ostream* report,
+                    RamEnvironment& env,
+                    const QueryExecutionStrategy& executor,
+                    std::ostream* report,
                     std::ostream* profile,
                     RamData* data
             )
-                : config(config), env(env), queryExecutor(executor), report(report), profile(profile), data(data) {}
+                    : env(env)
+                    , queryExecutor(executor)
+                    , report(report)
+                    , profile(profile)
+                    , data(data) {}
 
 
             // -- Statements -----------------------------
@@ -612,8 +616,8 @@ namespace {
                 }
 
                 #ifdef _OPENMP
-                    if (config.getNumThreads() != 0) {
-                        omp_set_num_threads(config.getNumThreads());
+                    if (std::stoi(Global::config().get("jobs")) != 0) {
+                        omp_set_num_threads(std::stoi(Global::config().get("jobs")));
                     }
                 #endif
 
@@ -685,7 +689,7 @@ namespace {
                     return !err;
                 }
 
-                std::string filename = config.getFactFileDir() + "/" + load.getFileName();
+                std::string filename = Global::config().get("fact-dir") + "/" + load.getFileName();
                 try {
                     // TODO: get option string from datalog file
                     std::string optionString("IO=file");
@@ -710,12 +714,12 @@ namespace {
                 auto& rel = env.getRelation(store.getRelation());
                 std::string type;
                 std::string optionString;
-                if (config.getOutputDir() == "-") {
+                if (Global::config().get("output-dir") == "-") {
                     optionString += "IO=stdout,";
                     optionString += "name=" + rel.getName();
                 } else {
                     optionString += "IO=file,";
-                    optionString += "name=" + config.getOutputDir() + "/" + store.getFileName();
+                    optionString += "name=" + Global::config().get("output-dir") + "/" + store.getFileName();
                 }
                 writeStream = IOSystem::getInstance().getWriter(
                         store.getRelation().getSymbolMask(), env.getSymbolTable(), optionString);
@@ -738,7 +742,7 @@ namespace {
 
             bool visitInsert(const RamInsert& insert) {
                 // run generic query executor
-                queryExecutor(config, insert, env, report);
+                queryExecutor(insert, env, report);
                 return true;
             }
 
@@ -766,22 +770,22 @@ namespace {
 
             bool visitNode(const RamNode& node) {
                 std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
-                assert(false && "unsupported node type");
+                assert(false && "Unsupported Node Type!");
                 return false;
             }
 
         };
 
         // create and run interpreter
-        Interpreter(config, env, executor, report, profile, data).visit(stmt);
+        Interpreter(env, executor, report, profile, data).visit(stmt);
     }
 
 }
 
 void RamGuidedInterpreter::applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const {
 
-    if (getConfig().isLogging()) {
-        std::string fname = getConfig().getProfileName();
+    if (Global::config().has("profile")) {
+        std::string fname = Global::config().get("profile");
         // open output stream
         std::ofstream os(fname);
         if (!os.is_open()) {
@@ -789,9 +793,9 @@ void RamGuidedInterpreter::applyOn(const RamStatement& stmt, RamEnvironment& env
             std::cerr << "Cannot open fact file " << fname << " for profiling\n";
         }
         os << "@start-debug\n";
-        run(getConfig(), queryStrategy, report, &os, stmt, env, data);
+        run(queryStrategy, report, &os, stmt, env, data);
     } else {
-        run(getConfig(), queryStrategy, report, nullptr, stmt, env, data);
+        run(queryStrategy, report, nullptr, stmt, env, data);
     }
 
 }
@@ -890,7 +894,7 @@ namespace {
 
 /** With this strategy queries will be processed as they are stated by the user */
 const QueryExecutionStrategy DirectExecution =
-        [](const RamExecutorConfig& config, const RamInsert& insert, RamEnvironment& env, std::ostream*)->ExecutionSummary {
+        [](const RamInsert& insert, RamEnvironment& env, std::ostream*)->ExecutionSummary {
             // measure the time
             auto start = now();
 
@@ -904,7 +908,7 @@ const QueryExecutionStrategy DirectExecution =
 
 /** With this strategy queries will be dynamically rescheduled before each execution */
 const QueryExecutionStrategy ScheduledExecution =
-        [](const RamExecutorConfig& config, const RamInsert& insert, RamEnvironment& env, std::ostream* report)->ExecutionSummary {
+        [](const RamInsert& insert, RamEnvironment& env, std::ostream* report)->ExecutionSummary {
 
             // Report scheduling
             // TODO: only re-schedule atoms (avoid cloning entire clause)
@@ -928,7 +932,7 @@ const QueryExecutionStrategy ScheduledExecution =
 
 
             // create operation
-            std::unique_ptr<RamStatement> stmt = RamTranslator(config.isLogging()).translateClause(*clause, nullptr, nullptr);
+            std::unique_ptr<RamStatement> stmt = RamTranslator(Global::config().has("profile")).translateClause(*clause, nullptr, nullptr);
             assert(dynamic_cast<RamInsert*>(stmt.get()));
 
             // run rescheduled node
@@ -1039,8 +1043,6 @@ namespace {
 
     class Printer : public RamVisitor<void, std::ostream&> {
 
-        const RamExecutorConfig& config;
-
         // const IndexMap& indices;
 
         std::function<void(std::ostream&,const RamNode*)> rec;
@@ -1058,8 +1060,7 @@ namespace {
 
     public:
 
-        Printer(const RamExecutorConfig& config, const IndexMap&) //indices)
-            : config(config) { // , indices(indices) {
+        Printer(const IndexMap&) /* indices) : indices(indices) */ {
             rec = [&](std::ostream& out, const RamNode* node) {
               this->visit(*node, out);
             };
@@ -1102,7 +1103,7 @@ namespace {
             out << "{\n";
 
             // create proof counters
-            if (config.isLogging()) {
+            if (Global::config().has("profile")) {
                 out << "std::atomic<uint64_t> num_failed_proofs(0);\n";
             }
 
@@ -1126,7 +1127,7 @@ namespace {
             }
 
             // add local counters
-            if (config.isLogging()) {
+            if (Global::config().has("profile")) {
                 out << "uint64_t private_num_failed_proofs = 0;\n";
             }
 
@@ -1138,14 +1139,14 @@ namespace {
             out << print(insert.getOperation());
 
             // aggregate proof counters
-            if (config.isLogging()) {
+            if (Global::config().has("profile")) {
                 out << "num_failed_proofs += private_num_failed_proofs;\n";
             }
 
             if (parallel) out << "PARALLEL_END;\n";       // end parallel
 
             // aggregate proof counters
-            if (config.isLogging()) {
+            if (Global::config().has("profile")) {
 
                 // get target relation
                 RamRelationIdentifier rel;
@@ -1184,7 +1185,7 @@ namespace {
         }
 
         void visitDrop(const RamDrop& drop, std::ostream& out) {
-            if (!config.isDebug() || drop.getRelation().isTemp()) {
+            if (!Global::config().has("debug") || drop.getRelation().isTemp()) {
                 out << getRelationName(drop.getRelation()) << "->" << "purge();\n";
             }
         }
@@ -1280,7 +1281,7 @@ namespace {
                 out << "if( " << print(condition) << ") {\n"
                         << print(search.getNestedOperation())
                     << "}\n";
-                if (config.isLogging()) {
+                if (Global::config().has("profile")) {
                     out << " else { ++private_num_failed_proofs; }";
                 }
             } else {
@@ -1337,7 +1338,7 @@ namespace {
             // if it is a equality-range query
             out << "const Tuple<RamDomain," << arity << "> key({"; printKeyTuple(); out << "});\n";
             out << "auto range = " << relName << "->" << "equalRange" << index << "(key," << ctxName << ");\n";
-            if (config.isLogging()) {
+            if (Global::config().has("profile")) {
                 out << "if (range.empty()) ++private_num_failed_proofs;\n";
             }
             if (scan.isPureExistenceCheck()) {
@@ -1483,7 +1484,7 @@ namespace {
                 out << "if( " << print(condition) << ") {\n";
                 visitSearch(aggregate, out);
                 out  << "}\n";
-                if (config.isLogging()) {
+                if (Global::config().has("profile")) {
                     out << " else { ++private_num_failed_proofs; }";
                 }
             } else {
@@ -1526,7 +1527,7 @@ namespace {
             }
 
             // insert tuple
-            if (config.isLogging()) {
+            if (Global::config().has("profile")) {
                 out << "if (!(" << relName << "->" << "insert(tuple," << ctxName << "))) { ++private_num_failed_proofs; }\n";
             } else {
                 out << relName << "->" << "insert(tuple," << ctxName << ");\n";
@@ -1537,7 +1538,7 @@ namespace {
                 out << "}";
 
                 // add fail counter
-                if (config.isLogging()) {
+                if (Global::config().has("profile")) {
                     out << " else { ++private_num_failed_proofs; }";
                 }
             }
@@ -1547,7 +1548,7 @@ namespace {
                 out << "}\n";
 
                 // add fail counter
-                if (config.isLogging()) {
+                if (Global::config().has("profile")) {
                     out << " else { ++private_num_failed_proofs; }";
                 }
             }
@@ -1618,7 +1619,7 @@ namespace {
                 break;
             }
             default:
-                assert(0 && "unsupported operation");
+                assert(0 && "Unsupported Operation!");
                 break;
             }
         }
@@ -1727,7 +1728,7 @@ namespace {
                 break;
             }
             default:
-                assert(0 && "unsupported operation");
+                assert(0 && "Unsupported Operation!");
 
             }
         }
@@ -1757,7 +1758,7 @@ namespace {
                 out << "(!(" << print(op.getValue()) << "))";
                 break;
             default:
-                assert(0 && "unsupported operation");
+                assert(0 && "Unsupported Operation!");
                 break;
 
             }
@@ -1767,7 +1768,7 @@ namespace {
 
         void visitNode(const RamNode& node, std::ostream&) {
             std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
-            assert(false && "unsupported node type");
+            assert(false && "Unsupported Node Type!");
         }
 
     private:
@@ -1783,22 +1784,22 @@ namespace {
     };
 
 
-    void genCode(std::ostream& out, const RamStatement& stmt, const RamExecutorConfig& config, const IndexMap& indices) {
+    void genCode(std::ostream& out, const RamStatement& stmt, const IndexMap& indices) {
         // use printer
-        Printer(config, indices).visit(stmt,out);
+        Printer(indices).visit(stmt,out);
     }
 
 
 }
 
 std::string RamCompiler::resolveFileName() const {
-    if (getBinaryFile() == "") {
+    if (Global::config().get("dl-program") == "") {
         // generate temporary file
         char templ[40] = "./fileXXXXXX";
         close(mkstemp(templ));
         return templ;
     }
-    return getBinaryFile();
+    return Global::config().get("dl-program");
 }
 
 std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStatement& stmt, const std::string& filename) const {
@@ -1903,7 +1904,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "   return result;\n";
     os << "}\n";
 
-    if (getConfig().isLogging()) {
+    if (Global::config().has("profile")) {
         os << "std::string profiling_fname;\n";
     }
 
@@ -1935,7 +1936,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         if (initCons.size() > 0) initCons += ",\n";
         initCons +=  name + "(new " + type + "())";
         deleteForNew += "delete " + name + ";\n";
-        if ((rel.isInput() || rel.isComputed() || getConfig().isDebug()) && !rel.isTemp()) {
+        if ((rel.isInput() || rel.isComputed() || Global::config().has("debug")) && !rel.isTemp()) {
            os << "souffle::RelationWrapper<";
            os << relCtr++ << ",";
            os << type << ",";
@@ -1973,7 +1974,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     // -- constructor --
 
     os << classname;
-    if (getConfig().isLogging()) {
+    if (Global::config().has("profile")) {
        os << "(std::string pf=\"profile.log\") : profiling_fname(pf)";
        if (initCons.size() > 0) {
            os << ",\n";
@@ -2015,27 +2016,27 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "std::atomic<RamDomain> ctr(0);\n\n";
 
     // set default threads (in embedded mode)
-    if (getConfig().getNumThreads() > 0) {
+    if (std::stoi(Global::config().get("jobs")) > 0) {
         os << "#if defined(__EMBEDDED_SOUFFLE__) && defined(_OPENMP)\n";
-        os << "omp_set_num_threads(" << getConfig().getNumThreads() << ");\n";
+        os << "omp_set_num_threads(" << std::stoi(Global::config().get("jobs")) << ");\n";
         os << "#endif\n\n";
     }
 
     // add actual program body
     os << "// -- query evaluation --\n";
-    if (getConfig().isLogging()) {
+    if (Global::config().has("profile")) {
         os << "std::ofstream profile(profiling_fname);\n";
         os << "profile << \"@start-debug\\n\";\n";
-        genCode(os, stmt, getConfig(), indices);
+        genCode(os, stmt, indices);
     } else {
-        genCode(os, stmt, getConfig(), indices);
+        genCode(os, stmt, indices);
     }
     os << "}\n"; // end of run() method
 
     // issue printAll method
     os << "public:\n";
-    os << "void printAll(std::string dirname=\"" << getConfig().getOutputDir() << "\") {\n";
-    bool toConsole = (getConfig().getOutputDir() == "-");
+    os << "void printAll(std::string dirname=\"" << Global::config().get("output-dir") << "\") {\n";
+    bool toConsole = (Global::config().get("output-dir") == "-");
     visitDepthFirst(stmt, [&](const RamStatement& node) {
         if (auto store = dynamic_cast<const RamStore*>(&node)) {
             auto name = store->getRelation().getName();
@@ -2069,7 +2070,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 
     // issue loadAll method
     os << "public:\n";
-    os << "void loadAll(std::string dirname=\"" << getConfig().getOutputDir() << "\") {\n";
+    os << "void loadAll(std::string dirname=\"" << Global::config().get("output-dir") << "\") {\n";
     visitDepthFirst(stmt, [&](const RamLoad& load) {
         // get some table details
         os << "try {";
@@ -2151,19 +2152,19 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 
     // parse arguments
     os << "souffle::CmdOptions opt(" ;
-    os << "R\"(" << getConfig().getSourceFileName() << ")\",\n";
-    os << "R\"(" << getConfig().getFactFileDir() << ")\",\n";
-    os << "R\"(" << getConfig().getOutputDir() << ")\",\n";
-    if (getConfig().isLogging()) {
+    os << "R\"(" << Global::config().get("") << ")\",\n";
+    os << "R\"(" << Global::config().get("fact-dir") << ")\",\n";
+    os << "R\"(" << Global::config().get("output-dir") << ")\",\n";
+    if (Global::config().has("profile")) {
        os << "true,\n";
-       os << "R\"(" << getConfig().getProfileName() << ")\",\n";
+       os << "R\"(" << Global::config().get("profile") << ")\",\n";
     } else {
        os << "false,\n";
        os << "R\"()\",\n";
     }
-    os << "R\"(" << getConfig().getOutputDatabaseName() << ")\",\n";
-    os << getConfig().getNumThreads() << ",\n";
-    os << ((getConfig().isDebug())?"R\"(true)\"":"R\"(false)\"");
+    os << "R\"(" << Global::config().get("database") << ")\",\n";
+    os << std::stoi(Global::config().get("jobs")) << ",\n";
+    os << ((Global::config().has("debug"))?"R\"(true)\"":"R\"(false)\"");
     os << ");\n";
 
     os << "if (!opt.parse(argc,argv)) return 1;\n";
@@ -2173,7 +2174,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "#endif\n";
 
     os << "souffle::";
-    if (getConfig().isLogging()) {
+    if (Global::config().has("profile")) {
        os << classname + " obj(opt.getProfileName());\n";
     } else {
        os << classname + " obj;\n";
@@ -2182,7 +2183,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "obj.loadAll(opt.getInputFileDir());\n";
     os << "obj.run();\n";
     os << "if (!opt.getOutputFileDir().empty()) obj.printAll(opt.getOutputFileDir());\n";
-    os << "if (!opt.getOutputDatabaseName().empty()) obj.dumpDB(opt.getOutputDatabaseName(), " << !getConfig().isDebug() << ");\n";
+    os << "if (!opt.getOutputDatabaseName().empty()) obj.dumpDB(opt.getOutputDatabaseName(), " << !Global::config().has("debug") << ");\n";
 
     os << "return 0;\n";
     os << "}\n";
@@ -2201,15 +2202,15 @@ std::string RamCompiler::compileToLibrary(const SymbolTable& symTable, const Ram
     std::string source = generateCode(symTable, stmt, name + ".cpp");
 
     // execute shell script that compiles the generated C++ program
-    std::string cmd = "souffle-compilelib " + name;
+    std::string libCmd = "souffle-compilelib " + name;
 
     // separate souffle output form executable output
-    if (getConfig().isLogging()) {
+    if (Global::config().has("profile")) {
         std::cout.flush();
     }
 
     // run executable
-    if(system(cmd.c_str()) != 0) {
+    if(system(libCmd.c_str()) != 0) {
         std::cerr << "failed to compile C++ source " << name << "\n";
         std::cerr << "Have you installed souffle with java?\n";
         return "";
@@ -2232,11 +2233,10 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     //                    Compilation & Execution
     // ---------------------------------------------------------------
 
-    // execute shell script that compiles the generated C++ program
-    std::string cmd = getConfig().getCompileScript();
+    std::string cmd = compileCmd;
 
     // set up number of threads
-    auto num_threads = getConfig().getNumThreads();
+    auto num_threads = std::stoi(Global::config().get("jobs"));
     if (num_threads == 1) {
         cmd+="-s ";
     }
@@ -2245,7 +2245,7 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     cmd += source;
 
     // separate souffle output form executable output
-    if (getConfig().isLogging()) {
+    if (Global::config().has("profile")) {
         std::cout.flush();
     }
 
@@ -2264,7 +2264,7 @@ void RamCompiler::applyOn(const RamStatement& stmt, RamEnvironment& env, RamData
     std::string binary = compileToBinary(env.getSymbolTable(), stmt);
 
     // separate souffle output form executable output
-    if (getConfig().isLogging()) {
+    if (Global::config().has("profile")) {
         std::cout.flush();
     }
 
@@ -2278,6 +2278,7 @@ void RamCompiler::applyOn(const RamStatement& stmt, RamEnvironment& env, RamData
     if (result !=0) {
        exit(result);
     }
+
 }
 
 } // end of namespace souffle

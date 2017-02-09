@@ -54,10 +54,10 @@ namespace {
          * Processes the given query by forwarding the call to the nested strategy an
          * recording its performance.
          */
-        ExecutionSummary operator()(const RamExecutorConfig& config, const RamInsert& insert, RamEnvironment& env, std::ostream* report) const {
+        ExecutionSummary operator()(const RamInsert& insert, RamEnvironment& env, std::ostream* report) const {
 
             // run nested strategy
-            auto res = nested(config, insert, env, report);
+            auto res = nested(insert, env, report);
 
             // record the execution summary
             data[insert.getOrigin().getSrcLoc()].push_back(res);
@@ -71,17 +71,20 @@ namespace {
 
 bool AutoScheduleTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
-    if (generateScheduleReport) {
+    if (!Global::config().get("debug-report").empty()) {
         std::stringstream report;
-        changed = autotune(translationUnit, factDir, &report, verbose);
+        changed = autotune(translationUnit, &report);
         translationUnit.getDebugReport().addSection(DebugReporter::getCodeSection("auto-schedule", "Auto Schedule Report", report.str()));
     } else {
-        changed = autotune(translationUnit, factDir, nullptr, verbose);
+        changed = autotune(translationUnit, nullptr);
     }
     return changed;
 }
 
-bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, const std::string& factDir, std::ostream* report, bool verbose, const QueryExecutionStrategy& strategy) {
+bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, std::ostream* report) {
+
+    const QueryExecutionStrategy& strategy = ScheduledExecution;
+    bool verbose = Global::config().has("verbose");
 
     // start with status message
     if (verbose) std::cout << "\n";
@@ -112,7 +115,6 @@ bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, cons
 
     // create interpreter instance
     RamGuidedInterpreter interpreter(profiler);
-    interpreter.getConfig().setFactFileDir(factDir);
 
     if (report && verbose) {
         SplitStream splitStream(report, &std::cout);
@@ -128,7 +130,7 @@ bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, cons
 
     if (verbose) std::cout << "[                                                    Done ]\n";
 
-    if (verbose) { 
+    if (verbose) {
         std::cout << "Data:\n";
         for(const auto& cur : data) {
             std::cout << "Clause @ " << cur.first << "\n";
@@ -162,7 +164,7 @@ bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, cons
     }
 
 
-    if (verbose) { 
+    if (verbose) {
         for(const auto& cur : bestOrders) {
             std::cout << *cur.first << "\n Best Order: " << cur.second << "\n Time: " << longestTime[cur.first] << "\n\n";
         }
