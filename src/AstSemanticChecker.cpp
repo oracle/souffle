@@ -242,25 +242,18 @@ void AstSemanticChecker::checkProgram(ErrorReport &report, const AstProgram &pro
     // - stratification --
 
     // check for cyclic dependencies
-    const Graph<const AstRelation *> &depGraph = precedenceGraph.getGraph();
+    const AstRelationGraph& depGraph = precedenceGraph.getGraph();
     for(const AstRelation *cur : depGraph.getNodes()) {
         if (depGraph.reaches(cur,cur)) {
-            std::set<const AstRelation *> clique = depGraph.getClique(cur);
+            AstRelationSet clique = depGraph.getClique(cur);
             for (const AstRelation *cyclicRelation : clique) {
 
                 // Negations and aggregations need to be stratified
                 const AstLiteral *foundLiteral = nullptr;
                 bool hasNegation = hasClauseWithNegatedRelation(cyclicRelation, cur, &program, foundLiteral);
                 if (hasNegation || hasClauseWithAggregatedRelation(cyclicRelation, cur, &program, foundLiteral)) {
-                    std::set<std::string> rel_names;
-                    for(const AstRelation *x: clique) {
-                        std::stringstream os;
-                        os << x->getName();
-                        rel_names.insert(os.str());
-                    } 
-                    std::string relationsListStr = toString(join(rel_names, ",", [](std::ostream& out, const std::string &name) {
-                        out << name;
-                    }));
+                    std::string relationsListStr = toString(join(clique, ",",
+                            [](std::ostream& out, const AstRelation* r) { out << r->getName(); }));
                     std::vector<DiagnosticMessage> messages;
                     messages.push_back(DiagnosticMessage("Relation " + toString(cur->getName()), cur->getSrcLoc()));
                     std::string negOrAgg = hasNegation ? "negation" : "aggregation";
