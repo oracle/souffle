@@ -567,7 +567,7 @@ arg: STRING {
        $$->setSrcLoc(@$);
      }
    | RESERVED LPAREN arg RPAREN {
-        std::cerr << "ERROR: '" << $1 << "' is a reserved keyword!";
+        std::cerr << "ERROR: '" << $1 << "' is a keyword reserved for future implementation!" << std::endl;
         exit(1);
    }
    ;

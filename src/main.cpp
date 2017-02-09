@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 
         /* check that datalog program exists */
         if (!Global::config().has("") || !existFile(Global::config().get("")))
-            ERROR("cannot open file " + std::string(argv[optind]));
+            ERROR("cannot open file " + std::string(Global::config().get("")));
 
         // TODO
         if (Global::config().has("breadth-limit")) {

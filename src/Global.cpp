@@ -134,8 +134,6 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
         }
     }
 
-
-
     // obtain the name of the datalog file, and store it in the option with the empty key
     {
         std::string filename = "";
