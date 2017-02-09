@@ -300,7 +300,7 @@ int main(int argc, char **argv)
     // conduct the bddbddb file export
     if (!Global::config().get("bddbddb").empty()) {
     	try {
-			if (Global::config().get("bddbddb") == "-") {
+			if (Global::config().get("bddbddb") == "-"/ {
 				// use STD-OUT
 				toBddbddb(std::cout,*translationUnit);
 			} else {
