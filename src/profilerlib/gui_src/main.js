@@ -234,6 +234,9 @@ function create_cell(type, value, perc_total) {
         if (perc_total == 0) {
             div.style.width = "0%";
             div.innerHTML = "0";
+        } else if (isNaN(value)) {
+            div.style.width = "0%";
+            div.innerHTML = "NaN";
         } else {
             div.style.width = parseFloat(value) / perc_total * 100 + "%";
             div.innerHTML = clean_percentages(parseFloat(value) / perc_total * 100);
@@ -258,7 +261,9 @@ function generate_table(data_format,body_id,data_key) {
     for (item in data[data_key]) {
         if (data[data_key].hasOwnProperty(item)) {
             for (i in perc_totals) {
-                perc_totals[i][2] += data[data_key][item][perc_totals[i][1]];
+                if (!isNaN(data[data_key][item][perc_totals[i][1]])) {
+                    perc_totals[i][2] += data[data_key][item][perc_totals[i][1]];
+                }
             }
         }
     }
@@ -324,7 +329,9 @@ function genRulesOfRelations() {
     for (i in data_format) {
         if (!data_format.hasOwnProperty(i)) continue;
         if (data_format[i][0] === "perc") {
-            perc_totals.push([data_format[i][1],data_format[i][2],data.rel[selected.rel][data_format[i][2]]]);
+            if (!isNaN(data.rel[selected.rel][data_format[i][2]])) {
+                perc_totals.push([data_format[i][1], data_format[i][2], data.rel[selected.rel][data_format[i][2]]]);
+            }
         }
     }
 
@@ -370,7 +377,9 @@ function genRulVer() {
     for (i in data_format) {
         if (!data_format.hasOwnProperty(i)) continue;
         if (data_format[i][0] === "perc") {
-            perc_totals.push([data_format[i][1],data_format[i][2],data.rul[selected.rul][data_format[i][2]]]);
+            if (!isNaN(data.rul[selected.rul][data_format[i][2]])) {
+                perc_totals.push([data_format[i][1], data_format[i][2], data.rul[selected.rul][data_format[i][2]]]);
+            }
         }
     }
 

@@ -10,9 +10,6 @@
 
 void Table::sort(int col_num) {
     switch (col_num) {
-        case 0:
-            std::sort(rows.begin(), rows.end(), DataComparator::TIME);
-            break;
         case 1:
             std::sort(rows.begin(), rows.end(), DataComparator::NR_T);
             break;
@@ -31,6 +28,7 @@ void Table::sort(int col_num) {
         case 6:
             std::sort(rows.begin(), rows.end(), DataComparator::NAME);
             break;
+        case 0:
         default:
             std::sort(rows.begin(), rows.end(), DataComparator::TIME);
             break;
