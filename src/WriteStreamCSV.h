@@ -98,10 +98,10 @@ private:
 
 class WriteCSVFactory {
 protected:
-    char getDelimiter(const std::map<std::string, std::string>& options) {
+    char getDelimiter(const IODirectives& ioDirectives) {
         char delimiter = '\t';
-        if (options.count("delimiter") > 0) {
-            delimiter = options.at("delimiter").at(0);
+        if (ioDirectives.has("delimiter")) {
+            delimiter = ioDirectives.get("delimiter").at(0);
         }
         return delimiter;
     }
@@ -109,22 +109,34 @@ protected:
 
 class WriteFileCSVFactory : public WriteStreamFactory, public WriteCSVFactory {
 public:
-    std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask, const SymbolTable& symbolTable,
-            const std::map<std::string, std::string>& options) {
+    virtual std::unique_ptr<WriteStream> getWriter(
+            const SymbolMask& symbolMask, const SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+        char delimiter = getDelimiter(ioDirectives);
         return std::unique_ptr<WriteFileCSV>(
-                new WriteFileCSV(options.at("name"), symbolMask, symbolTable, getDelimiter(options)));
+                new WriteFileCSV(ioDirectives.get("filename"), symbolMask, symbolTable, delimiter));
     }
+    virtual const std::string& getName() const { return name; }
     virtual ~WriteFileCSVFactory() {}
+private:
+    static const std::string name;
 };
+
+const std::string WriteFileCSVFactory::name = "file";
 
 class WriteCoutCSVFactory : public WriteStreamFactory, public WriteCSVFactory {
 public:
-    std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask, const SymbolTable& symbolTable,
-            const std::map<std::string, std::string>& options) {
+    virtual std::unique_ptr<WriteStream> getWriter(
+            const SymbolMask& symbolMask, const SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+        char delimiter = getDelimiter(ioDirectives);
         return std::unique_ptr<WriteCoutCSV>(
-                new WriteCoutCSV(options.at("name"), symbolMask, symbolTable, getDelimiter(options)));
+                new WriteCoutCSV(ioDirectives.getRelationName(), symbolMask, symbolTable, delimiter));
     }
+    virtual const std::string& getName() const { return name; }
     virtual ~WriteCoutCSVFactory() {}
+private:
+    static const std::string name;
 };
+
+const std::string WriteCoutCSVFactory::name = "stdout";
 
 } /* namespace souffle */

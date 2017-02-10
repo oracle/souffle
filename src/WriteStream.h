@@ -40,7 +40,8 @@ public:
 class WriteStreamFactory {
 public:
     virtual std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask,
-            const SymbolTable& symbolTable, const std::map<std::string, std::string>& options) = 0;
+            const SymbolTable& symbolTable, const IODirectives& ioDirectives) = 0;
+    virtual const std::string& getName() const = 0;
     virtual ~WriteStreamFactory() {}
 };
 

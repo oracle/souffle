@@ -5,6 +5,7 @@ testsuite.dir
 package.m4
 testsuite.log
 */*/*
+!*/*/*.facts
 !*/*/facts
 !*/*/*.dl
 !*/*/*.out
