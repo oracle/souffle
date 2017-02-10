@@ -733,7 +733,7 @@ namespace {
                                 .getWriter(store.getRelation().getSymbolMask(), env.getSymbolTable(),
                                         ioDirectives)
                                 ->writeAll(rel);
-                    } catch (std::exception e) {
+                    } catch (std::exception& e) {
                         std::cerr << e.what();
                         exit(1);
                     }
