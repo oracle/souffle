@@ -178,15 +178,15 @@ struct Brie {
  * TODO: implement core DisjointSet factory
  */
 struct EqRel : public Auto {
-
-    // template<typename Tuple, typename Index, bool>
-    // struct eqrel_index_factory {
-    //     using type = typename index_utils::DisjointSetIndex<Tuple,Index>;
-    // };
     
-    // // determines the relation implementation for a given use case
-    // template<unsigned arity, typename ... Indices>
-    // using relation = detail::SingleIndexTypeRelation<eqrel_index_factory,arity,Indices...>;
+    template<typename Tuple, typename Index, bool>
+    struct eqrel_index_factory {
+        using type = typename index_utils::DisjointSetIndex<Tuple,Index>;
+    };
+    
+    // determines the relation implementation for a given use case
+    template<unsigned arity, typename ... Indices>
+    using relation = detail::SingleIndexTypeRelation<eqrel_index_factory,arity,Indices...>;
 };
 
 

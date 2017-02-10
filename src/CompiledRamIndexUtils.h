@@ -696,8 +696,16 @@ namespace index_utils {
             index.clear();
         }
 
-        std::vector<range<iterator>> partition() const {
-            return index.getChunks(400);
+        /** 
+         * Return a list of iterators, s.t. we can process in parallel. 
+         * "an approximation of the number of sub-ranges to be included in the resulting partition."
+         * "The numbers there [400] are not very important, as long as they are large enough (~10x the number of maximum expected cores) 
+         * and not too large, such that processing a fragment lasts less than e.g. 1ms."
+         * @param np the number of iterators to attempt to return, which represents slices of the data structure
+         * @return a vector of these iterator ranges
+         */
+        std::vector<range<iterator>> partition(std::size_t np=400) const {
+            return index.getChunks(np);
         }
 
         static void printDescription(std::ostream& out) {
@@ -987,6 +995,206 @@ namespace index_utils {
 
         static void printDescription(std::ostream& out) {
             out << "trie-index(" << Index() << ")";
+        }
+
+    private:
+
+        static tuple_type orderIn(const tuple_type& tuple) {
+            tuple_type res;
+            order<Index>().order_in(res, tuple);
+            return res;
+        }
+
+        static tuple_type orderOut(const tuple_type& tuple) {
+            tuple_type res;
+            order<Index>().order_out(res, tuple);
+            return res;
+        }
+    };
+
+    /**
+     * A disjoint index is like a direct index storing the indexed elements directly
+     * within the maintained index structure. However, unlike the B-Tree utilized
+     * by a direct index, a disjoint set is utilized, with pairs being implicit.
+     *
+     * @tparam Index .. the index to be internally utilized.
+     */
+    template<typename Index>
+    class DisjointSetIndex {
+
+        typedef BinaryRelation<RamDomain, Index> data_type;
+
+        typedef typename ram::Tuple<RamDomain,2> tuple_type;
+
+        data_type data;
+
+    public:
+
+        typedef typename tuple_type::operation_hints operation_hints;
+
+        bool empty() const {
+            return data.size() == 0;
+        }
+
+        /* returns the number of pairs (NOT the number of elements in the domain, but the number of possibly enumerated pairs!) */
+        std::size_t size() const {
+            return data.size();
+        }
+
+        /**
+         * Checks whether the data structure contains this tuple
+         * @pararm tuple The pair to check for
+         * @param ctxt context hints to help the query process
+         * @return true if the data structure contains this tuple
+         */
+        bool contains(const tuple_type& tuple, operation_hints& ctxt) const {
+            // ctxt?
+            // TODO pnappa: optimisations would include ctxt for a more knowledgable search? doesn't really make much sense with djSet
+            return data.contains(tuple[0], tuple[1]);
+        }
+
+        /** 
+         * Inserts the pair into the equivalence relation
+         * @param tuple the tuple that contains the value to insert into the data structure
+         * @param ctxt a context hint which when provided, provides hints to the insertion process
+         *      with the intention of speeding up insertion
+         * @return true if the tuple has not existed in the data structure already
+         */
+        bool insert(const tuple_type& tuple, operation_hints& ctxt) {
+            return data.insert(tuple[0], tuple[1], ctxt);
+        }
+
+        /**
+         * Inserts all pairs from the other disjoint set into this one 
+         * @param other the supplied disjoint set to copy pairs from
+         */
+        void insertAll(const DisjointSetIndex& other) {
+
+            // TODO: (pnappa) we need to implement this, its not too difficult, all it would be is iterate through each disjoint set and add them to this one
+            // so if other contained { (1,2,3), (4, 9)} the ops would be
+            //  add(1,2)
+            //  add(2,3)
+            //  add(4,9)
+
+
+            // use trie merge
+            // data.insertAll(other.data);
+        }
+
+        /* deletes all data contained in the disjoint-set data structure */
+        void clear() {
+            data.clear();
+        }
+
+        class iterator : public std::iterator<std::forward_iterator_tag, tuple_type> {
+
+            typedef typename data_type::iterator nested_iterator;
+
+            // the wrapped iterator
+            nested_iterator nested;
+
+            // the value currently pointed to
+            tuple_type value;
+
+        public:
+
+
+        }
+
+        // // ---------------------------------------------
+        // //                Iterators
+        // // ---------------------------------------------
+
+        // class iterator : public std::iterator<std::forward_iterator_tag,tuple_type> {
+
+        //     typedef typename tree_type::iterator nested_iterator
+
+        // public:
+
+        //     // default constructor -- creating an end-iterator
+        //     iterator() {}
+
+        //     iterator(const nested_iterator& iter) : nested(iter), value(orderOut(*iter)) {}
+
+        //     // a copy constructor
+        //     iterator(const iterator& other) = default;
+
+        //     // an assignment operator
+        //     iterator& operator=(const iterator& other) =default;
+
+        //     // the equality operator as required by the iterator concept
+        //     bool operator==(const iterator& other) const {
+        //         // equivalent if pointing to the same value
+        //         return nested == other.nested;
+        //     }
+
+        //     // the not-equality operator as required by the iterator concept
+        //     bool operator!=(const iterator& other) const {
+        //         return !(*this == other);
+        //     }
+
+        //     // the deref operator as required by the iterator concept
+        //     const tuple_type& operator*() const {
+        //         return value;
+        //     }
+
+        //     // support for the pointer operator
+        //     const tuple_type* operator->() const {
+        //         return &value;
+        //     }
+
+        //     // the increment operator as required by the iterator concept
+        //     iterator& operator++() {
+        //         ++nested;
+        //         value = orderOut(*nested);
+        //         return *this;
+        //     }
+
+        // };
+
+        iterator begin() const {
+            return iterator(data.begin());
+        }
+
+        iterator end() const {
+            return iterator(data.end());
+        }
+
+        /**
+         * Return a list of iterators s.t. we can process in parallel
+         * The ordering is not important.
+         * The figure 400 is an approximate useful figure, and should be tuned later by another contributor
+         * @param np the number of partitions to attempt to return
+         * @return a list of iterators over each partition to return
+         */
+        // std::vector<range<iterator>> partition(std::size_t np = 400) const {
+        //     // wrap partitions up in re-order iterators
+        //     std::vector<range<iterator>> res;
+        //     for(const auto& cur : data.partition(10000)) {
+        //         res.push_back(make_range(iterator(cur.begin()), iterator(cur.end())));
+        //     }
+        //     return res;
+        // }
+
+        /**
+         * Find the requested tuple in the data structure, and generate an iterator that begins at that point
+         * @param key the tuple to search for
+         * @param ctxt the context hint to provide help in finding this position
+         * @return an iterator that begins at that position.. and I'm pretty sure if the tuple does not exist, then an iterator == this->end()
+         */
+        // iterator find(const tuple_type& key, operation_hints& ctxt) const {
+        //     return iterator(data.find(orderIn(key), ctxt));
+        // }
+
+        // template<typename SubIndex>
+        // range<iterator> equalRange(const tuple_type& tuple, operation_hints& ctxt) const {
+        //     static_assert(is_compatible_with<SubIndex,Index>::value, "Invalid sub-index query!");
+        //     auto r = data.template getBoundaries<SubIndex::size>(orderIn(tuple), ctxt);
+        //     return make_range(iterator(r.begin()), iterator(r.end()));
+        // }
+
+        static void printDescription(std::ostream& out) {
+            out << "disjoint-set-index(" << Index() << ")";
         }
 
     private:
