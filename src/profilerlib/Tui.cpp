@@ -10,7 +10,6 @@
 
 #include "Tui.hpp"
 
-
 Tui::Tui(std::string filename, bool live, bool gui) : out() {
 
     this->f_name = filename;
