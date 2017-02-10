@@ -38,8 +38,9 @@ public:
 
 class ReadStreamFactory {
 public:
-    virtual std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
-            const std::map<std::string, std::string>& options) = 0;
+    virtual std::unique_ptr<ReadStream> getReader(
+            const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) = 0;
+    virtual const std::string& getName() const = 0;
     virtual ~ReadStreamFactory() {}
 };
 

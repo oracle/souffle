@@ -25,11 +25,12 @@
 #include <set>
 #include <memory>
 
-#include "AstNode.h"
-#include "AstType.h"
 #include "AstAttribute.h"
 #include "AstClause.h"
+#include "AstIODirective.h"
+#include "AstNode.h"
 #include "AstRelationIdentifier.h"
+#include "AstType.h"
 
 /** Types of relation qualifiers defined as bits in a word */
 
@@ -82,6 +83,10 @@ protected:
       * either facts or rules. 
       */ 
     std::vector<std::unique_ptr<AstClause>> clauses;
+
+    /** IO directives associated with this relation.
+      */
+    std::vector<std::unique_ptr<AstIODirective>> ioDirectives;
 
 public:
 
@@ -178,6 +183,9 @@ public:
         res->setSrcLoc(getSrcLoc());
         for(const auto& cur : attributes) res->attributes.push_back(std::unique_ptr<AstAttribute>(cur->clone()));
         for(const auto& cur : clauses)    res->clauses.push_back(std::unique_ptr<AstClause>(cur->clone()));
+        for (const auto& cur : ioDirectives) {
+            res->ioDirectives.push_back(std::unique_ptr<AstIODirective>(cur->clone()));
+        }
         res->qualifier = qualifier;
         return res;
     }
@@ -186,6 +194,7 @@ public:
     virtual void apply(const AstNodeMapper& map) {
         for(auto& cur : attributes) cur = map(std::move(cur));
         for(auto& cur : clauses) cur = map(std::move(cur));
+        for (auto& cur : ioDirectives) cur = map(std::move(cur));
     }
 
     /** Return i-th clause associated with this relation */
@@ -221,7 +230,25 @@ public:
         std::vector<const AstNode*> res;
         for(const auto& cur : attributes) res.push_back(cur.get());
         for(const auto& cur : clauses) res.push_back(cur.get());
+        for (const auto& cur : ioDirectives) res.push_back(cur.get());
         return res;
+    }
+
+    void addIODirectives(std::unique_ptr<AstIODirective> directive) {
+        ASSERT(directive && "Undefined directive");
+        // Make sure the old style qualifiers still work.
+        if (directive->isInput()) {
+            qualifier |= INPUT_RELATION;
+        } else if (directive->isOutput()) {
+            qualifier |= OUTPUT_RELATION;
+        } else if (directive->isPrintSize()) {
+            qualifier |= PRINTSIZE_RELATION;
+        }
+        ioDirectives.push_back(std::move(directive));
+    }
+
+    std::vector<AstIODirective*> getIODirectives() const {
+        return toPtrVector(ioDirectives);
     }
 
 protected:
@@ -250,4 +277,3 @@ struct AstNameComparison {
 typedef std::set<const AstRelation*, AstNameComparison> AstRelationSet;
 
 } // end of namespace souffle
-

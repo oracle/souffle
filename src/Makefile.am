@@ -60,6 +60,7 @@ souffle_sources = \
               AstAttribute.h                            \
               AstClause.cpp         AstClause.h         \
               AstComponent.h                            \
+              AstIODirective.h                          \
               AstLiteral.h                              \
               AstNode.h                                 \
               AstParserUtils.cpp    AstParserUtils.h    \
@@ -107,6 +108,7 @@ souffle_sources = \
               ReadStream.h                              \
               ReadStreamCSV.h                           \
               WriteStream.h                             \
+	      IODirectives.h                            \
               WriteStreamCSV.h      WriteStreamSQLite.h \
               IOSystem.h                                \
               Global.cpp            Global.h
@@ -144,6 +146,7 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
 				        SymbolTable.h           \
 				        RamLogger.h             \
 				        SqliteRelationWriter.h  \
+                        IODirectives.h
 				        IOSystem.h              \
 				        ReadStream.h            \
 				        ReadStreamCSV.h         \

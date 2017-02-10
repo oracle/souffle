@@ -59,6 +59,9 @@ class AstProgram : public AstNode {
       /** The list of clauses provided by the user */
       std::vector<std::unique_ptr<AstClause>> clauses;
 
+      /** The list of IO directives provided by the user */
+      std::vector<std::unique_ptr<AstIODirective>> ioDirectives;
+
       /** Program components */
       std::vector<std::unique_ptr<AstComponent>> components;
 
@@ -107,7 +110,10 @@ class AstProgram : public AstNode {
       /** Add a clause to the program */
       void addClause(std::unique_ptr<AstClause> r);
 
-   public:
+      /** Add an IO directive to the program */
+      void addIODirective(std::unique_ptr<AstIODirective> r);
+
+  public:
 
       /** Find and return the relation in the program given its name */
       AstRelation* getRelation(const AstRelationIdentifier& name) const;

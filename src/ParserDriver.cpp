@@ -92,6 +92,10 @@ void ParserDriver::addRelation(AstRelation *r) {
     }
 }
 
+void ParserDriver::addIODirective(AstIODirective* d) {
+    translationUnit->getProgram()->addIODirective(std::unique_ptr<AstIODirective>(d));
+}
+
 void ParserDriver::addType(AstType *type) {
 	const auto& name = type->getName();
     if (const AstType *prev = translationUnit->getProgram()->getType(name)) {

@@ -17,14 +17,15 @@
 #include "RamTranslator.h"
 
 #include "AstClause.h"
-#include "AstRelation.h"
+#include "AstIODirective.h"
 #include "AstProgram.h"
+#include "AstRelation.h"
+#include "AstTypeAnalysis.h"
 #include "AstUtils.h"
 #include "AstVisitor.h"
+#include "BinaryOperator.h"
 #include "PrecedenceGraph.h"
 #include "RamStatement.h"
-#include "BinaryOperator.h"
-#include "AstTypeAnalysis.h"
 
 namespace souffle {
 
@@ -67,10 +68,28 @@ namespace {
             }
         }
 
-        return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers,
-                                     getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), 
-                                     rel->isOutput(), rel->isBTree(), rel->isBrie(), rel->isEqRel(), rel->isData(), istemp);
+        IODirectives inputDirectives;
+        IODirectives outputDirectives;
+        for (const auto& current : rel->getIODirectives()) {
+            if (!current->isInput() && !current->isOutput()) {
+                continue;
+            }
+            IODirectives& ioDirectives = current->isInput() ? inputDirectives : outputDirectives;
+            for (const auto& currentPair : current->getIODirectiveMap()) {
+                ioDirectives.set(currentPair.first, currentPair.second);
+            }
+        }
+        if (!inputDirectives.isEmpty()) {
+            inputDirectives.setRelationName(getRelationName(rel->getName()));
+        }
+        if (!outputDirectives.isEmpty()) {
+            outputDirectives.setRelationName(getRelationName(rel->getName()));
+        }
 
+        return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers,
+                getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), rel->isOutput(),
+                rel->isBTree(), rel->isBrie(), rel->isEqRel(), rel->isData(), inputDirectives,
+                outputDirectives, istemp);
     }
 }
 
