@@ -12,6 +12,7 @@ compiler:
   - gcc
 # The build takes about 4 minutes (2017016) before testsuite starts running
 env:
+  - TEST_FORMAT=1
   - MAKEPACKAGE=1
   - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile
   - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS=",-j8,-p profile.log"
@@ -24,19 +25,17 @@ osx_image: xcode7.3
 
 matrix:
   exclude: 
+  - os: linux
+    compiler: gcc
+    env: TEST_FORMAT=1
+  - os: osx
+    compiler: clang
+    env: TEST_FORMAT=1
   - os: linux 
     compiler: clang
     env: MAKEPACKAGE=1 
   - os: osx
     compiler: gcc
-  include:
-  - os: linux
-    compiler: clang
-    env: TEST_FORMAT=1
-  allow_failures:
-  - os: linux
-    compiler: clang
-    env: TEST_FORMAT=1
 
 script: 
   - "./.travis/run.sh"
