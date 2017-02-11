@@ -155,12 +155,19 @@ private:
 
 class ReadStreamSQLiteFactory : public ReadStreamFactory {
 public:
-    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
-            const std::map<std::string, std::string>& options) {
+    std::unique_ptr<ReadStream> getReader(
+            const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+        std::string dbName = ioDirectives.get("in_dbname");
+        std::string relationName = ioDirectives.getRelationName();
         return std::unique_ptr<ReadStreamSQLite>(
-                new ReadStreamSQLite(options.at("dbname"), options.at("name"), symbolMask, symbolTable));
+                new ReadStreamSQLite(dbName, relationName, symbolMask, symbolTable));
     }
+    virtual const std::string& getName() const { return name; }
     virtual ~ReadStreamSQLiteFactory() {}
+private:
+    static const std::string name;
 };
+
+const std::string ReadStreamSQLiteFactory::name = "sqlite";
 
 } /* namespace souffle */

@@ -43,6 +43,7 @@ AstProgram::AstProgram(AstProgram&& other) {
     types.swap(other.types);
     relations.swap(other.relations);
     clauses.swap(other.clauses);
+    ioDirectives.swap(other.ioDirectives);
     components.swap(other.components);
     instantiations.swap(other.instantiations);
 }
@@ -124,6 +125,12 @@ void AstProgram::addClause(std::unique_ptr<AstClause> clause) {
     clauses.push_back(std::move(clause));
 }
 
+/* Add a clause to the program */
+void AstProgram::addIODirective(std::unique_ptr<AstIODirective> directive) {
+    ASSERT(directive && "NULL IO directive");
+    ioDirectives.push_back(std::move(directive));
+}
+
 /* Put all relations of the program into a list */
 std::vector<AstRelation*> AstProgram::getRelations() const
 {
@@ -165,14 +172,18 @@ void AstProgram::print(std::ostream &os) const
         const std::unique_ptr<AstRelation> &rel = cur.second;
         os << "\n\n// -- " << rel->getName() << " --\n" ;
         os << *rel << "\n\n";
-        for (size_t i = 0 ; i< rel->clauseSize(); i++) {
-            os << *rel->getClause(i) << "\n\n";
-        }
+        for (const auto clause : rel->getClauses()) { os << *clause << "\n\n"; }
+        for (const auto ioDirective : rel->getIODirectives()) { os << *ioDirective << "\n\n"; }
     }
 
     if (!clauses.empty()) {
         os << "\n// ----- Orphan Clauses -----\n";
         os << join(clauses, "\n\n", print_deref<std::unique_ptr<AstClause>>()) << "\n";
+    }
+
+    if (!ioDirectives.empty()) {
+        os << "\n// ----- Orphan IO directives -----\n";
+        os << join(ioDirectives, "\n\n", print_deref<std::unique_ptr<AstIODirective>>()) << "\n";
     }
 }
 
@@ -242,6 +253,22 @@ void AstProgram::finishParsing() {
     // remember the remaining orphan clauses
     clauses.clear();
     clauses.swap(unbound);
+
+    // unbound directives with no relation defined
+    std::vector<std::unique_ptr<AstIODirective>> unboundDirectives;
+
+    // add IO directives
+    for (auto& cur : ioDirectives) {
+        auto pos = relations.find(cur->getName());
+        if (pos != relations.end()) {
+            pos->second->addIODirectives(std::move(cur));
+        } else {
+            unboundDirectives.push_back(std::move(cur));
+        }
+    }
+    // remember the remaining orphan directives
+    ioDirectives.clear();
+    ioDirectives.swap(unboundDirectives);
 }
 
 } // end of namespace souffle

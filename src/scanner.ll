@@ -61,8 +61,10 @@
 %option yylineno noyywrap nounput
 
 %%
-
 ".decl"                               { return yy::parser::make_DECL(yylloc); }
+".input"                              { return yy::parser::make_INPUT_DECL(yylloc); }
+".output"                             { return yy::parser::make_OUTPUT_DECL(yylloc); }
+".printsize"                          { return yy::parser::make_PRINTSIZE_DECL(yylloc); }
 ".type"                               { return yy::parser::make_TYPE(yylloc); }
 ".comp"                               { return yy::parser::make_COMPONENT(yylloc); }
 ".init"                               { return yy::parser::make_INSTANTIATE(yylloc); }
@@ -182,7 +184,7 @@
 [\?a-zA-Z]|[_\?a-zA-Z][_\?a-zA-Z0-9]+ {
                                         return yy::parser::make_IDENT(SLOOKUP(yytext), yylloc);
                                       }
-\"[^\"]*\"                            {
+\"([^\"]*|\\[^n])*\"                  {
                                         yytext[strlen(yytext)-1]=0;
                                         if(strlen(&yytext[1]) == 0) {
                                           driver.error(yylloc, "string literal is empty");

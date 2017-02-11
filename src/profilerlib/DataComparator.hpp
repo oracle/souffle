@@ -15,14 +15,18 @@
 
 class DataComparator {
 public:
+    /* descending order comparator used to sort rows */
     static bool TIME(std::shared_ptr <Row> a, std::shared_ptr <Row> b) {
         double val1 = a->cells[0]->getDoubVal();
         double val2 = b->cells[0]->getDoubVal();
         if (std::isnan(val1)) {
-            return true;
+            if (std::isnan(val2)) {
+                return &val2 > &val1;
+            }
+            return false;
         }
         if (std::isnan(val2)) {
-            return false;
+            return true;
         }
         return val2 < val1;
     }

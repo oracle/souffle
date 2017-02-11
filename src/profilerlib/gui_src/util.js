@@ -53,15 +53,15 @@ function minify_numbers(num) {
     bil = (mil / 1000);
     if (bil < 1) return mil.toPrecision(3) + "M";
     tril = (bil / 1000);
-    if (tril < 1) return days.toPrecision(3) + "B";
+    if (tril < 1) return bil.toPrecision(3) + "B";
     quad = (tril / 1000);
-    if (quad < 1) return weeks.toPrecision(3) + "T";
+    if (quad < 1) return tril.toPrecision(3) + "T";
     quin = (quad / 1000);
-    if (quin < 1) return weeks.toPrecision(3) + "q";
+    if (quin < 1) return quad.toPrecision(3) + "q";
     sex = (quin / 1000);
-    if (sex < 1) return weeks.toPrecision(3) + "Q";
-    sept = (quin / 1000);
-    if (sept < 1) return weeks.toPrecision(3) + "s";
+    if (sex < 1) return quin.toPrecision(3) + "Q";
+    sept = (sex / 1000);
+    if (sept < 1) return sex.toPrecision(3) + "s";
     return sept.toFixed(2) + "S"
 }
 
@@ -69,20 +69,24 @@ function minify_numbers(num) {
 
 (function () {
     var cleanNumber = function (x) {
-        if (x.slice(-1) == 'K') {
-            return parseFloat(x.slice(0, -1)) * 1e3;
-        } else if (x.slice(-1) == 'M') {
-            return parseFloat(x.slice(0, -1)) * 1e6;
-        } else if (x.slice(-1) == "B") {
-            return parseFloat(x.slice(0, -1)) * 1e9;
-        } else if (x.slice(-1) == "T") {
-            return parseFloat(x.slice(0, -1)) * 1e12;
-        } else if (x.slice(-1) == "q") {
-            return parseFloat(x.slice(0, -1)) * 1e15;
-        } else if (x.slice(-1) == "Q") {
-            return parseFloat(x.slice(0, -1)) * 1e18;
-        } else if (x.slice(-1) == "s") {
-            return parseFloat(x.slice(0, -1)) * 1e21;
+        var num = x.slice(0, -1);
+        var spec = x.slice(-1);
+        if (spec == 'K') {
+            return parseFloat(num) * 1e3;
+        } else if (spec == 'M') {
+            return parseFloat(num) * 1e6;
+        } else if (spec == "B") {
+            return parseFloat(num) * 1e9;
+        } else if (spec == "T") {
+            return parseFloat(num) * 1e12;
+        } else if (spec == "q") {
+            return parseFloat(num) * 1e15;
+        } else if (spec == "Q") {
+            return parseFloat(num) * 1e18;
+        } else if (spec == "s") {
+            return parseFloat(num) * 1e21;
+        } else if (spec == "S") {
+            return parseFloat(num) * 1e24;
         }
         return parseFloat(x);
     };

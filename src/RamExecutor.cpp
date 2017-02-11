@@ -705,12 +705,15 @@ namespace {
 
                 std::string filename = Global::config().get("fact-dir") + "/" + load.getFileName();
                 try {
-                    // TODO: get option string from datalog file
-                    std::string optionString("IO=file");
-                    optionString += ",name=" + filename;
-                    std::unique_ptr<ReadStream> reader = IOSystem::getInstance().getReader(
-                            load.getRelation().getSymbolMask(), env.getSymbolTable(), optionString);
+                    IODirectives ioDirectives = load.getRelation().getInputDirectives();
+                    // TODO (mmcgr): Determine the defaults earlier so RamExecutor doesn't need to know IO.
+                    if (ioDirectives.isEmpty()) {
+                        ioDirectives.setIOType("file");
+                        ioDirectives.setFileName(filename);
+                    }
                     RamRelation& relation = env.getRelation(load.getRelation());
+                    std::unique_ptr<ReadStream> reader = IOSystem::getInstance().getReader(
+                            load.getRelation().getSymbolMask(), env.getSymbolTable(), ioDirectives);
                     reader->readAll(relation);
                 } catch (std::exception& e) {
                     std::cerr << e.what();
@@ -720,24 +723,32 @@ namespace {
             }
 
             bool visitStore(const RamStore& store) {
+                bool toConsole = (Global::config().get("output-dir") == "-");
                 if (store.getRelation().isData()) {
                     return true;
                 }
 
-                std::unique_ptr<WriteStream> writeStream = nullptr;
                 auto& rel = env.getRelation(store.getRelation());
-                std::string type;
-                std::string optionString;
-                if (Global::config().get("output-dir") == "-") {
-                    optionString += "IO=stdout,";
-                    optionString += "name=" + rel.getName();
-                } else {
-                    optionString += "IO=file,";
-                    optionString += "name=" + Global::config().get("output-dir") + "/" + store.getFileName();
+                IODirectives ioDirectives = store.getRelation().getOutputDirectives();
+                // Support old style input directives.
+                if (ioDirectives.isEmpty()) {
+                    if (toConsole) {
+                        ioDirectives.setIOType("stdout");
+                        ioDirectives.setRelationName(store.getRelation().getName());
+                    } else {
+                        ioDirectives.setIOType("file");
+                        ioDirectives.setFileName(
+                                Global::config().get("output-dir") + "/" + store.getFileName());
+                    }
                 }
-                writeStream = IOSystem::getInstance().getWriter(
-                        store.getRelation().getSymbolMask(), env.getSymbolTable(), optionString);
-                writeStream->writeAll(rel);
+                try {
+                    std::unique_ptr<WriteStream> writer = IOSystem::getInstance().getWriter(
+                            store.getRelation().getSymbolMask(), env.getSymbolTable(), ioDirectives);
+                    writer->writeAll(rel);
+                } catch (std::exception e) {
+                    std::cerr << e.what();
+                    exit(1);
+                }
                 return true;
             }
 
@@ -2095,30 +2106,29 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     bool toConsole = (Global::config().get("output-dir") == "-");
     visitDepthFirst(stmt, [&](const RamStatement& node) {
         if (auto store = dynamic_cast<const RamStore*>(&node)) {
-            auto name = store->getRelation().getName();
-            auto relName = getRelationName(store->getRelation());
-
-            // pick target
-            std::string fname = "dirname + \"/" + store->getFileName() + "\"";
-            auto target = (toConsole) ? "nullptr" : fname;
-
+            IODirectives ioDirectives = store->getRelation().getOutputDirectives();
+            if (ioDirectives.isEmpty()) {
+                if (toConsole) {
+                    ioDirectives.setIOType("stdout");
+                    ioDirectives.setRelationName(store->getRelation().getName());
+                } else {
+                    ioDirectives.setIOType("file");
+                    ioDirectives.setFileName(Global::config().get("output-dir") + "/" + store->getFileName());
+                }
+            }
             os << "try {";
+            os << "IODirectives ioDirectives(" << ioDirectives << ");";
             os << "IOSystem::getInstance().getWriter(";
             os << "SymbolMask({" << store->getRelation().getSymbolMask() << "})";
-            os << ", symTable, \"";
-            if (toConsole) {
-                os << "IO=stdout,name=" << name;
-            } else {
-                os << "IO=file,name=\" + " << fname + "\"";
-            }
-            os << "\")->writeAll(*" << relName << ");\n";
+            os << ", symTable, ioDirectives";
+            os << ")->writeAll(*" << getRelationName(store->getRelation()) << ");\n";
 
             os << "} catch (std::exception& e) {std::cerr << e.what();exit(1);}\n";
 
         } else if (auto print = dynamic_cast<const RamPrintSize*>(&node)) {
-            auto relName = getRelationName(print->getRelation());
             os << "{ auto lease = getOutputLock().acquire(); \n";
-            os << "std::cout << R\"(" << print->getLabel() << ")\" <<  " << relName << "->" << "size() << \"\\n\";\n";
+            os << "std::cout << R\"(" << print->getLabel() << ")\" <<  ";
+            os << getRelationName(print->getRelation()) << "->" << "size() << \"\\n\";\n";
             os << "}";
         }
     });
@@ -2126,15 +2136,21 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 
     // issue loadAll method
     os << "public:\n";
-    os << "void loadAll(std::string dirname=\"" << Global::config().get("output-dir") << "\") {\n";
+    os << "void loadAll(std::string dirname=\"" << Global::config().get("fact-dir") << "\") {\n";
     visitDepthFirst(stmt, [&](const RamLoad& load) {
+        IODirectives ioDirectives = load.getRelation().getInputDirectives();
+        if (ioDirectives.isEmpty()) {
+            ioDirectives.setIOType("file");
+            ioDirectives.setFileName(Global::config().get("fact-dir") + "/" + load.getFileName());
+        }
+
         // get some table details
         os << "try {";
+        os << "IODirectives ioDirectives(" << ioDirectives << ");\n";
         os << "IOSystem::getInstance().getReader(";
         os << "SymbolMask({" << load.getRelation().getSymbolMask() << "})";
-        os << ", symTable";
-        os << ", \"IO=file,name=\" + " << "dirname + \"/";
-        os << load.getFileName() << "\")->readAll(*" << getRelationName(load.getRelation()) << ");\n";
+        os << ", symTable, ioDirectives)->readAll(*" << getRelationName(load.getRelation());
+        os << ");\n";
         os << "} catch (std::exception& e) {std::cerr << e.what();exit(1);}\n";
     });
     os << "}\n";  // end of loadAll() method
@@ -2144,11 +2160,14 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         auto relName = name;
 
         os << "try {";
+        os << "IODirectives ioDirectives;\n";
+        os << "ioDirectives.setIOType(\"stdout\");\n";
+        os << "ioDirectives.setRelationName(\"" << name << "\");\n";
+        //TODO (mmcgr): Allow copying of all IODirectives contents
         os << "IOSystem::getInstance().getWriter(";
         os << "SymbolMask({" << mask << "})";
-        os << ", symTable, \"";
-        os << "IO=stdout,name=" << name;
-        os << "\")->writeAll(*" << relName << ");\n";
+        os << ", symTable, ioDirectives";
+        os << ")->writeAll(*" << relName << ");\n";
         os << "} catch (std::exception& e) {std::cerr << e.what();exit(1);}\n";
     };
 

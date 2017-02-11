@@ -60,6 +60,7 @@ souffle_sources = \
               AstAttribute.h                            \
               AstClause.cpp         AstClause.h         \
               AstComponent.h                            \
+              AstIODirective.h                          \
               AstLiteral.h                              \
               AstNode.h                                 \
               AstParserUtils.cpp    AstParserUtils.h    \
@@ -107,6 +108,7 @@ souffle_sources = \
               ReadStream.h                              \
               ReadStreamCSV.h                           \
               WriteStream.h                             \
+			  IODirectives.h                            \
               WriteStreamCSV.h      WriteStreamSQLite.h \
               IOSystem.h                                \
               Global.cpp            Global.h            \
@@ -135,24 +137,24 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
                         CompiledRamTuple.h      \
                         CompiledRamRecord.h     \
                         CompiledSouffle.h       \
-                        SouffleInterface.h      \
-                        ParallelUtils.h         \
-                        RamTypes.h              \
-                        AstTypes.h              \
-                        BTree.h                 \
-                        Trie.h                  \
-                        Table.h                 \
-                        Util.h                  \
-                        IterUtils.h             \
-                        SymbolTable.h           \
-                        RamLogger.h             \
-                        SqliteRelationWriter.h  \
-                        IOSystem.h              \
-                        ReadStream.h            \
-                        ReadStreamCSV.h         \
-                        SymbolMask.h            \
-                        ReadStreamSQLite.h      \
-                        WriteStream.h           \
+				        SouffleInterface.h      \
+				        ParallelUtils.h         \
+				        RamTypes.h              \
+				        BTree.h                 \
+				        Trie.h                  \
+				        Table.h                 \
+				        Util.h                  \
+				        IterUtils.h             \
+				        SymbolTable.h           \
+				        RamLogger.h             \
+				        SqliteRelationWriter.h  \
+                        IODirectives.h          \
+				        IOSystem.h              \
+				        ReadStream.h            \
+				        ReadStreamCSV.h         \
+				        SymbolMask.h            \
+				        ReadStreamSQLite.h      \
+				        WriteStream.h           \
                         WriteStreamCSV.h        \
                         WriteStreamSQLite.h
 
