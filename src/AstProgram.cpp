@@ -140,6 +140,11 @@ std::vector<AstRelation*> AstProgram::getRelations() const
     }
     return res;
 }
+/* Put all io directives of the program into a list */
+const std::vector<std::unique_ptr<AstIODirective>>& AstProgram::getIODirectives() const
+{
+    return ioDirectives;
+}
 
 /* Print program in textual format */
 void AstProgram::print(std::ostream &os) const
