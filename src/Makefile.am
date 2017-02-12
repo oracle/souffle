@@ -142,6 +142,7 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
                         Trie.h                  \
                         Table.h                 \
                         Util.h                  \
+                        Macro.h                  \
                         AstTypes.h              \
                         RamTypes.h              \
                         IterUtils.h             \
