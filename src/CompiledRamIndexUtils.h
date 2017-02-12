@@ -1069,16 +1069,7 @@ namespace index_utils {
          * @param other the supplied disjoint set to copy pairs from
          */
         void insertAll(const DisjointSetIndex& other) {
-
-            // TODO: (pnappa) we need to implement this, its not too difficult, all it would be is iterate through each disjoint set and add them to this one
-            // so if other contained { (1,2,3), (4, 9)} the ops would be
-            //  add(1,2)
-            //  add(2,3)
-            //  add(4,9)
-
-
-            // use trie merge
-            // data.insertAll(other.data);
+            data.insertAll(other.data);
         }
 
         /* deletes all data contained in the disjoint-set data structure */
@@ -1086,71 +1077,56 @@ namespace index_utils {
             data.clear();
         }
 
-        class iterator : public std::iterator<std::forward_iterator_tag, tuple_type> {
+        // ---------------------------------------------
+        //                Iterators
+        // ---------------------------------------------
 
-            typedef typename data_type::iterator nested_iterator;
+        class iterator : public std::iterator<std::forward_iterator_tag,tuple_type> {
 
-            // the wrapped iterator
-            nested_iterator nested;
-
-            // the value currently pointed to
-            tuple_type value;
+            typedef typename tree_type::iterator nested_iterator
 
         public:
 
+            // default constructor -- creating an end-iterator
+            iterator() {}
 
-        }
+            iterator(const nested_iterator& iter) : nested(iter), value(orderOut(*iter)) {}
 
-        // // ---------------------------------------------
-        // //                Iterators
-        // // ---------------------------------------------
+            // a copy constructor
+            iterator(const iterator& other) = default;
 
-        // class iterator : public std::iterator<std::forward_iterator_tag,tuple_type> {
+            // an assignment operator
+            iterator& operator=(const iterator& other) =default;
 
-        //     typedef typename tree_type::iterator nested_iterator
+            // the equality operator as required by the iterator concept
+            bool operator==(const iterator& other) const {
+                // equivalent if pointing to the same value
+                return nested == other.nested;
+            }
 
-        // public:
+            // the not-equality operator as required by the iterator concept
+            bool operator!=(const iterator& other) const {
+                return !(*this == other);
+            }
 
-        //     // default constructor -- creating an end-iterator
-        //     iterator() {}
+            // the deref operator as required by the iterator concept
+            const tuple_type& operator*() const {
+                return value;
+            }
 
-        //     iterator(const nested_iterator& iter) : nested(iter), value(orderOut(*iter)) {}
+            // support for the pointer operator
+            const tuple_type* operator->() const {
+                return &value;
+            }
 
-        //     // a copy constructor
-        //     iterator(const iterator& other) = default;
+            // the increment operator as required by the iterator concept
+            iterator& operator++() {
+                ++nested;
+                value = orderOut(*nested);
+                return *this;
+            }
 
-        //     // an assignment operator
-        //     iterator& operator=(const iterator& other) =default;
-
-        //     // the equality operator as required by the iterator concept
-        //     bool operator==(const iterator& other) const {
-        //         // equivalent if pointing to the same value
-        //         return nested == other.nested;
-        //     }
-
-        //     // the not-equality operator as required by the iterator concept
-        //     bool operator!=(const iterator& other) const {
-        //         return !(*this == other);
-        //     }
-
-        //     // the deref operator as required by the iterator concept
-        //     const tuple_type& operator*() const {
-        //         return value;
-        //     }
-
-        //     // support for the pointer operator
-        //     const tuple_type* operator->() const {
-        //         return &value;
-        //     }
-
-        //     // the increment operator as required by the iterator concept
-        //     iterator& operator++() {
-        //         ++nested;
-        //         value = orderOut(*nested);
-        //         return *this;
-        //     }
-
-        // };
+        };
 
         iterator begin() const {
             return iterator(data.begin());
