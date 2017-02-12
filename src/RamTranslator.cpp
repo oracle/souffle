@@ -69,21 +69,29 @@ namespace {
         }
 
         IODirectives inputDirectives;
-        IODirectives outputDirectives;
+        std::vector<IODirectives> outputDirectives;
         for (const auto& current : rel->getIODirectives()) {
             if (!current->isInput() && !current->isOutput()) {
                 continue;
             }
-            IODirectives& ioDirectives = current->isInput() ? inputDirectives : outputDirectives;
-            for (const auto& currentPair : current->getIODirectiveMap()) {
-                ioDirectives.set(currentPair.first, currentPair.second);
+            if (current->isInput()) {
+                inputDirectives.setRelationName(getRelationName(rel->getName()));
+                for (const auto& currentPair : current->getIODirectiveMap()) {
+                    inputDirectives.set(currentPair.first, currentPair.second);
+                }
+            } else if (current->isOutput()) {
+                IODirectives ioDirectives;
+                ioDirectives.setRelationName(getRelationName(rel->getName()));
+                for (const auto& currentPair : current->getIODirectiveMap()) {
+                    ioDirectives.set(currentPair.first, currentPair.second);
+                }
+                outputDirectives.push_back(ioDirectives);
             }
         }
-        if (!inputDirectives.isEmpty()) {
-            inputDirectives.setRelationName(getRelationName(rel->getName()));
-        }
-        if (!outputDirectives.isEmpty()) {
-            outputDirectives.setRelationName(getRelationName(rel->getName()));
+
+        if (outputDirectives.empty()) {
+            IODirectives stubDirectives;
+            outputDirectives.push_back(stubDirectives);
         }
 
         return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers,

@@ -93,6 +93,16 @@ void ParserDriver::addRelation(AstRelation *r) {
 }
 
 void ParserDriver::addIODirective(AstIODirective* d) {
+    for (const auto& cur :  translationUnit->getProgram()->getIODirectives()) {
+        if (cur->getName() == d->getName() && cur->isInput() && d->isInput()) {
+            Diagnostic err(Diagnostic::ERROR, DiagnosticMessage(
+                        "Redefinition of input directives for relation "
+                        + toString(d->getName()), d->getSrcLoc()),
+                    {DiagnosticMessage("Previous definition", cur->getSrcLoc())});
+            translationUnit->getErrorReport().addDiagnostic(err);
+            return;
+        }
+    }
     translationUnit->getProgram()->addIODirective(std::unique_ptr<AstIODirective>(d));
 }
 
