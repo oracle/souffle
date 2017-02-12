@@ -32,7 +32,8 @@ sudo apt-get install \
 	gdb \
 	graphviz \
 	default-jdk \
-	default-jre
+	default-jre \
+    zlib-*
 }
 
 souffle_setup() {
