@@ -729,25 +729,28 @@ namespace {
                 }
 
                 auto& rel = env.getRelation(store.getRelation());
-                IODirectives ioDirectives = store.getRelation().getOutputDirectives();
-                // Support old style input directives.
-                if (ioDirectives.isEmpty()) {
-                    if (toConsole) {
-                        ioDirectives.setIOType("stdout");
-                        ioDirectives.setRelationName(store.getRelation().getName());
-                    } else {
-                        ioDirectives.setIOType("file");
-                        ioDirectives.setFileName(
-                                Global::config().get("output-dir") + "/" + store.getFileName());
+                for (IODirectives ioDirectives : store.getRelation().getOutputDirectives()) {
+                    // Support old style input directives.
+                    if (ioDirectives.isEmpty()) {
+                        if (toConsole) {
+                            ioDirectives.setIOType("stdout");
+                            ioDirectives.setRelationName(store.getRelation().getName());
+                        } else {
+                            ioDirectives.setIOType("file");
+                            ioDirectives.setFileName(
+                                    Global::config().get("output-dir") + "/" + store.getFileName());
+                        }
                     }
-                }
-                try {
-                    std::unique_ptr<WriteStream> writer = IOSystem::getInstance().getWriter(
-                            store.getRelation().getSymbolMask(), env.getSymbolTable(), ioDirectives);
-                    writer->writeAll(rel);
-                } catch (std::exception e) {
-                    std::cerr << e.what();
-                    exit(1);
+
+                    try {
+                        IOSystem::getInstance()
+                                .getWriter(store.getRelation().getSymbolMask(), env.getSymbolTable(),
+                                        ioDirectives)
+                                ->writeAll(rel);
+                    } catch (std::exception& e) {
+                        std::cerr << e.what();
+                        exit(1);
+                    }
                 }
                 return true;
             }
@@ -2106,25 +2109,26 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     bool toConsole = (Global::config().get("output-dir") == "-");
     visitDepthFirst(stmt, [&](const RamStatement& node) {
         if (auto store = dynamic_cast<const RamStore*>(&node)) {
-            IODirectives ioDirectives = store->getRelation().getOutputDirectives();
-            if (ioDirectives.isEmpty()) {
-                if (toConsole) {
-                    ioDirectives.setIOType("stdout");
-                    ioDirectives.setRelationName(store->getRelation().getName());
-                } else {
-                    ioDirectives.setIOType("file");
-                    ioDirectives.setFileName(Global::config().get("output-dir") + "/" + store->getFileName());
+            for (IODirectives ioDirectives : store->getRelation().getOutputDirectives()) {
+                if (ioDirectives.isEmpty()) {
+                    if (toConsole) {
+                        ioDirectives.setIOType("stdout");
+                        ioDirectives.setRelationName(store->getRelation().getName());
+                    } else {
+                        ioDirectives.setIOType("file");
+                        ioDirectives.setFileName(
+                                Global::config().get("output-dir") + "/" + store->getFileName());
+                    }
                 }
+                os << "try {";
+                os << "IODirectives ioDirectives(" << ioDirectives << ");";
+                os << "IOSystem::getInstance().getWriter(";
+                os << "SymbolMask({" << store->getRelation().getSymbolMask() << "})";
+                os << ", symTable, ioDirectives";
+                os << ")->writeAll(*" << getRelationName(store->getRelation()) << ");\n";
+
+                os << "} catch (std::exception& e) {std::cerr << e.what();exit(1);}\n";
             }
-            os << "try {";
-            os << "IODirectives ioDirectives(" << ioDirectives << ");";
-            os << "IOSystem::getInstance().getWriter(";
-            os << "SymbolMask({" << store->getRelation().getSymbolMask() << "})";
-            os << ", symTable, ioDirectives";
-            os << ")->writeAll(*" << getRelationName(store->getRelation()) << ");\n";
-
-            os << "} catch (std::exception& e) {std::cerr << e.what();exit(1);}\n";
-
         } else if (auto print = dynamic_cast<const RamPrintSize*>(&node)) {
             os << "{ auto lease = getOutputLock().acquire(); \n";
             os << "std::cout << R\"(" << print->getLabel() << ")\" <<  ";

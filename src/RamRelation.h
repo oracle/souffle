@@ -57,7 +57,7 @@ class RamRelationIdentifier {
     bool isdata;
     bool istemp;
     IODirectives inputDirectives;
-    IODirectives outputDirectives;
+    std::vector<IODirectives> outputDirectives;
 
     // allow the ram environment to cache lookup results
     friend class RamEnvironment;
@@ -80,8 +80,8 @@ public:
             std::vector<std::string> attributeTypeQualifiers = {}, const SymbolMask& mask = SymbolMask(0),
             const bool input = false, const bool computed = false, const bool output = false,
             const bool btree = false, const bool brie = false, const bool eqrel = false,
-            const bool isdata = false, const IODirectives& inputDirectives = IODirectives(),
-            const IODirectives& outputDirectives = IODirectives(), const bool istemp = false)
+            const bool isdata = false, const IODirectives inputDirectives = IODirectives(),
+            const std::vector<IODirectives> outputDirectives = {}, const bool istemp = false)
             : name(name), arity(arity), attributeNames(attributeNames),
               attributeTypeQualifiers(attributeTypeQualifiers), mask(mask), input(input), computed(computed),
               output(output), btree(btree), brie(brie), eqrel(eqrel), isdata(isdata), istemp(istemp),
@@ -153,7 +153,7 @@ public:
         return inputDirectives;
     }
 
-    const IODirectives& getOutputDirectives() const {
+    const std::vector<IODirectives>& getOutputDirectives() const {
         return outputDirectives;
     }
 

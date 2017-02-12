@@ -255,6 +255,9 @@ AC_CHECK_LIB(pthread, pthread_create,,
 AC_CHECK_HEADER(sqlite3.h,,[AC_MSG_ERROR([required library sqlite3 missing])])
 AC_CHECK_LIB(sqlite3, sqlite3_open,,
           [AC_MSG_ERROR([required library sqlite3 missing])])
+AC_CHECK_HEADER(zlib.h,,[AC_MSG_ERROR([required library zlib missing])])
+AC_CHECK_LIB(z, compress,,
+          [AC_MSG_ERROR([required library zlib missing])])
 
 PKG_CHECK_MODULES(LIBEDIT, libedit)
 
@@ -488,6 +491,7 @@ AC_CONFIG_LINKS([include/souffle/Util.h:src/Util.h])
 AC_CONFIG_LINKS([include/souffle/RamLogger.h:src/RamLogger.h])
 AC_CONFIG_LINKS([include/souffle/IODirectives.h:src/IODirectives.h])
 AC_CONFIG_LINKS([include/souffle/IOSystem.h:src/IOSystem.h])
+AC_CONFIG_LINKS([include/souffle/gzfstream.h:src/gzfstream.h])
 AC_CONFIG_LINKS([include/souffle/ReadStream.h:src/ReadStream.h])
 AC_CONFIG_LINKS([include/souffle/ReadStreamCSV.h:src/ReadStreamCSV.h])
 AC_CONFIG_LINKS([include/souffle/ReadStreamSQLite.h:src/ReadStreamSQLite.h])

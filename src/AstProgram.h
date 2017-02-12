@@ -121,6 +121,9 @@ class AstProgram : public AstNode {
       /** Get all relations in the program */
       std::vector<AstRelation *> getRelations() const;
 
+      /** Get all io directives in the program */
+      const std::vector<std::unique_ptr<AstIODirective>>& getIODirectives() const;
+
       /** Return the number of relations in the program */
       size_t relationSize() const { return relations.size(); }
 

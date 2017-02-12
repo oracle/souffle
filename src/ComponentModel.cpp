@@ -104,11 +104,11 @@ namespace {
         }
 
         void add(std::unique_ptr<AstIODirective>& io, ErrorReport& report) {
-            // add to result content (check existence first)
+            // add to result content (check existence of non-output directives first)
             auto foundItem = std::find_if(ioDirectives.begin(), ioDirectives.end(),
                     [&](const std::unique_ptr<AstIODirective>& element) {
-                        return (element->getName() == io->getName() && element->isInput() == io->isInput() &&
-                                element->isOutput() == io->isOutput() &&
+                        return (!element->isOutput() && element->getName() == io->getName() &&
+                                element->isInput() == io->isInput() &&
                                 element->isPrintSize() == io->isPrintSize());
                     });
             if (foundItem != ioDirectives.end()) {
