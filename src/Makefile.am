@@ -111,9 +111,7 @@ souffle_sources = \
               IODirectives.h                            \
               WriteStreamCSV.h      WriteStreamSQLite.h \
               IOSystem.h                                \
-              Global.cpp            Global.h            \
-              AstTypes.h                                \
-              Macro.h
+              Global.cpp            Global.h
 
 
 # -- build souffle as a library so it can be reused in testing
@@ -144,6 +142,8 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
                         Trie.h                  \
                         Table.h                 \
                         Util.h                  \
+                        AstTypes.h              \
+                        RamTypes.h              \
                         IterUtils.h             \
                         SymbolTable.h           \
                         RamLogger.h             \
