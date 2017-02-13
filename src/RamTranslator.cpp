@@ -26,6 +26,7 @@
 #include "BinaryOperator.h"
 #include "PrecedenceGraph.h"
 #include "RamStatement.h"
+#include "Global.h"
 
 namespace souffle {
 
@@ -77,7 +78,18 @@ namespace {
             if (current->isInput()) {
                 inputDirectives.setRelationName(getRelationName(rel->getName()));
                 for (const auto& currentPair : current->getIODirectiveMap()) {
-                    inputDirectives.set(currentPair.first, currentPair.second);
+                    if (currentPair.first != "filename")
+                        inputDirectives.set(currentPair.first, currentPair.second);
+                    else {
+                        // If filename is not an absolute path, concat with cmd line facts directory
+                        if (Global::config().get("fact-dir").empty() == false && currentPair.second.front() != '/') {
+                            inputDirectives.set(currentPair.first,
+                                                Global::config().get("fact-dir") + "/" + currentPair.second);
+                        }
+                        else {
+                            inputDirectives.set(currentPair.first, currentPair.second);
+                        }
+                    }
                 }
             } else if (current->isOutput()) {
                 IODirectives ioDirectives;
