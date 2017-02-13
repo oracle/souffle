@@ -57,7 +57,9 @@ private:
         out << ".bddvarorder ";
         for (int i = 0; i < max_attributes; i++) {
             out << "N" << i;
-            if (i + 1 != max_attributes) out << "_";
+            if (i + 1 != max_attributes) {
+                out << "_";
+            }
         }
         out << "\n\n";
 
@@ -94,8 +96,12 @@ private:
         });
         out << ")";
 
-        if (rel.isInput()) out << " inputtuples";
-        if (rel.isOutput()) out << " outputtuples";
+        if (rel.isInput()) {
+            out << " inputtuples";
+        }
+        if (rel.isOutput()) {
+            out << " outputtuples";
+        }
 
         out << "\n";
     }

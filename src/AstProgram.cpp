@@ -61,7 +61,9 @@ const AstType* AstProgram::getType(const AstTypeIdentifier& name) const {
 
 std::vector<const AstType*> AstProgram::getTypes() const {
     std::vector<const AstType*> res;
-    for (const auto& cur : types) res.push_back(cur.second.get());
+    for (const auto& cur : types) {
+        res.push_back(cur.second.get());
+    }
     return res;
 }
 
@@ -99,7 +101,9 @@ void AstProgram::appendClause(std::unique_ptr<AstClause> clause) {
 void AstProgram::removeClause(const AstClause* clause) {
     // get relation
     auto pos = relations.find(clause->getHead()->getName());
-    if (pos == relations.end()) return;
+    if (pos == relations.end()) {
+        return;
+    }
 
     // delegate call
     pos->second->removeClause(clause);

@@ -143,7 +143,7 @@ public:
         return toPtrVector(clauses);
     }
 
-    // -- Components ------------------------------------------------------------
+    // -- Components -----------------------------------------------------------
 
 private:
     /** Adds the given component to this program */
@@ -184,11 +184,21 @@ public:
     /** Obtains a list of all embedded child nodes */
     virtual std::vector<const AstNode*> getChildNodes() const {
         std::vector<const AstNode*> res;
-        for (const auto& cur : types) res.push_back(cur.second.get());
-        for (const auto& cur : relations) res.push_back(cur.second.get());
-        for (const auto& cur : components) res.push_back(cur.get());
-        for (const auto& cur : instantiations) res.push_back(cur.get());
-        for (const auto& cur : clauses) res.push_back(cur.get());
+        for (const auto& cur : types) {
+            res.push_back(cur.second.get());
+        }
+        for (const auto& cur : relations) {
+            res.push_back(cur.second.get());
+        }
+        for (const auto& cur : components) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : instantiations) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : clauses) {
+            res.push_back(cur.get());
+        }
         return res;
     }
 

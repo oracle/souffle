@@ -124,7 +124,6 @@ void RamScan::print(std::ostream& os, int tabpos) const {
                 }
             }
         }
-
     } else {
         if (keys == 0) {
             os << "SCAN " << relation.getName() << " AS t" << level << " ";

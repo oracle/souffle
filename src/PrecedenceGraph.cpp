@@ -123,7 +123,9 @@ bool RecursiveClauses::computeIsRecursive(
     // set up start list
     for (const AstAtom* cur : clause.getAtoms()) {
         auto rel = program.getRelation(cur->getName());
-        if (rel == trg) return true;
+        if (rel == trg) {
+            return true;
+        }
         worklist.push_back(rel);
     }
 
@@ -134,16 +136,22 @@ bool RecursiveClauses::computeIsRecursive(
         worklist.pop_back();
 
         // skip null pointers (errors in the input code)
-        if (!cur) continue;
+        if (!cur) {
+            continue;
+        }
 
         // check whether this one has been checked before
-        if (!reached.insert(cur).second) continue;
+        if (!reached.insert(cur).second) {
+            continue;
+        }
 
         // check all atoms in the relations
         for (const AstClause* cl : cur->getClauses()) {
             for (const AstAtom* at : cl->getAtoms()) {
                 auto rel = program.getRelation(at->getName());
-                if (rel == trg) return true;
+                if (rel == trg) {
+                    return true;
+                }
                 worklist.push_back(rel);
             }
         }
@@ -279,14 +287,18 @@ const int TopologicallySortedSCCGraph::topologicalOrderingCost(
                 if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i) costOfSCC++;
         // and if this cost is greater than the maximum recorded cost for the whole permutation so far,
         // set the cost of the permutation to it
-        if (costOfSCC > costOfPermutation) costOfPermutation = costOfSCC;
+        if (costOfSCC > costOfPermutation) {
+            costOfPermutation = costOfSCC;
+        }
     }
     return costOfPermutation;
 }
 
 void TopologicallySortedSCCGraph::bestCostTopologicalOrdering(std::vector<int>& lookaheadSCCs) const {
     // exit early if there is only one scc in the lookahead
-    if (lookaheadSCCs.size() == 1) return;
+    if (lookaheadSCCs.size() == 1) {
+        return;
+    }
     // otherwise, create a vector to hold a permutation of the lookahead sccs and to store the best
     // cost permutation so far
     int bestCostOfPermutation = -1;
@@ -304,7 +316,9 @@ void TopologicallySortedSCCGraph::bestCostTopologicalOrdering(std::vector<int>& 
         // obtain the cost of the ordering of the current permutation of sccs
         int costOfPermutation = topologicalOrderingCost(permutationOfSCCs);
         // if the ordering is not topologically valid, do nothing
-        if (costOfPermutation == -1) continue;
+        if (costOfPermutation == -1) {
+            continue;
+        }
         // otherwise, if this cost is better than the best cost so far
         if (costOfPermutation < bestCostOfPermutation || bestCostOfPermutation == -1) {
             // record it as the best cost and this ordering as the best ordering
@@ -377,7 +391,9 @@ void TopologicallySortedSCCGraph::findForwardLookahead(
     // for each of the successor sccs of the input scc
     for (auto scc_i : sccGraph->getSuccessorSCCs(scc)) {
         // if the breadth limit is exceeded, return
-        if (breadth >= BREADTH_LIMIT) return;
+        if (breadth >= BREADTH_LIMIT) {
+            return;
+        }
         // otherwise, if the successor is unvisited and has no unvisited predecessors
         if (sccGraph->getColor(scc_i) == WHITE && !sccGraph->hasPredecessorOfColor(scc_i, WHITE)) {
             // add it to the current lookahead set
@@ -401,7 +417,9 @@ void TopologicallySortedSCCGraph::forwardAlgorithmRecursive(int scc) {
         std::vector<int> lookaheadSCCs;
         findForwardLookahead(scc, lookaheadSCCs, 1);
         // if there are none, simply return
-        if (lookaheadSCCs.size() == 0) return;
+        if (lookaheadSCCs.size() == 0) {
+            return;
+        }
         // compute the best cost topological ordering over the set of lookahead sccs
         bestCostTopologicalOrdering(lookaheadSCCs);
         // and append it to the final list of ordered sccs
@@ -448,7 +466,9 @@ void TopologicallySortedSCCGraph::forwardAlgorithmRecursive(int scc) {
         }
         // return at once if no valid successors have been found; as either it has none or they all have a
         // better predecessor
-        if (!found) return;
+        if (!found) {
+            return;
+        }
         // otherwise, if more white successors remain for the current scc, use it again as the root node in a
         // recursive call to this function
         if (sccGraph->hasSuccessorOfColor(scc, WHITE) && !sccGraph->hasPredecessorOfColor(scc, WHITE))

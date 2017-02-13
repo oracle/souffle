@@ -432,7 +432,9 @@ void apply(const RamOperation& op, RamEnvironment& env) {
             RamDomain ref = ctxt[lookup.getReferenceLevel()][lookup.getReferencePosition()];
 
             // check for null
-            if (isNull(ref)) return;
+            if (isNull(ref)) {
+                return;
+            }
 
             // update environment variable
             auto arity = lookup.getArity();
@@ -602,7 +604,9 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
         bool visitSequence(const RamSequence& seq) {
             // process all statements in sequence
             for (const auto& cur : seq.getStatements()) {
-                if (!visit(cur)) return false;
+                if (!visit(cur)) {
+                    return false;
+                }
             }
 
             // all processed successfully
@@ -700,7 +704,6 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
             std::string filename = Global::config().get("fact-dir") + "/" + load.getFileName();
             try {
                 IODirectives ioDirectives = load.getRelation().getInputDirectives();
-                // TODO (mmcgr): Determine the defaults earlier so RamExecutor doesn't need to know IO.
                 if (ioDirectives.isEmpty()) {
                     ioDirectives.setIOType("file");
                     ioDirectives.setFileName(filename);
@@ -824,7 +827,9 @@ Order scheduleByModel(AstClause& clause, RamEnvironment& env, std::ostream* repo
 
     // check whether schedule is fixed
     if (clause.hasFixedExecutionPlan()) {
-        if (report) *report << "   Skipped due to fixed execution plan!\n";
+        if (report) {
+            *report << "   Skipped due to fixed execution plan!\n";
+        }
         return Order::getIdentity(clause.getAtoms().size());
     }
 
@@ -849,7 +854,9 @@ Order scheduleByModel(AstClause& clause, RamEnvironment& env, std::ostream* repo
     std::map<std::string, int> varIDs;
     auto getID = [&](const AstVariable& var) -> int {
         auto pos = varIDs.find(var.getName());
-        if (pos != varIDs.end()) return pos->second;
+        if (pos != varIDs.end()) {
+            return pos->second;
+        }
         int id = varIDs.size();
         varIDs[var.getName()] = id;
         return id;
@@ -889,8 +896,10 @@ Order scheduleByModel(AstClause& clause, RamEnvironment& env, std::ostream* repo
     auto schedule = p.solve();
 
     // log problem and solution
-    if (report) *report << "Scheduling Problem: " << p << "\n";
-    if (report) *report << "          Schedule: " << schedule << "\n";
+    if (report) {
+        *report << "Scheduling Problem: " << p << "\n";
+        *report << "          Schedule: " << schedule << "\n";
+    }
 
     // extract order
     Order res;
@@ -938,9 +947,13 @@ const QueryExecutionStrategy ScheduledExecution = [](
         order = scheduleByModel(*clause, env, report);
         auto end = now();
         if (report) *report << "    Original Query: " << insert.getOrigin() << "\n";
-        if (report) *report << "       Rescheduled: " << *clause << "\n";
+        if (report) {
+            *report << "       Rescheduled: " << *clause << "\n";
+        }
         if (!equal_targets(insert.getOrigin().getAtoms(), clause->getAtoms())) {
-            if (report) *report << "            Order has Changed!\n";
+            if (report) {
+                *report << "            Order has Changed!\n";
+            }
         }
         if (report) *report << "   Scheduling Time: " << duration_in_ms(start, end) << "ms\n";
     }
@@ -955,7 +968,9 @@ const QueryExecutionStrategy ScheduledExecution = [](
     apply(static_cast<RamInsert*>(stmt.get())->getOperation(), env);
     auto end = now();
     auto runtime = duration_in_ms(start, end);
-    if (report) *report << "           Runtime: " << runtime << "ms\n";
+    if (report) {
+        *report << "           Runtime: " << runtime << "ms\n";
+    }
 
     return ExecutionSummary({order, runtime});
 };
@@ -1023,7 +1038,9 @@ std::string toIndex(SearchColumns key) {
     while (key != 0) {
         if (key % 2) {
             tmp << i;
-            if (key > 1) tmp << ",";
+            if (key > 1) {
+                tmp << ",";
+            }
         }
         key >>= 1;
         i++;
@@ -1069,7 +1086,7 @@ class Printer : public RamVisitor<void, std::ostream&> {
     };
 
 public:
-    Printer(const IndexMap&) /* indices) : indices(indices) */ {
+    Printer(const IndexMap&) {
         rec = [&](std::ostream& out, const RamNode* node) { this->visit(*node, out); };
     }
 
@@ -1214,7 +1231,9 @@ public:
         auto stmts = parallel.getStatements();
 
         // special handling cases
-        if (stmts.empty()) return;
+        if (stmts.empty()) {
+            return;
+        }
 
         // a single statement => save the overhead
         if (stmts.size() == 1) {
@@ -1421,7 +1440,6 @@ public:
             // no index => use full relation
             out << "auto& range = "
                 << "*" << relName << ";\n";
-
         } else {
             // a lambda for printing boundary key values
             auto printKeyTuple = [&]() {
@@ -1458,7 +1476,6 @@ public:
         if (aggregate.getFunction() == RamAggregate::COUNT) {
             // count is easy
             out << "++res\n;";
-
         } else if (aggregate.getFunction() == RamAggregate::SUM) {
             out << "env" << level << " = cur;\n";
             out << "res += ";
@@ -1874,7 +1891,9 @@ std::string RamCompiler::generateCode(
     });
 
     // compute smallest number of indices (and report)
-    if (report) *report << "------ Auto-Index-Generation Report -------\n";
+    if (report) {
+        *report << "------ Auto-Index-Generation Report -------\n";
+    }
     for (auto& cur : indices) {
         cur.second.solve();
         if (report) {
@@ -1986,7 +2005,9 @@ std::string RamCompiler::generateCode(
         // defining table
         os << "// -- Table: " << raw_name << "\n";
         os << type << "* " << name << ";\n";
-        if (initCons.size() > 0) initCons += ",\n";
+        if (initCons.size() > 0) {
+            initCons += ",\n";
+        }
         initCons += name + "(new " + type + "())";
         deleteForNew += "delete " + name + ";\n";
         if ((rel.isInput() || rel.isComputed() || Global::config().has("debug")) && !rel.isTemp()) {

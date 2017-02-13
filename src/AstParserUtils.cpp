@@ -136,7 +136,9 @@ RuleBody RuleBody::constraint(AstConstraint* constraint) {
 std::ostream& operator<<(std::ostream& out, const RuleBody& body) {
     return out << join(body.dnf, ";", [](std::ostream& out, const RuleBody::clause& cur) {
                out << join(cur, ",", [](std::ostream& out, const RuleBody::literal& l) {
-                   if (l.negated) out << "!";
+                   if (l.negated) {
+                       out << "!";
+                   }
                    out << *l.atom;
                });
            });
@@ -147,39 +149,55 @@ bool RuleBody::equal(const literal& a, const literal& b) {
 }
 
 bool RuleBody::equal(const clause& a, const clause& b) {
-    if (a.size() != b.size()) return false;
+    if (a.size() != b.size()) {
+        return false;
+    }
     for (std::size_t i = 0; i < a.size(); ++i) {
         bool found = false;
         for (std::size_t j = 0; !found && j < b.size(); ++j) {
-            if (equal(a[i], b[j])) found = true;
+            if (equal(a[i], b[j])) {
+                found = true;
+            }
         }
-        if (!found) return false;
+        if (!found) {
+            return false;
+        }
     }
     return true;
 }
 
 bool RuleBody::isSubsetOf(const clause& a, const clause& b) {
-    if (a.size() > b.size()) return false;
+    if (a.size() > b.size()) {
+        return false;
+    }
     for (std::size_t i = 0; i < a.size(); ++i) {
         bool found = false;
         for (std::size_t j = 0; !found && j < b.size(); ++j) {
-            if (equal(a[i], b[j])) found = true;
+            if (equal(a[i], b[j])) {
+                found = true;
+            }
         }
-        if (!found) return false;
+        if (!found) {
+            return false;
+        }
     }
     return true;
 }
 
 void RuleBody::insert(clause& cl, literal&& lit) {
     for (const auto& cur : cl) {
-        if (equal(cur, lit)) return;
+        if (equal(cur, lit)) {
+            return;
+        }
     }
     cl.emplace_back(std::move(lit));
 }
 
 void RuleBody::insert(std::vector<clause>& cnf, clause&& cls) {
     for (const auto& cur : cnf) {
-        if (isSubsetOf(cur, cls)) return;
+        if (isSubsetOf(cur, cls)) {
+            return;
+        }
     }
     std::vector<clause> res;
     for (auto& cur : cnf) {

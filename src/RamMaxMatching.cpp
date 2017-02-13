@@ -49,7 +49,9 @@ bool RamMaxMatching::bfSearch() {
             SearchColumns mv = getMatch(*it);
             if (getDistance(mv) == INF) {
                 distance[mv] = getDistance(u) + 1;
-                if (mv != NIL) bfQueue.push(mv);
+                if (mv != NIL) {
+                    bfQueue.push(mv);
+                }
             }
         }
     }

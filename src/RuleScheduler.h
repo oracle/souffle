@@ -23,6 +23,7 @@
 #include <vector>
 
 namespace souffle {
+
 namespace scheduler {
 
 using namespace std;

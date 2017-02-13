@@ -306,17 +306,27 @@ public:
         res->setComponentType(getComponentType());
         res->setBaseComponents(getBaseComponents());
 
-        for (const auto& cur : components)
+        for (const auto& cur : components) {
             res->components.push_back(std::unique_ptr<AstComponent>(cur->clone()));
-        for (const auto& cur : instantiations)
+        }
+        for (const auto& cur : instantiations) {
             res->instantiations.push_back(std::unique_ptr<AstComponentInit>(cur->clone()));
-        for (const auto& cur : types) res->types.push_back(std::unique_ptr<AstType>(cur->clone()));
-        for (const auto& cur : relations)
+        }
+        for (const auto& cur : types) {
+            res->types.push_back(std::unique_ptr<AstType>(cur->clone()));
+        }
+        for (const auto& cur : relations) {
             res->relations.push_back(std::unique_ptr<AstRelation>(cur->clone()));
-        for (const auto& cur : clauses) res->clauses.push_back(std::unique_ptr<AstClause>(cur->clone()));
-        for (const auto& cur : ioDirectives)
+        }
+        for (const auto& cur : clauses) {
+            res->clauses.push_back(std::unique_ptr<AstClause>(cur->clone()));
+        }
+        for (const auto& cur : ioDirectives) {
             res->ioDirectives.push_back(std::unique_ptr<AstIODirective>(cur->clone()));
-        for (const auto& cur : overrideRules) res->overrideRules.insert(cur);
+        }
+        for (const auto& cur : overrideRules) {
+            res->overrideRules.insert(cur);
+        }
 
         return res;
     }
@@ -324,12 +334,24 @@ public:
     /** Applies the node mapper to all child nodes and conducts the corresponding replacements */
     virtual void apply(const AstNodeMapper& mapper) {
         // apply mapper to all sub-nodes
-        for (auto& cur : components) cur = mapper(std::move(cur));
-        for (auto& cur : instantiations) cur = mapper(std::move(cur));
-        for (auto& cur : types) cur = mapper(std::move(cur));
-        for (auto& cur : relations) cur = mapper(std::move(cur));
-        for (auto& cur : clauses) cur = mapper(std::move(cur));
-        for (auto& cur : ioDirectives) cur = mapper(std::move(cur));
+        for (auto& cur : components) {
+            cur = mapper(std::move(cur));
+        }
+        for (auto& cur : instantiations) {
+            cur = mapper(std::move(cur));
+        }
+        for (auto& cur : types) {
+            cur = mapper(std::move(cur));
+        }
+        for (auto& cur : relations) {
+            cur = mapper(std::move(cur));
+        }
+        for (auto& cur : clauses) {
+            cur = mapper(std::move(cur));
+        }
+        for (auto& cur : ioDirectives) {
+            cur = mapper(std::move(cur));
+        }
 
         return;
     }
@@ -338,12 +360,24 @@ public:
     virtual std::vector<const AstNode*> getChildNodes() const {
         std::vector<const AstNode*> res;
 
-        for (const auto& cur : components) res.push_back(cur.get());
-        for (const auto& cur : instantiations) res.push_back(cur.get());
-        for (const auto& cur : types) res.push_back(cur.get());
-        for (const auto& cur : relations) res.push_back(cur.get());
-        for (const auto& cur : clauses) res.push_back(cur.get());
-        for (const auto& cur : ioDirectives) res.push_back(cur.get());
+        for (const auto& cur : components) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : instantiations) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : types) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : relations) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : clauses) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : ioDirectives) {
+            res.push_back(cur.get());
+        }
 
         return res;
     }
@@ -357,19 +391,27 @@ public:
         }
         os << "{\n";
 
-        if (!components.empty())
+        if (!components.empty()) {
             os << join(components, "\n", print_deref<std::unique_ptr<AstComponent>>()) << "\n";
-        if (!instantiations.empty())
+        }
+        if (!instantiations.empty()) {
             os << join(instantiations, "\n", print_deref<std::unique_ptr<AstComponentInit>>()) << "\n";
-        if (!types.empty()) os << join(types, "\n", print_deref<std::unique_ptr<AstType>>()) << "\n";
-        if (!relations.empty())
+        }
+        if (!types.empty()) {
+            os << join(types, "\n", print_deref<std::unique_ptr<AstType>>()) << "\n";
+        }
+        if (!relations.empty()) {
             os << join(relations, "\n", print_deref<std::unique_ptr<AstRelation>>()) << "\n";
+        }
         for (const auto& cur : overrideRules) {
             os << ".override " << cur << "\n";
         }
-        if (!clauses.empty()) os << join(clauses, "\n\n", print_deref<std::unique_ptr<AstClause>>()) << "\n";
-        if (!ioDirectives.empty())
+        if (!clauses.empty()) {
+            os << join(clauses, "\n\n", print_deref<std::unique_ptr<AstClause>>()) << "\n";
+        }
+        if (!ioDirectives.empty()) {
             os << join(ioDirectives, "\n\n", print_deref<std::unique_ptr<AstIODirective>>()) << "\n";
+        }
 
         os << "}\n";
     }

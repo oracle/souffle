@@ -252,7 +252,9 @@ public:
     const Location& getAggregatorLocation(const AstAggregator& agg) const {
         // search list
         for (const auto& cur : aggregator_locations) {
-            if (*cur.first == agg) return cur.second;
+            if (*cur.first == agg) {
+                return cur.second;
+            }
         }
 
         // fail
@@ -267,11 +269,15 @@ public:
     bool isSomethingDefinedOn(int level) const {
         // check for variable definitions
         for (const auto& cur : var_references) {
-            if (cur.second.begin()->level == level) return true;
+            if (cur.second.begin()->level == level) {
+                return true;
+            }
         }
         // check for record definitions
         for (const auto& cur : record_definitions) {
-            if (cur.second.level == level) return true;
+            if (cur.second.level == level) {
+                return true;
+            }
         }
         // nothing defined on this level
         return false;
@@ -290,7 +296,9 @@ public:
 
 std::unique_ptr<RamValue> translateValue(const AstArgument* arg, const ValueIndex& index = ValueIndex()) {
     std::unique_ptr<RamValue> val;
-    if (!arg) return val;
+    if (!arg) {
+        return val;
+    }
 
     if (const AstVariable* var = dynamic_cast<const AstVariable*>(arg)) {
         ASSERT(index.isDefined(*var) && "variable not grounded");
@@ -581,7 +589,6 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(
             }
 
             // TODO: support constants in nested records!
-
         } else if (const AstRecordInit* rec = dynamic_cast<const AstRecordInit*>(cur)) {
             // add an unpack level
             const Location& loc = valueIndex.getDefinitionPoint(*rec);
@@ -596,7 +603,6 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(
                             std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
                 }
             }
-
         } else {
             std::cout << "Unsupported AST node type: " << typeid(*cur).name() << "\n";
             assert(false && "Unsupported AST node for creation of scan-level!");
@@ -647,7 +653,6 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(
 
             // add constraint
             op->addCondition(std::unique_ptr<RamCondition>(notExists));
-
         } else {
             std::cout << "Unsupported node type: " << typeid(*lit).name();
             assert(false && "Unsupported node type!");
@@ -682,7 +687,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateNonRecursiveRelation(const
     /* iterate over all clauses that belong to the relation */
     for (AstClause* clause : rel.getClauses()) {
         // skip recursive rules
-        if (recursiveClauses->isRecursive(clause)) continue;
+        if (recursiveClauses->isRecursive(clause)) {
+            continue;
+        }
 
         // translate clause
         std::unique_ptr<RamStatement> rule = translateClause(*clause, program, &typeEnv);
@@ -705,7 +712,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateNonRecursiveRelation(const
     }
 
     // if no clauses have been translated, we are done
-    if (!res) return res;
+    if (!res) {
+        return res;
+    }
 
     // add logging for entire relation
     if (logging) {
@@ -837,7 +846,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
             AstClause* cl = rel->getClause(i);
 
             // skip non-recursive clauses
-            if (!recursiveClauses->isRecursive(cl)) continue;
+            if (!recursiveClauses->isRecursive(cl)) {
+                continue;
+            }
 
             // each recursive rule results in several operations
             int version = 0;
@@ -847,7 +858,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
                 const AstRelation* atomRelation = getAtomRelation(atom, program);
 
                 // only interested in atoms within the same SCC
-                if (!isInSameSCC(atomRelation)) continue;
+                if (!isInSameSCC(atomRelation)) {
+                    continue;
+                }
 
                 // modify the processed rule to use relDelta and write to relNew
                 std::unique_ptr<AstClause> r1(cl->clone());
@@ -896,7 +909,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
         }
 
         // if there was no rule, continue
-        if (!loopRelSeq1) continue;
+        if (!loopRelSeq1) {
+            continue;
+        }
 
         // label all versions
         if (logging) {

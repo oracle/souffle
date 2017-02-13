@@ -16,7 +16,9 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
         int maxLongNameLength = 0, maxArgumentIdLength = 0;
         for (const MainOption& opt : mainOptions) {
             // if it is the main option, do nothing
-            if (opt.longName == "") continue;
+            if (opt.longName == "") {
+                continue;
+            }
             // otherwise, proceed with the calculation
             maxLongNameLength =
                     ((int)opt.longName.size() > maxLongNameLength) ? opt.longName.size() : maxLongNameLength;
@@ -29,7 +31,9 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
         int length;
         for (const MainOption& opt : mainOptions) {
             // if it is the main option, do nothing
-            if (opt.longName == "") continue;
+            if (opt.longName == "") {
+                continue;
+            }
 
             // print the short form name and the argument parameter
             length = 0;
@@ -45,7 +49,9 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
             }
 
             // pad with empty space for prettiness
-            for (; length < maxArgumentIdLength + 2; ++length) ss << " ";
+            for (; length < maxArgumentIdLength + 2; ++length) {
+                ss << " ";
+            }
 
             // print the long form name and the argument parameter
             length = 0;
@@ -88,15 +94,21 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
             // put the option in the table, referenced by its short name
             optionTable[opt.shortName] = &opt;
             // set the default value for the option, if it exists
-            if (!opt.byDefault.empty()) set(opt.longName, opt.byDefault);
+            if (!opt.byDefault.empty()) {
+                set(opt.longName, opt.byDefault);
+            }
             // skip the next bit if it is the option for the datalog file
-            if (opt.longName == "") continue;
+            if (opt.longName == "") {
+                continue;
+            }
             // convert the main option to a plain old getopt option and put it in the array
             longNames[i] = (option){opt.longName.c_str(), (!opt.argument.empty()), nullptr, opt.shortName};
             // append the short name of the option to the string of short names
             shortNames += opt.shortName;
             // indicating with a ':' if it takes an argument
-            if (!opt.argument.empty()) shortNames += ":";
+            if (!opt.argument.empty()) {
+                shortNames += ":";
+            }
             // increment counter
             ++i;
         }
@@ -116,14 +128,12 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
             // case for the unknown option, again
             assert(iter != optionTable.end() && "unexpected case in getopt");
             // define the value for the option in the global configuration as its argument or an empty string
-            // if no
-            // argument exists
+            //  if no argument exists
             std::string arg = (optarg) ? std::string(optarg) : std::string();
             // if the option allows multiple arguments
             if (iter->second->takesMany) {
                 // set the value of the option in the global config to the concatenation of its previous
-                // value,
-                // a space and the current argument
+                // value, a space and the current argument
                 set(iter->second->longName, get(iter->second->longName) + ' ' + arg);
                 // otherwise, set the value of the option in the global config
             } else {

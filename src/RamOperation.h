@@ -363,7 +363,9 @@ public:
     /** Obtains a list of child nodes */
     virtual std::vector<const RamNode*> getChildNodes() const {
         auto res = RamOperation::getChildNodes();
-        for (const auto& cur : values) res.push_back(cur.get());
+        for (const auto& cur : values) {
+            res.push_back(cur.get());
+        }
         return res;
     }
 };

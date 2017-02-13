@@ -28,7 +28,9 @@ namespace souffle {
 
 /** map the keys in the key set to lexicographical order */
 void RamAutoIndex::solve() {
-    if (searches.size() == 0) return;
+    if (searches.size() == 0) {
+        return;
+    }
 
     // check whether one of the naive indexers should be used
     static const char ENV_NAIVE_INDEX[] = "SOUFFLE_USE_NAIVE_INDEX";
@@ -47,7 +49,9 @@ void RamAutoIndex::solve() {
             LexicographicalOrder order;
             SearchColumns mask = cur;
             for (int i = 0; mask != 0; i++) {
-                if (!(1 << i & mask)) continue;
+                if (!(1 << i & mask)) {
+                    continue;
+                }
                 order.push_back(i);
                 // clear bit
                 mask &= ~(1 << i);
@@ -77,7 +81,7 @@ void RamAutoIndex::solve() {
         }
     }
 
-    // Perform the hopcroft-karp on the graph and receive matchings (mapped A-> B and B->A)
+    // Perform the hopcroft-karp on the graph and receive matchings (mapped A->B and B->A)
     // Assume: alg.calculate is not called on an empty graph
     ASSERT(searches.size() > 0);
     const RamMaxMatching::Matchings& matchings = matching.calculate();

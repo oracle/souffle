@@ -217,7 +217,9 @@ public:
 
     void lock() {
         detail::Waiter wait;
-        while (!try_lock()) wait();
+        while (!try_lock()) {
+            wait();
+        }
     }
 
     bool try_lock() {

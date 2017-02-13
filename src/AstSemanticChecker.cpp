@@ -69,7 +69,9 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
     // -- check grounded variables --
     visitDepthFirst(nodes, [&](const AstClause& clause) {
         // only interested in rules
-        if (clause.isFact()) return;
+        if (clause.isFact()) {
+            return;
+        }
 
         // compute all grounded terms
         auto isGrounded = getGroundedTerms(clause);
@@ -209,7 +211,9 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
 
         // only interested in non-equal relations
         auto op = rel.getOperator();
-        if (op == BinaryRelOp::EQ || op == BinaryRelOp::NE) return;
+        if (op == BinaryRelOp::EQ || op == BinaryRelOp::NE) {
+            return;
+        }
 
         // get left and right side
         auto lhs = rel.getLHS();
@@ -399,7 +403,9 @@ void AstSemanticChecker::checkConstant(ErrorReport& report, const AstArgument& a
     } else if (dynamic_cast<const AstConstant*>(&argument)) {
         // this one is fine - type checker will make sure of number and symbol constants
     } else if (auto* ri = dynamic_cast<const AstRecordInit*>(&argument)) {
-        for (auto* arg : ri->getArguments()) checkConstant(report, *arg);
+        for (auto* arg : ri->getArguments()) {
+            checkConstant(report, *arg);
+        }
     } else {
         std::cout << "Unsupported Argument: " << typeid(argument).name() << "\n";
         ASSERT(false && "Unknown case");
@@ -504,9 +510,11 @@ void AstSemanticChecker::checkRelationDeclaration(ErrorReport& report, const Typ
             const Type& type = typeEnv.getType(typeName);
             if (isRecordType(type)) {
                 if (relation.isInput()) {
-                    report.addError("Input relations must not have record types. Attribute " +
-                                            attr->getAttributeName() + " has record type " +
-                                            toString(attr->getTypeName()),
+                    report.addError(
+                            "Input relations must not have record types. "
+                            "Attribute " +
+                                    attr->getAttributeName() + " has record type " +
+                                    toString(attr->getTypeName()),
                             attr->getSrcLoc());
                 }
                 if (relation.isOutput()) {
@@ -649,7 +657,9 @@ void AstSemanticChecker::checkComponent(ErrorReport& report, const AstComponent*
     std::function<void(const AstComponent&)> collectParents = [&](const AstComponent& cur) {
         for (const auto& base : cur.getBaseComponents()) {
             auto c = componentLookup.getComponent(enclosingComponent, base.getName(), binding);
-            if (!c) continue;
+            if (!c) {
+                continue;
+            }
             if (parents.insert(c).second) {
                 collectParents(*c);
             }
@@ -809,8 +819,12 @@ bool AstExecutionPlanChecker::transform(AstTranslationUnit& translationUnit) {
         const std::set<const AstRelation*>& scc = step.getComputedRelations();
         for (const AstRelation* rel : scc) {
             for (const AstClause* clause : rel->getClauses()) {
-                if (!recursiveClauses->isRecursive(clause)) continue;
-                if (!clause->getExecutionPlan()) continue;
+                if (!recursiveClauses->isRecursive(clause)) {
+                    continue;
+                }
+                if (!clause->getExecutionPlan()) {
+                    continue;
+                }
                 int version = 0;
                 for (const AstAtom* atom : clause->getAtoms()) {
                     if (scc.count(getAtomRelation(atom, translationUnit.getProgram()))) {

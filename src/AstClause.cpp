@@ -54,26 +54,40 @@ void AstClause::setHead(std::unique_ptr<AstAtom> h) {
 }
 
 AstLiteral* AstClause::getBodyLiteral(size_t idx) const {
-    if (idx < atoms.size()) return atoms[idx].get();
+    if (idx < atoms.size()) {
+        return atoms[idx].get();
+    }
     idx -= atoms.size();
-    if (idx < negations.size()) return negations[idx].get();
+    if (idx < negations.size()) {
+        return negations[idx].get();
+    }
     idx -= negations.size();
     return constraints[idx].get();
 }
 
 std::vector<AstLiteral*> AstClause::getBodyLiterals() const {
     std::vector<AstLiteral*> res;
-    for (auto& cur : atoms) res.push_back(cur.get());
-    for (auto& cur : negations) res.push_back(cur.get());
-    for (auto& cur : constraints) res.push_back(cur.get());
+    for (auto& cur : atoms) {
+        res.push_back(cur.get());
+    }
+    for (auto& cur : negations) {
+        res.push_back(cur.get());
+    }
+    for (auto& cur : constraints) {
+        res.push_back(cur.get());
+    }
     return res;
 }
 
 bool AstClause::isFact() const {
     // there must be a head
-    if (head == NULL) return false;
+    if (head == NULL) {
+        return false;
+    }
     // there must not be any body clauses
-    if (getBodySize() != 0) return false;
+    if (getBodySize() != 0) {
+        return false;
+    }
     // and there are no aggregates
     bool hasAggregates = false;
     visitDepthFirst(*head, [&](const AstAggregator& cur) { hasAggregates = true; });

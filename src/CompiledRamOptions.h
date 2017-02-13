@@ -148,7 +148,9 @@ public:
     bool parse(int argc, char** argv) {
         // get executable name
         std::string exec_name = "analysis";
-        if (argc > 0) exec_name = argv[0];
+        if (argc > 0) {
+            exec_name = argv[0];
+        }
 
         // local options
         std::string fact_dir = input_dir;
@@ -246,7 +248,7 @@ public:
 
 private:
     /**
-     * Prints the help page in case it has been requested or there was a typer in the command line arguments.
+     * Prints the help page if it has been requested or there was a typo in the command line arguments.
      */
     void printHelpPage(const std::string& exec_name) const {
         std::cerr << "====================================================================\n";

@@ -500,7 +500,9 @@ public:
     /** Obtains a list of all embedded child nodes */
     virtual std::vector<const AstNode*> getChildNodes() const {
         auto res = AstArgument::getChildNodes();
-        for (auto& cur : args) res.push_back(cur.get());
+        for (auto& cur : args) {
+            res.push_back(cur.get());
+        }
         return res;
     }
 
@@ -632,7 +634,9 @@ public:
     /** Mutates this node */
     virtual void apply(const AstNodeMapper& map) {
         if (expr) expr = map(std::move(expr));
-        for (auto& cur : body) cur = map(std::move(cur));
+        for (auto& cur : body) {
+            cur = map(std::move(cur));
+        }
     }
 
 protected:

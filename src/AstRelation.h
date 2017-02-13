@@ -224,9 +224,15 @@ public:
 
     /** Mutates this node */
     virtual void apply(const AstNodeMapper& map) {
-        for (auto& cur : attributes) cur = map(std::move(cur));
-        for (auto& cur : clauses) cur = map(std::move(cur));
-        for (auto& cur : ioDirectives) cur = map(std::move(cur));
+        for (auto& cur : attributes) {
+            cur = map(std::move(cur));
+        }
+        for (auto& cur : clauses) {
+            cur = map(std::move(cur));
+        }
+        for (auto& cur : ioDirectives) {
+            cur = map(std::move(cur));
+        }
     }
 
     /** Return i-th clause associated with this relation */
@@ -267,9 +273,15 @@ public:
     /** Obtains a list of all embedded child nodes */
     virtual std::vector<const AstNode*> getChildNodes() const {
         std::vector<const AstNode*> res;
-        for (const auto& cur : attributes) res.push_back(cur.get());
-        for (const auto& cur : clauses) res.push_back(cur.get());
-        for (const auto& cur : ioDirectives) res.push_back(cur.get());
+        for (const auto& cur : attributes) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : clauses) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : ioDirectives) {
+            res.push_back(cur.get());
+        }
         return res;
     }
 

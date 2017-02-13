@@ -69,30 +69,25 @@ int main(int argc, char** argv) {
         Global::config().processArgs(argc, argv,
                 []() {
                     std::stringstream header;
-                    header << "=============================================================================="
-                              "========================="
+                    header << "============================================================================"
                            << std::endl;
                     header << "souffle -- A datalog engine." << std::endl;
                     header << "Usage: souffle [OPTION] FILE." << std::endl;
-                    header << "------------------------------------------------------------------------------"
-                              "-------------------------"
+                    header << "----------------------------------------------------------------------------"
                            << std::endl;
                     header << "Options:" << std::endl;
                     return header.str();
                 }(),
                 []() {
                     std::stringstream footer;
-                    footer << "------------------------------------------------------------------------------"
-                              "-------------------------"
+                    footer << "----------------------------------------------------------------------------"
                            << std::endl;
                     footer << "Version: " << PACKAGE_VERSION << "" << std::endl;
-                    footer << "------------------------------------------------------------------------------"
-                              "-------------------------"
+                    footer << "----------------------------------------------------------------------------"
                            << std::endl;
                     footer << "Copyright (c) 2013, 2015, Oracle and/or its affiliates." << std::endl;
                     footer << "All rights reserved." << std::endl;
-                    footer << "=============================================================================="
-                              "========================="
+                    footer << "============================================================================"
                            << std::endl;
                     return footer.str();
                 }(),
@@ -154,12 +149,16 @@ int main(int argc, char** argv) {
         // TODO
         if (Global::config().has("breadth-limit")) {
             int limit = std::stoi(Global::config().get("breadth-limit"));
-            if (limit <= 0) ERROR("error: breadth limit must be 1 or more");
+            if (limit <= 0) {
+                ERROR("error: breadth limit must be 1 or more");
+            }
             TopologicallySortedSCCGraph::BREADTH_LIMIT = limit;
         }
         if (Global::config().has("depth-limit")) {
             int limit = std::stoi(Global::config().get("depth-limit"));
-            if (limit <= 0) ERROR("error: depth limit must be 1 or more");
+            if (limit <= 0) {
+                ERROR("error: depth limit must be 1 or more");
+            }
             TopologicallySortedSCCGraph::DEPTH_LIMIT = limit;
         }
         if (Global::config().has("lookahead")) {
@@ -167,12 +166,16 @@ int main(int argc, char** argv) {
                 ERROR("error: only one of either lookahead or depth-limit and breadth-limit may be "
                       "specified");
             int lookahead = std::stoi(Global::config().get("lookahead"));
-            if (lookahead <= 0) ERROR("error: lookahead must be 1 or more");
+            if (lookahead <= 0) {
+                ERROR("error: lookahead must be 1 or more");
+            }
             TopologicallySortedSCCGraph::LOOKAHEAD = lookahead;
         }
 
         /* turn on compilation of executables */
-        if (Global::config().has("dl-program")) Global::config().set("compile");
+        if (Global::config().has("dl-program")) {
+            Global::config().set("compile");
+        }
 
         /* for the jobs option, to determine the number of threads used */
         if (Global::config().has("jobs")) {
@@ -232,7 +235,9 @@ int main(int argc, char** argv) {
     /* Create the pipe to establish a communication between cpp and souffle */
     std::string cmd = ::findTool("souffle-mcpp", programName, ".");
 
-    if (!isExecutable(cmd)) ERROR("failed to locate souffle preprocessor");
+    if (!isExecutable(cmd)) {
+        ERROR("failed to locate souffle preprocessor");
+    }
 
     cmd += " " + Global::config().get("include-dir") + " " + Global::config().get("");
     FILE* in = popen(cmd.c_str(), "r");
@@ -358,7 +363,9 @@ int main(int argc, char** argv) {
     }
 
     /* run RAM program */
-    if (!ramProg) return 0;
+    if (!ramProg) {
+        return 0;
+    }
 
     // pick executor
     std::unique_ptr<RamExecutor> executor;

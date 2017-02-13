@@ -137,7 +137,9 @@ public:
         // append uncovered variables to the end
         for (const auto& cur : s.map) {
             auto pos = map.find(cur.first);
-            if (pos != map.end()) continue;
+            if (pos != map.end()) {
+                continue;
+            }
             map.insert(std::make_pair(cur.first, std::unique_ptr<AstArgument>(cur.second->clone())));
         }
     }
@@ -259,7 +261,9 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
         const AstArgument& b = *cur.rhs;
 
         // #1:   t = t   => skip
-        if (a == b) continue;
+        if (a == b) {
+            continue;
+        }
 
         // #2:   [..] = [..]   => decompose
         if (isRec(a) && isRec(b)) {
@@ -488,7 +492,9 @@ bool UniqueAggregationVariablesTransformer::transform(AstTranslationUnit& transl
     visitDepthFirstPostOrder(*translationUnit.getProgram(), [&](const AstAggregator& agg) {
 
         // only applicable for aggregates with target expression
-        if (!agg.getTargetExpression()) return;
+        if (!agg.getTargetExpression()) {
+            return;
+        }
 
         // get all variables in the target expression
         std::set<std::string> names;
@@ -498,7 +504,9 @@ bool UniqueAggregationVariablesTransformer::transform(AstTranslationUnit& transl
         // rename them
         visitDepthFirst(agg, [&](const AstVariable& var) {
             auto pos = names.find(var.getName());
-            if (pos == names.end()) return;
+            if (pos == names.end()) {
+                return;
+            }
             const_cast<AstVariable&>(var).setName(" " + var.getName() + toString(aggNumber));
             changed = true;
         });
@@ -521,7 +529,9 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
     visitDepthFirst(program, [&](const AstClause& clause) {
         visitDepthFirstPostOrder(clause, [&](const AstAggregator& agg) {
             // check whether a materialization is required
-            if (!needsMaterializedRelation(agg)) return;
+            if (!needsMaterializedRelation(agg)) {
+                return;
+            }
 
             changed = true;
 
@@ -554,7 +564,9 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
                             makeLambdaMapper([&](std::unique_ptr<AstNode> node) -> std::unique_ptr<AstNode> {
                                 // check whether it is a unnamed variable
                                 AstUnnamedVariable* var = dynamic_cast<AstUnnamedVariable*>(node.get());
-                                if (!var) return node;
+                                if (!var) {
+                                    return node;
+                                }
 
                                 // replace by variable
                                 auto name = " _" + toString(count++);
@@ -624,7 +636,9 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
 
 bool MaterializeAggregationQueriesTransformer::needsMaterializedRelation(const AstAggregator& agg) {
     // everything with more than 1 body literal => materialize
-    if (agg.getBodyLiterals().size() > 1) return true;
+    if (agg.getBodyLiterals().size() > 1) {
+        return true;
+    }
 
     // inspect remaining atom more closely
     const AstAtom* atom = dynamic_cast<const AstAtom*>(agg.getBodyLiterals()[0]);
@@ -637,7 +651,9 @@ bool MaterializeAggregationQueriesTransformer::needsMaterializedRelation(const A
             [&](const AstVariable& var) { duplicates = duplicates | !vars.insert(var.getName()).second; });
 
     // if there are duplicates a materialization is required
-    if (duplicates) return true;
+    if (duplicates) {
+        return true;
+    }
 
     // for all others the materialization can be skipped
     return false;

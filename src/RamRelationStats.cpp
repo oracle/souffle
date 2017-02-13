@@ -58,7 +58,9 @@ RamRelationStats RamRelationStats::extractFrom(const RamRelation& rel, uint32_t 
             card = (uint64_t)(p * rel.size());
 
             // make sure that it is at least what you have seen
-            if (card < cur) card = cur;
+            if (card < cur) {
+                card = cur;
+            }
         }
 
         // add result

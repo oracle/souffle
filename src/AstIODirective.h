@@ -34,7 +34,8 @@ public:
 
     /** Obtains a list of all embedded child nodes */
     virtual std::vector<const AstNode*> getChildNodes() const {
-        return std::vector<const AstNode*>();  // type is just cached, not essential
+        // type is just cached, not essential
+        return std::vector<const AstNode*>();
     }
 
     /** Creates a clone if this AST sub-structure */

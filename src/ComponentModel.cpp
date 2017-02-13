@@ -224,7 +224,9 @@ void collectContent(const AstComponent& component, const TypeBinding& binding,
         // update attribute types
         for (AstAttribute* attr : rel->getAttributes()) {
             AstTypeIdentifier forward = binding.find(attr->getTypeName());
-            if (!forward.empty()) attr->setTypeName(forward);
+            if (!forward.empty()) {
+                attr->setTypeName(forward);
+            }
         }
 
         // add to result list (check existence first)
@@ -286,7 +288,10 @@ ComponentContent getInstantiatedContent(const AstComponentInit& componentInit,
     // get referenced component
     const AstComponent* component = componentLookup.getComponent(
             enclosingComponent, componentInit.getComponentType().getName(), binding);
-    if (!component) return res;  // this component is not defined => will trigger a semantic error
+    if (!component) {
+        // this component is not defined => will trigger a semantic error
+        return res;
+    }
 
     // update type biding
     const auto& formalParams = component->getComponentType().getTypeParameters();
@@ -300,13 +305,19 @@ ComponentContent getInstantiatedContent(const AstComponentInit& componentInit,
                 *cur, component, componentLookup, orphans, report, activeBinding, maxDepth - 1);
 
         // add types
-        for (auto& type : nestedContent.types) res.add(type, report);
+        for (auto& type : nestedContent.types) {
+            res.add(type, report);
+        }
 
         // add relations
-        for (auto& rel : nestedContent.relations) res.add(rel, report);
+        for (auto& rel : nestedContent.relations) {
+            res.add(rel, report);
+        }
 
         // add IO directives
-        for (auto& io : nestedContent.ioDirectives) res.add(io, report);
+        for (auto& io : nestedContent.ioDirectives) {
+            res.add(io, report);
+        }
     }
 
     // collect all content in this component

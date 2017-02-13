@@ -102,7 +102,9 @@ const Type& TypeEnvironment::getType(const identifier& ident) const {
 
 TypeSet TypeEnvironment::getAllTypes() const {
     TypeSet res;
-    for (const auto& cur : types) res.insert(*cur.second);
+    for (const auto& cur : types) {
+        res.insert(*cur.second);
+    }
     return res;
 }
 
@@ -202,7 +204,9 @@ bool isOfRootType(const Type& type, const Type& root) {
             return type == root || type.getBaseType() == root || isOfRootType(type.getBaseType(), root);
         }
         bool visitUnionType(const UnionType& type) const {
-            if (type.getElementTypes().empty()) return false;
+            if (type.getElementTypes().empty()) {
+                return false;
+            }
             auto fit = [&](const Type* cur) { return visit(*cur); };
             return all_of(type.getElementTypes(), fit);
         }
@@ -225,7 +229,9 @@ bool isSubType(const Type& a, const UnionType& b) {
         const Type& trg;
         visitor(const Type& trg) : trg(trg) {}
         bool visit(const Type& type) const {
-            if (trg == type) return true;
+            if (trg == type) {
+                return true;
+            }
             return VisitOnceTypeVisitor<bool>::visit(type);
         }
         bool visitUnionType(const UnionType& type) const {
@@ -321,7 +327,9 @@ bool isRecursiveType(const Type& type) {
         const Type& trg;
         visitor(const Type& trg) : trg(trg) {}
         bool visit(const Type& type) const {
-            if (trg == type) return true;
+            if (trg == type) {
+                return true;
+            }
             return VisitOnceTypeVisitor<bool>::visit(type);
         }
         bool visitUnionType(const UnionType& type) const {
@@ -350,11 +358,17 @@ bool isSubtypeOf(const Type& a, const Type& b) {
     assert(environment.isType(a) && environment.isType(b));
 
     // first check - a type is a sub-type of itself
-    if (a == b) return true;
+    if (a == b) {
+        return true;
+    }
 
     // check for predefined types
-    if (b == environment.getNumberType()) return isNumberType(a);
-    if (b == environment.getSymbolType()) return isSymbolType(a);
+    if (b == environment.getNumberType()) {
+        return isNumberType(a);
+    }
+    if (b == environment.getSymbolType()) {
+        return isSymbolType(a);
+    }
 
     // check primitive type chains
     if (isA<PrimitiveType>(a)) {
@@ -413,7 +427,9 @@ TypeSet getLeastCommonSupertypes(const Type& a, const Type& b) {
     TypeSet res;
     for (const Type& cur : superTypes) {
         bool least = !any_of(superTypes, [&](const Type& t) { return t != cur && isSubtypeOf(t, cur); });
-        if (least) res.insert(cur);
+        if (least) {
+            res.insert(cur);
+        }
     }
 
     return res;
@@ -421,10 +437,14 @@ TypeSet getLeastCommonSupertypes(const Type& a, const Type& b) {
 
 TypeSet getLeastCommonSupertypes(const TypeSet& set) {
     // handle the empty set
-    if (set.empty()) return set;
+    if (set.empty()) {
+        return set;
+    }
 
     // handle the all set => empty set (since no common super-type)
-    if (set.isAll()) return TypeSet();
+    if (set.isAll()) {
+        return TypeSet();
+    }
 
     TypeSet res;
     auto it = set.begin();
@@ -447,11 +467,19 @@ TypeSet getLeastCommonSupertypes(const TypeSet& set) {
 // pairwise
 TypeSet getLeastCommonSupertypes(const TypeSet& a, const TypeSet& b) {
     // special cases
-    if (a.empty()) return a;
-    if (b.empty()) return b;
+    if (a.empty()) {
+        return a;
+    }
+    if (b.empty()) {
+        return b;
+    }
 
-    if (a.isAll()) return b;
-    if (b.isAll()) return a;
+    if (a.isAll()) {
+        return b;
+    }
+    if (b.isAll()) {
+        return a;
+    }
 
     // compute pairwise least common super types
     TypeSet res;
@@ -497,7 +525,9 @@ TypeSet getGreatestCommonSubtypes(const Type& a, const Type& b) {
                 }
             }
             void visitUnionType(const UnionType& type) const {
-                for (const auto& cur : type.getElementTypes()) visit(*cur);
+                for (const auto& cur : type.getElementTypes()) {
+                    visit(*cur);
+                }
             }
         };
 
@@ -511,10 +541,14 @@ TypeSet getGreatestCommonSubtypes(const Type& a, const Type& b) {
 
 TypeSet getGreatestCommonSubtypes(const TypeSet& set) {
     // handle the empty set
-    if (set.empty()) return set;
+    if (set.empty()) {
+        return set;
+    }
 
     // handle the all set => empty set (since no common sub-type)
-    if (set.isAll()) return TypeSet();
+    if (set.isAll()) {
+        return TypeSet();
+    }
 
     TypeSet res;
     auto it = set.begin();
@@ -536,11 +570,19 @@ TypeSet getGreatestCommonSubtypes(const TypeSet& set) {
 
 TypeSet getGreatestCommonSubtypes(const TypeSet& a, const TypeSet& b) {
     // special cases
-    if (a.empty()) return a;
-    if (b.empty()) return b;
+    if (a.empty()) {
+        return a;
+    }
+    if (b.empty()) {
+        return b;
+    }
 
-    if (a.isAll()) return b;
-    if (b.isAll()) return a;
+    if (a.isAll()) {
+        return b;
+    }
+    if (b.isAll()) {
+        return a;
+    }
 
     // compute pairwise greatest common sub types
     TypeSet res;

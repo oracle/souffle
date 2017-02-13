@@ -252,7 +252,7 @@ protected:
     /** The user defined execution plan -- if any */
     std::unique_ptr<AstExecutionPlan> plan;
 
-    /** Determines whether this is an internally generated clause, resulting from resolving syntactic sugar */
+    /** Determines whether this is an internally generated clause resulting from resolving syntactic sugar */
     bool generated;
 
 public:
@@ -399,9 +399,15 @@ public:
     /** Obtains a list of all embedded child nodes */
     virtual std::vector<const AstNode*> getChildNodes() const {
         std::vector<const AstNode*> res = {head.get()};
-        for (auto& cur : atoms) res.push_back(cur.get());
-        for (auto& cur : negations) res.push_back(cur.get());
-        for (auto& cur : constraints) res.push_back(cur.get());
+        for (auto& cur : atoms) {
+            res.push_back(cur.get());
+        }
+        for (auto& cur : negations) {
+            res.push_back(cur.get());
+        }
+        for (auto& cur : constraints) {
+            res.push_back(cur.get());
+        }
         return res;
     }
 

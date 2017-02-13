@@ -51,13 +51,17 @@ private:
 
     /** Convenience method to copy strings between symbol tables and resolve their references. */
     inline void copyAll() {
-        for (auto& cur : numToStr) cur = strdup(cur);
+        for (auto& cur : numToStr) {
+            cur = strdup(cur);
+        }
         for (auto& cur : strToNum) const_cast<std::string&>(cur.first) = numToStr[cur.second];
     }
 
     /** Convenience method to free memory allocated for strings. */
     inline void freeAll() {
-        for (auto cur : numToStr) free(cur);
+        for (auto cur : numToStr) {
+            free(cur);
+        }
     }
 
     /** Convenience method to place a new symbol in the table, if it does not exist, and return the index of
@@ -154,7 +158,9 @@ public:
         (void)lease;  // avoid warning;
         strToNum.reserve(size() + n);
         numToStr.reserve(size() + n);
-        for (size_t idx = 0; idx < n; idx++) newSymbol(symbols[idx]);
+        for (size_t idx = 0; idx < n; idx++) {
+            newSymbol(symbols[idx]);
+        }
     }
 
     /** Insert a single symbol into the table, not that this operation should not be used if inserting symbols

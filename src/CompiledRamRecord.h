@@ -116,7 +116,6 @@ public:
             if (pos != r2i.end()) {
                 // take the previously assigned value
                 index = pos->second;
-
             } else {
                 // add tuple to index
                 index = r2i.size() + 1;  // since 0 is skipped for the Nil element

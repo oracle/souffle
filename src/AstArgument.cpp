@@ -23,8 +23,12 @@ namespace souffle {
 
 std::vector<const AstNode*> AstAggregator::getChildNodes() const {
     auto res = AstArgument::getChildNodes();
-    if (expr) res.push_back(expr.get());
-    for (auto& cur : body) res.push_back(cur.get());
+    if (expr) {
+        res.push_back(expr.get());
+    }
+    for (auto& cur : body) {
+        res.push_back(cur.get());
+    }
     return res;
 }
 

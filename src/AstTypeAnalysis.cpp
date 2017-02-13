@@ -79,7 +79,10 @@ protected:
      */
     AnalysisVar getVar(const AstArgument& arg) {
         const auto* var = dynamic_cast<const AstVariable*>(&arg);
-        if (!var) return AnalysisVar(arg);  // no mapping required
+        if (!var) {
+            // no mapping required
+            return AnalysisVar(arg);
+        }
 
         // filter through map => always take the same variable
         auto res = variables.insert(std::make_pair(var->getName(), AnalysisVar(var)));
@@ -218,10 +221,14 @@ BoolDisjunctConstraint imply(const std::vector<BoolDisjunctVar>& vars, const Boo
 
         virtual bool update(Assignment<BoolDisjunctVar>& ass) const {
             bool r = ass[res];
-            if (r) return false;
+            if (r) {
+                return false;
+            }
 
             for (const auto& cur : vars) {
-                if (!ass[cur]) return false;
+                if (!ass[cur]) {
+                    return false;
+                }
             }
 
             ass[res] = true;
@@ -249,7 +256,9 @@ std::map<const AstArgument*, bool> getConstTerms(const AstClause& clause) {
         // #2 - binary relations may propagate const
         void visitConstraint(const AstConstraint& cur) {
             // only target equality
-            if (cur.getOperator() != BinaryRelOp::EQ) return;
+            if (cur.getOperator() != BinaryRelOp::EQ) {
+                return;
+            }
 
             // if equal, link right and left side
             auto lhs = getVar(cur.getLHS());
@@ -300,7 +309,9 @@ std::map<const AstArgument*, bool> getGroundedTerms(const AstClause& clause) {
         // #1 - atoms are producing grounded variables
         void visitAtom(const AstAtom& cur) {
             // some atoms need to be skipped (head or negation)
-            if (ignore.find(&cur) != ignore.end()) return;
+            if (ignore.find(&cur) != ignore.end()) {
+                return;
+            }
 
             // all arguments are grounded
             for (const auto& arg : cur.getArguments()) {
@@ -323,7 +334,9 @@ std::map<const AstArgument*, bool> getGroundedTerms(const AstClause& clause) {
         // #4 - binary equality relations propagates groundness
         void visitConstraint(const AstConstraint& cur) {
             // only target equality
-            if (cur.getOperator() != BinaryRelOp::EQ) return;
+            if (cur.getOperator() != BinaryRelOp::EQ) {
+                return;
+            }
 
             // if equal, link right and left side
             auto lhs = getVar(cur.getLHS());
@@ -381,7 +394,9 @@ struct sub_type {
         TypeSet res = getGreatestCommonSubtypes(a, b);
 
         // check whether a should change
-        if (res == a) return false;
+        if (res == a) {
+            return false;
+        }
 
         // update a
         a = res;
@@ -447,7 +462,9 @@ TypeConstraint isSubtypeOf(const TypeVar& a, const Type& b) {
             }
 
             // check whether there was a change
-            if (res == s) return false;
+            if (res == s) {
+                return false;
+            }
             s = res;
             return true;
         }
@@ -492,7 +509,9 @@ TypeConstraint isSubtypeOfSuperType(const TypeVar& a, const std::vector<TypeVar>
             TypeSet& s = ass[a];
 
             // check whether there was a change
-            if (res == s) return false;
+            if (res == s) {
+                return false;
+            }
             s = res;
             return true;
         }
@@ -522,7 +541,9 @@ TypeConstraint isSubtypeOfComponent(const TypeVar& a, const TypeVar& b, int inde
             const TypeSet& recs = ass[b];
 
             // if it is (not yet) constrainted => skip
-            if (recs.isAll()) return false;
+            if (recs.isAll()) {
+                return false;
+            }
 
             // compute new types for a and b
             TypeSet typesA;
@@ -531,11 +552,15 @@ TypeConstraint isSubtypeOfComponent(const TypeVar& a, const TypeVar& b, int inde
             // iterate through types of b
             for (const Type& t : recs) {
                 // only retain records
-                if (!isRecordType(t)) continue;
+                if (!isRecordType(t)) {
+                    continue;
+                }
                 const RecordType& rec = static_cast<const RecordType&>(t);
 
                 // of proper size
-                if (rec.getFields().size() <= index) continue;
+                if (rec.getFields().size() <= index) {
+                    continue;
+                }
 
                 // this is a valid type for b
                 typesB.insert(rec);
@@ -589,7 +614,9 @@ void TypeEnvironmentAnalysis::updateTypeEnvironment(const AstProgram& program) {
     // create all type symbols in a first step
     for (const auto& cur : program.getTypes()) {
         // support faulty codes with multiple definitions
-        if (env.isType(cur->getName())) continue;
+        if (env.isType(cur->getName())) {
+            continue;
+        }
 
         // create type within type environment
         if (auto* t = dynamic_cast<const AstPrimitiveType*>(cur)) {
@@ -598,15 +625,12 @@ void TypeEnvironmentAnalysis::updateTypeEnvironment(const AstProgram& program) {
             } else {
                 env.createSymbolType(cur->getName());
             }
-
         } else if (dynamic_cast<const AstUnionType*>(cur)) {
             // initialize the union
             env.createUnionType(cur->getName());
-
         } else if (dynamic_cast<const AstRecordType*>(cur)) {
             // initialize the record
             env.createRecordType(cur->getName());
-
         } else {
             std::cout << "Unsupported type construct: " << typeid(cur).name() << "\n";
             ASSERT(false && "Unsupported Type Construct!");
@@ -631,7 +655,6 @@ void TypeEnvironmentAnalysis::updateTypeEnvironment(const AstProgram& program) {
                     ut->add(env.getType(cur));
                 }
             }
-
         } else if (auto* t = dynamic_cast<const AstRecordType*>(cur)) {
             // get type as record type
             RecordType* rt = dynamic_cast<RecordType*>(type);
@@ -643,7 +666,6 @@ void TypeEnvironmentAnalysis::updateTypeEnvironment(const AstProgram& program) {
                     rt->add(f.name, env.getType(f.type));
                 }
             }
-
         } else {
             std::cout << "Unsupported type construct: " << typeid(cur).name() << "\n";
             ASSERT(false && "Unsupported Type Construct!");

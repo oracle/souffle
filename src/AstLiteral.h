@@ -153,7 +153,9 @@ public:
     /** Obtains a list of all embedded child nodes */
     virtual std::vector<const AstNode*> getChildNodes() const {
         std::vector<const AstNode*> res;
-        for (auto& cur : arguments) res.push_back(cur.get());
+        for (auto& cur : arguments) {
+            res.push_back(cur.get());
+        }
         return res;
     }
 

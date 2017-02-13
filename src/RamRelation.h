@@ -299,7 +299,9 @@ public:
 
         // insert element into tail
         RamDomain* newTuple = &tail->data[tail->used];
-        for (size_t i = 0; i < arity; ++i) newTuple[i] = tuple[i];
+        for (size_t i = 0; i < arity; ++i) {
+            newTuple[i] = tuple[i];
+        }
         tail->used += arity;
 
         // update all indexes with new tuple
@@ -372,7 +374,9 @@ public:
         if (res) return res;
 
         // extend index to full index
-        for (auto cur : suffix) order.append(cur);
+        for (auto cur : suffix) {
+            order.append(cur);
+        }
         assert(order.isComplete());
 
         // get a new index
