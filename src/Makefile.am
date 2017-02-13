@@ -137,12 +137,11 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
                         CompiledSouffle.h       \
                         SouffleInterface.h      \
                         ParallelUtils.h         \
-                        RamTypes.h              \
                         BTree.h                 \
                         Trie.h                  \
                         Table.h                 \
                         Util.h                  \
-                        Macro.h                  \
+                        Macro.h                 \
                         AstTypes.h              \
                         RamTypes.h              \
                         IterUtils.h             \
