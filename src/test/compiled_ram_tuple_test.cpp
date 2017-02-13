@@ -23,11 +23,9 @@ namespace souffle {
 
 namespace ram {
 
-
 using namespace std;
 
 TEST(Tuple, Basic) {
-
     Tuple<int, 3> t = {{1, 3, 2}};
 
     EXPECT_EQ(3 * sizeof(int), sizeof(t));

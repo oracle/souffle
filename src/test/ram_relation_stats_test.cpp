@@ -26,7 +26,6 @@ using namespace souffle;
 
 namespace test {
 
-
 TEST(Stats, Basic) {
     // create a table
     RamRelationIdentifier id("a", 3);

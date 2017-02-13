@@ -27,7 +27,6 @@ namespace souffle {
 
 namespace test {
 
-
 TEST(Constraints, Basic) {
     typedef Variable<string, set_property_space<int>> Vars;
 

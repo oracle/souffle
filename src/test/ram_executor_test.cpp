@@ -24,7 +24,6 @@ namespace souffle {
 
 namespace test {
 
-
 TEST(Ast, CloneAndEquals) {
     // TODO: add test for records
 

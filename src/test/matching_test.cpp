@@ -29,7 +29,6 @@ using namespace std;
 using namespace souffle;
 
 class TestAutoIndex : public RamAutoIndex {
-
 public:
     /** returns number of unique matchings */
     int getNumMatchings() {

@@ -22,7 +22,6 @@ namespace souffle {
 
 namespace test {
 
-
 TEST(RuleBody, Basic) {
     RuleBody body;
 

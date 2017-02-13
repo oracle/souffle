@@ -21,7 +21,6 @@ namespace souffle {
 
 namespace test {
 
-
 template <typename C>
 int count(const C& c) {
     int res = 0;

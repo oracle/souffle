@@ -21,7 +21,6 @@
 using namespace souffle;
 
 TEST(SparseArray, Basic) {
-
     SparseArray<int> map;
 
     EXPECT_EQ(0, map[10]);
@@ -605,7 +604,6 @@ TEST(Trie, Basic) {
 
 namespace {
 
-
 template <typename Iter>
 int card(const range<Iter>& r) {
     int res = 0;
@@ -667,7 +665,6 @@ TEST(Trie, IteratorStress_0D) {
 }
 
 namespace {
-
 
 RamDomain rand(RamDomain max) {
     return random() % max;

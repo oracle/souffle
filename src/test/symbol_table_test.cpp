@@ -23,7 +23,6 @@ using namespace souffle;
 
 namespace test {
 
-
 TEST(SymbolTable, Basics) {
     SymbolTable table;
 

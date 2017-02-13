@@ -21,11 +21,9 @@ namespace souffle {
 
 namespace test {
 
-
 using namespace scheduler;
 
 TEST(Scheduler, SimpleProblem_101) {
-
     typedef Problem<SimpleComputationalCostModel> Problem;
     typedef SimpleComputationalCostAtom Atom;
 

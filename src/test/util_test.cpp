@@ -21,7 +21,6 @@ using namespace std;
 using namespace souffle;
 
 TEST(Util, toString) {
-
     EXPECT_EQ("12", toString(12));
     EXPECT_EQ("Hello", toString("Hello"));
 }

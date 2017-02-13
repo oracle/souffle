@@ -29,7 +29,6 @@
 
 namespace std {
 
-
 template <typename A, typename B>
 struct hash<tuple<A, B>> {
     std::size_t operator()(const tuple<A, B>& t) const {
@@ -50,12 +49,10 @@ namespace souffle {
 
 namespace test {
 
-
 using namespace std;
 using namespace std::chrono;
 
 TEST(BTreeSet, Basic) {
-
     const bool DEBUG = false;
 
     typedef btree_set<int, detail::comparator<int>, std::allocator<int>, 16> test_set;

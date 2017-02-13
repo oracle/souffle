@@ -23,7 +23,6 @@ namespace souffle {
 
 namespace test {
 
-
 TEST(AstProgram, Parse) {
     // check the empty program
     std::unique_ptr<AstTranslationUnit> empty = ParserDriver::parseTranslationUnit("");

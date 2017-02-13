@@ -21,11 +21,9 @@ namespace souffle {
 
 namespace ram {
 
-
 using namespace std;
 
 TEST(IndicesTools, AllIndex) {
-
     typedef index<> i;
     typedef index<0> i0;
     typedef index<1> i1;

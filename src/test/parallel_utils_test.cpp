@@ -21,7 +21,6 @@ namespace souffle {
 
 namespace test {
 
-
 TEST(ParallelUtils, SpinLock) {
     const int N = 1000000;
 
