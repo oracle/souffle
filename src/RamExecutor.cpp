@@ -175,6 +175,20 @@ namespace {
                 case UnaryOp::BNOT: return ~visit(op.getValue());
                 case UnaryOp::LNOT: return !visit(op.getValue());
                 case UnaryOp::ORD: return visit(op.getValue());
+                case UnaryOp::SIN: return sin(visit(op.getValue()));
+                case UnaryOp::COS: return cos(visit(op.getValue()));
+                case UnaryOp::TAN: return tan(visit(op.getValue()));
+                case UnaryOp::ASIN: return asin(visit(op.getValue()));
+                case UnaryOp::ACOS: return acos(visit(op.getValue()));
+                case UnaryOp::ATAN: return atan(visit(op.getValue()));
+                case UnaryOp::SINH: return sinh(visit(op.getValue()));
+                case UnaryOp::COSH: return cosh(visit(op.getValue()));
+                case UnaryOp::TANH: return tanh(visit(op.getValue()));
+                case UnaryOp::ASINH: return asinh(visit(op.getValue()));
+                case UnaryOp::ACOSH: return acosh(visit(op.getValue()));
+                case UnaryOp::ATANH: return atanh(visit(op.getValue()));
+                case UnaryOp::LOG: return log(visit(op.getValue()));
+                case UnaryOp::EXP: return exp(visit(op.getValue()));
                 default:
                     assert(0 && "unsupported operator");
                     return 0;
@@ -1703,7 +1717,7 @@ namespace {
                 break;
             }
             case BinaryOp::EXP: {
-                out << "(long)(std::pow((long)" << print(op.getLHS()) << "," << "(long)" << print(op.getRHS()) << "))";
+                out << "(AstDomain)(std::pow((AstDomain)" << print(op.getLHS()) << "," << "(AstDomain)" << print(op.getRHS()) << "))";
                 break;
             }
             case BinaryOp::MOD: {
@@ -1770,6 +1784,48 @@ namespace {
                 break;
             case UnaryOp::LNOT:
                 out << "(!(" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::SIN:
+                out << "sin((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::COS:
+                out << "cos((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::TAN:
+                out << "tan((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ASIN:
+                out << "asin((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ACOS:
+                out << "acos((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ATAN:
+                out << "atan((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::SINH:
+                out << "sinh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::COSH:
+                out << "cosh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::TANH:
+                out << "tanh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ASINH:
+                out << "asinh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ACOSH:
+                out << "acosh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ATANH:
+                out << "atanh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::LOG:
+                out << "log((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::EXP:
+                out << "exp((" << print(op.getValue()) << "))";
                 break;
             default:
                 assert(0 && "Unsupported Operation!");

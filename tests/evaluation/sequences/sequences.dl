@@ -19,44 +19,44 @@ a("c").
 
 // produces a list of all strings up to a certain length
 
-// define finit number range (120 - enough space for all words up to lenght 4)
-.decl n(x:number) 
+// define finite number range (120 - enough space for all words up to lenght 4)
+.decl n(x:number)
 n(0).
 n(x+1) :- n(x), x < 120.
 
 // define successor function
-.decl s(x:number,y:number) 
+.decl s(x:number,y:number)
 s(x,x+1) :- n(x).
 
 // define addition
-.decl add(x:number,y:number,r:number)
-add(x,0,x) :- n(x).
-add(x,y,r) :- s(py,y), add(x,py,pr), s(pr,r).
+.decl op_add(x:number,y:number,r:number)
+op_add(x,0,x) :- n(x).
+op_add(x,y,r) :- s(py,y), op_add(x,py,pr), s(pr,r).
 
 // define multiplication
-.decl mul(x:number,y:number,r:number)
-mul(x,0,0) :- n(x).
-mul(x,y,r) :- s(py,y), mul(x,py,pr), add(pr,x,r).
+.decl op_mul(x:number,y:number,r:number)
+op_mul(x,0,0) :- n(x).
+op_mul(x,y,r) :- s(py,y), op_mul(x,py,pr), op_add(pr,x,r).
 
 
 // define exponent
-.decl exp(x:number,y:number,r:number)
-exp(x,0,1) :- n(x).
-exp(x,y,r) :- s(py,y), exp(x,py,pr), mul(pr,x,r).
+.decl op_exp(x:number,y:number,r:number)
+op_exp(x,0,1) :- n(x).
+op_exp(x,y,r) :- s(py,y), op_exp(x,py,pr), op_mul(pr,x,r).
 
 
 // compute logarithm
-.decl log(x:number,b:number,r:number)
-log(x,b,r) :- exp(b,r,y), s(r,sr), exp(b,sr,y2), n(x), y <= x, x < y2.
+.decl op_log(x:number,b:number,r:number)
+op_log(x,b,r) :- op_exp(b,r,y), s(r,sr), op_exp(b,sr,y2), n(x), y <= x, x < y2.
 
 
 // define integer div
-.decl div(x:number, y:number, r:number)
-div(x,y,r) :- mul(r,y,a), add(a,z,x), 0<=z, z<y.
+.decl op_div(x:number, y:number, r:number)
+op_div(x,y,r) :- op_mul(r,y,a), op_add(a,z,x), 0<=z, z<y.
 
 // define modular
-.decl mod(x:number, y:number, r:number) 
-mod(x,y,r) :- mul(y,_,z), add(z,r,x), 0<=r, r<y.
+.decl op_mod(x:number, y:number, r:number)
+op_mod(x,y,r) :- op_mul(y,_,z), op_add(z,r,x), 0<=r, r<y.
 
 
 // index letters
@@ -70,15 +70,15 @@ idx(2,"c").
 //////////////////// TRIE ////////////////////////
 
 .decl trie_letter(i:number,a:Letter) 
-trie_letter(i,a) :- s(x,i), num_letters(n), mod(x,n,r), idx(r,a).
+trie_letter(i,a) :- s(x,i), num_letters(n), op_mod(x,n,r), idx(r,a).
 
 .decl trie_level_end(l:number,i:number)
 trie_level_end(0,0).
-trie_level_end(l,i) :- num_letters(n), s(pl,l), trie_level_end(pl,b), exp(n,l,p), add(b,p,i).
+trie_level_end(l,i) :- num_letters(n), s(pl,l), trie_level_end(pl,b), op_exp(n,l,p), op_add(b,p,i).
 
 .decl trie_level_start(l:number,i:number)
 trie_level_start(0,0).
-trie_level_start(l,i) :- s(pl,l), trie_level_end(pl,b), add(b,1,i).
+trie_level_start(l,i) :- s(pl,l), trie_level_end(pl,b), op_add(b,1,i).
 
 
 .decl trie_level(i:number,l:number)
@@ -86,7 +86,7 @@ trie_level(0,0).
 trie_level(i,b) :- n(i), s(a,b), trie_level_end(a,low), trie_level_end(b,high), low<i, i<=high.
 
 .decl trie_parent(i:number,p:number)
-trie_parent(i,p) :- num_letters(n), trie_level(i,l), s(pl,l), trie_level_start(l,b), add(b,x,i), div(x,n,o), trie_level_start(pl,c), add(c,o,p).
+trie_parent(i,p) :- num_letters(n), trie_level(i,l), s(pl,l), trie_level_start(l,b), op_add(b,x,i), op_div(x,n,o), trie_level_start(pl,c), op_add(c,o,p).
 
 .decl trie_root(x:number)
 trie_root(0).
@@ -100,10 +100,10 @@ trie(x) :- trie_letter(x,_).
 .decl str(x:number)
 str(x) :- trie(x).
 
-.decl str_len(id:number, l:number) 
+.decl str_len(id:number, l:number)
 str_len(id,l) :- trie_level(id, l).
 
-.decl str_chain(id:number,parents:number) 
+.decl str_chain(id:number,parents:number)
 str_chain(id,id) :- trie(id).
 str_chain(id,p) :- str_chain(id,x), trie_parent(x,p).
 

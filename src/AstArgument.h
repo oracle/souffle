@@ -190,14 +190,14 @@ protected:
 class AstConstant : public AstArgument {
 protected:
     /** Index of this Constant in the SymbolTable */
-    size_t idx;
+    AstDomain idx;
 
 public:
-    AstConstant(size_t i) : AstArgument(), idx(i) {
+    AstConstant(AstDomain i) : AstArgument(), idx(i) {
     }
 
     /** @return Return the index of this constant in the SymbolTable */
-    size_t getIndex() const { return idx; }
+    AstDomain getIndex() const { return idx; }
 
     /** Mutates this node */
     virtual void apply(const AstNodeMapper& mapper) {
@@ -254,12 +254,12 @@ public:
 class AstNumberConstant : public AstConstant {
 public:
 
-    AstNumberConstant(size_t num)
+    AstNumberConstant(AstDomain num)
         : AstConstant(num) {}
 
     /** @brief Print argument to the given output stream */
     virtual void print(std::ostream &os) const {
-        os << (int64_t)idx;
+        os << (AstDomain) idx;
     }
 
     /** Creates a clone if this AST sub-structure */

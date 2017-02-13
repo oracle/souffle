@@ -27,7 +27,6 @@
 
 namespace souffle {
 
-
 /**
  * The type of identifier utilized for referencing types. Type
  * name identifiers are hierarchically qualified names, e.g.

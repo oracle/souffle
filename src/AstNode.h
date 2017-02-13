@@ -27,6 +27,7 @@
 
 #include "Util.h"
 #include "AstSrcLocation.h"
+#include "AstTypes.h"
 
 namespace souffle {
 
