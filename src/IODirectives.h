@@ -6,7 +6,6 @@
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
-
 /************************************************************************
  *
  * @file IODirectives.h
@@ -23,8 +22,7 @@ namespace souffle {
 
 class IODirectives {
 public:
-    IODirectives() {
-    }
+    IODirectives() {}
 
     IODirectives(const std::map<std::string, std::string>& directiveMap) {
         for (const auto& pair : directiveMap) {
@@ -85,7 +83,7 @@ public:
 
         out << "{{\"" << cur->first << "\",\"" << escape(cur->second) << "\"}";
         ++cur;
-        for(;cur != directives.end(); ++cur) {
+        for (; cur != directives.end(); ++cur) {
             out << ",{\"" << cur->first << "\",\"" << escape(cur->second) << "\"}";
         }
         out << '}';
@@ -118,5 +116,4 @@ private:
 
     std::map<std::string, std::string> directives;
 };
-
 }

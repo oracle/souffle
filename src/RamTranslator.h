@@ -16,11 +16,11 @@
 
 #pragma once
 
-#include <vector>
-#include <map>
-
-#include "RamRelation.h"
 #include "AstTranslationUnit.h"
+#include "RamRelation.h"
+
+#include <map>
+#include <vector>
 
 namespace souffle {
 
@@ -34,18 +34,15 @@ class RamStatement;
 
 class RecursiveClauses;
 
-
 /**
  * A utility class capable of conducting the conversion between AST
  * and RAM structures.
  */
 class RamTranslator {
-
     /** If true, created constructs will be annotated with logging information */
     bool logging;
 
 public:
-
     /**
      * A constructor for this translators.
      *
@@ -59,22 +56,25 @@ public:
     std::string translateRelationName(const AstRelationIdentifier& id);
 
     /** generate RAM code for a clause */
-    std::unique_ptr<RamStatement> translateClause(const AstClause& clause, const AstProgram *program, const TypeEnvironment *typeEnv, int version = 0);
+    std::unique_ptr<RamStatement> translateClause(const AstClause& clause, const AstProgram* program,
+            const TypeEnvironment* typeEnv, int version = 0);
 
     /**
      * Generates RAM code for the non-recursive clauses of the given relation.
      *
      * @return a corresponding statement or null if there are no non-recursive clauses.
      */
-    std::unique_ptr<RamStatement> translateNonRecursiveRelation(const AstRelation& rel, const AstProgram *program, const RecursiveClauses *recursiveClauses, const TypeEnvironment &typeEnv);
+    std::unique_ptr<RamStatement> translateNonRecursiveRelation(const AstRelation& rel,
+            const AstProgram* program, const RecursiveClauses* recursiveClauses,
+            const TypeEnvironment& typeEnv);
 
     /** generate RAM code for recursive relations in a strongly-connected component */
-    std::unique_ptr<RamStatement> translateRecursiveRelation(const std::set<const AstRelation*> &scc, const AstProgram *program, const RecursiveClauses *recursiveClauses, const TypeEnvironment &typeEnv);
+    std::unique_ptr<RamStatement> translateRecursiveRelation(const std::set<const AstRelation*>& scc,
+            const AstProgram* program, const RecursiveClauses* recursiveClauses,
+            const TypeEnvironment& typeEnv);
 
     /** translates the given datalog program into an equivalent RAM program  */
-    std::unique_ptr<RamStatement> translateProgram(const AstTranslationUnit &translationUnit);
-
+    std::unique_ptr<RamStatement> translateProgram(const AstTranslationUnit& translationUnit);
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

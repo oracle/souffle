@@ -6,7 +6,6 @@
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
-
 /************************************************************************
  *
  * @file IOSystem.h
@@ -14,10 +13,6 @@
  ***********************************************************************/
 
 #pragma once
-
-#include <map>
-#include <memory>
-#include <string>
 
 #include "IODirectives.h"
 #include "ReadStream.h"
@@ -29,8 +24,11 @@
 #include "WriteStreamCSV.h"
 #include "WriteStreamSQLite.h"
 
-namespace souffle {
+#include <map>
+#include <memory>
+#include <string>
 
+namespace souffle {
 
 class IOSystem {
 public:
@@ -70,6 +68,7 @@ public:
         return inputFactories.at(ioType)->getReader(symbolMask, symbolTable, ioDirectives);
     }
     ~IOSystem() {}
+
 private:
     IOSystem() {
         registerReadStreamFactory(std::make_shared<ReadFileCSVFactory>());

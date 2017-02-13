@@ -14,33 +14,30 @@
  *
  ***********************************************************************/
 
+#include "../RamAutoIndex.h"
 #include "test.h"
 
-#include "../RamAutoIndex.h"
-
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <cmath>
+#include <fstream>
+#include <functional>
+#include <iostream>
 #include <limits>
 #include <random>
-#include <functional>
-
+#include <sstream>
 
 using namespace std;
 using namespace souffle;
 
 class TestAutoIndex : public RamAutoIndex {
+
 public:
     /** returns number of unique matchings */
-    int getNumMatchings(){
-       return matching.getNumMatchings();
+    int getNumMatchings() {
+        return matching.getNumMatchings();
     }
 };
 
-
 typedef set<SearchColumns> Nodes;
-
 
 TEST(Matching, StaticTest_1) {
     TestAutoIndex order;
@@ -67,10 +64,7 @@ TEST(Matching, StaticTest_1) {
     EXPECT_EQ(num, 5);
 }
 
-
-
 TEST(Matching, StaticTest_2) {
-
     TestAutoIndex order;
     Nodes nodes;
 
@@ -95,11 +89,8 @@ TEST(Matching, StaticTest_2) {
     order.addSearch(7);
     nodes.insert(7);
 
-
     order.solve();
     int num = order.getNumMatchings();
 
     EXPECT_EQ(num, 5);
 }
-
-

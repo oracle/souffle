@@ -14,59 +14,53 @@
  *
  ***********************************************************************/
 
+#include "Table.h"
 #include "test.h"
 
-#include "Table.h"
-
 namespace souffle {
+
 namespace test {
 
-    template<typename C>
-    int count(const C& c) {
-        int res = 0;
-        for(auto it = c.begin(); it != c.end(); ++it) {
-            res++;
-        }
-        return res;
+
+template <typename C>
+int count(const C& c) {
+    int res = 0;
+    for (auto it = c.begin(); it != c.end(); ++it) {
+        res++;
     }
-
-    TEST(Table, Basic) {
-
-        Table<int> table;
-        EXPECT_TRUE(table.empty());
-        EXPECT_EQ(0, table.size());
-        EXPECT_EQ(0, count(table));
-
-        table.insert(1);
-
-        EXPECT_FALSE(table.empty());
-        EXPECT_EQ(1, table.size());
-        EXPECT_EQ(1, count(table));
-
-    }
-
-    TEST(Table, Stress) {
-
-        for(int i=0; i<10000; ++i) {
-
-            Table<int> table;
-
-            for(int j=0; j<i; ++j) {
-                table.insert(j);
-            }
-
-            EXPECT_EQ((size_t)i, table.size());
-
-            int last = -1;
-            for(const auto& cur : table) {
-                EXPECT_EQ(last+1, cur);
-                last = cur;
-            }
-            EXPECT_EQ(last+1, i);
-
-        }
-
-    }
-
+    return res;
 }
-} // end namespace souffle
+
+TEST(Table, Basic) {
+    Table<int> table;
+    EXPECT_TRUE(table.empty());
+    EXPECT_EQ(0, table.size());
+    EXPECT_EQ(0, count(table));
+
+    table.insert(1);
+
+    EXPECT_FALSE(table.empty());
+    EXPECT_EQ(1, table.size());
+    EXPECT_EQ(1, count(table));
+}
+
+TEST(Table, Stress) {
+    for (int i = 0; i < 10000; ++i) {
+        Table<int> table;
+
+        for (int j = 0; j < i; ++j) {
+            table.insert(j);
+        }
+
+        EXPECT_EQ((size_t)i, table.size());
+
+        int last = -1;
+        for (const auto& cur : table) {
+            EXPECT_EQ(last + 1, cur);
+            last = cur;
+        }
+        EXPECT_EQ(last + 1, i);
+    }
+}
+}
+}  // end namespace souffle

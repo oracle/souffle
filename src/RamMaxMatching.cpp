@@ -31,8 +31,7 @@ bool RamMaxMatching::bfSearch() {
         if (getMatch(it->first) == NIL) {
             distance[it->first] = 0;
             bfQueue.push(it->first);
-        }
-        else { 
+        } else {
             distance[it->first] = INF;
         }
     }
@@ -40,18 +39,17 @@ bool RamMaxMatching::bfSearch() {
     distance[NIL] = INF;
 
     while (!bfQueue.empty()) {
-        u = bfQueue.front(); 
+        u = bfQueue.front();
         bfQueue.pop();
 
-        ASSERT(u != NIL); 
+        ASSERT(u != NIL);
 
         const Edges& children = graph[u];
         for (Edges::iterator it = children.begin(); it != children.end(); ++it) {
             SearchColumns mv = getMatch(*it);
             if (getDistance(mv) == INF) {
                 distance[mv] = getDistance(u) + 1;
-                if (mv != NIL)
-                  bfQueue.push(mv);
+                if (mv != NIL) bfQueue.push(mv);
             }
         }
     }
@@ -65,7 +63,7 @@ bool RamMaxMatching::dfSearch(SearchColumns u) {
         Edges& children = graph[u];
         for (Edges::iterator it = children.begin(); it != children.end(); ++it) {
             SearchColumns v = *it;
-            if (getDistance(getMatch(v)) == getDistance(u)+1) {
+            if (getDistance(getMatch(v)) == getDistance(u) + 1) {
                 if (dfSearch(getMatch(v))) {
                     match[u] = v;
                     match[v] = u;
@@ -80,5 +78,4 @@ bool RamMaxMatching::dfSearch(SearchColumns u) {
     return true;
 }
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

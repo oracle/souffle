@@ -8,7 +8,6 @@
 
 #include "Rule.hpp"
 
-
 std::string Rule::toString() {
     std::ostringstream output;
     if (recursive) {

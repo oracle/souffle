@@ -16,17 +16,18 @@
 
 #pragma once
 
+#include <stdint.h>
+
 namespace souffle {
 
 /** ast domain to mimic ram domain */
 #ifdef AST_DOMAIN_TYPE
-    typedef AST_DOMAIN_TYPE AstDomain;
+typedef AST_DOMAIN_TYPE AstDomain;
 #else
-    typedef int64_t AstDomain;
+typedef int64_t AstDomain;
 #endif
 
 /** lower and upper boundaries for the ast domain **/
 #define MIN_AST_DOMAIN (std::numeric_limits<AstDomain>::min())
 #define MAX_Ast_DOMAIN (std::numeric_limits<AstDomain>::max())
-
 }

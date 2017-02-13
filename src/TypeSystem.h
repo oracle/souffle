@@ -16,16 +16,16 @@
 
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <set>
-#include <map>
-#include <vector>
-#include <initializer_list>
-
-#include "Util.h"
-#include "IterUtils.h"
 #include "AstType.h"
+#include "IterUtils.h"
+#include "Util.h"
+
+#include <initializer_list>
+#include <iostream>
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
 
 namespace souffle {
 
@@ -36,21 +36,17 @@ class TypeEnvironment;
  * An abstract base class for types to be covered within a type environment.
  */
 class Type {
-
 protected:
-
     /** A reference to the type environment this type is associated to. */
     const TypeEnvironment& environment;
 
 private:
-
     /** The name of this type. */
     AstTypeIdentifier name;
 
 public:
-
     Type(const TypeEnvironment& environment, const AstTypeIdentifier& name)
-        : environment(environment), name(name) {}
+            : environment(environment), name(name) {}
 
     Type(const Type& other) = delete;
 
@@ -94,7 +90,6 @@ public:
  * A primitive type. The basic type construct to build new types.
  */
 class PrimitiveType : public Type {
-
     // only allow type environments to create instances
     friend class TypeEnvironment;
 
@@ -102,10 +97,9 @@ class PrimitiveType : public Type {
     const Type& baseType;
 
     PrimitiveType(const TypeEnvironment& environment, const AstTypeIdentifier& name, const Type& base)
-        : Type(environment, name), baseType(base) {}
+            : Type(environment, name), baseType(base) {}
 
 public:
-
     void print(std::ostream& out) const;
 
     const Type& getBaseType() const {
@@ -117,7 +111,6 @@ public:
  * A union type combining a list of types into a new, aggregated type.
  */
 class UnionType : public Type {
-
     // only allow type environments to create instances
     friend class TypeEnvironment;
 
@@ -127,7 +120,6 @@ class UnionType : public Type {
     UnionType(const TypeEnvironment& environment, const AstTypeIdentifier& name) : Type(environment, name) {}
 
 public:
-
     void add(const Type& type);
 
     const std::vector<const Type*>& getElementTypes() const {
@@ -141,32 +133,30 @@ public:
  * A record type combining a list of fields into a new, aggregated type.
  */
 struct RecordType : public Type {
-
     // only allow type environments to create instances
     friend class TypeEnvironment;
 
     /** The type to model fields */
     struct Field {
-        std::string name;   // < the name of the field
-        const Type& type;   // < the type of the field
+        std::string name;  // < the name of the field
+        const Type& type;  // < the type of the field
     };
 
 private:
-
     /** The list of contained fields */
     std::vector<Field> fields;
 
     RecordType(const TypeEnvironment& environment, const AstTypeIdentifier& name) : Type(environment, name) {}
 
 public:
-
     void add(const std::string& name, const Type& type);
 
-    const std::vector<Field>& getFields() const { return fields; }
+    const std::vector<Field>& getFields() const {
+        return fields;
+    }
 
     void print(std::ostream& out) const;
 };
-
 
 /**
  * A collection to represent sets of types. In addition to ordinary set capabilities
@@ -175,11 +165,9 @@ public:
  * It is the basic entity to conduct sub- and super-type computations.
  */
 struct TypeSet {
-
     typedef IterDerefWrapper<typename std::set<const Type*>::const_iterator> const_iterator;
 
 private:
-
     /** True if it is the all-types set, false otherwise */
     bool all;
 
@@ -187,7 +175,6 @@ private:
     std::set<const Type*, deref_less<Type>> types;
 
 public:
-
     // -- constructors, destructors and assignment operations --
 
     TypeSet(bool all = false) : all(all) {}
@@ -198,15 +185,14 @@ public:
         types.swap(other.types);
     }
 
-    template<typename ... Types>
-    TypeSet(const Types& ... types) : all(false) {
-        for(const Type* cur : toVector<const Type*>(&types... )) {
+    template <typename... Types>
+    TypeSet(const Types&... types) : all(false) {
+        for (const Type* cur : toVector<const Type*>(&types...)) {
             this->types.insert(cur);
         }
     }
 
-    TypeSet& operator=(const TypeSet& other) =default;
-
+    TypeSet& operator=(const TypeSet& other) = default;
 
     /** A factory function for the all-types set */
     static TypeSet getAllTypes() {
@@ -252,7 +238,7 @@ public:
         }
 
         // add types one by one
-        for(const auto& t : set) insert(t);
+        for (const auto& t : set) insert(t);
     }
 
     /** Allows to iterate over the types contained in this set (only if not universal) */
@@ -288,10 +274,9 @@ public:
         if (all) {
             out << "{ - all types - }";
         } else {
-
-            out << "{" << join(types,",",[](std::ostream& out, const Type* type) {
-                out << type->getName();
-            }) << "}";
+            out << "{"
+                << join(types, ",", [](std::ostream& out, const Type* type) { out << type->getName(); })
+                << "}";
         }
     }
 
@@ -301,36 +286,31 @@ public:
     }
 };
 
-
 /**
  * A type environment is a set of types. It's main purpose is to provide an enumeration
  * of all all types within a given program. Additionally, it manages the life cycle of
  * type instances.
  */
 class TypeEnvironment {
-
     /** The type utilized for identifying types */
     typedef AstTypeIdentifier identifier;
 
 private:
-
     /** The list of covered types */
-    std::map<identifier,Type*> types;
+    std::map<identifier, Type*> types;
 
 public:
-
     // -- constructors / destructores --
     TypeEnvironment();
 
-    TypeEnvironment(const TypeEnvironment&) =delete;
+    TypeEnvironment(const TypeEnvironment&) = delete;
 
     ~TypeEnvironment();
 
-
     // -- create types in this environment --
 
-    template<typename T, typename ... Args>
-    T& createType(const identifier& name, const Args& ... args) {
+    template <typename T, typename... Args>
+    T& createType(const identifier& name, const Args&... args) {
         T* res = new T(*this, name, args...);
         addType(*res);
         return *res;
@@ -360,9 +340,13 @@ public:
 
     const Type& getType(const identifier& name) const;
 
-    const Type& getNumberType() const { return getType("number"); }
+    const Type& getNumberType() const {
+        return getType("number");
+    }
 
-    const Type& getSymbolType() const { return getType("symbol"); }
+    const Type& getSymbolType() const {
+        return getType("symbol");
+    }
 
     TypeSet getAllTypes() const;
 
@@ -382,13 +366,9 @@ public:
     }
 
 private:
-
     /** Register types created by one of the factory functions */
     void addType(Type& type);
-
 };
-
-
 
 // ---------------------------------------------------------------
 //                          Type Utilities
@@ -464,8 +444,8 @@ TypeSet getLeastCommonSupertypes(const TypeSet& a, const TypeSet& b);
 /**
  * Computes the least common super types of the given types.
  */
-template<typename ... Types>
-TypeSet getLeastCommonSupertypes(const Types& ... types) {
+template <typename... Types>
+TypeSet getLeastCommonSupertypes(const Types&... types) {
     return getLeastCommonSupertypes(TypeSet(types...));
 }
 
@@ -489,10 +469,9 @@ TypeSet getGreatestCommonSubtypes(const TypeSet& a, const TypeSet& b);
 /**
  * Computes the greatest common sub types of the given types.
  */
-template<typename ... Types>
-TypeSet getGreatestCommonSubtypes(const Types& ... types) {
+template <typename... Types>
+TypeSet getGreatestCommonSubtypes(const Types&... types) {
     return getGreatestCommonSubtypes(TypeSet(types...));
 }
 
-} // end namespace souffle
-
+}  // end namespace souffle

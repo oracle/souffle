@@ -14,90 +14,83 @@
  *
  ***********************************************************************/
 
+#include "ParallelUtils.h"
 #include "test.h"
 
-#include "ParallelUtils.h"
-
 namespace souffle {
+
 namespace test {
 
-    TEST(ParallelUtils,SpinLock) {
 
-        const int N = 1000000;
+TEST(ParallelUtils, SpinLock) {
+    const int N = 1000000;
 
-        SpinLock lock;
+    SpinLock lock;
 
-        volatile int c =0;
+    volatile int c = 0;
 
-        #pragma omp parallel for num_threads(4)
-        for(int i=0; i<N; i++) {
-            lock.lock();
-            c++;
-            lock.unlock();
-        }
-
-        EXPECT_EQ(N, c);
-
+#pragma omp parallel for num_threads(4)
+    for (int i = 0; i < N; i++) {
+        lock.lock();
+        c++;
+        lock.unlock();
     }
 
-
-    TEST(ParallelUtils,ReadWriteLock) {
-
-        const int N = 1000000;
-        const int K = 10;
-
-        ReadWriteLock lock;
-
-        volatile int c =0;
-
-        #pragma omp parallel for num_threads(4)
-        for(int i=0; i<N; i++) {
-            if (i % K == 0) {          // 10% write probability
-                lock.start_write();
-                c++;
-                lock.end_write();
-            } else {
-                lock.start_read();
-                // nothing to do here ..
-                lock.end_read();
-            }
-        }
-
-        EXPECT_EQ(N/K, c);
-
-    }
-
-    TEST(ParallelUtils,OptimisticReadWriteLock) {
-
-        const int N = 1000000;
-        const int K = 10;
-
-        OptimisticReadWriteLock lock;
-
-        volatile int c =0;
-
-        #pragma omp parallel for num_threads(4)
-        for(int i=0; i<N; i++) {
-            if (i % K == 0) {          // 10% write probability
-                lock.start_write();
-                c++;
-                c++;
-                lock.end_write();
-            } else {
-                bool succ = false;
-                do {
-                    auto lease = lock.start_read();
-                    // nothing to do here ..
-                    int x = c;
-                    succ = lock.end_read(lease);
-                    EXPECT_TRUE((x%2 == 0) || !succ);
-                } while (!succ);
-            }
-        }
-
-        EXPECT_EQ(2 * (N/K), c);
-
-    }
-
+    EXPECT_EQ(N, c);
 }
-} // end namespace souffle
+
+TEST(ParallelUtils, ReadWriteLock) {
+    const int N = 1000000;
+    const int K = 10;
+
+    ReadWriteLock lock;
+
+    volatile int c = 0;
+
+#pragma omp parallel for num_threads(4)
+    for (int i = 0; i < N; i++) {
+        if (i % K == 0) {  // 10% write probability
+            lock.start_write();
+            c++;
+            lock.end_write();
+        } else {
+            lock.start_read();
+            // nothing to do here ..
+            lock.end_read();
+        }
+    }
+
+    EXPECT_EQ(N / K, c);
+}
+
+TEST(ParallelUtils, OptimisticReadWriteLock) {
+    const int N = 1000000;
+    const int K = 10;
+
+    OptimisticReadWriteLock lock;
+
+    volatile int c = 0;
+
+#pragma omp parallel for num_threads(4)
+    for (int i = 0; i < N; i++) {
+        if (i % K == 0) {  // 10% write probability
+            lock.start_write();
+            c++;
+            c++;
+            lock.end_write();
+        } else {
+            bool succ = false;
+            do {
+                auto lease = lock.start_read();
+                // nothing to do here ..
+                int x = c;
+                succ = lock.end_read(lease);
+                EXPECT_TRUE((x % 2 == 0) || !succ);
+            } while (!succ);
+        }
+    }
+
+    EXPECT_EQ(2 * (N / K), c);
+}
+}
+}  // end namespace souffle

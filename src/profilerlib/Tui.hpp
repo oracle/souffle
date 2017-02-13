@@ -8,10 +8,10 @@
 
 #pragma once
 
-
 #include <iostream>
 #include <string>
 #include <vector>
+
 #include <dirent.h>
 
 // TODO
@@ -23,13 +23,11 @@
 //#endif
 #include <editline/readline.h>
 
-
+#include "DataComparator.hpp"
 #include "OutputProcessor.hpp"
 #include "Reader.hpp"
 #include "StringUtils.hpp"
-#include "DataComparator.hpp"
 #include "html_string.hpp"
-
 
 class Tui {
 private:
@@ -42,10 +40,11 @@ private:
     Table rel_table_state;
     Table rul_table_state;
     std::shared_ptr<Reader> reader;
+
 public:
     Tui(std::string filename, bool live, bool gui);
 
-    void runCommand(std::vector <std::string> c);
+    void runCommand(std::vector<std::string> c);
 
     void runProf();
 
@@ -83,5 +82,5 @@ public:
 
     void graphL(std::vector<long> list);
 
-    static bool string_sort(std::vector <std::string> a, std::vector <std::string> b);
+    static bool string_sort(std::vector<std::string> a, std::vector<std::string> b);
 };

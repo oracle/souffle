@@ -17,10 +17,10 @@
 
 #pragma once
 
-#include <vector>
-#include <limits>
-
 #include "RamRelation.h"
+
+#include <limits>
+#include <vector>
 
 namespace souffle {
 
@@ -31,7 +31,6 @@ typedef unsigned Column;
  * A summary of statistical properties of a ram relation.
  */
 class RamRelationStats {
-
     /** The arity - accurate */
     uint8_t arity;
 
@@ -42,14 +41,13 @@ class RamRelationStats {
     uint32_t sample_size;
 
     /** The cardinality of the various components of the tuples - estimated */
-    std::vector<uint64_t > cardinalities;
+    std::vector<uint64_t> cardinalities;
 
 public:
-
     RamRelationStats() : arity(0), size(0), sample_size(0) {}
 
     RamRelationStats(uint64_t size, const std::vector<uint64_t>& cards)
-        : arity(cards.size()), size(size), sample_size(0), cardinalities(cards) {}
+            : arity(cards.size()), size(size), sample_size(0), cardinalities(cards) {}
 
     RamRelationStats(const RamRelationStats&) = default;
     RamRelationStats(RamRelationStats&&) = default;
@@ -62,7 +60,8 @@ public:
      * base on a given sample size. If the sample size is not specified, the full
      * relation will be processed.
      */
-    static RamRelationStats extractFrom(const RamRelation& rel, uint32_t sample_size = std::numeric_limits<uint32_t>::max());
+    static RamRelationStats extractFrom(
+            const RamRelation& rel, uint32_t sample_size = std::numeric_limits<uint32_t>::max());
 
     uint8_t getArity() const {
         return arity;
@@ -89,8 +88,6 @@ public:
         stats.print(out);
         return out;
     }
-
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

@@ -16,12 +16,12 @@
 
 #pragma once
 
-#include <set>
-#include <vector>
+#include "Util.h"
+
 #include <iostream>
 #include <memory>
-
-#include "Util.h"
+#include <set>
+#include <vector>
 
 namespace souffle {
 
@@ -29,43 +29,39 @@ namespace souffle {
 //                      forward declarations
 //----------------------------------------------------------------------
 
-template<typename Id, typename PropertySpace>
+template <typename Id, typename PropertySpace>
 struct Variable;
 
-template<typename Var>
+template <typename Var>
 class Constraint;
 
-template<typename Var>
+template <typename Var>
 class Assignment;
 
-template<typename Var>
+template <typename Var>
 class Problem;
-
-
-
 
 //----------------------------------------------------------------------
 //                  property space constructors
 //----------------------------------------------------------------------
 
-
 namespace detail {
 
-    template<typename T>
-    struct default_bottom_factory {
-        T operator()() const {
-            return T();
-        }
-    };
+template <typename T>
+struct default_bottom_factory {
+    T operator()() const {
+        return T();
+    }
+};
 
-    template<typename T, typename meet_assign_op>
-    struct default_meet_op {
-        T operator()(const T& a, const T& b) {
-            T res = a;
-            meet_assign_op()(res, b);
-            return res;
-        }
-    };
+template <typename T, typename meet_assign_op>
+struct default_meet_op {
+    T operator()(const T& a, const T& b) {
+        T res = a;
+        meet_assign_op()(res, b);
+        return res;
+    }
+};
 }
 
 /**
@@ -85,12 +81,9 @@ namespace detail {
  * @tparam meet_op a non destructive meet operator, by default derived from the
  *          meet-assign operator
  */
-template<
-    typename T,
-    typename meet_assign_op,
-    typename bottom_factory = typename detail::default_bottom_factory<T>,
-    typename meet_op = typename detail::default_meet_op<T,meet_assign_op>
->
+template <typename T, typename meet_assign_op,
+        typename bottom_factory = typename detail::default_bottom_factory<T>,
+        typename meet_op = typename detail::default_meet_op<T, meet_assign_op>>
 struct property_space {
     typedef T value_type;
     typedef meet_assign_op meet_assign_op_type;
@@ -98,31 +91,26 @@ struct property_space {
     typedef bottom_factory bottom_factory_type;
 };
 
-
 namespace detail {
 
-    /**
-     * A meet operator for set-based property spaces based on the sub-set lattices.
-     */
-    template<typename T>
-    struct set_meet_assign_op {
-        bool operator()(std::set<T>& a, const std::set<T>& b) {
-            bool changed = false;
-            for(const auto& cur : b) changed = a.insert(cur).second || changed;
-            return changed;
-        }
-    };
-
+/**
+ * A meet operator for set-based property spaces based on the sub-set lattices.
+ */
+template <typename T>
+struct set_meet_assign_op {
+    bool operator()(std::set<T>& a, const std::set<T>& b) {
+        bool changed = false;
+        for (const auto& cur : b) changed = a.insert(cur).second || changed;
+        return changed;
+    }
+};
 }
 
 /**
  * A property space for set-based properties based on sub-set lattices.
  */
-template<typename T>
-struct set_property_space
-        : public property_space<std::set<T>, detail::set_meet_assign_op<T>> {};
-
-
+template <typename T>
+struct set_property_space : public property_space<std::set<T>, detail::set_meet_assign_op<T>> {};
 
 //----------------------------------------------------------------------
 //                           variables
@@ -135,19 +123,16 @@ struct set_property_space
  * @tparam Id the type of object this variable shall be bound to
  * @tparam PropertySpace the property space this variable is associated to
  */
-template<typename Id, typename PropertySpace>
+template <typename Id, typename PropertySpace>
 struct Variable {
-
     /** exports the property space */
     typedef PropertySpace property_space;
 
 protected:
-
     /** the underlying value giving this variable its identity */
     Id id;
 
 public:
-
     Variable(const Id& id) : id(id) {}
     virtual ~Variable() {}
 
@@ -182,10 +167,7 @@ public:
         var.print(out);
         return out;
     }
-
 };
-
-
 
 //----------------------------------------------------------------------
 //                          constraints
@@ -196,13 +178,11 @@ public:
  *
  * @tparam Var the type of variables constraint.
  */
-template<typename Var>
+template <typename Var>
 class Constraint {
-
     typedef typename Var::property_space property_space;
 
 public:
-
     /** A virtual destructor */
     virtual ~Constraint() {}
 
@@ -213,20 +193,17 @@ public:
      * @param ass the assignment to be updated
      * @return true if the assignment was altered, false otherwise
      */
-    virtual bool update(Assignment<Var>& ass) const =0;
+    virtual bool update(Assignment<Var>& ass) const = 0;
 
     /** Adds print support for constraints (debugging) */
-    virtual void print(std::ostream& out) const =0;
+    virtual void print(std::ostream& out) const = 0;
 
     /** Adds print support for constraints (debugging) */
     friend std::ostream& operator<<(std::ostream& out, const Constraint& c) {
         c.print(out);
         return out;
     }
-
 };
-
-
 
 //----------------------------------------------------------------------
 //                    generic constraint factories
@@ -240,12 +217,10 @@ public:
  * where a and b are variables and ⊑ is the order relation induced by
  * their associated property space.
  */
-template<typename Var>
+template <typename Var>
 std::shared_ptr<Constraint<Var>> sub(const Var& a, const Var& b, const std::string& symbol = "⊑") {
-
     struct Sub : public Constraint<Var> {
-
-        Var a,b;
+        Var a, b;
         std::string symbol;
 
         Sub(const Var& a, const Var& b, const std::string& symbol) : a(a), b(b), symbol(symbol) {}
@@ -258,10 +233,9 @@ std::shared_ptr<Constraint<Var>> sub(const Var& a, const Var& b, const std::stri
         virtual void print(std::ostream& out) const {
             out << a << " " << symbol << " " << b;
         }
-
     };
 
-    return std::make_shared<Sub>(a,b,symbol);
+    return std::make_shared<Sub>(a, b, symbol);
 }
 
 /**
@@ -272,11 +246,9 @@ std::shared_ptr<Constraint<Var>> sub(const Var& a, const Var& b, const std::stri
  * where b is a variables, a is a value of b's property space, and ⊑ is
  * the order relation induced by b's property space.
  */
-template<typename Var, typename Val = typename Var::property_space::value_type>
+template <typename Var, typename Val = typename Var::property_space::value_type>
 std::shared_ptr<Constraint<Var>> sub(const Val& a, const Var& b, const std::string& symbol = "⊑") {
-
     struct Sub : public Constraint<Var> {
-
         Val a;
         Var b;
         std::string symbol;
@@ -291,12 +263,10 @@ std::shared_ptr<Constraint<Var>> sub(const Val& a, const Var& b, const std::stri
         virtual void print(std::ostream& out) const {
             out << a << " " << symbol << " " << b;
         }
-
     };
 
-    return std::make_shared<Sub>(a,b,symbol);
+    return std::make_shared<Sub>(a, b, symbol);
 }
-
 
 //----------------------------------------------------------------------
 //                           assignment
@@ -308,15 +278,14 @@ std::shared_ptr<Constraint<Var>> sub(const Val& a, const Var& b, const std::stri
  *
  * @tparam Var the kind of variable forming the domain of this assignment
  */
-template<typename Var>
+template <typename Var>
 class Assignment {
-
     // a few type definitions
     typedef typename Var::property_space property_space;
     typedef typename property_space::value_type value_type;
     typedef typename property_space::bottom_factory_type bottom_factory_type;
 
-    typedef typename std::map<Var,value_type> data_type;
+    typedef typename std::map<Var, value_type> data_type;
 
     /** a copy of the value assigned to all unmapped variables */
     value_type bottom;
@@ -325,7 +294,6 @@ class Assignment {
     data_type data;
 
 public:
-
     typedef typename data_type::const_iterator iterator;
 
     /** Creates a new, empty assignment */
@@ -382,10 +350,7 @@ public:
     iterator end() const {
         return data.end();
     }
-
 };
-
-
 
 //----------------------------------------------------------------------
 //                        problem & solver
@@ -396,9 +361,8 @@ public:
  *
  * @tparam Var the domain of variables handled by this problem
  */
-template<typename Var>
+template <typename Var>
 class Problem {
-
     // a few type definitions
     typedef Constraint<Var> constraint;
     typedef std::shared_ptr<constraint> constraint_ptr;
@@ -407,7 +371,6 @@ class Problem {
     std::vector<constraint_ptr> constraints;
 
 public:
-
     /**
      * Adds another constraint to the internally maintained list of constraints.
      */
@@ -433,16 +396,13 @@ public:
      * @return an assignment representing a solution for this problem
      */
     Assignment<Var>& solve(Assignment<Var>& ass) const {
-
         // this is the most naive version of a solver, but sound and complete
         bool change = true;
-        while(change) {
-
+        while (change) {
             change = false;
-            for(const auto& cur : constraints) {
+            for (const auto& cur : constraints) {
                 change = cur->update(ass) || change;
             }
-
         }
 
         // already done
@@ -462,8 +422,6 @@ public:
         p.print(out);
         return out;
     }
-
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

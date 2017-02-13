@@ -41,5 +41,4 @@ RamDomain getNull();
  */
 bool isNull(RamDomain ref);
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

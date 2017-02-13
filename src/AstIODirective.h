@@ -53,9 +53,15 @@ public:
 
     /** Output to a given output stream */
     virtual void print(std::ostream& os) const {
-        if (input) { os << ".input "; }
-        if (output) { os << ".output "; }
-        if (printSize) { os << ".printsize "; }
+        if (input) {
+            os << ".input ";
+        }
+        if (output) {
+            os << ".output ";
+        }
+        if (printSize) {
+            os << ".printsize ";
+        }
         os << getName() << "(";
         bool first = true;
         for (auto& pair : kvps) {

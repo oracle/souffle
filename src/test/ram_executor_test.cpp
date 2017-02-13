@@ -14,22 +14,22 @@
  *
  ***********************************************************************/
 
-#include "test.h"
-
 #include "AstProgram.h"
-#include "RamTranslator.h"
 #include "RamExecutor.h"
 #include "RamStatement.h"
+#include "RamTranslator.h"
+#include "test.h"
 
 namespace souffle {
+
 namespace test {
 
-    TEST(Ast, CloneAndEquals) {
 
-        // TODO: add test for records
+TEST(Ast, CloneAndEquals) {
+    // TODO: add test for records
 
-        // load some test program
-        AstProgram program = AstProgram::parse(
+    // load some test program
+    AstProgram program = AstProgram::parse(
             R"(
                  .number_type N
                  .decl e( a : N, b : N )
@@ -41,39 +41,37 @@ namespace test {
 
                  l(a,b) :- e(a,b).
                  l(a,c) :- e(a,b), l(b,c).
-            )"
-        );
+            )");
 
-        // parse program
-        EXPECT_EQ(program, program);
-//        std::cout << program << "\n";
+    // parse program
+    EXPECT_EQ(program, program);
+    //        std::cout << program << "\n";
 
-        // translate AST to RAM
-        auto ram_prog = RamTranslator().translateProgram(program);
-//        std::cout << *ram_prog << "\n";
+    // translate AST to RAM
+    auto ram_prog = RamTranslator().translateProgram(program);
+    //        std::cout << *ram_prog << "\n";
 
-        // execute RAM program
-        RamEnvironment env;
-        RamInterpreter executor;
-        executor.getConfig().setOutputDir("-");
-        executor.applyOn(*ram_prog, env);
+    // execute RAM program
+    RamEnvironment env;
+    RamInterpreter executor;
+    executor.getConfig().setOutputDir("-");
+    executor.applyOn(*ram_prog, env);
 
-        ASSERT_TRUE(env.hasRelation("l"));
-        auto& rel = env.getRelation("l");
+    ASSERT_TRUE(env.hasRelation("l"));
+    auto& rel = env.getRelation("l");
 
-//        for(const auto& cur : rel) {
-//            for(unsigned i=0; i<rel.getArity(); i++) {
-//                std::cout << cur[i] << " ";
-//            }
-//            std::cout << "\n";
-//        }
+    //        for(const auto& cur : rel) {
+    //            for(unsigned i=0; i<rel.getArity(); i++) {
+    //                std::cout << cur[i] << " ";
+    //            }
+    //            std::cout << "\n";
+    //        }
 
-        EXPECT_EQ(6, rel.size());
+    EXPECT_EQ(6, rel.size());
 
-        // done
-        delete ram_prog;
-    }
+    // done
+    delete ram_prog;
+}
 
-} // end namespace test
-} // end namespace souffle
-
+}  // end namespace test
+}  // end namespace souffle
