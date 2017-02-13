@@ -95,7 +95,17 @@ namespace {
                 IODirectives ioDirectives;
                 ioDirectives.setRelationName(getRelationName(rel->getName()));
                 for (const auto& currentPair : current->getIODirectiveMap()) {
-                    ioDirectives.set(currentPair.first, currentPair.second);
+                    if (currentPair.first != "filename")
+                        ioDirectives.set(currentPair.first, currentPair.second);
+                    else {
+                        // If filename is not an absolute path, concat with cmd line output directory
+                        if (Global::config().get("out-dir").empty() == false && currentPair.second.front() != '/') {
+                            ioDirectives.set(currentPair.first,
+                                             Global::config().get("output-dir") + "/" + currentPair.second);
+                        } else {
+                            ioDirectives.set(currentPair.first, currentPair.second);
+                        }
+                    }
                 }
                 outputDirectives.push_back(ioDirectives);
             }
