@@ -14,11 +14,10 @@
 
 #pragma once
 
-#include "WriteStream.h"
-
-#include "gzfstream.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
+#include "WriteStream.h"
+#include "gzfstream.h"
 
 #include <memory>
 #include <string>
@@ -137,8 +136,11 @@ public:
                     new WriteFileCSV(ioDirectives.get("filename"), symbolMask, symbolTable, delimiter));
         }
     }
-    virtual const std::string& getName() const { return name; }
+    virtual const std::string& getName() const {
+        return name;
+    }
     virtual ~WriteFileCSVFactory() {}
+
 private:
     static const std::string name;
 };
@@ -153,8 +155,11 @@ public:
         return std::unique_ptr<WriteCoutCSV>(
                 new WriteCoutCSV(ioDirectives.getRelationName(), symbolMask, symbolTable, delimiter));
     }
-    virtual const std::string& getName() const { return name; }
+    virtual const std::string& getName() const {
+        return name;
+    }
     virtual ~WriteCoutCSVFactory() {}
+
 private:
     static const std::string name;
 };

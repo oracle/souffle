@@ -21,132 +21,124 @@
 
 namespace souffle {
 
-template<typename T, unsigned blockSize = 4096>
+template <typename T, unsigned blockSize = 4096>
 class Table {
+    struct Block {
+        Block* next;
+        std::size_t used;
+        T data[blockSize];
 
-	struct Block {
-		Block* next;
-		std::size_t used;
-		T data[blockSize];
+        Block() : next(nullptr), used(0) {}
 
-		Block() : next(nullptr), used(0) {}
+        bool isFull() const {
+            return used == blockSize;
+        }
 
-		bool isFull() const {
-			return used == blockSize;
-		}
+        const T& append(const T& element) {
+            const T& res = data[used];
+            data[used] = element;
+            used++;
+            return res;
+        }
+    };
 
-		const T& append(const T& element) {
-			const T& res = data[used];
-			data[used] = element;
-			used++;
-			return res;
-		}
-	};
+    Block* head;
+    Block* tail;
 
-	Block* head;
-	Block* tail;
-
-	std::size_t count;
+    std::size_t count;
 
 public:
+    class iterator : public std::iterator<std::forward_iterator_tag, T> {
+        Block* block;
+        unsigned pos;
 
-	class iterator : public std::iterator<std::forward_iterator_tag,T> {
-		Block* block;
-		unsigned pos;
+    public:
+        iterator(Block* block = nullptr, unsigned pos = 0) : block(block), pos(pos) {}
 
-	public:
+        iterator(const iterator&) = default;
+        iterator(iterator&&) = default;
+        iterator& operator=(const iterator&) = default;
 
-		iterator(Block* block = nullptr, unsigned pos = 0) : block(block), pos(pos) {}
+        // the equality operator as required by the iterator concept
+        bool operator==(const iterator& other) const {
+            return (block == nullptr && other.block == nullptr) || (block == other.block && pos == other.pos);
+        }
 
-		iterator(const iterator&) = default;
-		iterator(iterator&&) = default;
-		iterator& operator=(const iterator&) = default;
+        // the not-equality operator as required by the iterator concept
+        bool operator!=(const iterator& other) const {
+            return !(*this == other);
+        }
 
-		// the equality operator as required by the iterator concept
-		bool operator==(const iterator& other) const {
-			return (block==nullptr && other.block==nullptr) || (block==other.block && pos == other.pos);
-		}
+        // the deref operator as required by the iterator concept
+        const T& operator*() const {
+            return block->data[pos];
+        }
 
-		// the not-equality operator as required by the iterator concept
-		bool operator!=(const iterator& other) const {
-			return !(*this == other);
-		}
+        // the increment operator as required by the iterator concept
+        iterator& operator++() {
+            // move on in block
+            if (++pos < block->used) {
+                return *this;
+            }
+            // or to next block
+            block = block->next;
+            pos = 0;
+            return *this;
+        }
+    };
 
-		// the deref operator as required by the iterator concept
-		const T& operator*() const {
-			return block->data[pos];
-		}
+    Table() : head(nullptr), tail(nullptr), count(0) {}
 
-		// the increment operator as required by the iterator concept
-		iterator& operator++() {
-			// move on in block
-			if (++pos < block->used) {
-				return *this;
-			}
-			// or to next block
-			block = block->next;
-			pos = 0;
-			return *this;
-		}
+    ~Table() {
+        clear();
+    }
 
-	};
+    bool empty() const {
+        return (!head);
+    }
 
+    std::size_t size() const {
+        return count;
+    }
 
-	Table() : head(nullptr), tail(nullptr), count(0) {}
+    const T& insert(const T& element) {
+        // check whether the head is initialized
+        if (!head) {
+            head = new Block();
+            tail = head;
+        }
 
-	~Table() {
-		clear();
-	}
+        // check whether tail is full
+        if (tail->isFull()) {
+            tail->next = new Block();
+            tail = tail->next;
+        }
 
-	bool empty() const {
-		return (!head);
-	}
+        // increment counter
+        count++;
 
-	std::size_t size() const {
-		return count;
-	}
+        // add another element
+        return tail->append(element);
+    }
 
-	const T& insert(const T& element) {
+    iterator begin() const {
+        return iterator(head);
+    }
 
-		// check whether the head is initialized
-		if (!head) {
-			head = new Block();
-			tail = head;
-		}
+    iterator end() const {
+        return iterator();
+    }
 
-		// check whether tail is full
-		if (tail->isFull()) {
-			tail->next = new Block();
-			tail = tail->next;
-		}
-
-		// increment counter
-		count++;
-
-		// add another element
-		return tail->append(element);
-	}
-
-	iterator begin() const {
-		return iterator(head);
-	}
-
-	iterator end() const {
-		return iterator();
-	}
-
-	void clear() {
-		while(head != nullptr) {
-			auto cur = head;
-			head = head->next;
-			delete cur;
-		}
-		count = 0;
-		head = nullptr;
-		tail = nullptr;
-	}
-
+    void clear() {
+        while (head != nullptr) {
+            auto cur = head;
+            head = head->next;
+            delete cur;
+        }
+        count = 0;
+        head = nullptr;
+        tail = nullptr;
+    }
 };
 
-} // end namespace souffle
-
+}  // end namespace souffle

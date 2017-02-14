@@ -13,12 +13,13 @@
  * Defines the interface for AST transformation passes.
  *
  ***********************************************************************/
+
 #include "AstTransformer.h"
 #include "AstTranslationUnit.h"
 
 namespace souffle {
 
-bool AstTransformer::apply(AstTranslationUnit& translationUnit)  {
+bool AstTransformer::apply(AstTranslationUnit& translationUnit) {
     bool changed = transform(translationUnit);
     if (changed) {
         translationUnit.invalidateAnalyses();
@@ -26,5 +27,4 @@ bool AstTransformer::apply(AstTranslationUnit& translationUnit)  {
     return changed;
 }
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

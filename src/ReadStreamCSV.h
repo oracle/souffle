@@ -14,12 +14,11 @@
 
 #pragma once
 
-#include "ReadStream.h"
-
-#include "gzfstream.h"
 #include "RamTypes.h"
+#include "ReadStream.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
+#include "gzfstream.h"
 
 #include <map>
 #include <memory>
@@ -33,11 +32,7 @@ class ReadStreamCSV : public ReadStream {
 public:
     ReadStreamCSV(std::istream& in, const SymbolMask& symbolMask, SymbolTable& symbolTable,
             std::map<int, int> inputMap = std::map<int, int>(), char delimiter = '\t')
-            : delimiter(delimiter),
-              file(in),
-              lineNumber(0),
-              symbolMask(symbolMask),
-              symbolTable(symbolTable),
+            : delimiter(delimiter), file(in), lineNumber(0), symbolMask(symbolMask), symbolTable(symbolTable),
               inputMap(inputMap) {
         while (this->inputMap.size() < symbolMask.getArity()) {
             int size = this->inputMap.size();
@@ -224,11 +219,13 @@ public:
         return std::unique_ptr<ReadStreamCSV>(
                 new ReadStreamCSV(std::cin, symbolMask, symbolTable, inputMap, delimiter));
     }
-    virtual const std::string& getName() const { return name; }
+    virtual const std::string& getName() const {
+        return name;
+    }
     virtual ~ReadCinCSVFactory() {}
+
 private:
     static const std::string name;
-
 };
 
 const std::string ReadCinCSVFactory::name = "stdin";
@@ -242,8 +239,11 @@ public:
         return std::unique_ptr<ReadFileCSV>(
                 new ReadFileCSV(ioDirectives.get("filename"), symbolMask, symbolTable, inputMap, delimiter));
     }
-    virtual const std::string& getName() const { return name; }
+    virtual const std::string& getName() const {
+        return name;
+    }
     virtual ~ReadFileCSVFactory() {}
+
 private:
     static const std::string name;
 };

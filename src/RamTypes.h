@@ -10,14 +10,15 @@
  *
  * @file RamTypes.h
  *
- * Defines tuple element type and data type for keys on table columns 
+ * Defines tuple element type and data type for keys on table columns
  *
  ***********************************************************************/
 
 #pragma once
 
-#include <stdint.h>
 #include <limits>
+
+#include <stdint.h>
 
 namespace souffle {
 
@@ -28,17 +29,16 @@ namespace souffle {
  * defining RAM_DOMAIN_TYPE.
  */
 #ifdef RAM_DOMAIN_TYPE
-    typedef RAM_DOMAIN_TYPE RamDomain;
+typedef RAM_DOMAIN_TYPE RamDomain;
 #else
-    typedef int32_t RamDomain;
+typedef int32_t RamDomain;
 #endif
 
 /** lower and upper boundaries for the ram domain **/
 #define MIN_RAM_DOMAIN (std::numeric_limits<RamDomain>::min())
 #define MAX_RAM_DOMAIN (std::numeric_limits<RamDomain>::max())
 
-/** type of an index key; each bit represents a column of a table */ 
+/** type of an index key; each bit represents a column of a table */
 typedef uint64_t SearchColumns;
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

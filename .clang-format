@@ -33,11 +33,11 @@ DisableFormat:   false
 ExperimentalAutoDetectBinPacking: false
 ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH ]
 IncludeCategories: 
-  - Regex:           '.*'
+  - Regex:           '".*"'
     Priority:        1
-  - Regex:           '^<.*'
+  - Regex:           '<.*[^.].>'
     Priority:        2
-  - Regex:           '^<.*\.h>'
+  - Regex:           '<.*\.h>'
     Priority:        3
 IndentCaseLabels: true
 IndentWidth:     4

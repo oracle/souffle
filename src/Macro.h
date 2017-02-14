@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 namespace souffle {
 
 namespace macro {
@@ -9,15 +11,13 @@ inline void call(const std::string& name, const std::string& text, const int cod
     exit(code);
 }
 
-template<typename T>
+template <typename T>
 inline void call(const std::string& name, const std::string& text, const int code, T callback) {
     std::cerr << name << ": " << text << std::endl;
     callback();
     exit(code);
 }
-
 }
-
 }
 
 /* Macro for ASSERT */

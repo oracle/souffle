@@ -16,15 +16,15 @@
 
 #pragma once
 
-#include <ctype.h>
-
-#include <iostream>
-#include <string>
-#include <vector>
-#include <set>
-
 #include "AstNode.h"
 #include "AstType.h"
+
+#include <iostream>
+#include <set>
+#include <string>
+#include <vector>
+
+#include <ctype.h>
 
 namespace souffle {
 
@@ -38,31 +38,29 @@ class Type;
  *  Attribute has the only name attribute
  */
 class AstAttribute : public AstNode {
-
     /** Attribute name */
     std::string name;
 
-    /** Type name */ 
+    /** Type name */
     AstTypeIdentifier typeName;
 
 public:
-
     AstAttribute(const std::string& n, const AstTypeIdentifier& t, const Type* type = NULL)
-        : name(n), typeName(t) {}
+            : name(n), typeName(t) {}
 
     const std::string& getAttributeName() const {
-        return name; 
+        return name;
     }
 
     const AstTypeIdentifier& getTypeName() const {
-        return typeName; 
+        return typeName;
     }
 
     void setTypeName(const AstTypeIdentifier& name) {
         typeName = name;
     }
 
-    virtual void print(std::ostream &os) const {
+    virtual void print(std::ostream& os) const {
         os << name << ":" << typeName;
     }
 
@@ -84,15 +82,12 @@ public:
     }
 
 protected:
-
     /** Implements the node comparison for this node type */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstAttribute*>(&node));
         const AstAttribute& other = static_cast<const AstAttribute&>(node);
         return name == other.name && typeName == other.typeName;
     }
-
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

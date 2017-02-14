@@ -24,50 +24,69 @@ namespace souffle {
  */
 enum class UnaryOp {
     __UNDEFINED__,
-    ORD,              // character value
-    NEG,              // numeric negation
-    BNOT,             // bitwise negation
-    LNOT,             // logical negation
-    SIN,              // mathematical sin
-    COS,              // mathematical cos
-    TAN,              // mathematical tan
-    ASIN,             // mathematical asin
-    ACOS,             // mathematical acos
-    ATAN,             // mathematical atan
-    SINH,             // mathematical sinh
-    COSH,             // mathematical cosh
-    TANH,             // mathematical tanh
-    ASINH,            // mathematical asinh
-    ACOSH,            // mathematical acosh
-    ATANH,            // mathematical atanh
-    LOG,              // mathematical natural logarithm
-    EXP               // mathematical natural exponent
+    ORD,  // character value
+    NEG,  // numeric negation
+    BNOT,  // bitwise negation
+    LNOT,  // logical negation
+    SIN,  // mathematical sin
+    COS,  // mathematical cos
+    TAN,  // mathematical tan
+    ASIN,  // mathematical asin
+    ACOS,  // mathematical acos
+    ATAN,  // mathematical atan
+    SINH,  // mathematical sinh
+    COSH,  // mathematical cosh
+    TANH,  // mathematical tanh
+    ASINH,  // mathematical asinh
+    ACOSH,  // mathematical acosh
+    ATANH,  // mathematical atanh
+    LOG,  // mathematical natural logarithm
+    EXP  // mathematical natural exponent
 };
 
 /**
  * Returns the corresponding symbol for the given relational operator.
  */
 inline std::string getSymbolForUnaryOp(UnaryOp op) {
-    switch(op) {
-    case UnaryOp::ORD : return "ord";
-    case UnaryOp::NEG : return "-";
-    case UnaryOp::BNOT : return "bnot";
-    case UnaryOp::LNOT : return "lnot";
-    case UnaryOp::SIN : return "sin";
-    case UnaryOp::COS : return "cos";
-    case UnaryOp::TAN : return "tan";
-    case UnaryOp::ASIN : return "asin";
-    case UnaryOp::ACOS : return "acos";
-    case UnaryOp::ATAN : return "atan";
-    case UnaryOp::SINH : return "sinh";
-    case UnaryOp::COSH : return "cosh";
-    case UnaryOp::TANH : return "tanh";
-    case UnaryOp::ASINH : return "asinh";
-    case UnaryOp::ACOSH : return "acosh";
-    case UnaryOp::ATANH : return "atanh";
-    case UnaryOp::LOG : return "log";
-    case UnaryOp::EXP : return "exp";
-    default: break;
+    switch (op) {
+        case UnaryOp::ORD:
+            return "ord";
+        case UnaryOp::NEG:
+            return "-";
+        case UnaryOp::BNOT:
+            return "bnot";
+        case UnaryOp::LNOT:
+            return "lnot";
+        case UnaryOp::SIN:
+            return "sin";
+        case UnaryOp::COS:
+            return "cos";
+        case UnaryOp::TAN:
+            return "tan";
+        case UnaryOp::ASIN:
+            return "asin";
+        case UnaryOp::ACOS:
+            return "acos";
+        case UnaryOp::ATAN:
+            return "atan";
+        case UnaryOp::SINH:
+            return "sinh";
+        case UnaryOp::COSH:
+            return "cosh";
+        case UnaryOp::TANH:
+            return "tanh";
+        case UnaryOp::ASINH:
+            return "asinh";
+        case UnaryOp::ACOSH:
+            return "acosh";
+        case UnaryOp::ATANH:
+            return "atanh";
+        case UnaryOp::LOG:
+            return "log";
+        case UnaryOp::EXP:
+            return "exp";
+        default:
+            break;
     }
     assert(false && "Unsupported Operator!");
     return "?";
@@ -76,11 +95,11 @@ inline std::string getSymbolForUnaryOp(UnaryOp op) {
 /**
  * Returns the corresponding operator for the given symbol.
  */
-inline UnaryOp getUnaryOpForSymbol(const std::string &symbol) {
-    if (symbol == "ord") return  UnaryOp::ORD;
-    if (symbol == "-") return  UnaryOp::NEG;
-    if (symbol == "bnot") return  UnaryOp::BNOT;
-    if (symbol == "lnot") return  UnaryOp::LNOT;
+inline UnaryOp getUnaryOpForSymbol(const std::string& symbol) {
+    if (symbol == "ord") return UnaryOp::ORD;
+    if (symbol == "-") return UnaryOp::NEG;
+    if (symbol == "bnot") return UnaryOp::BNOT;
+    if (symbol == "lnot") return UnaryOp::LNOT;
     if (symbol == "sin") return UnaryOp::SIN;
     if (symbol == "cos") return UnaryOp::COS;
     if (symbol == "tan") return UnaryOp::TAN;
@@ -104,28 +123,28 @@ inline UnaryOp getUnaryOpForSymbol(const std::string &symbol) {
  * Returns whether the given operator has a numeric return value.
  */
 inline bool isNumericUnaryOp(const UnaryOp op) {
-    switch(op) {
-    case UnaryOp::ORD:
-    case UnaryOp::NEG:
-    case UnaryOp::BNOT:
-    case UnaryOp::LNOT:
-    case UnaryOp::SIN:
-    case UnaryOp::COS:
-    case UnaryOp::TAN:
-    case UnaryOp::ASIN:
-    case UnaryOp::ACOS:
-    case UnaryOp::ATAN:
-    case UnaryOp::SINH:
-    case UnaryOp::COSH:
-    case UnaryOp::TANH:
-    case UnaryOp::ASINH:
-    case UnaryOp::ACOSH:
-    case UnaryOp::ATANH:
-    case UnaryOp::LOG:
-    case UnaryOp::EXP:
-        return true;
-    default:
-        break;
+    switch (op) {
+        case UnaryOp::ORD:
+        case UnaryOp::NEG:
+        case UnaryOp::BNOT:
+        case UnaryOp::LNOT:
+        case UnaryOp::SIN:
+        case UnaryOp::COS:
+        case UnaryOp::TAN:
+        case UnaryOp::ASIN:
+        case UnaryOp::ACOS:
+        case UnaryOp::ATAN:
+        case UnaryOp::SINH:
+        case UnaryOp::COSH:
+        case UnaryOp::TANH:
+        case UnaryOp::ASINH:
+        case UnaryOp::ACOSH:
+        case UnaryOp::ATANH:
+        case UnaryOp::LOG:
+        case UnaryOp::EXP:
+            return true;
+        default:
+            break;
     }
     assert(false && "Uncovered case!");
     return false;
@@ -143,28 +162,28 @@ inline bool isSymbolicUnaryOp(const UnaryOp op) {
  */
 inline bool unaryOpAcceptsNumbers(const UnaryOp op) {
     switch (op) {
-    case UnaryOp::NEG:
-    case UnaryOp::BNOT:
-    case UnaryOp::LNOT:
-    case UnaryOp::SIN:
-    case UnaryOp::COS:
-    case UnaryOp::TAN:
-    case UnaryOp::ASIN:
-    case UnaryOp::ACOS:
-    case UnaryOp::ATAN:
-    case UnaryOp::SINH:
-    case UnaryOp::COSH:
-    case UnaryOp::TANH:
-    case UnaryOp::ASINH:
-    case UnaryOp::ACOSH:
-    case UnaryOp::ATANH:
-    case UnaryOp::LOG:
-    case UnaryOp::EXP:
-        return true;
-    case UnaryOp::ORD:
-        return false;
-    default:
-        break;
+        case UnaryOp::NEG:
+        case UnaryOp::BNOT:
+        case UnaryOp::LNOT:
+        case UnaryOp::SIN:
+        case UnaryOp::COS:
+        case UnaryOp::TAN:
+        case UnaryOp::ASIN:
+        case UnaryOp::ACOS:
+        case UnaryOp::ATAN:
+        case UnaryOp::SINH:
+        case UnaryOp::COSH:
+        case UnaryOp::TANH:
+        case UnaryOp::ASINH:
+        case UnaryOp::ACOSH:
+        case UnaryOp::ATANH:
+        case UnaryOp::LOG:
+        case UnaryOp::EXP:
+            return true;
+        case UnaryOp::ORD:
+            return false;
+        default:
+            break;
     }
     assert(false && "Unsupported operator encountered!");
     return false;
@@ -177,5 +196,4 @@ inline bool unaryOpAcceptsSymbols(const UnaryOp op) {
     return !unaryOpAcceptsNumbers(op);
 }
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

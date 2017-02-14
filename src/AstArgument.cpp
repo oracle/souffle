@@ -17,22 +17,25 @@
  ***********************************************************************/
 
 #include "AstArgument.h"
-
 #include "AstLiteral.h"
 
 namespace souffle {
 
 std::vector<const AstNode*> AstAggregator::getChildNodes() const {
     auto res = AstArgument::getChildNodes();
-    if (expr) res.push_back(expr.get());
-    for(auto& cur : body) res.push_back(cur.get());
+    if (expr) {
+        res.push_back(expr.get());
+    }
+    for (auto& cur : body) {
+        res.push_back(cur.get());
+    }
     return res;
 }
 
 AstAggregator* AstAggregator::clone() const {
     auto res = new AstAggregator(fun);
     res->expr = (expr) ? std::unique_ptr<AstArgument>(expr->clone()) : nullptr;
-    for(const auto& cur : body) {
+    for (const auto& cur : body) {
         res->body.push_back(std::unique_ptr<AstLiteral>(cur->clone()));
     }
     res->setSrcLoc(getSrcLoc());
@@ -40,11 +43,18 @@ AstAggregator* AstAggregator::clone() const {
 }
 
 void AstAggregator::print(std::ostream& os) const {
-    switch(fun) {
-    case min: os << "min"; break;
-    case max: os << "max"; break;
-    case count: os << "count"; break;
-    default: break;
+    switch (fun) {
+        case min:
+            os << "min";
+            break;
+        case max:
+            os << "max";
+            break;
+        case count:
+            os << "count";
+            break;
+        default:
+            break;
     }
 
     if (expr) {
@@ -63,5 +73,4 @@ void AstAggregator::print(std::ostream& os) const {
     }
 }
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

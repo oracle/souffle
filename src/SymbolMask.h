@@ -21,6 +21,7 @@ namespace souffle {
 
 class SymbolMask {
     std::vector<bool> mask;
+
 public:
     SymbolMask(size_t arity) : mask(arity) {}
 
@@ -47,7 +48,7 @@ public:
         }
 
         out << *cur++;
-        for(;cur != mask.end(); ++cur) {
+        for (; cur != mask.end(); ++cur) {
             out << ", " << *cur;
         }
     }

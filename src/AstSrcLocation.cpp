@@ -14,26 +14,27 @@
  *
  ***********************************************************************/
 
-#include <limits>
+#include "AstSrcLocation.h"
+
 #include <cstring>
 #include <fstream>
-#include <sstream>
-#include <unistd.h>
 #include <iostream>
-#include <libgen.h>
+#include <limits>
+#include <sstream>
 
-#include "AstSrcLocation.h"
+#include <libgen.h>
+#include <unistd.h>
 
 namespace souffle {
 
 std::string AstSrcLocation::extloc() const {
     std::ifstream in(filename);
     std::stringstream s;
-    char fname[filename.length()+1];
-    strcpy(fname,filename.c_str());
+    char fname[filename.length() + 1];
+    strcpy(fname, filename.c_str());
     if (in.is_open()) {
         s << "file " << basename(fname) << " at line " << start.line << "\n";
-        for (int i = 0; i < start.line -1; ++i){
+        for (int i = 0; i < start.line - 1; ++i) {
             in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
         int c;
@@ -41,7 +42,7 @@ std::string AstSrcLocation::extloc() const {
         int offsetColumn = start.column;
         bool prevWhitespace = false;
         bool afterFirstNonSpace = false;
-        while ((c = in.get()) != '\n' && c != EOF)  {
+        while ((c = in.get()) != '\n' && c != EOF) {
             s << (char)c;
             lineLen++;
 
@@ -57,7 +58,7 @@ std::string AstSrcLocation::extloc() const {
                 afterFirstNonSpace = true;
             }
         }
-        lineLen++; // Add new line
+        lineLen++;  // Add new line
         in.close();
         s << "\n";
         for (int i = 1; i <= lineLen; i++) {
@@ -71,5 +72,4 @@ std::string AstSrcLocation::extloc() const {
     return s.str();
 }
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include <ctype.h>
+#include "AstNode.h"
 
 #include <iostream>
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
 
-#include "AstNode.h"
+#include <ctype.h>
 
 namespace souffle {
 
@@ -35,34 +35,27 @@ namespace souffle {
  *
  */
 class AstTypeIdentifier {
-
     /**
      * The list of names forming this identifier.
      */
     std::vector<std::string> names;
 
 public:
-
     // -- constructors --
 
-    AstTypeIdentifier()
-		: names() {}
+    AstTypeIdentifier() : names() {}
 
-    AstTypeIdentifier(const std::string& name)
-        : names(toVector(name)) {}
+    AstTypeIdentifier(const std::string& name) : names(toVector(name)) {}
 
-    AstTypeIdentifier(const char* name)
-        : AstTypeIdentifier(std::string(name)) {}
+    AstTypeIdentifier(const char* name) : AstTypeIdentifier(std::string(name)) {}
 
-    AstTypeIdentifier(const AstTypeIdentifier&) =default;
-    AstTypeIdentifier(AstTypeIdentifier&&) =default;
-
+    AstTypeIdentifier(const AstTypeIdentifier&) = default;
+    AstTypeIdentifier(AstTypeIdentifier&&) = default;
 
     // -- assignment operators --
 
     AstTypeIdentifier& operator=(const AstTypeIdentifier&) = default;
     AstTypeIdentifier& operator=(AstTypeIdentifier&&) = default;
-
 
     // -- mutators --
 
@@ -74,17 +67,15 @@ public:
         names.insert(names.begin(), name);
     }
 
-
     // -- getters and setters --
 
     bool empty() const {
-    	return names.empty();
+        return names.empty();
     }
 
     const std::vector<std::string>& getNames() const {
         return names;
     }
-
 
     // -- comparison operators --
 
@@ -97,7 +88,8 @@ public:
     }
 
     bool operator<(const AstTypeIdentifier& other) const {
-        return std::lexicographical_compare(names.begin(), names.end(), other.names.begin(), other.names.end());
+        return std::lexicographical_compare(
+                names.begin(), names.end(), other.names.begin(), other.names.end());
     }
 
     void print(std::ostream& out) const {
@@ -108,7 +100,6 @@ public:
         id.print(out);
         return out;
     }
-
 };
 
 /**
@@ -120,22 +111,18 @@ inline AstTypeIdentifier operator+(const std::string& name, const AstTypeIdentif
     return res;
 }
 
-
 /**
  *  @class Type
  *  @brief An abstract base class for types within the AST.
  *
  */
 class AstType : public AstNode {
-
     /** In the AST each type has to have a name forming a unique identifier */
     AstTypeIdentifier name;
 
 public:
-
     /** Creates a new type */
     AstType(const AstTypeIdentifier& name = "") : name(name) {}
-
 
     /** Obtains the name of this type */
     const AstTypeIdentifier& getName() const {
@@ -153,13 +140,12 @@ public:
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstType* clone() const =0;
+    virtual AstType* clone() const = 0;
 
     /** Mutates this node */
     virtual void apply(const AstNodeMapper& map) {
         // no nested nodes in any type
     }
-
 };
 
 /**
@@ -168,15 +154,12 @@ public:
  * basic building blocks of souffle's type system.
  */
 class AstPrimitiveType : public AstType {
-
     /** Indicates whether it is a number (true) or a symbol (false) */
     bool num;
 
 public:
-
     /** Creates a new primitive type */
-    AstPrimitiveType(const AstTypeIdentifier& name, bool num = false)
-        : AstType(name), num(num) {}
+    AstPrimitiveType(const AstTypeIdentifier& name, bool num = false) : AstType(name), num(num) {}
 
     /** Tests whether this type is a numeric type */
     bool isNumeric() const {
@@ -189,7 +172,7 @@ public:
     }
 
     /** Prints a summary of this type to the given stream */
-    virtual void print(std::ostream &os) const {
+    virtual void print(std::ostream& os) const {
         os << ".type " << getName() << (num ? "= number" : "");
     }
 
@@ -199,14 +182,12 @@ public:
     }
 
 protected:
-
     /** Implements the node comparison for this node type */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstPrimitiveType*>(&node));
         const AstPrimitiveType& other = static_cast<const AstPrimitiveType&>(node);
         return getName() == other.getName() && num == other.num;
     }
-
 };
 
 /**
@@ -215,12 +196,10 @@ protected:
  * union type.
  */
 class AstUnionType : public AstType {
-
     /** The list of types aggregated by this union type */
     std::vector<AstTypeIdentifier> types;
 
 public:
-
     /** Creates a new union type */
     AstUnionType() {}
 
@@ -248,14 +227,12 @@ public:
     }
 
 protected:
-
     /** Implements the node comparison for this node type */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstUnionType*>(&node));
         const AstUnionType& other = static_cast<const AstUnionType&>(node);
         return getName() == other.getName() && types == other.types;
     }
-
 };
 
 /**
@@ -266,11 +243,10 @@ protected:
  */
 class AstRecordType : public AstType {
 public:
-
     /** The type utilized to model a field */
     struct Field {
-        std::string name;           // < the field name
-        AstTypeIdentifier type;     // < the field type
+        std::string name;  // < the field name
+        AstTypeIdentifier type;  // < the field type
 
         bool operator==(const Field& other) const {
             return this == &other || (name == other.name && type == other.type);
@@ -278,12 +254,10 @@ public:
     };
 
 private:
-
     /** The list of fields constituting this record type */
     std::vector<Field> fields;
 
 public:
-
     /** Creates a new record type */
     AstRecordType() {}
 
@@ -299,9 +273,10 @@ public:
 
     /** Prints a summary of this type to the given stream */
     virtual void print(std::ostream& os) const {
-        os << ".type " << getName() << " = " << "[";
-        for(unsigned i=0; i<fields.size(); i++) {
-            if (i!=0) os << ",";
+        os << ".type " << getName() << " = "
+           << "[";
+        for (unsigned i = 0; i < fields.size(); i++) {
+            if (i != 0) os << ",";
             os << fields[i].name;
             os << ":";
             os << fields[i].type;
@@ -318,15 +293,12 @@ public:
     }
 
 protected:
-
     /** Implements the node comparison for this node type */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstRecordType*>(&node));
         const AstRecordType& other = static_cast<const AstRecordType&>(node);
         return getName() == other.getName() && fields == other.fields;
     }
-
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

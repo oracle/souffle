@@ -16,15 +16,15 @@
 
 #pragma once
 
-#include <string>
+#include "Global.h"
+#include "RamData.h"
+#include "RamRelation.h"
+
+#include <functional>
 #include <map>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <functional>
-
-#include "RamRelation.h"
-#include "RamData.h"
-#include "Global.h"
 
 namespace souffle {
 
@@ -36,18 +36,16 @@ class RamInsert;
  * An abstract base class for entities capable of processing a RAM program.
  */
 class RamExecutor {
-
 protected:
     /** An optional stream to print logging information to */
     std::ostream* report;
 
 public:
-    using SymbolTable = souffle::SymbolTable; // XXX pending namespace cleanup
+    using SymbolTable = souffle::SymbolTable;  // XXX pending namespace cleanup
     RamExecutor() : report(nullptr) {}
 
     /** A virtual destructor to support safe inheritance */
     virtual ~RamExecutor() {}
-
 
     /**
      * Updates the target this executor is reporting to.
@@ -62,7 +60,6 @@ public:
     void disableReporting() {
         report = nullptr;
     }
-
 
     /**
      * Runs the given RAM statement on an empty environment and returns
@@ -89,22 +86,19 @@ public:
      * Runs the given statement on the given environment.
      */
     virtual void applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const = 0;
-
 };
 
 /**
  * A class representing the order of elements.
  */
 class Order {
-
     /** The covered order */
     std::vector<unsigned> order;
 
 public:
-
     static Order getIdentity(unsigned size) {
         Order res;
-        for(unsigned i = 0; i<size; i++) {
+        for (unsigned i = 0; i < size; i++) {
             res.append(i);
         }
         return res;
@@ -123,13 +117,13 @@ public:
     }
 
     bool isComplete() const {
-        for(size_t i = 0; i<order.size(); i++) {
+        for (size_t i = 0; i < order.size(); i++) {
             if (!contains(order, i)) return false;
         }
         return true;
     }
 
-    const std::vector<unsigned> &getOrder() const {
+    const std::vector<unsigned>& getOrder() const {
         return order;
     }
 
@@ -151,12 +145,9 @@ struct ExecutionSummary {
     long time;
 };
 
-
 /** Defines the type of execution strategies */
-typedef std::function<
-        ExecutionSummary(const RamInsert&, RamEnvironment& env, std::ostream*)
->  QueryExecutionStrategy;
-
+typedef std::function<ExecutionSummary(const RamInsert&, RamEnvironment& env, std::ostream*)>
+        QueryExecutionStrategy;
 
 // -- example strategies --
 
@@ -166,31 +157,26 @@ extern const QueryExecutionStrategy DirectExecution;
 /** With this strategy queries will be dynamically rescheduled before each execution */
 extern const QueryExecutionStrategy ScheduledExecution;
 
-
 /**
  * An interpreter based implementation of a RAM executor. The RAM program will
  * be processed within the callers process. Before every query operation, an
  * optional scheduling step will be conducted.
  */
 class RamGuidedInterpreter : public RamExecutor {
-
     /** The executor processing a query */
     QueryExecutionStrategy queryStrategy;
 
 public:
-
     /** A constructor accepting a query executor strategy */
     RamGuidedInterpreter(const QueryExecutionStrategy& queryStrategy = ScheduledExecution)
-        : queryStrategy(queryStrategy) {}
+            : queryStrategy(queryStrategy) {}
 
     /**
      * The implementation of the interpreter applying the given program
      * on the given environment.
      */
     virtual void applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const;
-
 };
-
 
 /**
  * An interpreter based implementation of a RAM executor. The RAM program will
@@ -198,26 +184,19 @@ public:
  * will be conducted.
  */
 struct RamInterpreter : public RamGuidedInterpreter {
-
     /** A constructor setting the query policy for the base class */
-    RamInterpreter() : RamGuidedInterpreter(DirectExecution) {
-    };
-
+    RamInterpreter() : RamGuidedInterpreter(DirectExecution){};
 };
-
 
 /**
  * A RAM executor based on the creation and compilation of an executable conducting
  * the actual computation.
  */
 class RamCompiler : public RamExecutor {
-
 private:
-
     std::string compileCmd;
 
 public:
-
     /** A simple constructor */
     RamCompiler(const std::string& compileCmd) : compileCmd(compileCmd) {}
 
@@ -226,14 +205,16 @@ public:
      * name is either set by the corresponding member field or will
      * be determined randomly. The chosen file-name will be returned.
      */
-    std::string generateCode(const SymbolTable& symTable, const RamStatement& stmt, const std::string& filename = "") const;
+    std::string generateCode(
+            const SymbolTable& symTable, const RamStatement& stmt, const std::string& filename = "") const;
 
     /**
      * Generates the code for the given ram statement.The target file
      * name is either set by the corresponding member field or will
      * be determined randomly. The chosen file-name will be returned.
      */
-    std::string compileToLibrary(const SymbolTable& symTable, const RamStatement& stmt, const std::string& filename = "default") const;
+    std::string compileToLibrary(const SymbolTable& symTable, const RamStatement& stmt,
+            const std::string& filename = "default") const;
 
     /**
      * Compiles the given statement to a binary file. The target file
@@ -249,22 +230,17 @@ public:
     virtual void applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const;
 
 private:
-
     /**
      * Obtains a file name for the resulting source and executable file.
      */
     std::string resolveFileName() const;
-
 };
-
 
 /**
  * A singleton which provides a mapping from strings to unique valid CPP identifiers.
  */
 class CPPIdentifierMap {
-
 public:
-
     /**
      * Obtains the singleton instance.
      */
@@ -283,8 +259,6 @@ public:
     ~CPPIdentifierMap() {}
 
 private:
-
-
     CPPIdentifierMap() {}
 
     static CPPIdentifierMap* instance;
@@ -297,7 +271,8 @@ private:
         if (it != identifiers.end()) return it->second;
         // strip leading numbers
         unsigned int i;
-        for (i = 0; i < name.length(); ++i) if (isalnum(name.at(i)) || name.at(i) == '_') break;
+        for (i = 0; i < name.length(); ++i)
+            if (isalnum(name.at(i)) || name.at(i) == '_') break;
         std::string id;
         for (auto ch : std::to_string(identifiers.size() + 1) + '_' + name.substr(i)) {
             // alphanumeric characters are allowed
@@ -310,25 +285,16 @@ private:
             else if (id.size() == 0 || id.back() != '_') {
                 id += '_';
             }
-
         }
         // most compilers have a limit of 2048 characters (if they have a limit at all) for
         // identifiers; we use half of that for safety
         id = id.substr(0, 1024);
-        identifiers.insert(
-            std::make_pair(
-                name,
-                id
-            )
-        );
+        identifiers.insert(std::make_pair(name, id));
         return id;
     }
 
     // The map of identifiers.
     std::map<const std::string, const std::string> identifiers;
-
 };
 
-
-} // end of namespace souffle
-
+}  // end of namespace souffle

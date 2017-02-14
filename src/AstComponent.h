@@ -16,11 +16,11 @@
 
 #pragma once
 
+#include "AstRelation.h"
+
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-
-#include "AstRelation.h"
 
 namespace souffle {
 
@@ -35,7 +35,6 @@ class ErrorReport;
  * list of type parameters.
  */
 class AstComponentType {
-
     /**
      * The name of the addressed component.
      */
@@ -47,21 +46,20 @@ class AstComponentType {
     std::vector<AstTypeIdentifier> typeParams;
 
 public:
-
     /**
      * Creates a new component type based on the given name and parameters.
      */
-    AstComponentType(const std::string& name = "", const std::vector<AstTypeIdentifier>& params = std::vector<AstTypeIdentifier>())
-        : name(name), typeParams(params) {}
+    AstComponentType(const std::string& name = "",
+            const std::vector<AstTypeIdentifier>& params = std::vector<AstTypeIdentifier>())
+            : name(name), typeParams(params) {}
 
     // -- copy constructors and assignment operators --
 
     AstComponentType(const AstComponentType& other) = default;
     AstComponentType(AstComponentType&& other) = default;
 
-    AstComponentType& operator=(const AstComponentType& other) =default;
-    AstComponentType& operator=(AstComponentType&& other) =default;
-
+    AstComponentType& operator=(const AstComponentType& other) = default;
+    AstComponentType& operator=(AstComponentType&& other) = default;
 
     // -- equality and inequality operators --
 
@@ -72,7 +70,6 @@ public:
     bool operator!=(const AstComponentType& other) const {
         return !(*this == other);
     }
-
 
     // -- getters and setters --
 
@@ -92,7 +89,6 @@ public:
         typeParams = params;
     }
 
-
     // -- printers --
 
     void print(std::ostream& out) const {
@@ -104,16 +100,13 @@ public:
         id.print(out);
         return out;
     }
-
 };
-
 
 /**
  * A node type representing expressions utilized to initialize components by
  * binding them to a name.
  */
 class AstComponentInit : public AstNode {
-
     /**
      * The name of the resulting component instance.
      */
@@ -125,8 +118,6 @@ class AstComponentInit : public AstNode {
     AstComponentType componentType;
 
 public:
-
-
     // -- getters and setters --
 
     const std::string& getInstanceName() const {
@@ -155,37 +146,33 @@ public:
 
     /** Applies the node mapper to all child nodes and conducts the corresponding replacements */
     virtual void apply(const AstNodeMapper& mapper) {
-        return; // nothing to do
+        return;  // nothing to do
     }
 
     /** Obtains a list of all embedded child nodes */
     virtual std::vector<const AstNode*> getChildNodes() const {
         std::vector<const AstNode*> res;
-        return res;     // no child nodes
+        return res;  // no child nodes
     }
 
     /** Output to a given output stream */
-    virtual void print(std::ostream &os) const {
+    virtual void print(std::ostream& os) const {
         os << ".init " << instanceName << " = " << componentType;
     }
 
 protected:
-
     /** An internal function to determine equality to another node */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstComponentInit*>(&node));
         const AstComponentInit& other = static_cast<const AstComponentInit&>(node);
         return instanceName == other.instanceName && componentType == other.componentType;
     }
-
 };
-
 
 /**
  * A AST node describing a component within the input program.
  */
 class AstComponent : public AstNode {
-
     /**
      * The type of this component, including its name and type parameters.
      */
@@ -227,14 +214,12 @@ class AstComponent : public AstNode {
     std::vector<std::unique_ptr<AstComponentInit>> instantiations;
 
     /**
-     * Set of relations that are overwritten 
-     */ 
-    std::set<std::string> overrideRules; 
+     * Set of relations that are overwritten
+     */
+    std::set<std::string> overrideRules;
 
 public:
-
-    ~AstComponent() { }
-
+    ~AstComponent() {}
 
     // -- getters and setters --
 
@@ -259,18 +244,18 @@ public:
     }
 
     void addType(std::unique_ptr<AstType> t) {
-    	types.push_back(std::move(t));
+        types.push_back(std::move(t));
     }
 
     std::vector<AstType*> getTypes() const {
-    	return toPtrVector(types);
+        return toPtrVector(types);
     }
 
     void addRelation(std::unique_ptr<AstRelation> r) {
         relations.push_back(std::move(r));
     }
 
-    std::vector<AstRelation *> getRelations() const {
+    std::vector<AstRelation*> getRelations() const {
         return toPtrVector(relations);
     }
 
@@ -278,7 +263,7 @@ public:
         clauses.push_back(std::move(c));
     }
 
-    std::vector<AstClause *> getClauses() const {
+    std::vector<AstClause*> getClauses() const {
         return toPtrVector(clauses);
     }
 
@@ -294,7 +279,7 @@ public:
         components.push_back(std::move(c));
     }
 
-    std::vector<AstComponent *> getComponents() const {
+    std::vector<AstComponent*> getComponents() const {
         return toPtrVector(components);
     }
 
@@ -302,15 +287,15 @@ public:
         instantiations.push_back(std::move(i));
     }
 
-    std::vector<AstComponentInit *> getInstantiations() const {
+    std::vector<AstComponentInit*> getInstantiations() const {
         return toPtrVector(instantiations);
     }
 
-    void addOverride(const std::string &name) { 
-        overrideRules.insert(name); 
+    void addOverride(const std::string& name) {
+        overrideRules.insert(name);
     }
 
-    const std::set<std::string> &getOverridden() const {
+    const std::set<std::string>& getOverridden() const {
         return overrideRules;
     }
 
@@ -321,27 +306,52 @@ public:
         res->setComponentType(getComponentType());
         res->setBaseComponents(getBaseComponents());
 
-        for(const auto& cur : components)       res->components.push_back(std::unique_ptr<AstComponent>(cur->clone()));
-        for(const auto& cur : instantiations)   res->instantiations.push_back(std::unique_ptr<AstComponentInit>(cur->clone()));
-        for(const auto& cur : types)            res->types.push_back(std::unique_ptr<AstType>(cur->clone()));
-        for(const auto& cur : relations)        res->relations.push_back(std::unique_ptr<AstRelation>(cur->clone()));
-        for(const auto& cur : clauses)          res->clauses.push_back(std::unique_ptr<AstClause>(cur->clone()));
-        for(const auto& cur : ioDirectives)     res->ioDirectives.push_back(std::unique_ptr<AstIODirective>(cur->clone()));
-        for(const auto& cur : overrideRules)    res->overrideRules.insert(cur);
+        for (const auto& cur : components) {
+            res->components.push_back(std::unique_ptr<AstComponent>(cur->clone()));
+        }
+        for (const auto& cur : instantiations) {
+            res->instantiations.push_back(std::unique_ptr<AstComponentInit>(cur->clone()));
+        }
+        for (const auto& cur : types) {
+            res->types.push_back(std::unique_ptr<AstType>(cur->clone()));
+        }
+        for (const auto& cur : relations) {
+            res->relations.push_back(std::unique_ptr<AstRelation>(cur->clone()));
+        }
+        for (const auto& cur : clauses) {
+            res->clauses.push_back(std::unique_ptr<AstClause>(cur->clone()));
+        }
+        for (const auto& cur : ioDirectives) {
+            res->ioDirectives.push_back(std::unique_ptr<AstIODirective>(cur->clone()));
+        }
+        for (const auto& cur : overrideRules) {
+            res->overrideRules.insert(cur);
+        }
 
         return res;
     }
 
     /** Applies the node mapper to all child nodes and conducts the corresponding replacements */
     virtual void apply(const AstNodeMapper& mapper) {
-
         // apply mapper to all sub-nodes
-        for(auto& cur : components)       cur = mapper(std::move(cur));
-        for(auto& cur : instantiations)   cur = mapper(std::move(cur));
-        for(auto& cur : types)            cur = mapper(std::move(cur));
-        for(auto& cur : relations)        cur = mapper(std::move(cur));
-        for(auto& cur : clauses)          cur = mapper(std::move(cur));
-        for(auto& cur : ioDirectives)     cur = mapper(std::move(cur));
+        for (auto& cur : components) {
+            cur = mapper(std::move(cur));
+        }
+        for (auto& cur : instantiations) {
+            cur = mapper(std::move(cur));
+        }
+        for (auto& cur : types) {
+            cur = mapper(std::move(cur));
+        }
+        for (auto& cur : relations) {
+            cur = mapper(std::move(cur));
+        }
+        for (auto& cur : clauses) {
+            cur = mapper(std::move(cur));
+        }
+        for (auto& cur : ioDirectives) {
+            cur = mapper(std::move(cur));
+        }
 
         return;
     }
@@ -350,18 +360,30 @@ public:
     virtual std::vector<const AstNode*> getChildNodes() const {
         std::vector<const AstNode*> res;
 
-        for(const auto& cur : components)       res.push_back(cur.get());
-        for(const auto& cur : instantiations)   res.push_back(cur.get());
-        for(const auto& cur : types)            res.push_back(cur.get());
-        for(const auto& cur : relations)        res.push_back(cur.get());
-        for(const auto& cur : clauses)          res.push_back(cur.get());
-        for(const auto& cur : ioDirectives)     res.push_back(cur.get());
+        for (const auto& cur : components) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : instantiations) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : types) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : relations) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : clauses) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : ioDirectives) {
+            res.push_back(cur.get());
+        }
 
         return res;
     }
 
     /** Output to a given output stream */
-    virtual void print(std::ostream &os) const {
+    virtual void print(std::ostream& os) const {
         os << ".comp " << getComponentType() << " ";
 
         if (!baseComponents.empty()) {
@@ -369,21 +391,32 @@ public:
         }
         os << "{\n";
 
-        if (!components.empty())        os << join(components, "\n", print_deref<std::unique_ptr<AstComponent>>()) << "\n";
-        if (!instantiations.empty())    os << join(instantiations, "\n", print_deref<std::unique_ptr<AstComponentInit>>()) << "\n";
-        if (!types.empty())             os << join(types, "\n", print_deref<std::unique_ptr<AstType>>()) << "\n";
-        if (!relations.empty())         os << join(relations, "\n", print_deref<std::unique_ptr<AstRelation>>()) << "\n";
-        for (const auto &cur : overrideRules) { 
-            os << ".override " << cur << "\n"; 
-        } 
-        if (!clauses.empty())           os << join(clauses, "\n\n", print_deref<std::unique_ptr<AstClause>>()) << "\n";
-        if (!ioDirectives.empty())      os << join(ioDirectives, "\n\n", print_deref<std::unique_ptr<AstIODirective>>()) << "\n";
+        if (!components.empty()) {
+            os << join(components, "\n", print_deref<std::unique_ptr<AstComponent>>()) << "\n";
+        }
+        if (!instantiations.empty()) {
+            os << join(instantiations, "\n", print_deref<std::unique_ptr<AstComponentInit>>()) << "\n";
+        }
+        if (!types.empty()) {
+            os << join(types, "\n", print_deref<std::unique_ptr<AstType>>()) << "\n";
+        }
+        if (!relations.empty()) {
+            os << join(relations, "\n", print_deref<std::unique_ptr<AstRelation>>()) << "\n";
+        }
+        for (const auto& cur : overrideRules) {
+            os << ".override " << cur << "\n";
+        }
+        if (!clauses.empty()) {
+            os << join(clauses, "\n\n", print_deref<std::unique_ptr<AstClause>>()) << "\n";
+        }
+        if (!ioDirectives.empty()) {
+            os << join(ioDirectives, "\n\n", print_deref<std::unique_ptr<AstIODirective>>()) << "\n";
+        }
 
         os << "}\n";
     }
 
 protected:
-
     /** An internal function to determine equality to another node */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstComponent*>(&node));
@@ -391,15 +424,11 @@ protected:
 
         // compare all fields
         return type == other.type && baseComponents == other.baseComponents &&
-        	   equal_targets(types, other.types) &&
-               equal_targets(relations, other.relations) &&
-               equal_targets(clauses, other.clauses) &&
-               equal_targets(ioDirectives, other.ioDirectives) &&
+               equal_targets(types, other.types) && equal_targets(relations, other.relations) &&
+               equal_targets(clauses, other.clauses) && equal_targets(ioDirectives, other.ioDirectives) &&
                equal_targets(components, other.components) &&
                equal_targets(instantiations, other.instantiations);
     }
-
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

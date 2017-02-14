@@ -17,6 +17,8 @@
 #pragma once
 
 #include <map>
+#include <ostream>
+#include <set>
 
 namespace souffle {
 
@@ -31,7 +33,6 @@ class Graph {
     std::map<Node, std::set<Node, Compare>> backward;  // all edges backward
 
 public:
-
     /**
      * Adds a new edge from the given node to the target node.
      */
@@ -96,14 +97,14 @@ public:
     std::set<Node, Compare> getClique(const Node& node) const {
         std::set<Node, Compare> res;
         res.insert(node);
-        for(const auto& cur : getNodes()) {
-            if (reaches(node,cur) && reaches(cur,node)) res.insert(cur);
+        for (const auto& cur : getNodes()) {
+            if (reaches(node, cur) && reaches(cur, node)) res.insert(cur);
         }
         return res;
     }
 
     /** A generic utility for depth-first visits */
-    template<typename Lambda>
+    template <typename Lambda>
     void visitDepthFirst(const Node& node, const Lambda& lambda) const {
         std::set<Node, Compare> visited;
         visitDepthFirst(node, lambda, visited);
@@ -113,8 +114,8 @@ public:
     void print(std::ostream& out) const {
         bool first = true;
         out << "{";
-        for(const auto& cur : forward) {
-            for(const auto& trg : cur.second) {
+        for (const auto& cur : forward) {
+            for (const auto& trg : cur.second) {
                 if (!first) out << ",";
                 out << cur.first << "->" << trg;
                 first = false;
@@ -129,21 +130,18 @@ public:
     }
 
 private:
-
     /** The internal implementation of depth-first visits */
     template <typename Lambda>
     void visitDepthFirst(const Node& node, const Lambda& lambda, std::set<Node, Compare>& visited) const {
         lambda(node);
         auto pos = forward.find(node);
         if (pos == forward.end()) return;
-        for(const auto& cur : pos->second) {
+        for (const auto& cur : pos->second) {
             if (visited.insert(cur).second) {
                 visitDepthFirst(cur, lambda, visited);
             }
         }
     }
-
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

@@ -17,17 +17,17 @@
 
 #pragma once
 
-#include <map>
-#include <string>
-#include <list>
-#include <set>
-#include <memory>
-
-#include "Util.h"
-#include "AstRelation.h"
 #include "AstComponent.h"
-#include "TypeSystem.h"
+#include "AstRelation.h"
 #include "ErrorReport.h"
+#include "TypeSystem.h"
+#include "Util.h"
+
+#include <list>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
 
 namespace souffle {
 
@@ -43,195 +43,200 @@ class AstArgument;
  *          that consists of relations, clauses and types
  */
 class AstProgram : public AstNode {
-      using SymbolTable = souffle::SymbolTable; // XXX pending namespace cleanup
+    using SymbolTable = souffle::SymbolTable;  // XXX pending namespace cleanup
 
-      // TODO: Check whether this is needed
-      friend class ParserDriver;
-      friend class ComponentInstantiationTransformer;
-      friend class AstBuilder;
+    // TODO: Check whether this is needed
+    friend class ParserDriver;
+    friend class ComponentInstantiationTransformer;
+    friend class AstBuilder;
 
-      /** Program types  */
-      std::map<AstTypeIdentifier, std::unique_ptr<AstType>> types;
+    /** Program types  */
+    std::map<AstTypeIdentifier, std::unique_ptr<AstType>> types;
 
-      /** Program relations */
-      std::map<AstRelationIdentifier, std::unique_ptr<AstRelation>> relations;
+    /** Program relations */
+    std::map<AstRelationIdentifier, std::unique_ptr<AstRelation>> relations;
 
-      /** The list of clauses provided by the user */
-      std::vector<std::unique_ptr<AstClause>> clauses;
+    /** The list of clauses provided by the user */
+    std::vector<std::unique_ptr<AstClause>> clauses;
 
-      /** The list of IO directives provided by the user */
-      std::vector<std::unique_ptr<AstIODirective>> ioDirectives;
+    /** The list of IO directives provided by the user */
+    std::vector<std::unique_ptr<AstIODirective>> ioDirectives;
 
-      /** Program components */
-      std::vector<std::unique_ptr<AstComponent>> components;
+    /** Program components */
+    std::vector<std::unique_ptr<AstComponent>> components;
 
-      /** Component instantiations */
-      std::vector<std::unique_ptr<AstComponentInit>> instantiations;
+    /** Component instantiations */
+    std::vector<std::unique_ptr<AstComponentInit>> instantiations;
 
-      /** a private constructor to restrict creation */
-      AstProgram() { }
+    /** a private constructor to restrict creation */
+    AstProgram() {}
 
-   public:
+public:
+    /** Deleted copy constructor since instances can not be copied */
+    AstProgram(const AstProgram&) = delete;
 
-      /** Deleted copy constructor since instances can not be copied */
-      AstProgram(const AstProgram&) = delete;
+    /** A move constructor */
+    AstProgram(AstProgram&&);
 
-      /** A move constructor */
-      AstProgram(AstProgram&&);
+    /** A programs destructor */
+    ~AstProgram() {}
 
-      /** A programs destructor */
-      ~AstProgram() { }
+    // -- Types ----------------------------------------------------------------
 
-      // -- Types ----------------------------------------------------------------
+private:
+    /** Add the given type to the program. Asserts if a type with the
+      same name has already been added.  */
+    void addType(std::unique_ptr<AstType> type);
 
-   private:
+public:
+    /** Obtains the type with the given name */
+    const AstType* getType(const AstTypeIdentifier& name) const;
 
-      /** Add the given type to the program. Asserts if a type with the
-        same name has already been added.  */
-      void addType(std::unique_ptr<AstType> type);
+    /** Gets a list of all types in this program */
+    std::vector<const AstType*> getTypes() const;
 
-   public:
+    // -- Relations ------------------------------------------------------------
 
-      /** Obtains the type with the given name */
-      const AstType* getType(const AstTypeIdentifier& name) const;
+private:
+    /** Add the given relation to the program. Asserts if a relation with the
+     * same name has already been added. */
+    void addRelation(std::unique_ptr<AstRelation> r);
 
-      /** Gets a list of all types in this program */
-      std::vector<const AstType*> getTypes() const;
+    /** Add a clause to the program */
+    void addClause(std::unique_ptr<AstClause> r);
 
+    /** Add an IO directive to the program */
+    void addIODirective(std::unique_ptr<AstIODirective> r);
 
-      // -- Relations ------------------------------------------------------------
+public:
+    /** Find and return the relation in the program given its name */
+    AstRelation* getRelation(const AstRelationIdentifier& name) const;
 
-   private:
+    /** Get all relations in the program */
+    std::vector<AstRelation*> getRelations() const;
 
-      /** Add the given relation to the program. Asserts if a relation with the
-       * same name has already been added. */
-      void addRelation(std::unique_ptr<AstRelation> r);
+    /** Get all io directives in the program */
+    const std::vector<std::unique_ptr<AstIODirective>>& getIODirectives() const;
 
-      /** Add a clause to the program */
-      void addClause(std::unique_ptr<AstClause> r);
+    /** Return the number of relations in the program */
+    size_t relationSize() const {
+        return relations.size();
+    }
 
-      /** Add an IO directive to the program */
-      void addIODirective(std::unique_ptr<AstIODirective> r);
+    /** appends a new relation to this program -- after parsing */
+    void appendRelation(std::unique_ptr<AstRelation> r);
 
-  public:
+    /** Remove a relation from the program. */
+    void removeRelation(const AstRelationIdentifier& r);
 
-      /** Find and return the relation in the program given its name */
-      AstRelation* getRelation(const AstRelationIdentifier& name) const;
+    /** append a new clause to this program -- after parsing */
+    void appendClause(std::unique_ptr<AstClause> clause);
 
-      /** Get all relations in the program */
-      std::vector<AstRelation *> getRelations() const;
+    /** Removes a clause from this program */
+    void removeClause(const AstClause* clause);
 
-      /** Get all io directives in the program */
-      const std::vector<std::unique_ptr<AstIODirective>>& getIODirectives() const;
+    /**
+     * Obtains a list of clauses not associated to any relations. In
+     * a valid program this list is always empty
+     */
+    std::vector<AstClause*> getOrphanClauses() const {
+        return toPtrVector(clauses);
+    }
 
-      /** Return the number of relations in the program */
-      size_t relationSize() const { return relations.size(); }
+    // -- Components -----------------------------------------------------------
 
-      /** appends a new relation to this program -- after parsing */
-      void appendRelation(std::unique_ptr<AstRelation> r);
+private:
+    /** Adds the given component to this program */
+    void addComponent(std::unique_ptr<AstComponent> c) {
+        components.push_back(std::move(c));
+    }
 
-      /** Remove a relation from the program. */
-      void removeRelation(const AstRelationIdentifier &r);
+    /** Adds a component instantiation */
+    void addInstantiation(std::unique_ptr<AstComponentInit> i) {
+        instantiations.push_back(std::move(i));
+    }
 
-      /** append a new clause to this program -- after parsing */
-      void appendClause(std::unique_ptr<AstClause> clause);
+public:
+    /** Obtains a list of all comprised components */
+    std::vector<AstComponent*> getComponents() const {
+        return toPtrVector(components);
+    }
 
-      /** Removes a clause from this program */
-      void removeClause(const AstClause* clause);
+    /** Obtains a list of all component instantiations */
+    std::vector<AstComponentInit*> getComponentInstantiations() const {
+        return toPtrVector(instantiations);
+    }
 
-      /**
-       * Obtains a list of clauses not associated to any relations. In
-       * a valid program this list is always empty
-       */
-      std::vector<AstClause *> getOrphanClauses() const {
-          return toPtrVector(clauses);
-      }
+    // -- I/O ------------------------------------------------------------------
 
-      // -- Components ------------------------------------------------------------
+    /** Output the program to a given output stream */
+    void print(std::ostream& os) const;
 
-   private:
+    // -- Manipulation ---------------------------------------------------------
 
-      /** Adds the given component to this program */
-      void addComponent(std::unique_ptr<AstComponent> c) { components.push_back(std::move(c)); }
+    /** Creates a clone if this AST sub-structure */
+    virtual AstProgram* clone() const;
 
-      /** Adds a component instantiation */
-      void addInstantiation(std::unique_ptr<AstComponentInit> i) { instantiations.push_back(std::move(i)); }
+    /** Mutates this node */
+    virtual void apply(const AstNodeMapper& map);
 
-   public:
+public:
+    /** Obtains a list of all embedded child nodes */
+    virtual std::vector<const AstNode*> getChildNodes() const {
+        std::vector<const AstNode*> res;
+        for (const auto& cur : types) {
+            res.push_back(cur.second.get());
+        }
+        for (const auto& cur : relations) {
+            res.push_back(cur.second.get());
+        }
+        for (const auto& cur : components) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : instantiations) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : clauses) {
+            res.push_back(cur.get());
+        }
+        return res;
+    }
 
-      /** Obtains a list of all comprised components */
-      std::vector<AstComponent *> getComponents() const { return toPtrVector(components); }
+private:
+    void finishParsing();
 
-      /** Obtains a list of all component instantiations */
-      std::vector<AstComponentInit *> getComponentInstantiations() const { return toPtrVector(instantiations); }
+protected:
+    /** Implements the node comparison for this node type */
+    virtual bool equal(const AstNode& node) const {
+        assert(dynamic_cast<const AstProgram*>(&node));
+        const AstProgram& other = static_cast<const AstProgram&>(node);
 
-      // -- I/O ------------------------------------------------------------------
+        // check list sizes
+        if (types.size() != other.types.size()) return false;
+        if (relations.size() != other.relations.size()) return false;
 
-      /** Output the program to a given output stream */
-      void print(std::ostream &os) const;
+        // check types
+        for (const auto& cur : types) {
+            auto pos = other.types.find(cur.first);
+            if (pos == other.types.end()) return false;
+            if (*cur.second != *pos->second) return false;
+        }
 
+        // check relations
+        for (const auto& cur : relations) {
+            auto pos = other.relations.find(cur.first);
+            if (pos == other.relations.end()) return false;
+            if (*cur.second != *pos->second) return false;
+        }
 
-      // -- Manipulation ---------------------------------------------------------
+        // check components
+        if (!equal_targets(components, other.components)) return false;
+        if (!equal_targets(instantiations, other.instantiations)) return false;
+        if (!equal_targets(clauses, other.clauses)) return false;
 
-      /** Creates a clone if this AST sub-structure */
-      virtual AstProgram* clone() const;
-
-      /** Mutates this node */
-      virtual void apply(const AstNodeMapper& map);
-
-   public:
-
-      /** Obtains a list of all embedded child nodes */
-      virtual std::vector<const AstNode*> getChildNodes() const {
-          std::vector<const AstNode*> res;
-          for(const auto& cur : types) res.push_back(cur.second.get());
-          for(const auto& cur : relations) res.push_back(cur.second.get());
-          for(const auto& cur : components) res.push_back(cur.get());
-          for(const auto& cur : instantiations) res.push_back(cur.get());
-          for(const auto& cur : clauses) res.push_back(cur.get());
-          return res;
-      }
-
-   private:
-
-      void finishParsing();
-
-
-   protected:
-
-       /** Implements the node comparison for this node type */
-       virtual bool equal(const AstNode& node) const {
-           assert(dynamic_cast<const AstProgram*>(&node));
-           const AstProgram& other = static_cast<const AstProgram&>(node);
-
-           // check list sizes
-           if (types.size() != other.types.size()) return false;
-           if (relations.size() != other.relations.size()) return false;
-
-           // check types
-           for(const auto& cur : types) {
-               auto pos = other.types.find(cur.first);
-               if (pos == other.types.end()) return false;
-               if (*cur.second != *pos->second) return false;
-           }
-
-           // check relations
-           for(const auto& cur : relations) {
-              auto pos = other.relations.find(cur.first);
-              if (pos == other.relations.end()) return false;
-              if (*cur.second != *pos->second) return false;
-           }
-
-           // check components
-           if (!equal_targets(components, other.components)) return false;
-           if (!equal_targets(instantiations, other.instantiations)) return false;
-           if (!equal_targets(clauses, other.clauses)) return false;
-
-           // no different found => programs are equal
-           return true;
-       }
-
+        // no different found => programs are equal
+        return true;
+    }
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

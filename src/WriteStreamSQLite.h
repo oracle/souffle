@@ -14,17 +14,16 @@
 
 #pragma once
 
-#include "WriteStream.h"
-
 #include "SymbolMask.h"
 #include "SymbolTable.h"
-
-#include <sqlite3.h>
+#include "WriteStream.h"
 
 #include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_map>
+
+#include <sqlite3.h>
 
 namespace souffle {
 
@@ -32,9 +31,7 @@ class WriteStreamSQLite : public WriteStream {
 public:
     WriteStreamSQLite(const std::string& dbFilename, const std::string& relationName,
             const SymbolMask& symbolMask, const SymbolTable& symbolTable)
-            : dbFilename(dbFilename),
-              relationName(relationName),
-              symbolMask(symbolMask),
+            : dbFilename(dbFilename), relationName(relationName), symbolMask(symbolMask),
               symbolTable(symbolTable) {
         openDB();
         createTables();
@@ -265,7 +262,9 @@ public:
         return std::unique_ptr<WriteStreamSQLite>(
                 new WriteStreamSQLite(dbName, relationName, symbolMask, symbolTable));
     }
-    virtual const std::string& getName() const { return name; }
+    virtual const std::string& getName() const {
+        return name;
+    }
     virtual ~WriteSQLiteFactory() {}
 
 private:

@@ -14,13 +14,10 @@
 
 #pragma once
 
-#include "ReadStream.h"
-
 #include "RamTypes.h"
+#include "ReadStream.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
-
-#include <sqlite3.h>
 
 #include <fstream>
 #include <memory>
@@ -28,15 +25,15 @@
 #include <stdexcept>
 #include <string>
 
+#include <sqlite3.h>
+
 namespace souffle {
 
 class ReadStreamSQLite : public ReadStream {
 public:
     ReadStreamSQLite(const std::string& dbFilename, const std::string& relationName,
             const SymbolMask& symbolMask, SymbolTable& symbolTable)
-            : dbFilename(dbFilename),
-              relationName(relationName),
-              symbolMask(symbolMask),
+            : dbFilename(dbFilename), relationName(relationName), symbolMask(symbolMask),
               symbolTable(symbolTable) {
         openDB();
         checkTableExists();
@@ -162,8 +159,11 @@ public:
         return std::unique_ptr<ReadStreamSQLite>(
                 new ReadStreamSQLite(dbName, relationName, symbolMask, symbolTable));
     }
-    virtual const std::string& getName() const { return name; }
+    virtual const std::string& getName() const {
+        return name;
+    }
     virtual ~ReadStreamSQLiteFactory() {}
+
 private:
     static const std::string name;
 };
