@@ -11,7 +11,8 @@ B(1) :- A(x).
 // Bug #2 - an empty relation as the result of a component
 //      this was resulting in a seg-fault
 
-.decl C(x:number)  output
+.decl C(x:number) 
+.output C()
 
 .comp X {
     .decl D(x:number) 

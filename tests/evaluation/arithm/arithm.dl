@@ -31,5 +31,6 @@ e(10 % 3, "10%3", 1) :- true(_).
 e(2^4%13 , "2^4%13",3) :- true(_).
 
 // compute whether arithmetic computation failed 
-.decl f(x:number, t:txt, y:number) output
+.decl f(x:number, t:txt, y:number)
+.output f()
 f(x,t,y) :- e(x,t,y), x != y. 

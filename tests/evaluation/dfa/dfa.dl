@@ -312,15 +312,18 @@ Live_Variables.start(8).
 // Output
 //
 
-.decl available_expressions(n:number, i:symbol) output
+.decl available_expressions(n:number, i:symbol)
+.output available_expressions()
 available_expressions(x,i) :- Available_Expressions.out(x,i).
 
 
-.decl reaching_definitions(n:number, i:symbol) output
+.decl reaching_definitions(n:number, i:symbol)
+.output reaching_definitions()
 reaching_definitions(x,i) :- Reaching_Definitions.out(x,i).
 
 
-.decl live_variables(n:number, i:symbol) output
+.decl live_variables(n:number, i:symbol)
+.output live_variables()
 live_variables(x,i) :- Live_Variables.out(x,i).
 
 

@@ -2,7 +2,8 @@
 
 .type String
 
-.decl view_employee(x : String, p:String, ssn:number, s:number, e:String, d:String, pos:String, bday:number) output
+.decl view_employee(x : String, p:String, ssn:number, s:number, e:String, d:String, pos:String, bday:number)
+.output view_employee()
 .decl view_cwPriv(n : String, person :String, bank1Priv :number, bank2Priv : number)
 .input view_cwPriv()
 .decl view_bank1(n :String, Data1 :number, Data2 :number)

@@ -11,7 +11,8 @@
 .type CA
 .type CB
 
-.decl R_A(a:A) output
+.decl R_A(a:A)
+.output R_A()
 R_A("A").
 
 .decl R_B(b:B)

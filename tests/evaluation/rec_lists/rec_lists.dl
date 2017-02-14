@@ -20,6 +20,7 @@ len(nil,0).
 len( [n,r] , x+1 ) :- s([n,r]), len(r,x).
 
 
-.decl fst ( l : number ) output
+.decl fst ( l : number )
+.output fst ()
 fst(x) :- s([x,_]).
 

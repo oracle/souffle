@@ -65,13 +65,16 @@
 //IDB relations
 
 //Data-flow function on edge(m,n) where nkill is a fact that is NOT killed 
-.decl phi_nk(p:Procedure, n:Node, nkill:DataFlowFact) output
+.decl phi_nk(p:Procedure, n:Node, nkill:DataFlowFact)
+.output phi_nk()
 
 //Data-flow function on edge(m,n) where gen is a fact that is generated
-.decl phi_g(p:Procedure, n:Node, gen:DataFlowFact) output
+.decl phi_g(p:Procedure, n:Node, gen:DataFlowFact)
+.output phi_g()
 
 //Data-flow fact x holds at node n of procedure p
-.decl out(p:Procedure, n:Node, x:DataFlowFact) output
+.decl out(p:Procedure, n:Node, x:DataFlowFact)
+.output out()
 
 
 //Initialization: start nodes don't kill anything

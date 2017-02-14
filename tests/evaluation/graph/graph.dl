@@ -2,8 +2,10 @@
 
 .type number 
 
-.decl reachable  (node1:number, node2:number) output
-.decl increasing (node1:number, node2:number) output
+.decl reachable  (node1:number, node2:number)
+.output reachable  ()
+.decl increasing (node1:number, node2:number)
+.output increasing ()
 .decl edge       (node1:number, node2:number) 
 
 reachable(X,Y)  :- edge(X,Y).

@@ -225,7 +225,8 @@ possible_results( aa1,ab1,ac1,aa2,ab2,ac2,aa3,ab3,ac3, ap, x) :- state_succ( aa1
 	p:Mark, 
 	
 	w:Mark 
-) output
+)
+.output decided_games()
 
 decided_games( a1,b1,c1,a2,b2,c2,a3,b3,c3, "O", "X" ) :- 
 	!won(a1,b1,c1,a2,b2,c2,a3,b3,c3), 

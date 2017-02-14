@@ -165,12 +165,15 @@ fsa_state_to_str([1,t], cat("1", str)) :- FsaState.sublist(t), fsa_state_to_str(
 word_to_str(nil, " ").
 word_to_str([h,t], cat(h, str)) :- Fsa.alphabet(h), Fsa.Word.sublist(t), word_to_str(t, str).
 
-.decl fsa_accepted(w: String) output
+.decl fsa_accepted(w: String)
+.output fsa_accepted()
 fsa_accepted(w) :- Fsa.accepts(list), word_to_str(list, w).
 
-.decl nfsa_accepted(w: String) output
+.decl nfsa_accepted(w: String)
+.output nfsa_accepted()
 nfsa_accepted(w) :- Nfsa.accepts(list), word_to_str(list, w).
 
-.decl fsa_tr(s: String, q: String, c: Letter) output
+.decl fsa_tr(s: String, q: String, c: Letter)
+.output fsa_tr()
 fsa_tr(s_str, q_str, c) :- Fsa.tr(s, q, c), fsa_state_to_str(s, s_str), fsa_state_to_str(q, q_str).
 

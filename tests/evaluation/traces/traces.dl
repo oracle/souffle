@@ -240,15 +240,19 @@ processed_before(pi,pc,i) :- pp_succ(a,b,pi,pc), processed_before(a,b,i).
 
 // example query: everything before some specific statements
 
-.decl res_m0(i:instruction) output
+.decl res_m0(i:instruction)
+.output res_m0()
 res_m0(i) :- processed_before("m0",_,i).
 
-.decl res_m1(i:instruction) output
+.decl res_m1(i:instruction)
+.output res_m1()
 res_m1(i) :- processed_before("m1",_,i).
 
-.decl res_m2(i:instruction) output
+.decl res_m2(i:instruction)
+.output res_m2()
 res_m2(i) :- processed_before("m2",_,i).
 
-.decl res_e1(i:instruction) output
+.decl res_e1(i:instruction)
+.output res_e1()
 res_e1(i) :- processed_before("e1",_,i).
 

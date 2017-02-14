@@ -12,6 +12,7 @@ Connected(n, m) :- Edge(n, m, _).
 Connected(n, m) :- Edge(n, z, _), Connected(z, m).
 
 // Find nodes without a connection
-.decl DisConnected(n:Node, m:Node) output
+.decl DisConnected(n:Node, m:Node)
+.output DisConnected()
 DisConnected(n, m) :- Edge(n, _, _), Edge(_, m, _), !Connected(n, m).
 DisConnected(n, m) :- Edge(n, _, _), Edge(m, _, _), !Connected(n, m).

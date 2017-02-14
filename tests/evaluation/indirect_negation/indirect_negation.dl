@@ -16,14 +16,16 @@ i01(X) :- mark(X), edge(X,X).
 
 // those caused a bug once -- but now both should be the same
 
-.decl MarkedNoInA ( a:number ) output
+.decl MarkedNoInA ( a:number )
+.output MarkedNoInA ()
 
 MarkedNoInA(X) :- 
     mark(X),
     ! edge(X,_).
 
 
-.decl MarkedNoInB ( a:number ) output
+.decl MarkedNoInB ( a:number )
+.output MarkedNoInB ()
 MarkedNoInB(X) :-
     mark(X),
     ! in(X).

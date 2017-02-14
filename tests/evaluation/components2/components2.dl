@@ -6,7 +6,8 @@
 
 .decl X(x:number) 
 X(1).
-.decl A(x:number) output
+.decl A(x:number)
+.output A()
 
 .comp B  {
     A(x) :- X(x).

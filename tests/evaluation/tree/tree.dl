@@ -1,8 +1,10 @@
 
 .type Node
 
-.decl S      (node1:Node, node2:Node) output
-.decl T      (node1:Node, node2:Node) output
+.decl S      (node1:Node, node2:Node)
+.output S      ()
+.decl T      (node1:Node, node2:Node)
+.output T      ()
 .decl R      (node1:Node, node2:Node, node3:Node)
 
 S (x1, x3) :- T(x1, x2), R(x2, _, x3).

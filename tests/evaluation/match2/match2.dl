@@ -6,7 +6,8 @@
 
 .decl inputData   (t:String) 
 .decl pattern   (t:String) 
-.decl outputData  (t:String) output
+.decl outputData  (t:String)
+.output outputData  ()
 
 outputData(x) :- pattern(y), inputData(x), match(y, x). 
 

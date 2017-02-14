@@ -10,14 +10,22 @@
 
 .number_type n
 
-.decl A (x:n, y:n) output
-.decl B (x:n, y:n) output
-.decl C (x:n, y:n) output
-.decl D (x:n, y:n) output
-.decl E (x:n, y:n) output
-.decl F (x:n, y:n) output
-.decl S (x:n, y:n) output
-.decl N (x:n) output
+.decl A (x:n, y:n)
+.output A ()
+.decl B (x:n, y:n)
+.output B ()
+.decl C (x:n, y:n)
+.output C ()
+.decl D (x:n, y:n)
+.output D ()
+.decl E (x:n, y:n)
+.output E ()
+.decl F (x:n, y:n)
+.output F ()
+.decl S (x:n, y:n)
+.output S ()
+.decl N (x:n)
+.output N ()
 
 N(0). 
 N(1). 

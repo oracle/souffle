@@ -1,6 +1,9 @@
-.decl Low(src: number, dest:number, port:number) output
-.decl Medium(src: number, dest:number, port:number) output
-.decl High(src: number, dest:number, port:number) output
+.decl Low(src: number, dest:number, port:number)
+.output Low()
+.decl Medium(src: number, dest:number, port:number)
+.output Medium()
+.decl High(src: number, dest:number, port:number)
+.output High()
 
 .decl In(src: number, dest:number, port:number)
 .input In()

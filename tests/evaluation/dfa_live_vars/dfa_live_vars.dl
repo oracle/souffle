@@ -21,8 +21,10 @@
 
 //// --- result --- ////
 
-.decl live_vars_in(x:Node, v:Var) output
-.decl live_vars_out(x:Node, v:Var) output
+.decl live_vars_in(x:Node, v:Var)
+.output live_vars_in()
+.decl live_vars_out(x:Node, v:Var)
+.output live_vars_out()
 
 //////////////////////////////////////////////////
 

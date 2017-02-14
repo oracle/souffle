@@ -1,7 +1,11 @@
-.decl Instance1(d:number) output
-.decl Instance2(d:number) output
-.decl Instance3(d:number) output
-.decl Instance4(d:number) output
+.decl Instance1(d:number)
+.output Instance1()
+.decl Instance2(d:number)
+.output Instance2()
+.decl Instance3(d:number)
+.output Instance3()
+.decl Instance4(d:number)
+.output Instance4()
 
 .decl In(s1: number, s2:number, s3:number, d1:number, d2:number, d3:number, d:number)
 .input In()

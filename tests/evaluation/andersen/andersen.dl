@@ -26,7 +26,8 @@
 .input Store()
 
 // PointsTo Relation, i.e., whether y may point to x
-.decl PointsTo(y:var, x:var) output
+.decl PointsTo(y:var, x:var)
+.output PointsTo()
 
 PointsTo(y, x) :-
  AddressOf(y, x).

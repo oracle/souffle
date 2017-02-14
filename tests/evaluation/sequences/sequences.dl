@@ -123,7 +123,8 @@ palin_aux(s,x,x) :- str(s), n(x), str_len(s,l), x<=l.
 palin_aux(s,x,x+1) :- str_letter_at(s,x,_).
 palin_aux(s,x,sy) :- str_letter_at(s,x,a), s(x,sx), palin_aux(s,sx,y), str_letter_at(s,y,a), s(y,sy).
 
-.decl palindrome(s:number) output
+.decl palindrome(s:number)
+.output palindrome()
 palindrome(s) :- str_len(s,0).
 palindrome(s) :- palin_aux(s,1,sl), str_len(s,l), s(l,sl).
 
@@ -131,7 +132,8 @@ palindrome(s) :- palin_aux(s,1,sl), str_len(s,l), s(l,sl).
 .decl debug_str(x:number)
 debug_str(96).
 
-.decl read(x:number,y:Letter) output
+.decl read(x:number,y:Letter)
+.output read()
 read(x,y) :- debug_str(s), str_letter_at(s,x,y).
 
 

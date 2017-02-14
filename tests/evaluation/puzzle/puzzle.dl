@@ -3,9 +3,12 @@
 
 .type Node
 
-.decl safe  (node1:Node, node2:Node, node3:Node, node4:Node) output
-.decl state (node1:Node, node2:Node, node3:Node, node4:Node) output
-.decl opp   (node1:Node, node2:Node) output
+.decl safe  (node1:Node, node2:Node, node3:Node, node4:Node)
+.output safe  ()
+.decl state (node1:Node, node2:Node, node3:Node, node4:Node)
+.output state ()
+.decl opp   (node1:Node, node2:Node)
+.output opp   ()
 
 // Initial state
 state("n","n","n","n").

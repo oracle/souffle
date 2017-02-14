@@ -142,7 +142,8 @@ ImmDom.start(1).
 // Output
 // 
 
-.decl dominators(n:number,s:number) output
+.decl dominators(n:number,s:number)
+.output dominators()
 dominators(n,s) :- ImmDom.dom(n,s).
 
 
@@ -150,7 +151,8 @@ dominators(n,s) :- ImmDom.dom(n,s).
 // Output
 // 
 
-.decl immediate_dom(n:number,s:number) output
+.decl immediate_dom(n:number,s:number)
+.output immediate_dom()
 immediate_dom(n,s) :- ImmDom.imdom(n,s).
 
 

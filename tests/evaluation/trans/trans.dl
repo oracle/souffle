@@ -2,7 +2,8 @@
 .type S 
 
 // Set output flag depending on stage 
-.decl A (x:S, y:S) output
+.decl A (x:S, y:S)
+.output A ()
 
 // Transitive Closure 
 A(x,z) :- A(x,y), A(y,z).

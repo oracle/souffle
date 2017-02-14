@@ -1,7 +1,8 @@
 // Compute the factorial function.
 
 // fact(i, n) holds iff i! = n
-.decl fact(i:number, n:number) output
+.decl fact(i:number, n:number)
+.output fact()
 
 // Calculate only up to the lowest value satisfying lim(n)
 .decl lim(n:number)

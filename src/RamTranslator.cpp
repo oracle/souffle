@@ -73,6 +73,10 @@ RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity,
     std::vector<IODirectives> outputDirectives;
     // If IO directives have been specified then set them up
     for (const auto& current : rel->getIODirectives()) {
+        // Skip empty directives and rely on the defaults below.
+        if (current->getIODirectiveMap().empty()) {
+            continue;
+        }
         if (current->isInput()) {
             inputDirectives.setRelationName(getRelationName(rel->getName()));
             for (const auto& currentPair : current->getIODirectiveMap()) {
@@ -104,6 +108,7 @@ RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity,
                         "filename", Global::config().get("fact-dir") + "/" + inputDirectives.get("filename"));
             }
         } else if (current->isOutput()) {
+            // Handle non-empty output directives
             IODirectives ioDirectives;
             ioDirectives.setRelationName(getRelationName(rel->getName()));
             for (const auto& currentPair : current->getIODirectiveMap()) {

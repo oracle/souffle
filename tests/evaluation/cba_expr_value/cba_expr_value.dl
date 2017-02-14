@@ -81,7 +81,8 @@ term(10, "App", 2 ).
 
 
 .decl data_var( i:number, v:Value ) 
-.decl data_term( i:number, v:Value ) output
+.decl data_term( i:number, v:Value )
+.output data_term()
 
 .decl ctrl_var( i:number, f:number ) 
 .decl ctrl_term( i:number, f:number ) 

@@ -20,9 +20,12 @@
 .decl numParam(v:Variable, p:number)
 
 // IDB Relations 
-.decl equal(v1:Variable, v2:Variable) output
-.decl equalParam(v1:Variable, v2:Variable, p:number) output
-.decl nextEqualParam(v1:Variable, v2:Variable, p:number) output
+.decl equal(v1:Variable, v2:Variable)
+.output equal()
+.decl equalParam(v1:Variable, v2:Variable, p:number)
+.output equalParam()
+.decl nextEqualParam(v1:Variable, v2:Variable, p:number)
+.output nextEqualParam()
 
 //
 // Equivalence relation between two expressions

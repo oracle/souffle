@@ -5,7 +5,8 @@
 .type AccessPathSuffix = [ ?base:AccessPathSuffix, ?fld:FieldSignature ]
 .type AccessPath = [ ?base:AccessPathBase, ?flds:AccessPathSuffix ]
 
-.decl AccessPathShouldBeRebased2(?ap:AccessPath, ?from:Var, ?to:Var) output 
+.decl AccessPathShouldBeRebased2(?ap:AccessPath, ?from:Var, ?to:Var) 
+.output AccessPathShouldBeRebased2()
 
 AccessPathShouldBeRebased2(?newAp , ?from, ?to) :-
    AccessPathShouldBeRebased2([ ?from, [ [ ?rest, ?nextFld ], ?lastFld ] ], ?from, ?to),

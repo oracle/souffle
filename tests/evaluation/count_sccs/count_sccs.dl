@@ -27,6 +27,7 @@ chain(A,B) :-
 leader(A) :-
   nodes(A), !chain(_,A).     
 
-.decl count_scc(A:Node, n:number) output
+.decl count_scc(A:Node, n:number)
+.output count_scc()
 count_scc(A, S) :- 
   leader(A), S = count : {mutually_reaching(A,_)}.

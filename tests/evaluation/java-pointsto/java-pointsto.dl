@@ -125,7 +125,8 @@ Assign(actualParam, formalParam) :- Invocation(callsite, method), FormalParam(in
 Assign(returnVar, localVar) :- ReturnVar(returnVar, method), Invocation(callsite, method), AssignReturnValue(callsite, localVar).
 Assign(base, this) :- InvocationBase(callsite, base), Invocation(callsite, method), ThisVar(method, this).
 
-.decl VarPointsTo(variable:VarRef, heapAllocation:HeapAllocationRef) output
+.decl VarPointsTo(variable:VarRef, heapAllocation:HeapAllocationRef)
+.output VarPointsTo()
 VarPointsTo(var, heap)  :- 
   AssignHeapAllocation(heap, var, _).
 

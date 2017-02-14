@@ -40,7 +40,8 @@ evaluate(conf, var, lnot v1) :-
  circuit_not(var, op1),
  evaluate(conf, op1, v1).
 
-.decl satisfy(conf: number, var : Var) output
+.decl satisfy(conf: number, var : Var)
+.output satisfy()
 satisfy(conf, inputvar) :-
  circuit_result(var), 
  evaluate(conf, var, 1),

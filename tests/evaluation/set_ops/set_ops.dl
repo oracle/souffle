@@ -23,7 +23,8 @@ c("c").
 d("a").
 
 // the result container
-.decl res(x:value) output
+.decl res(x:value)
+.output res()
 
 // now - which is empty?
 

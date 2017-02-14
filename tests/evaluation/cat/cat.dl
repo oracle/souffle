@@ -11,7 +11,8 @@
 .type A
 
 .decl Y (a:A, b:A) 
-.decl Z (a:A, b:A, c:A) output
+.decl Z (a:A, b:A, c:A)
+.output Z ()
 
 Y("a","b"). 
 Y("c","d"). 

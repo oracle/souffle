@@ -6,7 +6,8 @@
 .decl nat(x:number) 
 
 // the primes within the range
-.decl prime(x:number) output
+.decl prime(x:number)
+.output prime()
 
 
 // -- auxiliary relations --

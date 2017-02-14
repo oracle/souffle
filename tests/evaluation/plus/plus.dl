@@ -1,7 +1,8 @@
 // Check semantics of binary relations 
 
 .decl R (x:number, y:number) 
-.decl A (x:number, y:number, z:number) output
+.decl A (x:number, y:number, z:number)
+.output A ()
 
 R(1,2). 
 R(2,3). 

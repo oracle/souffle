@@ -1,8 +1,10 @@
 // check whether duplicates are filtered out 
 .type N 
 
-.decl A (x:number, y:number) output
-.decl R (x:number, y:number) output
+.decl A (x:number, y:number)
+.output A ()
+.decl R (x:number, y:number)
+.output R ()
 
 A(1,2).
 A(3,4).

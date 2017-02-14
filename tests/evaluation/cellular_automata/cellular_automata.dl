@@ -22,7 +22,8 @@ next(t, i, NULL) :- !element(i+1, _), cell(t, i, _), default(NULL).
 next(t, i, x) :- cell(t, i+1, x), element(i, _).
 
 // The cells, referenced by a time and their index in the backing array of elements, and having a value that is either 0 or 1.
-.decl cell(time:number, index:number, value:number) output
+.decl cell(time:number, index:number, value:number)
+.output cell()
 
 // The value of a cell at time 0 is the value of its backing element.
 cell(0, i, x) :- element(i, x).
@@ -31,6 +32,7 @@ cell(0, i, x) :- element(i, x).
 cell(t+1, i, x) :- !terminate(t), environment(t, i, l, c, r), transition(l, c, r, x).
 
 // The local environment of a cell, giving the value of the specified cell at time t, as well as that of its nearest neighbours.
-.decl environment(time:number, index:number, prev:number, center:number, next:number) output
+.decl environment(time:number, index:number, prev:number, center:number, next:number)
+.output environment()
 environment(t, i, l, c, r) :-
   prev(t, i, l), cell(t, i, c), next(t, i, r).

@@ -3,7 +3,8 @@
 // 
 
 .decl Edge      (x:number, y:number, z:number) 
-.decl Linksum      (x:number, y:number, z:number)  output
+.decl Linksum      (x:number, y:number, z:number) 
+.output Linksum      ()
 .decl A (x:number, y:number, z:number) 
 .decl R (x:number, y:number) 
 

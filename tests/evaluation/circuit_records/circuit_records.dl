@@ -123,7 +123,8 @@ sat_print(var, val, conf) :-
 	satisfy(conf,_), get_by_key(var, val, _, conf).
 
 // print the count of total circuits configurations mul inputs
-.decl print_states(val : number) output
+.decl print_states(val : number)
+.output print_states()
 print_states(val) :- 
 	val = count : { sat_print(_, _, _) }.
 	

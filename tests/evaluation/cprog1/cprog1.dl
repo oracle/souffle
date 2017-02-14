@@ -4,7 +4,8 @@
 //3: assert(y = 101);
 
 .decl loop(line: number, x:number, y:number, z:number)
-.decl Res() output
+.decl Res()
+.output Res()
 
 loop(0, 0, 10, 100).
 

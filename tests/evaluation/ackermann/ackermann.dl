@@ -14,7 +14,8 @@
 // declarations 
 .decl succ (a:Integer, b:Integer) 
 .decl greaterThanZ(a:Integer)
-.decl ack(a:Integer, b:Integer, c:Integer) output
+.decl ack(a:Integer, b:Integer, c:Integer)
+.output ack()
 
 // IDB 
 ack("0", N, Ans) :-  

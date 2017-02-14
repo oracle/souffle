@@ -11,7 +11,8 @@
 // tape at the i-th position in the j-th computational step.
 // 
 
-.decl Tape(position:number, symbol:Alphabet, step:number) output
+.decl Tape(position:number, symbol:Alphabet, step:number)
+.output Tape()
 
 // write new symbol from a successful transition.
 Tape(position, newSymbol, step + 1) :-
@@ -47,7 +48,8 @@ Tape(position, "b", step + 1) :-
 // the current state, and the computational step.
 //
 
-.decl Configuration(position: number, state:State, step:number) output
+.decl Configuration(position: number, state:State, step:number)
+.output Configuration()
 
 Configuration(position - 1, nextState, step + 1) :-
    Tape(position, oldSymbol, step),
@@ -66,7 +68,8 @@ Configuration(position + 1, nextState, step + 1) :-
 // on the tape. This relation is necessary for producing blank 
 // symbols for new positions on the tape. 
 // 
-.decl TapeLimits(step:number, left:number, right:number) output
+.decl TapeLimits(step:number, left:number, right:number)
+.output TapeLimits()
 
 // tape limit has not changed 
 TapeLimits(step + 1, left, right) :- 

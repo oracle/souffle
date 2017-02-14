@@ -29,8 +29,10 @@
 .decl Memory(o1:Obj,o2:Obj)
 .decl IsReachable(v:Var,o:Obj)
 .decl CFormat(o:Obj)
-.decl CPtrLoad(v1:Var,v2:Var) output
-.decl CPtrStore(v1:Var,v2:Var) output
+.decl CPtrLoad(v1:Var,v2:Var)
+.output CPtrLoad()
+.decl CPtrStore(v1:Var,v2:Var)
+.output CPtrStore()
 
 LptrVar(v) :- StackAlloc(v,_).
 LptrVar(v) :- HeapAlloc(v,_).
