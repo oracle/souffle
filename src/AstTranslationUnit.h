@@ -16,20 +16,20 @@
  ***********************************************************************/
 #pragma once
 
-#include <map>
-#include <memory>
-
 #include "AstAnalysis.h"
 #include "AstProgram.h"
-#include "ErrorReport.h"
 #include "DebugReport.h"
+#include "ErrorReport.h"
 #include "SymbolTable.h"
+
+#include <map>
+#include <memory>
 
 namespace souffle {
 
 class AstTranslationUnit {
 private:
-    mutable std::map<std::string, std::unique_ptr<AstAnalysis> > analyses;
+    mutable std::map<std::string, std::unique_ptr<AstAnalysis>> analyses;
 
     /* Program AST */
     std::unique_ptr<AstProgram> program;
@@ -41,14 +41,14 @@ private:
 
     DebugReport debugReport;
 
-
 public:
-    AstTranslationUnit(std::unique_ptr<AstProgram> program, bool nowarn = false) : program(std::move(program)), errorReport(nowarn) { }
+    AstTranslationUnit(std::unique_ptr<AstProgram> program, bool nowarn = false)
+            : program(std::move(program)), errorReport(nowarn) {}
 
-    virtual ~AstTranslationUnit() { }
+    virtual ~AstTranslationUnit() {}
 
     template <class Analysis>
-    Analysis *getAnalysis() const {
+    Analysis* getAnalysis() const {
         std::string name = Analysis::name;
         auto it = analyses.find(name);
         if (it == analyses.end()) {
@@ -56,30 +56,30 @@ public:
             analyses[name] = std::unique_ptr<AstAnalysis>(new Analysis());
             analyses[name]->run(*this);
         }
-        return dynamic_cast<Analysis *>(analyses[name].get());
+        return dynamic_cast<Analysis*>(analyses[name].get());
     }
 
-    AstProgram *getProgram() {
+    AstProgram* getProgram() {
         return program.get();
     }
 
-    const AstProgram *getProgram() const {
+    const AstProgram* getProgram() const {
         return program.get();
     }
 
-    souffle::SymbolTable &getSymbolTable() {
+    souffle::SymbolTable& getSymbolTable() {
         return symbolTable;
     }
 
-    const souffle::SymbolTable &getSymbolTable() const {
+    const souffle::SymbolTable& getSymbolTable() const {
         return symbolTable;
     }
 
-    ErrorReport &getErrorReport() {
+    ErrorReport& getErrorReport() {
         return errorReport;
     }
 
-    const ErrorReport &getErrorReport() const {
+    const ErrorReport& getErrorReport() const {
         return errorReport;
     }
 
@@ -87,14 +87,13 @@ public:
         analyses.clear();
     }
 
-    DebugReport &getDebugReport() {
+    DebugReport& getDebugReport() {
         return debugReport;
     }
 
-    const DebugReport &getDebugReport() const {
+    const DebugReport& getDebugReport() const {
         return debugReport;
     }
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

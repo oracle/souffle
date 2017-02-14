@@ -8,7 +8,6 @@
 
 #include "ProgramRun.hpp"
 
-
 std::string ProgramRun::toString() {
     std::ostringstream output;
     output << "ProgramRun:" << runtime << "\nRelations:\n";
@@ -20,7 +19,7 @@ std::string ProgramRun::toString() {
 
 long ProgramRun::getTotNumTuples() {
     long result = 0;
-    for (auto &item : relation_map) {
+    for (auto& item : relation_map) {
         result += item.second->getTotNum_tuples();
     }
     return result;
@@ -28,7 +27,7 @@ long ProgramRun::getTotNumTuples() {
 
 long ProgramRun::getTotNumRecTuples() {
     long result = 0;
-    for (auto &item : relation_map) {
+    for (auto& item : relation_map) {
         result += item.second->getTotNumRec_tuples();
     }
     return result;
@@ -36,7 +35,7 @@ long ProgramRun::getTotNumRecTuples() {
 
 double ProgramRun::getTotCopyTime() {
     double result = 0;
-    for (auto &item : relation_map) {
+    for (auto& item : relation_map) {
         result += item.second->getCopyTime();
     }
     return result;
@@ -44,13 +43,13 @@ double ProgramRun::getTotCopyTime() {
 
 double ProgramRun::getTotTime() {
     double result = 0;
-    for (auto &item : relation_map) {
+    for (auto& item : relation_map) {
         result += item.second->getRecTime();
     }
     return result;
 }
 
-Relation *ProgramRun::getRelation(std::string name) {
+Relation* ProgramRun::getRelation(std::string name) {
     if (relation_map.find(name) != relation_map.end()) {
         return &(*relation_map[name]);
     }

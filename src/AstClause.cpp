@@ -15,18 +15,18 @@
  *
  ***********************************************************************/
 
-#include <string.h>
-#include <stdlib.h>
+#include "AstClause.h"
+#include "AstLiteral.h"
+#include "AstProgram.h"
+#include "AstRelation.h"
+#include "AstVisitor.h"
 
-#include <sstream>
 #include <set>
+#include <sstream>
 #include <string>
 
-#include "AstClause.h"
-#include "AstRelation.h"
-#include "AstProgram.h"
-#include "AstLiteral.h"
-#include "AstVisitor.h"
+#include <stdlib.h>
+#include <string.h>
 
 namespace souffle {
 
@@ -54,40 +54,52 @@ void AstClause::setHead(std::unique_ptr<AstAtom> h) {
 }
 
 AstLiteral* AstClause::getBodyLiteral(size_t idx) const {
-    if (idx < atoms.size()) return atoms[idx].get();
+    if (idx < atoms.size()) {
+        return atoms[idx].get();
+    }
     idx -= atoms.size();
-    if (idx < negations.size()) return negations[idx].get();
+    if (idx < negations.size()) {
+        return negations[idx].get();
+    }
     idx -= negations.size();
     return constraints[idx].get();
 }
 
 std::vector<AstLiteral*> AstClause::getBodyLiterals() const {
     std::vector<AstLiteral*> res;
-    for(auto &cur : atoms) res.push_back(cur.get());
-    for(auto &cur : negations) res.push_back(cur.get());
-    for(auto &cur : constraints) res.push_back(cur.get());
+    for (auto& cur : atoms) {
+        res.push_back(cur.get());
+    }
+    for (auto& cur : negations) {
+        res.push_back(cur.get());
+    }
+    for (auto& cur : constraints) {
+        res.push_back(cur.get());
+    }
     return res;
 }
 
 bool AstClause::isFact() const {
     // there must be a head
-    if (head == NULL) return false;
+    if (head == NULL) {
+        return false;
+    }
     // there must not be any body clauses
-    if (getBodySize() != 0) return false;
+    if (getBodySize() != 0) {
+        return false;
+    }
     // and there are no aggregates
     bool hasAggregates = false;
-    visitDepthFirst(*head, [&](const AstAggregator& cur) {
-        hasAggregates = true;
-    });
+    visitDepthFirst(*head, [&](const AstAggregator& cur) { hasAggregates = true; });
     return !hasAggregates;
 }
 
-void AstClause::print(std::ostream &os) const {
+void AstClause::print(std::ostream& os) const {
     if (head != NULL) {
         head->print(os);
     }
     if (getBodySize() > 0) {
-        os << " :- \n   " ;
+        os << " :- \n   ";
         os << join(getBodyLiterals(), ",\n   ", print_deref<AstLiteral*>());
     }
     os << ".";
@@ -96,7 +108,7 @@ void AstClause::print(std::ostream &os) const {
     }
 }
 
-void AstClause::reorderAtoms(const std::vector<unsigned int> &newOrder) {
+void AstClause::reorderAtoms(const std::vector<unsigned int>& newOrder) {
     // Validate given order
     assert(newOrder.size() == atoms.size());
     std::vector<unsigned int> nopOrder;
@@ -113,5 +125,4 @@ void AstClause::reorderAtoms(const std::vector<unsigned int> &newOrder) {
     }
 }
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

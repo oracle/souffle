@@ -17,8 +17,8 @@
 #pragma once
 
 #include <map>
-#include <vector>
 #include <set>
+#include <vector>
 
 namespace souffle {
 
@@ -31,11 +31,9 @@ class AstClause;
 class AstProgram;
 class AstLiteral;
 
-
 // ---------------------------------------------------------------
 //                      General Utilities
 // ---------------------------------------------------------------
-
 
 /**
  * Obtains a list of all variables referenced within the AST rooted
@@ -61,7 +59,7 @@ std::vector<const AstVariable*> getVariables(const AstNode* root);
  * @param program the program containing the relations
  * @return relation referenced by the atom
  */
-const AstRelation *getAtomRelation(const AstAtom *atom, const AstProgram *program);
+const AstRelation* getAtomRelation(const AstAtom* atom, const AstProgram* program);
 
 /**
  * Returns the relation referenced by the head of the given clause.
@@ -69,7 +67,7 @@ const AstRelation *getAtomRelation(const AstAtom *atom, const AstProgram *progra
  * @param program the program containing the relations
  * @return relation referenced by the clause head
  */
-const AstRelation *getHeadRelation(const AstClause *clause, const AstProgram *program);
+const AstRelation* getHeadRelation(const AstClause* clause, const AstProgram* program);
 
 /**
  * Returns the relations referenced in the body of the given clause.
@@ -77,7 +75,7 @@ const AstRelation *getHeadRelation(const AstClause *clause, const AstProgram *pr
  * @param program the program containing the relations
  * @return relation referenced in the clause body
  */
-std::set<const AstRelation *> getBodyRelations(const AstClause *clause, const AstProgram *program);
+std::set<const AstRelation*> getBodyRelations(const AstClause* clause, const AstProgram* program);
 
 /**
  * Returns whether the given relation has any clauses which contain a negation of a specific relation.
@@ -86,16 +84,18 @@ std::set<const AstRelation *> getBodyRelations(const AstClause *clause, const As
  * @param program the program containing the relations
  * @param foundLiteral set to the negation literal that was found
  */
-bool hasClauseWithNegatedRelation(const AstRelation *relation, const AstRelation *negRelation, const AstProgram *program, const AstLiteral *&foundLiteral);
+bool hasClauseWithNegatedRelation(const AstRelation* relation, const AstRelation* negRelation,
+        const AstProgram* program, const AstLiteral*& foundLiteral);
 
 /**
- * Returns whether the given relation has any clauses which contain an aggregation over of a specific relation.
+ * Returns whether the given relation has any clauses which contain an aggregation over of a specific
+ * relation.
  * @param relation the relation to search the clauses of
  * @param aggRelation the relation to search for in aggregations in clause bodies
  * @param program the program containing the relations
  * @param foundLiteral set to the literal found in an aggregation
  */
-bool hasClauseWithAggregatedRelation(const AstRelation *relation, const AstRelation *aggRelation, const AstProgram *program, const AstLiteral *&foundLiteral);
+bool hasClauseWithAggregatedRelation(const AstRelation* relation, const AstRelation* aggRelation,
+        const AstProgram* program, const AstLiteral*& foundLiteral);
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

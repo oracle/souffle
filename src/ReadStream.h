@@ -14,11 +14,11 @@
 
 #pragma once
 
-#include <memory>
-
 #include "RamTypes.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
+
+#include <memory>
 
 namespace souffle {
 

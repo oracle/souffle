@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "RamExecutor.h"
 #include "AstTransformer.h"
 #include "Global.h"
+#include "RamExecutor.h"
 
 namespace souffle {
 
@@ -33,13 +33,12 @@ class AstTranslationUnit;
  */
 class AutoScheduleTransformer : public AstTransformer {
 private:
-
-    virtual bool transform(AstTranslationUnit &translationUnit);
+    virtual bool transform(AstTranslationUnit& translationUnit);
 
 public:
     AutoScheduleTransformer() {}
 
-    virtual ~AutoScheduleTransformer() { }
+    virtual ~AutoScheduleTransformer() {}
 
     virtual std::string getName() const {
         return "AutoScheduleTransformer";
@@ -52,5 +51,4 @@ public:
     static bool autotune(AstTranslationUnit& translationUnit, std::ostream* report);
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

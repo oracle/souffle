@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include <zlib.h>
-
 #include <iostream>
+
+#include <zlib.h>
 
 namespace gzfstream {
 
@@ -184,7 +184,7 @@ protected:
     mutable gzfstreambuf buf;
 };
 
-}  /* namespace gzfstream::internal */
+} /* namespace gzfstream::internal */
 
 class igzfstream : public internal::gzfstream, public std::istream {
 public:
@@ -226,4 +226,4 @@ public:
     }
 };
 
-}  /* namespace gzfstream */
+} /* namespace gzfstream */
