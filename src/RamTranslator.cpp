@@ -29,97 +29,97 @@
 
 namespace souffle {
 
-    namespace {
+namespace {
 
-        SymbolMask getSymbolMask(const AstRelation& rel, const TypeEnvironment& typeEnv) {
-            auto arity = rel.getArity();
-            SymbolMask res(arity);
-            for (size_t i = 0; i < arity; i++) {
-                res.setSymbol(i, isSymbolType(typeEnv.getType(rel.getAttribute(i)->getTypeName())));
-            }
-            return res;
-        }
+SymbolMask getSymbolMask(const AstRelation& rel, const TypeEnvironment& typeEnv) {
+    auto arity = rel.getArity();
+    SymbolMask res(arity);
+    for (size_t i = 0; i < arity; i++) {
+        res.setSymbol(i, isSymbolType(typeEnv.getType(rel.getAttribute(i)->getTypeName())));
+    }
+    return res;
+}
 
 /**
  * Converts the given relation identifier into a relation name.
  */
-        std::string getRelationName(const AstRelationIdentifier& id) {
-            return toString(join(id.getNames(), "-"));
+std::string getRelationName(const AstRelationIdentifier& id) {
+    return toString(join(id.getNames(), "-"));
+}
+
+RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity, const AstRelation* rel,
+        const TypeEnvironment* typeEnv, const bool istemp = false) {
+    // avoid name conflicts for temporary identifiers
+    if (istemp) {
+        name.insert(0, "@");
+    }
+
+    if (!rel) {
+        return RamRelationIdentifier(name, arity, istemp);
+    }
+
+    assert(arity == rel->getArity());
+    std::vector<std::string> attributeNames;
+    std::vector<std::string> attributeTypeQualifiers;
+    for (unsigned int i = 0; i < arity; i++) {
+        attributeNames.push_back(rel->getAttribute(i)->getAttributeName());
+        if (typeEnv) {
+            attributeTypeQualifiers.push_back(
+                    getTypeQualifier(typeEnv->getType(rel->getAttribute(i)->getTypeName())));
         }
+    }
 
-        RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity, const AstRelation* rel,
-                                                       const TypeEnvironment* typeEnv, const bool istemp = false) {
-            // avoid name conflicts for temporary identifiers
-            if (istemp) {
-                name.insert(0, "@");
-            }
-
-            if (!rel) {
-                return RamRelationIdentifier(name, arity, istemp);
-            }
-
-            assert(arity == rel->getArity());
-            std::vector<std::string> attributeNames;
-            std::vector<std::string> attributeTypeQualifiers;
-            for (unsigned int i = 0; i < arity; i++) {
-                attributeNames.push_back(rel->getAttribute(i)->getAttributeName());
-                if (typeEnv) {
-                    attributeTypeQualifiers.push_back(
-                            getTypeQualifier(typeEnv->getType(rel->getAttribute(i)->getTypeName())));
-                }
-            }
-
-            IODirectives inputDirectives;
-            std::vector<IODirectives> outputDirectives;
-            for (const auto& current : rel->getIODirectives()) {
-                if (!current->isInput() && !current->isOutput()) {
-                    continue;
-                }
-                if (current->isInput()) {
-                    inputDirectives.setRelationName(getRelationName(rel->getName()));
-                    for (const auto& currentPair : current->getIODirectiveMap()) {
-                        if (currentPair.first != "filename")
-                            inputDirectives.set(currentPair.first, currentPair.second);
-                        else {
-                            // If filename is not an absolute path, concat with cmd line facts directory
-                            if (Global::config().get("fact-dir").empty() == false &&
-                                    currentPair.second.front() != '/') {
-                                inputDirectives.set(currentPair.first,
-                                        Global::config().get("fact-dir") + "/" + currentPair.second);
-                            } else {
-                                inputDirectives.set(currentPair.first, currentPair.second);
-                            }
-                        }
+    IODirectives inputDirectives;
+    std::vector<IODirectives> outputDirectives;
+    for (const auto& current : rel->getIODirectives()) {
+        if (!current->isInput() && !current->isOutput()) {
+            continue;
+        }
+        if (current->isInput()) {
+            inputDirectives.setRelationName(getRelationName(rel->getName()));
+            for (const auto& currentPair : current->getIODirectiveMap()) {
+                if (currentPair.first != "filename")
+                    inputDirectives.set(currentPair.first, currentPair.second);
+                else {
+                    // If filename is not an absolute path, concat with cmd line facts directory
+                    if (Global::config().get("fact-dir").empty() == false &&
+                            currentPair.second.front() != '/') {
+                        inputDirectives.set(currentPair.first,
+                                Global::config().get("fact-dir") + "/" + currentPair.second);
+                    } else {
+                        inputDirectives.set(currentPair.first, currentPair.second);
                     }
-                } else if (current->isOutput()) {
-                    IODirectives ioDirectives;
-                    ioDirectives.setRelationName(getRelationName(rel->getName()));
-                    for (const auto& currentPair : current->getIODirectiveMap()) {
-                        if (currentPair.first != "filename")
-                            ioDirectives.set(currentPair.first, currentPair.second);
-                        else {
-                            // If filename is not an absolute path, concat with cmd line output directory
-                            if (Global::config().get("out-dir").empty() == false &&
-                                    currentPair.second.front() != '/') {
-                                ioDirectives.set(currentPair.first,
-                                        Global::config().get("output-dir") + "/" + currentPair.second);
-                            } else {
-                                ioDirectives.set(currentPair.first, currentPair.second);
-                            }
-                        }
-                    }
-                    outputDirectives.push_back(ioDirectives);
                 }
             }
-
-            if (outputDirectives.empty()) {
-                IODirectives stubDirectives;
-                outputDirectives.push_back(stubDirectives);
+        } else if (current->isOutput()) {
+            IODirectives ioDirectives;
+            ioDirectives.setRelationName(getRelationName(rel->getName()));
+            for (const auto& currentPair : current->getIODirectiveMap()) {
+                if (currentPair.first != "filename")
+                    ioDirectives.set(currentPair.first, currentPair.second);
+                else {
+                    // If filename is not an absolute path, concat with cmd line output directory
+                    if (Global::config().get("out-dir").empty() == false &&
+                            currentPair.second.front() != '/') {
+                        ioDirectives.set(currentPair.first,
+                                Global::config().get("output-dir") + "/" + currentPair.second);
+                    } else {
+                        ioDirectives.set(currentPair.first, currentPair.second);
+                    }
+                }
             }
+            outputDirectives.push_back(ioDirectives);
+        }
+    }
 
-            return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers,
-                                         getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), rel->isOutput(), rel->isBTree(),
-                                         rel->isBrie(), rel->isEqRel(), rel->isData(), inputDirectives, outputDirectives, istemp);
+    if (outputDirectives.empty()) {
+        IODirectives stubDirectives;
+        outputDirectives.push_back(stubDirectives);
+    }
+
+    return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers,
+            getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), rel->isOutput(), rel->isBTree(),
+            rel->isBrie(), rel->isEqRel(), rel->isData(), inputDirectives, outputDirectives, istemp);
         }
     }
 
@@ -129,236 +129,236 @@ namespace souffle {
 
     namespace {
 
-/**
- * The location of some value in a loop nest.
- */
-        struct Location {
-            int level;  // < the loop level
-            int component;  // < the component within the tuple created in the given level
-            std::string name;  // < name of the variable
+    /**
+     * The location of some value in a loop nest.
+     */
+    struct Location {
+        int level;  // < the loop level
+        int component;  // < the component within the tuple created in the given level
+        std::string name;  // < name of the variable
 
-            bool operator==(const Location& loc) const {
-                return level == loc.level && component == loc.component;
+        bool operator==(const Location& loc) const {
+            return level == loc.level && component == loc.component;
+        }
+
+        bool operator!=(const Location& loc) const {
+            return !(*this == loc);
+        }
+
+        bool operator<(const Location& loc) const {
+            return level < loc.level || (level == loc.level && component < loc.component);
+        }
+
+        void print(std::ostream& out) const {
+            out << "(" << level << "," << component << ")";
+        }
+
+        friend std::ostream& operator<<(std::ostream& out, const Location& loc) {
+            loc.print(out);
+            return out;
+        }
+    };
+
+    /**
+     * A class indexing the location of variables and record
+     * references within a loop nest resulting from the conversion
+     * of a rule.
+     */
+    class ValueIndex {
+        /**
+         * The type mapping variables (referenced by their names) to the
+         * locations where they are used.
+         */
+        typedef std::map<std::string, std::set<Location>> variable_reference_map;
+
+        /**
+         * The type mapping record init expressions to their definition points,
+         * hence the point where they get grounded/bound.
+         */
+        typedef std::map<const AstRecordInit*, Location> record_definition_map;
+
+        /**
+         * The type mapping record init expressions to the loop level where
+         * they get unpacked.
+         */
+        typedef std::map<const AstRecordInit*, int> record_unpack_map;
+
+        /**
+         * A map from AstAggregators to storage locations. Note, since in this case
+         * AstAggregators are indexed by their values (not their address) no standard
+         * map can be utilized.
+         */
+        typedef std::vector<std::pair<const AstAggregator*, Location>> aggregator_location_map;
+
+        /** The index of variable accesses */
+        variable_reference_map var_references;
+
+        /** The index of record definition points */
+        record_definition_map record_definitions;
+
+        /** The index of record-unpack levels */
+        record_unpack_map record_unpacks;
+
+        /** The level of a nested ram operation that is handling a given aggregator operation */
+        aggregator_location_map aggregator_locations;
+
+    public:
+        // -- variables --
+
+        void addVarReference(const AstVariable& var, const Location& l) {
+            std::set<Location>& locs = var_references[var.getName()];
+            locs.insert(l);
+        }
+
+        void addVarReference(const AstVariable& var, int level, int pos, const std::string& name = "") {
+            addVarReference(var, Location({level, pos, name}));
+        }
+
+        bool isDefined(const AstVariable& var) const {
+            return var_references.find(var.getName()) != var_references.end();
+        }
+
+        const Location& getDefinitionPoint(const AstVariable& var) const {
+            auto pos = var_references.find(var.getName());
+            assert(pos != var_references.end() && "Undefined variable referenced!");
+            return *pos->second.begin();
+        }
+
+        const variable_reference_map& getVariableReferences() const {
+            return var_references;
+        }
+
+        // -- records --
+
+        // - definition -
+
+        void setRecordDefinition(const AstRecordInit& init, const Location& l) {
+            record_definitions[&init] = l;
+        }
+
+        void setRecordDefinition(const AstRecordInit& init, int level, int pos, std::string name = "") {
+            setRecordDefinition(init, Location({level, pos, name}));
+        }
+
+        const Location& getDefinitionPoint(const AstRecordInit& init) const {
+            auto pos = record_definitions.find(&init);
+            if (pos != record_definitions.end()) {
+                return pos->second;
             }
+            assert(false && "Requested location for undefined record!");
 
-            bool operator!=(const Location& loc) const {
-                return !(*this == loc);
+            static Location fail;
+            return fail;
+        }
+
+        // - unpacking -
+
+        void setRecordUnpackLevel(const AstRecordInit& init, int level) {
+            record_unpacks[&init] = level;
+        }
+
+        int getRecordUnpackLevel(const AstRecordInit& init) const {
+            auto pos = record_unpacks.find(&init);
+            if (pos != record_unpacks.end()) {
+                return pos->second;
             }
+            assert(false && "Requested record is not unpacked properly!");
+            return 0;
+        }
 
-            bool operator<(const Location& loc) const {
-                return level < loc.level || (level == loc.level && component < loc.component);
-            }
+        // -- aggregates --
 
-            void print(std::ostream& out) const {
-                out << "(" << level << "," << component << ")";
-            }
+        void setAggregatorLocation(const AstAggregator& agg, const Location& loc) {
+            aggregator_locations.push_back(std::make_pair(&agg, loc));
+        }
 
-            friend std::ostream& operator<<(std::ostream& out, const Location& loc) {
-                loc.print(out);
-                return out;
-            }
-        };
-
-/**
- * A class indexing the location of variables and record
- * references within a loop nest resulting from the conversion
- * of a rule.
- */
-        class ValueIndex {
-            /**
-             * The type mapping variables (referenced by their names) to the
-             * locations where they are used.
-             */
-            typedef std::map<std::string, std::set<Location>> variable_reference_map;
-
-            /**
-             * The type mapping record init expressions to their definition points,
-             * hence the point where they get grounded/bound.
-             */
-            typedef std::map<const AstRecordInit*, Location> record_definition_map;
-
-            /**
-             * The type mapping record init expressions to the loop level where
-             * they get unpacked.
-             */
-            typedef std::map<const AstRecordInit*, int> record_unpack_map;
-
-            /**
-             * A map from AstAggregators to storage locations. Note, since in this case
-             * AstAggregators are indexed by their values (not their address) no standard
-             * map can be utilized.
-             */
-            typedef std::vector<std::pair<const AstAggregator*, Location>> aggregator_location_map;
-
-            /** The index of variable accesses */
-            variable_reference_map var_references;
-
-            /** The index of record definition points */
-            record_definition_map record_definitions;
-
-            /** The index of record-unpack levels */
-            record_unpack_map record_unpacks;
-
-            /** The level of a nested ram operation that is handling a given aggregator operation */
-            aggregator_location_map aggregator_locations;
-
-        public:
-            // -- variables --
-
-            void addVarReference(const AstVariable& var, const Location& l) {
-                std::set<Location>& locs = var_references[var.getName()];
-                locs.insert(l);
-            }
-
-            void addVarReference(const AstVariable& var, int level, int pos, const std::string& name = "") {
-                addVarReference(var, Location({level, pos, name}));
-            }
-
-            bool isDefined(const AstVariable& var) const {
-                return var_references.find(var.getName()) != var_references.end();
-            }
-
-            const Location& getDefinitionPoint(const AstVariable& var) const {
-                auto pos = var_references.find(var.getName());
-                assert(pos != var_references.end() && "Undefined variable referenced!");
-                return *pos->second.begin();
-            }
-
-            const variable_reference_map& getVariableReferences() const {
-                return var_references;
-            }
-
-            // -- records --
-
-            // - definition -
-
-            void setRecordDefinition(const AstRecordInit& init, const Location& l) {
-                record_definitions[&init] = l;
-            }
-
-            void setRecordDefinition(const AstRecordInit& init, int level, int pos, std::string name = "") {
-                setRecordDefinition(init, Location({level, pos, name}));
-            }
-
-            const Location& getDefinitionPoint(const AstRecordInit& init) const {
-                auto pos = record_definitions.find(&init);
-                if (pos != record_definitions.end()) {
-                    return pos->second;
+        const Location& getAggregatorLocation(const AstAggregator& agg) const {
+            // search list
+            for (const auto& cur : aggregator_locations) {
+                if (*cur.first == agg) {
+                    return cur.second;
                 }
-                assert(false && "Requested location for undefined record!");
-
-                static Location fail;
-                return fail;
             }
 
-            // - unpacking -
+            // fail
+            std::cout << "Lookup of " << &agg << " = " << agg << " failed\n";
+            assert(false && "Requested aggregation operation is not processed!");
+            const static Location fail = Location();
+            return fail;
+        }
 
-            void setRecordUnpackLevel(const AstRecordInit& init, int level) {
-                record_unpacks[&init] = level;
-            }
+        // -- others --
 
-            int getRecordUnpackLevel(const AstRecordInit& init) const {
-                auto pos = record_unpacks.find(&init);
-                if (pos != record_unpacks.end()) {
-                    return pos->second;
+        bool isSomethingDefinedOn(int level) const {
+            // check for variable definitions
+            for (const auto& cur : var_references) {
+                if (cur.second.begin()->level == level) {
+                    return true;
                 }
-                assert(false && "Requested record is not unpacked properly!");
-                return 0;
             }
-
-            // -- aggregates --
-
-            void setAggregatorLocation(const AstAggregator& agg, const Location& loc) {
-                aggregator_locations.push_back(std::make_pair(&agg, loc));
-            }
-
-            const Location& getAggregatorLocation(const AstAggregator& agg) const {
-                // search list
-                for (const auto& cur : aggregator_locations) {
-                    if (*cur.first == agg) {
-                        return cur.second;
-                    }
+            // check for record definitions
+            for (const auto& cur : record_definitions) {
+                if (cur.second.level == level) {
+                    return true;
                 }
-
-                // fail
-                std::cout << "Lookup of " << &agg << " = " << agg << " failed\n";
-                assert(false && "Requested aggregation operation is not processed!");
-                const static Location fail = Location();
-                return fail;
             }
+            // nothing defined on this level
+            return false;
+        }
 
-            // -- others --
+        void print(std::ostream& out) const {
+            out << "Variables:\n\t";
+            out << join(var_references, "\n\t");
+        }
 
-            bool isSomethingDefinedOn(int level) const {
-                // check for variable definitions
-                for (const auto& cur : var_references) {
-                    if (cur.second.begin()->level == level) {
-                        return true;
-                    }
-                }
-                // check for record definitions
-                for (const auto& cur : record_definitions) {
-                    if (cur.second.level == level) {
-                        return true;
-                    }
-                }
-                // nothing defined on this level
-                return false;
-            }
+        friend std::ostream& operator<<(std::ostream& out, const ValueIndex& index) __attribute__((unused)) {
+            index.print(out);
+            return out;
+        }
+    };
 
-            void print(std::ostream& out) const {
-                out << "Variables:\n\t";
-                out << join(var_references, "\n\t");
-            }
-
-            friend std::ostream& operator<<(std::ostream& out, const ValueIndex& index) __attribute__((unused)) {
-                index.print(out);
-                return out;
-            }
-        };
-
-        std::unique_ptr<RamValue> translateValue(const AstArgument* arg, const ValueIndex& index = ValueIndex()) {
-            std::unique_ptr<RamValue> val;
-            if (!arg) {
-                return val;
-            }
-
-            if (const AstVariable* var = dynamic_cast<const AstVariable*>(arg)) {
-                ASSERT(index.isDefined(*var) && "variable not grounded");
-                const Location& loc = index.getDefinitionPoint(*var);
-                val = std::unique_ptr<RamValue>(new RamElementAccess(loc.level, loc.component, loc.name));
-            } else if (dynamic_cast<const AstUnnamedVariable*>(arg)) {
-                return nullptr;  // utilized to identify _ values
-            } else if (const AstConstant* c = dynamic_cast<const AstConstant*>(arg)) {
-                val = std::unique_ptr<RamValue>(new RamNumber(c->getIndex()));
-            } else if (const AstUnaryFunctor* uf = dynamic_cast<const AstUnaryFunctor*>(arg)) {
-                val = std::unique_ptr<RamValue>(
-                        new RamUnaryOperator(uf->getFunction(), translateValue(uf->getOperand(), index)));
-            } else if (const AstBinaryFunctor* bf = dynamic_cast<const AstBinaryFunctor*>(arg)) {
-                val = std::unique_ptr<RamValue>(new RamBinaryOperator(
-                        bf->getFunction(), translateValue(bf->getLHS(), index), translateValue(bf->getRHS(), index)));
-            } else if (dynamic_cast<const AstCounter*>(arg)) {
-                val = std::unique_ptr<RamValue>(new RamAutoIncrement());
-            } else if (const AstRecordInit* init = dynamic_cast<const AstRecordInit*>(arg)) {
-                std::vector<std::unique_ptr<RamValue>> values;
-                for (const auto& cur : init->getArguments()) {
-                    values.push_back(translateValue(cur, index));
-                }
-                val = std::unique_ptr<RamValue>(new RamPack(std::move(values)));
-            } else if (const AstAggregator* agg = dynamic_cast<const AstAggregator*>(arg)) {
-                // here we look up the location the aggregation result gets bound
-                auto loc = index.getAggregatorLocation(*agg);
-                val = std::unique_ptr<RamValue>(new RamElementAccess(loc.level, loc.component, loc.name));
-            } else {
-                std::cout << "Unsupported node type of " << arg << ": " << typeid(*arg).name() << "\n";
-                ASSERT(false && "unknown AST node type not permissible");
-            }
-
+    std::unique_ptr<RamValue> translateValue(const AstArgument* arg, const ValueIndex& index = ValueIndex()) {
+        std::unique_ptr<RamValue> val;
+        if (!arg) {
             return val;
         }
 
-        std::unique_ptr<RamValue> translateValue(const AstArgument& arg, const ValueIndex& index = ValueIndex()) {
-            return translateValue(&arg, index);
+        if (const AstVariable* var = dynamic_cast<const AstVariable*>(arg)) {
+            ASSERT(index.isDefined(*var) && "variable not grounded");
+            const Location& loc = index.getDefinitionPoint(*var);
+            val = std::unique_ptr<RamValue>(new RamElementAccess(loc.level, loc.component, loc.name));
+        } else if (dynamic_cast<const AstUnnamedVariable*>(arg)) {
+            return nullptr;  // utilized to identify _ values
+        } else if (const AstConstant* c = dynamic_cast<const AstConstant*>(arg)) {
+            val = std::unique_ptr<RamValue>(new RamNumber(c->getIndex()));
+        } else if (const AstUnaryFunctor* uf = dynamic_cast<const AstUnaryFunctor*>(arg)) {
+            val = std::unique_ptr<RamValue>(
+                    new RamUnaryOperator(uf->getFunction(), translateValue(uf->getOperand(), index)));
+        } else if (const AstBinaryFunctor* bf = dynamic_cast<const AstBinaryFunctor*>(arg)) {
+            val = std::unique_ptr<RamValue>(new RamBinaryOperator(bf->getFunction(),
+                    translateValue(bf->getLHS(), index), translateValue(bf->getRHS(), index)));
+        } else if (dynamic_cast<const AstCounter*>(arg)) {
+            val = std::unique_ptr<RamValue>(new RamAutoIncrement());
+        } else if (const AstRecordInit* init = dynamic_cast<const AstRecordInit*>(arg)) {
+            std::vector<std::unique_ptr<RamValue>> values;
+            for (const auto& cur : init->getArguments()) {
+                values.push_back(translateValue(cur, index));
+            }
+            val = std::unique_ptr<RamValue>(new RamPack(std::move(values)));
+        } else if (const AstAggregator* agg = dynamic_cast<const AstAggregator*>(arg)) {
+            // here we look up the location the aggregation result gets bound
+            auto loc = index.getAggregatorLocation(*agg);
+            val = std::unique_ptr<RamValue>(new RamElementAccess(loc.level, loc.component, loc.name));
+        } else {
+            std::cout << "Unsupported node type of " << arg << ": " << typeid(*arg).name() << "\n";
+            ASSERT(false && "unknown AST node type not permissible");
+        }
+
+        return val;
+    }
+
+    std::unique_ptr<RamValue> translateValue(const AstArgument& arg, const ValueIndex& index = ValueIndex()) {
+        return translateValue(&arg, index);
         }
     }
 
@@ -376,7 +376,7 @@ namespace souffle {
             // Change order to start at zero
             std::vector<unsigned int> newOrder(order.size());
             std::transform(order.begin(), order.end(), newOrder.begin(),
-                           [](unsigned int i) -> unsigned int { return i - 1; });
+                    [](unsigned int i) -> unsigned int { return i - 1; });
 
             // re-order atoms
             copy->reorderAtoms(newOrder);
@@ -395,7 +395,7 @@ namespace souffle {
         // a utility to translate atoms to relations
         auto getRelation = [&](const AstAtom* atom) {
             return getRamRelationIdentifier(getRelationName(atom->getName()), atom->getArity(),
-                                            (program ? getAtomRelation(atom, program) : nullptr), typeEnv);
+                    (program ? getAtomRelation(atom, program) : nullptr), typeEnv);
         };
 
         // handle facts
@@ -445,7 +445,8 @@ namespace souffle {
             };
 
             std::map<const arg_list*, int> arg_level;
-            nodeArgs.insert(std::make_pair(atom, std::unique_ptr<arg_list>(new arg_list(atom->getArguments()))));
+            nodeArgs.insert(
+                    std::make_pair(atom, std::unique_ptr<arg_list>(new arg_list(atom->getArguments()))));
             // the atom is obtained at the current level
             arg_level[nodeArgs[atom].get()] = level;
             op_nesting.push_back(atom);
@@ -566,9 +567,9 @@ namespace souffle {
             for (size_t pos = 0; pos < atom->argSize(); ++pos) {
                 if (AstConstant* c = dynamic_cast<AstConstant*>(atom->getArgument(pos))) {
                     op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
-                                                                                         std::unique_ptr<RamValue>(new RamElementAccess(
-                                                                                                 level, pos, getRelation(atom).getArg(pos))),
-                                                                                         std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
+                            std::unique_ptr<RamValue>(new RamElementAccess(
+                                    level, pos, getRelation(atom).getArg(pos))),
+                            std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
                 }
             }
         }
@@ -592,20 +593,21 @@ namespace souffle {
                 }
 
                 // add a scan level
-                op = std::unique_ptr<RamOperation>(new RamScan(getRelation(atom), std::move(op), isExistCheck));
+                op = std::unique_ptr<RamOperation>(
+                        new RamScan(getRelation(atom), std::move(op), isExistCheck));
 
                 // add constraints
                 for (size_t pos = 0; pos < atom->argSize(); ++pos) {
                     if (AstConstant* c = dynamic_cast<AstConstant*>(atom->getArgument(pos))) {
                         op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
-                                                                                             std::unique_ptr<RamValue>(new RamElementAccess(
-                                                                                                     level, pos, getRelation(atom).getArg(pos))),
-                                                                                             std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
+                                std::unique_ptr<RamValue>(new RamElementAccess(
+                                        level, pos, getRelation(atom).getArg(pos))),
+                                std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
                     } else if (AstAggregator* agg = dynamic_cast<AstAggregator*>(atom->getArgument(pos))) {
                         auto loc = valueIndex.getAggregatorLocation(*agg);
                         op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(
                                 BinaryRelOp::EQ, std::unique_ptr<RamValue>(new RamElementAccess(
-                                        level, pos, getRelation(atom).getArg(pos))),
+                                                         level, pos, getRelation(atom).getArg(pos))),
                                 std::unique_ptr<RamValue>(
                                         new RamElementAccess(loc.level, loc.component, loc.name)))));
                     }
@@ -622,8 +624,8 @@ namespace souffle {
                 for (size_t pos = 0; pos < rec->getArguments().size(); ++pos) {
                     if (AstConstant* c = dynamic_cast<AstConstant*>(rec->getArguments()[pos])) {
                         op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
-                                                                                             std::unique_ptr<RamValue>(new RamElementAccess(level, pos)),
-                                                                                             std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
+                                std::unique_ptr<RamValue>(new RamElementAccess(level, pos)),
+                                std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
                     }
                 }
             } else {
@@ -641,7 +643,7 @@ namespace souffle {
                 if (first != loc) {
                     op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(
                             BinaryRelOp::EQ, std::unique_ptr<RamValue>(new RamElementAccess(
-                                    first.level, first.component, first.name)),
+                                                     first.level, first.component, first.name)),
                             std::unique_ptr<RamValue>(
                                     new RamElementAccess(loc.level, loc.component, loc.name)))));
                 }
@@ -658,9 +660,9 @@ namespace souffle {
             } else if (auto binRel = dynamic_cast<const AstConstraint*>(lit)) {
                 std::unique_ptr<RamValue> valLHS = translateValue(binRel->getLHS(), valueIndex);
                 std::unique_ptr<RamValue> valRHS = translateValue(binRel->getRHS(), valueIndex);
-                op->addCondition(std::unique_ptr<RamCondition>(
-                        new RamBinaryRelation(binRel->getOperator(), translateValue(binRel->getLHS(), valueIndex),
-                                              translateValue(binRel->getRHS(), valueIndex))));
+                op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(binRel->getOperator(),
+                        translateValue(binRel->getLHS(), valueIndex),
+                        translateValue(binRel->getRHS(), valueIndex))));
 
                 // for negations
             } else if (auto neg = dynamic_cast<const AstNegation*>(lit)) {
@@ -686,20 +688,22 @@ namespace souffle {
         return std::unique_ptr<RamStatement>(new RamInsert(clause, std::move(op)));
     }
 
-/* utility for appending statements */
+    /* utility for appending statements */
     static void appendStmt(std::unique_ptr<RamStatement>& stmtList, std::unique_ptr<RamStatement> stmt) {
         if (stmt) {
             if (stmtList) {
-                stmtList = std::unique_ptr<RamStatement>(new RamSequence(std::move(stmtList), std::move(stmt)));
+                stmtList =
+                        std::unique_ptr<RamStatement>(new RamSequence(std::move(stmtList), std::move(stmt)));
             } else {
                 stmtList = std::move(stmt);
             }
         }
     };
 
-/** generate RAM code for a non-recursive relation */
+    /** generate RAM code for a non-recursive relation */
     std::unique_ptr<RamStatement> RamTranslator::translateNonRecursiveRelation(const AstRelation& rel,
-                                                                               const AstProgram* program, const RecursiveClauses* recursiveClauses, const TypeEnvironment& typeEnv) {
+            const AstProgram* program, const RecursiveClauses* recursiveClauses,
+            const TypeEnvironment& typeEnv) {
         /* start with an empty sequence */
         std::unique_ptr<RamStatement> res;
 
@@ -760,38 +764,38 @@ namespace souffle {
 
     namespace {
 
-/**
- * A utility function assigning names to unnamed variables such that enclosing
- * constructs may be cloned without losing the variable-identity.
- */
-        void nameUnnamedVariables(AstClause* clause) {
-            // the node mapper conducting the actual renaming
-            struct Instantiator : public AstNodeMapper {
-                mutable int counter;
+    /**
+     * A utility function assigning names to unnamed variables such that enclosing
+     * constructs may be cloned without losing the variable-identity.
+     */
+    void nameUnnamedVariables(AstClause* clause) {
+        // the node mapper conducting the actual renaming
+        struct Instantiator : public AstNodeMapper {
+            mutable int counter;
 
-                Instantiator() : counter(0) {}
+            Instantiator() : counter(0) {}
 
-                virtual std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const {
-                    // apply recursive
-                    node->apply(*this);
+            virtual std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const {
+                // apply recursive
+                node->apply(*this);
 
-                    // replace unknown variables
-                    if (dynamic_cast<AstUnnamedVariable*>(node.get())) {
-                        auto name = " _unnamed_var" + toString(++counter);
-                        return std::unique_ptr<AstNode>(new AstVariable(name));
-                    }
-
-                    // otherwise nothing
-                    return node;
+                // replace unknown variables
+                if (dynamic_cast<AstUnnamedVariable*>(node.get())) {
+                    auto name = " _unnamed_var" + toString(++counter);
+                    return std::unique_ptr<AstNode>(new AstVariable(name));
                 }
-            };
 
-            // name all variables in the atoms
-            Instantiator init;
-            for (auto& atom : clause->getAtoms()) {
-                atom->apply(init);
+                // otherwise nothing
+                return node;
             }
+        };
+
+        // name all variables in the atoms
+        Instantiator init;
+        for (auto& atom : clause->getAtoms()) {
+            atom->apply(init);
         }
+    }
     }
 
 /** generate RAM code for recursive relations in a strongly-connected component */
@@ -819,15 +823,16 @@ namespace souffle {
             auto relName = getRelationName(rel->getName());
             rrel[rel] = getRamRelationIdentifier(relName, rel->getArity(), rel, &typeEnv);
 
-            relDelta[rel] = getRamRelationIdentifier("delta_" + relName, rel->getArity(), rel, &typeEnv, true);
+            relDelta[rel] =
+                    getRamRelationIdentifier("delta_" + relName, rel->getArity(), rel, &typeEnv, true);
             relNew[rel] = getRamRelationIdentifier("new_" + relName, rel->getArity(), rel, &typeEnv, true);
 
             /* create update statements for fixpoint (even iteration) */
             appendStmt(updateRelTable1,
-                       std::unique_ptr<RamStatement>(new RamSequence(
-                               std::unique_ptr<RamStatement>(new RamMerge(rrel[rel], relNew[rel])),
-                               std::unique_ptr<RamStatement>(new RamSwap(relDelta[rel], relNew[rel])),
-                               std::unique_ptr<RamStatement>(new RamClear(relNew[rel])))));
+                    std::unique_ptr<RamStatement>(new RamSequence(
+                            std::unique_ptr<RamStatement>(new RamMerge(rrel[rel], relNew[rel])),
+                            std::unique_ptr<RamStatement>(new RamSwap(relDelta[rel], relNew[rel])),
+                            std::unique_ptr<RamStatement>(new RamClear(relNew[rel])))));
 
             /* measure update time for each relation */
             if (logging) {
@@ -839,8 +844,8 @@ namespace souffle {
 
             /* drop temporary tables after recursion */
             appendStmt(postamble, std::unique_ptr<RamStatement>(new RamSequence(
-                    std::unique_ptr<RamStatement>(new RamDrop(relDelta[rel])),
-                    std::unique_ptr<RamStatement>(new RamDrop(relNew[rel])))));
+                                          std::unique_ptr<RamStatement>(new RamDrop(relDelta[rel])),
+                                          std::unique_ptr<RamStatement>(new RamDrop(relNew[rel])))));
 
             /* Generate code for non-recursive part of relation */
             appendStmt(preamble, translateNonRecursiveRelation(*rel, program, recursiveClauses, typeEnv));
@@ -901,8 +906,8 @@ namespace souffle {
                         if (isInSameSCC(getAtomRelation(atoms[k], program))) {
                             AstAtom* cur = r1->getAtoms()[k]->clone();
                             cur->setName(relDelta[getAtomRelation(atoms[k], program)].getName());
-                            r1->addToBody(
-                                    std::unique_ptr<AstLiteral>(new AstNegation(std::unique_ptr<AstAtom>(cur))));
+                            r1->addToBody(std::unique_ptr<AstLiteral>(
+                                    new AstNegation(std::unique_ptr<AstAtom>(cur))));
                         }
                     }
 
@@ -918,7 +923,8 @@ namespace souffle {
                         line << clauseText << ";";
                         std::string label = line.str();
                         rule1 = std::unique_ptr<RamStatement>(new RamSequence(
-                                std::unique_ptr<RamStatement>(new RamLogTimer(std::move(rule1), "@t-" + label)),
+                                std::unique_ptr<RamStatement>(
+                                        new RamLogTimer(std::move(rule1), "@t-" + label)),
                                 std::unique_ptr<RamStatement>(new RamLogSize(relNew[rel], "@n-" + label))));
                     }
 
@@ -928,7 +934,8 @@ namespace souffle {
                     // increment version counter
                     version++;
                 }
-                assert(cl->getExecutionPlan() == nullptr || version > cl->getExecutionPlan()->getMaxVersion());
+                assert(cl->getExecutionPlan() == nullptr ||
+                        version > cl->getExecutionPlan()->getMaxVersion());
             }
 
             // if there was no rule, continue
@@ -943,8 +950,8 @@ namespace souffle {
                 std::string label = line.str();
                 loopRelSeq1 =
                         std::unique_ptr<RamStatement>(new RamLogTimer(std::move(loopRelSeq1), "@t-" + label));
-                appendStmt(
-                        loopRelSeq1, std::unique_ptr<RamStatement>(new RamLogSize(relNew[rel], "@n-" + label)));
+                appendStmt(loopRelSeq1,
+                        std::unique_ptr<RamStatement>(new RamLogSize(relNew[rel], "@n-" + label)));
             }
 
             /* add rule computations of a relation to parallel statement */
@@ -964,16 +971,16 @@ namespace souffle {
 
         /* construct fixpoint loop  */
         return std::unique_ptr<RamStatement>(new RamSequence(std::move(preamble),
-                                                             std::unique_ptr<RamStatement>(new RamLoop(std::move(loopSeq1),
-                                                                                                       std::unique_ptr<RamStatement>(new RamExit(std::move(exitCond1))),
-                                                                                                       std::move(updateTable1))),
-                                                             std::move(postamble)));
+                std::unique_ptr<RamStatement>(new RamLoop(std::move(loopSeq1),
+                        std::unique_ptr<RamStatement>(new RamExit(std::move(exitCond1))),
+                        std::move(updateTable1))),
+                std::move(postamble)));
 
         assert(false && "Not Implemented");
         return nullptr;
     }
 
-/** translates the given datalog program into an equivalent RAM program  */
+    /** translates the given datalog program into an equivalent RAM program  */
     std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslationUnit& translationUnit) {
         const TypeEnvironment& typeEnv =
                 translationUnit.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
@@ -1004,11 +1011,11 @@ namespace souffle {
             // create delta-relations if necessary
             if (relationSchedule->isRecursive(rel)) {
                 appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(
-                        getRamRelationIdentifier("delta_" + getRelationName(rel->getName()),
-                                                 rel->getArity(), rel, &typeEnv, true))));
+                                        getRamRelationIdentifier("delta_" + getRelationName(rel->getName()),
+                                                rel->getArity(), rel, &typeEnv, true))));
                 appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(
-                        getRamRelationIdentifier("new_" + getRelationName(rel->getName()),
-                                                 rel->getArity(), rel, &typeEnv, true))));
+                                        getRamRelationIdentifier("new_" + getRelationName(rel->getName()),
+                                                rel->getArity(), rel, &typeEnv, true))));
             }
         }
 
@@ -1026,14 +1033,15 @@ namespace souffle {
                 stmt = translateNonRecursiveRelation(
                         *rel, translationUnit.getProgram(), recursiveClauses, typeEnv);
             } else {
-                stmt = translateRecursiveRelation(scc, translationUnit.getProgram(), recursiveClauses, typeEnv);
+                stmt = translateRecursiveRelation(
+                        scc, translationUnit.getProgram(), recursiveClauses, typeEnv);
             }
             appendStmt(comp, std::move(stmt));
 
             /* Drop the tables of all expired relations to save memory */
             for (const auto& rel : step.getExpiredRelations()) {
                 appendStmt(comp, std::unique_ptr<RamStatement>(new RamDrop(getRamRelationIdentifier(
-                        getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv))));
+                                         getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv))));
             }
         }
 
