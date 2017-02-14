@@ -1,6 +1,6 @@
 .type Integer
 
-.decl check(x:Integer, y:Integer) 
+.decl check(x:Integer, y:Integer)
 .decl list(x:Integer, y:Integer)
 .decl succ(x:Integer, y:Integer)
 .decl checker(x:Integer)

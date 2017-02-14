@@ -2,7 +2,7 @@
 //// Source: [Bonn99], extended and adapted
 //// Adopted from DES
 
-.type Node 
+.type Node
 
 .decl student (node1:Node)
 .output student ()

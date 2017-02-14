@@ -14,7 +14,7 @@ Edge("1","4",-6).
 Edge("4","2",-1).
 
 //
-// Reachable 
+// Reachable
 //
 
 .decl Reachable   (n:Node, m:Node, i:number)

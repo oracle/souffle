@@ -7,6 +7,6 @@
 .decl C(x:number, y:number) eqrel
 .output C()
 .input C()
-.decl D(x:number, y:number) 
+.decl D(x:number, y:number)
 .output D()
 .input D()

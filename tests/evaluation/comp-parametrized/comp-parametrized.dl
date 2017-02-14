@@ -27,8 +27,8 @@
 
     .decl NoWayBack(x: number, y: number)
 .output NoWayBack()
-    NoWayBack(x, y) :- 
-        cg.Node(x), cg.Node(y), 
+    NoWayBack(x, y) :-
+        cg.Node(x), cg.Node(y),
         cg.CallGraphEdge(x, y), !cg.CallGraphEdge(y, x).
 }
 

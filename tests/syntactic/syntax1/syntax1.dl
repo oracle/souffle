@@ -8,7 +8,7 @@
 .input edge        ()
 
 reachable(X,Y)   :- edge(X,Y).
-reachable(X,Y)   :- edge(X,Z),  
+reachable(X,Y)   :- edge(X,Z),
 // Comment
                     reachable(Z,Y). +
 same_clique(X,Y) :- reachable(X,Y), reachable(Y,X).

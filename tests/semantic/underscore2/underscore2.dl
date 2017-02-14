@@ -8,4 +8,4 @@ bites("alfi", "karl").
 
 .decl bad(x:Dog)
 .output bad()
-bad(Dog) :- bites(Dog, _Anybody). 
+bad(Dog) :- bites(Dog, _Anybody).

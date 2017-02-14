@@ -2,9 +2,9 @@
 
 .type String
 
-.decl inputData  (t:String) 
-.decl pattern1  (t:String) 
-.decl pattern2  (t:String) 
+.decl inputData  (t:String)
+.decl pattern1  (t:String)
+.decl pattern2  (t:String)
 .decl outputData  (t:String)
 .output outputData  ()
 

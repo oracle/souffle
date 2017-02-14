@@ -13,13 +13,16 @@ C() :- B(2).
 
 
 // Empty and defined nullaries from input
-.decl Def() printsize
+.decl Def()
+.printsize Def
 .input Def()
-.decl Undef() printsize
+.decl Undef()
+.printsize Undef
 .input Undef()
 
 // A defined nullary relation.
-.decl E() printsize
+.decl E()
+.printsize E
 E().
 
 // LHS nullaries
@@ -27,7 +30,8 @@ E().
 F().
 
 // Empty nullary relation without input
-.decl G() printsize
+.decl G()
+.printsize G
 
 // Nullaries as conditions.
 .decl H(x:number)
@@ -58,7 +62,8 @@ L(x+y) :- I(x), K(), J(y).
 
 
 // Recursively defined nullary relations.
-.decl M() printsize
+.decl M()
+.printsize M
 M() :- M().
 
 .decl N()
@@ -66,7 +71,8 @@ M() :- M().
 N().
 N() :- N().
 
-.decl P() printsize
+.decl P()
+.printsize P
 P().
 P() :- Q().
 
@@ -79,5 +85,5 @@ Q() :- P().
 R(10).
 R(x) :- S(), R(x).	
 
-.decl S() 
+.decl S()
 S() :- R(_).

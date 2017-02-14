@@ -17,7 +17,7 @@
 .decl Assign(y:var, x:var)
 .input Assign()
 
-// Load Statements, i.e., y = *x; 
+// Load Statements, i.e., y = *x;
 .decl Load(y:var, x:var)
 .input Load()
 

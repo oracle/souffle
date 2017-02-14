@@ -101,7 +101,7 @@ PathEdge(s, d1, r, d3) :- ProcOf(n, p),
                           ReturnSite(n, r),
                           StartNode(s, p),
                           PathEdge(s, d1, n, d2).
-           
+
 //Case n equals e_p
 SummaryEdge(c, d4, r, d5) :- ReturnNode(n, p),
                              CalledProc(c, p),

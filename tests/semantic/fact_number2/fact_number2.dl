@@ -1,5 +1,5 @@
 // Check if unquoted numbers are rejected by the parser
-.type Node 
+.type Node
 
 .decl F (node1:Node, node2:number)
 .input F ()

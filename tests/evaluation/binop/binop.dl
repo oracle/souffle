@@ -5,7 +5,7 @@
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 //
-// Check semantics of binary relations 
+// Check semantics of binary relations
 //
 
 .number_type n
@@ -27,14 +27,14 @@
 .decl N (x:n)
 .output N ()
 
-N(0). 
-N(1). 
-N(2). 
-N(3). 
-N(4). 
-N(5). 
+N(0).
+N(1).
+N(2).
+N(3).
+N(4).
+N(5).
 
-S(x,y) :- N(x), N(y). 
+S(x,y) :- N(x), N(y).
 
 A(a,c) :- S(a,c), a > c.
 B(a,c) :- S(a,c), a < c.

@@ -2,8 +2,8 @@ Error: Referencing undefined component TThatDoesNotExist in file comp_nonexisten
     .init cg = TThatDoesNotExist
 ----^----------------------------
 Error: Undefined relation cg.CallGraphEdge in file comp_nonexistent_type.dl at line 25
-        cg.CallGraphEdge(x, y), 
---------^------------------------
+        cg.CallGraphEdge(x, y),
+--------^-----------------------
 Error: Undefined relation cg.CallGraphEdge in file comp_nonexistent_type.dl at line 26
         cg.CallGraphEdge(y, x).
 --------^-----------------------

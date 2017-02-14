@@ -6,14 +6,14 @@
 
 .type Integer
 
-.decl student (a:Integer, b:Integer, c:Integer) 
-.decl professor (a:Integer, b:Integer) 
+.decl student (a:Integer, b:Integer, c:Integer)
+.decl professor (a:Integer, b:Integer)
 
-.decl actual_adv(s:Integer, p:Integer) 
+.decl actual_adv(s:Integer, p:Integer)
 .output actual_adv()
 .decl chosen(s:Integer, p:Integer)
 .output chosen()
-.decl diffchoice(s:Integer, p:Integer) 
+.decl diffchoice(s:Integer, p:Integer)
 .output diffchoice()
 
 

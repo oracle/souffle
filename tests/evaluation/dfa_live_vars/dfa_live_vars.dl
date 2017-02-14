@@ -36,7 +36,7 @@ cf_edge("B","D").
 cf_edge("D","E").
 
 
-// use and def 
+// use and def
 
 def("A", "x1").
 

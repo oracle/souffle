@@ -7,10 +7,12 @@
 
 // make sure there is a index <1> and <0,1> on the edge relation
 
-.decl i1 ( a:number ) printsize
+.decl i1 ( a:number )
+.printsize i1
 i1(X) :- mark(X), edge(_,X).
 
-.decl i01 ( a:number ) printsize
+.decl i01 ( a:number )
+.printsize i01
 i01(X) :- mark(X), edge(X,X).
 
 
@@ -19,7 +21,7 @@ i01(X) :- mark(X), edge(X,X).
 .decl MarkedNoInA ( a:number )
 .output MarkedNoInA ()
 
-MarkedNoInA(X) :- 
+MarkedNoInA(X) :-
     mark(X),
     ! edge(X,_).
 

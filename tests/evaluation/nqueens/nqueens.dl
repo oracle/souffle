@@ -6,7 +6,8 @@
 
 
 // The maximal compatible sets -- n queens.
-.decl solution( qs : QueenList ) printsize
+.decl solution( qs : QueenList )
+.printsize solution
 solution(qs) :- compatible(qs, s), size(s).
 
 
@@ -26,7 +27,7 @@ on_board([x, y]) :- up_to_size(x), up_to_size(y).
 
 
 // Mutually-non-attacking list of queen positions.
-.type QueenList = [ p : Position, qs : QueenList ] 
+.type QueenList = [ p : Position, qs : QueenList ]
 
 
 // Arguments are not on the same diagonal.

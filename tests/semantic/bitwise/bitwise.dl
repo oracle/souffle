@@ -1,4 +1,4 @@
-.decl A(x:number) 
+.decl A(x:number)
 A(11).
 A(4711).
 A(121233).

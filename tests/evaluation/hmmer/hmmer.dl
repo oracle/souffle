@@ -1,4 +1,4 @@
-// 
+//
 // Preliminary Version of a points-to analysis for C
 //
 
@@ -7,21 +7,21 @@
 
 .decl DirectFlow(v:Var,w:Var)
 .input DirectFlow()
-.decl Load(v:Var,w:Var) 
+.decl Load(v:Var,w:Var)
 .input Load()
-.decl Store(v:Var,w:Var) 
+.decl Store(v:Var,w:Var)
 .input Store()
-.decl ExtReturn(v:Var,w:Var) 
+.decl ExtReturn(v:Var,w:Var)
 .input ExtReturn()
-.decl EscapePtr(v:Var) 
+.decl EscapePtr(v:Var)
 .input EscapePtr()
 .decl HeapAlloc(v:Var,o:Obj)
 .input HeapAlloc()
 .decl StackAlloc(v:Var,o:Obj)
 .input StackAlloc()
-.decl Function(v:Var,o:Obj) 
+.decl Function(v:Var,o:Obj)
 .input Function()
-.decl Global(v:Var,o:Obj) 
+.decl Global(v:Var,o:Obj)
 .input Global()
 
 .decl LptrVar (v:Var)

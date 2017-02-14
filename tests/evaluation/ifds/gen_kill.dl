@@ -42,7 +42,7 @@
 .decl e1(p:Procedure, m:Node, n:Node)
 .input e1()
 
-//Data-flow function on edge(m,n) where nkill is a fact that is NOT killed 
+//Data-flow function on edge(m,n) where nkill is a fact that is NOT killed
 .decl f_nk(p:Procedure, m:Node, n:Node, nkill:DataFlowFact)
 .input f_nk()
 
@@ -64,7 +64,7 @@
 
 //IDB relations
 
-//Data-flow function on edge(m,n) where nkill is a fact that is NOT killed 
+//Data-flow function on edge(m,n) where nkill is a fact that is NOT killed
 .decl phi_nk(p:Procedure, n:Node, nkill:DataFlowFact)
 .output phi_nk()
 
@@ -99,11 +99,11 @@ phi_g(p, n, x) :- e0(p, m, n),
 //X is in the gen set of N if N gen X
 phi_g(p, n, x) :- e0(p, m, n),
                   f_g(p, m, n, x).
-				  
-				  				  
+				
+				  				
 //Inter-procedural summaries
 //X is in the nkill set of N if there is a call-to-return edge from M to N,
-//M calls Q, M doesn't kill X and the return node of Q doesn't kill X 
+//M calls Q, M doesn't kill X and the return node of Q doesn't kill X
 phi_nk(p, n, x) :- e1(p, m, n),
                    call_site(p, q, m),
                    phi_nk(p, m, x),
@@ -124,7 +124,7 @@ phi_g(p, n, x) :- e1(p, m, n),
                   call_site(p, q, m),
                   phi_g(q, r, x),
                   ReturnNode(r).
-				  
+				
 
 //Encoding of the OUT relation
 

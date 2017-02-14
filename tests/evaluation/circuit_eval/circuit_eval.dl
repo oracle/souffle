@@ -22,14 +22,14 @@
 .decl g_assignment(x : Var, y : Bool)
 .output g_assignment()
 
-g_assignment(x, "true") :- 
+g_assignment(x, "true") :-
 	set_input(x, "true");
 	g_and(x, o1, o2), g_assignment(o1, "true"), g_assignment(o2, "true");
 	g_or(x, o1, _), g_assignment(o1, "true");
 	g_or(x, _, o2), g_assignment(o2, "true");
  	g_not(x, o1), g_assignment(o1, "false").
 
-g_assignment(x, "false") :- 
+g_assignment(x, "false") :-
 	set_input(x, "false");
 	g_and(x, o1, _), g_assignment(o1, "false");
  	g_and(x, _, o2), g_assignment(o2, "false");

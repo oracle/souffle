@@ -2,7 +2,7 @@
 // Rafael Caballero-Rold\'an, 2007
 // Adopted from DES
 
-.type D 
+.type D
 
 .decl star    (x:D)
 .output star    ()
@@ -17,15 +17,15 @@ star("sun").
 orbits("earth", "sun").
 orbits("moon", "earth").
 
-orbits(X,Y) :-  
-  orbits(X,Z),  
+orbits(X,Y) :-
+  orbits(X,Z),
   orbits(Z,Y).
 
-planet(X) :-                
-  orbits(X,Y),              
-  star(Y),                  
+planet(X) :-
+  orbits(X,Y),
+  star(Y),
   !intermediate(X,Y).
 
-intermediate(X,Y) :-    
-  orbits(X,Y),          
+intermediate(X,Y) :-
+  orbits(X,Y),
   orbits(_,Y).
