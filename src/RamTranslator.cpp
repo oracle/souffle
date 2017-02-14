@@ -23,9 +23,9 @@
 #include "AstUtils.h"
 #include "AstVisitor.h"
 #include "BinaryOperator.h"
+#include "Global.h"
 #include "PrecedenceGraph.h"
 #include "RamStatement.h"
-#include "Global.h"
 
 namespace souffle {
 
@@ -82,11 +82,11 @@ namespace souffle {
                             inputDirectives.set(currentPair.first, currentPair.second);
                         else {
                             // If filename is not an absolute path, concat with cmd line facts directory
-                            if (Global::config().get("fact-dir").empty() == false && currentPair.second.front() != '/') {
+                            if (Global::config().get("fact-dir").empty() == false &&
+                                    currentPair.second.front() != '/') {
                                 inputDirectives.set(currentPair.first,
-                                                    Global::config().get("fact-dir") + "/" + currentPair.second);
-                            }
-                            else {
+                                        Global::config().get("fact-dir") + "/" + currentPair.second);
+                            } else {
                                 inputDirectives.set(currentPair.first, currentPair.second);
                             }
                         }
@@ -99,9 +99,10 @@ namespace souffle {
                             ioDirectives.set(currentPair.first, currentPair.second);
                         else {
                             // If filename is not an absolute path, concat with cmd line output directory
-                            if (Global::config().get("out-dir").empty() == false && currentPair.second.front() != '/') {
+                            if (Global::config().get("out-dir").empty() == false &&
+                                    currentPair.second.front() != '/') {
                                 ioDirectives.set(currentPair.first,
-                                                 Global::config().get("output-dir") + "/" + currentPair.second);
+                                        Global::config().get("output-dir") + "/" + currentPair.second);
                             } else {
                                 ioDirectives.set(currentPair.first, currentPair.second);
                             }
