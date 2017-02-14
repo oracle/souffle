@@ -1,7 +1,8 @@
 // Find all disconnected node pairs
 .type Node
 
-.decl Edge(n:Node, m:Node, w:number) input
+.decl Edge(n:Node, m:Node, w:number)
+.input Edge()
 
 // Find the connected nodes
 .decl Connected(n:Node, m:Node)

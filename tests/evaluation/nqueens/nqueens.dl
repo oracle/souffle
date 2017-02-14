@@ -1,7 +1,8 @@
 // Solves the n-queens problem
 
 // Side length of the board.
-.decl size( n : number ) input
+.decl size( n : number )
+.input size()
 
 
 // The maximal compatible sets -- n queens.

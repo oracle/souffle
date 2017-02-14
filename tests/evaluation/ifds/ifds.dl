@@ -19,32 +19,42 @@
 .type Node = String
 .type DataFlowFact = String
 
-.decl Node(n:Node) input output
-.decl Procedure(p:Procedure) input output
-.decl DataFlowFact(f:DataFlowFact) input output
+.decl Node(n:Node) output
+.input Node()
+.decl Procedure(p:Procedure) output
+.input Procedure()
+.decl DataFlowFact(f:DataFlowFact) output
+.input DataFlowFact()
 
 //EDB relations
 
 //Node n is the start node of procedure p
-.decl StartNode(n:Node, p:Procedure) input output
+.decl StartNode(n:Node, p:Procedure) output
+.input StartNode()
 
 //Node n is the return node of procedure p
-.decl ReturnNode(n:Node, p:Procedure) input output
+.decl ReturnNode(n:Node, p:Procedure) output
+.input ReturnNode()
 
 //Node n is a call node in procedure p
-.decl CallNode(n:Node, p:Procedure) input output
+.decl CallNode(n:Node, p:Procedure) output
+.input CallNode()
 
 //Map a call node m to its after-return node n
-.decl ReturnSite(m:Node, n:Node) input output
+.decl ReturnSite(m:Node, n:Node) output
+.input ReturnSite()
 
 //Map a node to its enclosing procedure
-.decl ProcOf(n:Node, p:Procedure) input output
+.decl ProcOf(n:Node, p:Procedure) output
+.input ProcOf()
 
 //Map a call node to its callee
-.decl CalledProc(n:Node, p:Procedure) input output
+.decl CalledProc(n:Node, p:Procedure) output
+.input CalledProc()
 
 //Data-flow functions in the form of ((m, d1) -> (n,d2))
-.decl FlowEdge(m:Node, d1:DataFlowFact, n:Node, d2:DataFlowFact) input output
+.decl FlowEdge(m:Node, d1:DataFlowFact, n:Node, d2:DataFlowFact) output
+.input FlowEdge()
 
 //IDB relations
 

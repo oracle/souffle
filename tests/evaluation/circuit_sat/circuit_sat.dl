@@ -4,7 +4,8 @@
 conf(x+1) :- conf(x), !lim(x).
 conf(0).
 
-.decl lim(x : number) input
+.decl lim(x : number)
+.input lim()
 
 .decl var_index(var : Var, index : number)
 var_index("a", 0).
@@ -15,10 +16,14 @@ var_index("c", 2).
 translation(n, var, 1) :- var_index(var, k), conf(n), ((2^k) band n) != 0.
 translation(n, var, 0) :- var_index(var, k), conf(n), ((2^k) band n) = 0.
 
-.decl circuit_and(result: Var, op1: Var, op2: Var) input
-.decl circuit_or(result: Var, op1: Var, op2: Var) input
-.decl circuit_not(result: Var, op1: Var) input
-.decl circuit_result(result: Var) input
+.decl circuit_and(result: Var, op1: Var, op2: Var)
+.input circuit_and()
+.decl circuit_or(result: Var, op1: Var, op2: Var)
+.input circuit_or()
+.decl circuit_not(result: Var, op1: Var)
+.input circuit_not()
+.decl circuit_result(result: Var)
+.input circuit_result()
 
 .decl evaluate(conf: number, var: Var, truthy: number) 
 evaluate(conf, var, value) :- 

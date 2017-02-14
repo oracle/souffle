@@ -2,9 +2,12 @@
 .decl Medium(src: number, dest:number, port:number) output
 .decl High(src: number, dest:number, port:number) output
 
-.decl In(src: number, dest:number, port:number) input
-.decl BL(src: number, dest:number, port:number) input
-.decl Trusted(src: number, dest:number, port:number) input
+.decl In(src: number, dest:number, port:number)
+.input In()
+.decl BL(src: number, dest:number, port:number)
+.input BL()
+.decl Trusted(src: number, dest:number, port:number)
+.input Trusted()
 
 
 Low(src, dest, port) :- In(src, dest, port), 

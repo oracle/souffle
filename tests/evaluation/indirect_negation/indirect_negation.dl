@@ -1,6 +1,8 @@
 
-.decl edge ( a:number , b:number ) input
-.decl mark ( a:number ) input
+.decl edge ( a:number , b:number )
+.input edge ()
+.decl mark ( a:number )
+.input mark ()
 
 
 // make sure there is a index <1> and <0,1> on the edge relation

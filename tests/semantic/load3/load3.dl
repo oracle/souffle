@@ -1,1 +1,2 @@
-.decl A(x:number, y:number) input printsize
+.decl A(x:number, y:number) printsize
+.input A()

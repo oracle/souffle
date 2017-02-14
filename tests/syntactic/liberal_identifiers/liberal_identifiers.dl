@@ -1,5 +1,6 @@
 // : defines a directed graph
-.decl _?(x:number, y:number) input
+.decl _?(x:number, y:number)
+.input _?()
 
 // ? defines the transitive closure
 .decl ?(x:number, y:number)

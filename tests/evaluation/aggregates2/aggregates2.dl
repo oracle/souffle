@@ -4,8 +4,10 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-.decl A(n:number,d:number) input  
-.decl B(n:number,s:number) input  
+.decl A(n:number,d:number)  
+.input A()
+.decl B(n:number,s:number)  
+.input B()
 
 .decl C1(n:number,id:number) output 
 C1(n,id) :- 

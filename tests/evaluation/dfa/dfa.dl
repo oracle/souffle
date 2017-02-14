@@ -237,25 +237,29 @@
 // Set of Edge 
 //
 
-.decl edge(x:number, y:number) input
+.decl edge(x:number, y:number)
+.input edge()
 
 //
 // Gen sets
 // 
 
-.decl gen(x:number, i:symbol) input
+.decl gen(x:number, i:symbol)
+.input gen()
 
 //
 // Use sets
 // 
 
-.decl use(x:number, i:symbol) input
+.decl use(x:number, i:symbol)
+.input use()
 
 //
 // Kill sets
 // 
 
-.decl kill(x:number, i:symbol) input
+.decl kill(x:number, i:symbol)
+.input kill()
 
 
 

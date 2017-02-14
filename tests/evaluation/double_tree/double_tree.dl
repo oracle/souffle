@@ -172,7 +172,8 @@
 .decl x2342(z:number)
 .decl x2343(z:number)
 .decl x2344(z:number)
-.decl x2345(z:number) input
+.decl x2345(z:number)
+.input x2345()
 
 xy(z) :- x1(z), x2(z).
 
@@ -508,7 +509,8 @@ x2344(1).
 .decl y2342(z:number)
 .decl y2343(z:number)
 .decl y2344(z:number)
-.decl y2345(z:number) input
+.decl y2345(z:number)
+.input y2345()
 
 y1(z) :- xy(z).
 y2(z) :- xy(z).

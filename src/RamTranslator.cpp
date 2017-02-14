@@ -73,9 +73,6 @@ RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity,
     std::vector<IODirectives> outputDirectives;
     // If IO directives have been specified then set them up
     for (const auto& current : rel->getIODirectives()) {
-        if (!current->isInput() && !current->isOutput()) {
-            continue;
-        }
         if (current->isInput()) {
             inputDirectives.setRelationName(getRelationName(rel->getName()));
             for (const auto& currentPair : current->getIODirectiveMap()) {
@@ -91,6 +88,20 @@ RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity,
                         inputDirectives.set(currentPair.first, currentPair.second);
                     }
                 }
+            }
+            // Set a default IO type of file and a default filename if not supplied.
+            if (!inputDirectives.has("IO")) {
+                inputDirectives.setIOType("file");
+            }
+            if (inputDirectives.getIOType() == "file" && !inputDirectives.has("filename")) {
+                inputDirectives.set("filename", inputDirectives.getRelationName() + ".facts");
+            }
+
+            // If filename is not an absolute path, concat with cmd line facts directory
+            if (!Global::config().get("fact-dir").empty() && inputDirectives.getIOType() == "file" &&
+                    inputDirectives.get("filename").front() != '/') {
+                inputDirectives.set(
+                        "filename", Global::config().get("fact-dir") + "/" + inputDirectives.get("filename"));
             }
         } else if (current->isOutput()) {
             IODirectives ioDirectives;

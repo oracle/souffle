@@ -1,5 +1,5 @@
 // Test that the output string syntax is detected and parsed without error
-.decl A(x:number) input
+.decl A(x:number)
 
 .input A(IO="file",filename="../../syntactic/NameFromInputDec.facts",delimiter="g")
 

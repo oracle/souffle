@@ -1,7 +1,8 @@
 // Find the shortest outward edge for every Node
 .type Node
 
-.decl Edge(n:Node, m:Node, w:number) input
+.decl Edge(n:Node, m:Node, w:number)
+.input Edge()
 
 .decl ShortestEdgeFromN(n:Node, l:number) output
 

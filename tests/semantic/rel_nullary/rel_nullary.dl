@@ -10,8 +10,10 @@ C() :- B(2).
 
 
 // Empty and defined nullaries from input
-.decl Def() input printsize
-.decl Undef() input printsize
+.decl Def() printsize
+.input Def()
+.decl Undef() printsize
+.input Undef()
 
 // A defined nullary relation.
 .decl E() printsize

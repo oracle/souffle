@@ -4,10 +4,12 @@
 // Simulation of elementary cellular automaton to a given number of generations.
 
 // The termination time, the simulation will stop after the given number of generations.
-.decl terminate(time:number) input
+.decl terminate(time:number)
+.input terminate()
 
 // The transition function, giving the value of a cell at time t+1 from the values of that cell and its local environment at time t.
-.decl transition(prev:number, center:number, next:number, value:number) input
+.decl transition(prev:number, center:number, next:number, value:number)
+.input transition()
 
 // The value of the cell to the left of the cell specified by the index at the given time, or the default value if it is out of the array bounds.
 .decl prev(time:number, index:number, value:number)

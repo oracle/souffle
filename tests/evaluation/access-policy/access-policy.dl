@@ -3,22 +3,33 @@
 .type String
 
 .decl view_employee(x : String, p:String, ssn:number, s:number, e:String, d:String, pos:String, bday:number) output
-.decl view_cwPriv(n : String, person :String, bank1Priv :number, bank2Priv : number) input
-.decl view_bank1(n :String, Data1 :number, Data2 :number) input
-.decl view_bank2(n :String, Data1 : number, Data2:number) input
+.decl view_cwPriv(n : String, person :String, bank1Priv :number, bank2Priv : number)
+.input view_cwPriv()
+.decl view_bank1(n :String, Data1 :number, Data2 :number)
+.input view_bank1()
+.decl view_bank2(n :String, Data1 : number, Data2:number)
+.input view_bank2()
 
-.decl employee(person : String, ssn: number, salary : number, email: String, dept : String, pos : String, bday : number) input
+.decl employee(person : String, ssn: number, salary : number, email: String, dept : String, pos : String, bday : number)
+.input employee()
 
-.decl inslogtable(user :String, person :String, day : number) input
+.decl inslogtable(user :String, person :String, day : number)
+.input inslogtable()
 
-.decl insurance(user : String) input
+.decl insurance(user : String)
+.input insurance()
 
-.decl bank1(d:number, d2:number) input
-.decl bank2(d:number, d2:number) input
+.decl bank1(d:number, d2:number)
+.input bank1()
+.decl bank2(d:number, d2:number)
+.input bank2()
 
-.decl inscwPriv(user : String, x:number, y:number) input
-.decl delcwPriv(user:String, x:number, y:number) input
-.decl cwPriv(person:String, bank1Priv : number, Bank2Privi : number) input
+.decl inscwPriv(user : String, x:number, y:number)
+.input inscwPriv()
+.decl delcwPriv(user:String, x:number, y:number)
+.input delcwPriv()
+.decl cwPriv(person:String, bank1Priv : number, Bank2Privi : number)
+.input cwPriv()
 
 
 view_employee("Alice", Person, SSN, Salary, Email, Dept, Position, Bday) :- 

@@ -1,7 +1,8 @@
 // Find the shortest paths between all nodes, the slow way
 .type Node
 
-.decl Edge(n:Node, m:Node, w:number) input
+.decl Edge(n:Node, m:Node, w:number)
+.input Edge()
 
 // Find all paths
 .decl Length   (n:Node, m:Node, l:number)

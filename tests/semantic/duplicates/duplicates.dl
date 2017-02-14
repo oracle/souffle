@@ -14,7 +14,8 @@
 .decl SymbolA(x:symbol, y:symbol) output
 .decl SymbolB(x:symbol, y:symbol)
 .decl SymbolC(x:symbol, y:symbol)
-.decl SymbolD(x:symbol, y:symbol) input
+.decl SymbolD(x:symbol, y:symbol)
+.input SymbolD()
 
 // Symbol B
 
@@ -100,7 +101,8 @@ SymbolA(a, c) :- SymbolB(a, b), SymbolD(b, c). /// no
 .decl NumberA(x:number, y:number) output
 .decl NumberB(x:number, y:number)
 .decl NumberC(x:number, y:number)
-.decl NumberD(x:number, y:number) input
+.decl NumberD(x:number, y:number)
+.input NumberD()
 
 // Number B
 

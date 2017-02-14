@@ -2,7 +2,8 @@
 
 .type the_type
 
-.decl the_input(x:the_type) input
+.decl the_input(x:the_type)
+.input the_input()
 .decl the_output(x:the_type) output
 .decl hello_world(x:the_type)
 .decl is_hello_world(x:the_type)

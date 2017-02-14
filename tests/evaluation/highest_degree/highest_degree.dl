@@ -1,7 +1,8 @@
 // Find the highest in and out degree nodes in the graph
 .type Node
 
-.decl Edge(n:Node, m:Node, w:number) input
+.decl Edge(n:Node, m:Node, w:number)
+.input Edge()
 
 .decl OutDegree(n:Node, l:number)
 OutDegree(x, l) :- Edge(x, _, _), l = sum 1 : Edge(x, _, _).

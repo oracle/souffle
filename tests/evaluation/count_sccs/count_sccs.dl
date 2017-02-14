@@ -1,6 +1,7 @@
 .type Node
 
-.decl links(A:Node, B:Node) input 
+.decl links(A:Node, B:Node) 
+.input links()
 
 .decl nodes(A:Node) 
 nodes(A) :- 

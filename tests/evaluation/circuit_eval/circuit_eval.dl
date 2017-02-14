@@ -8,12 +8,16 @@
 .type Bool
 
 //bitwise gates
-.decl g_and(res : Var, o1 : Var, o2 : Var) input
-.decl g_or(res : Var, o1 : Var, o2 : Var) input
-.decl g_not(res : Var, o1 : Var) input
+.decl g_and(res : Var, o1 : Var, o2 : Var)
+.input g_and()
+.decl g_or(res : Var, o1 : Var, o2 : Var)
+.input g_or()
+.decl g_not(res : Var, o1 : Var)
+.input g_not()
 
 //the input values for wires
-.decl set_input(x : Var, y : Bool) input
+.decl set_input(x : Var, y : Bool)
+.input set_input()
 //querying a wire's value
 .decl g_assignment(x : Var, y : Bool) output
 

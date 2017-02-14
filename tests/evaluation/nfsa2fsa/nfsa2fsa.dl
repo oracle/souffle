@@ -14,9 +14,12 @@
 .number_type N
 .type Letter
 
-.decl state(n : N) input
-.decl alphabet(x : Letter) input
-.decl tr(s1 : N, s2 : N, x : Letter) input
+.decl state(n : N)
+.input state()
+.decl alphabet(x : Letter)
+.input alphabet()
+.decl tr(s1 : N, s2 : N, x : Letter)
+.input tr()
 
 // --------------------------------------------------------
 // --------------------------------------------------------

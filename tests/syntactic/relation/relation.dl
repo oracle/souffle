@@ -6,10 +6,12 @@
 .type M
 .type N
 
-.decl A(a:M) input output
+.decl A(a:M) output
+.input A()
 .decl B(a:M,b:N) output
 .decl C(a:M,b:N) output
-.decl D(a:M,b:N) input output
+.decl D(a:M,b:N) output
+.input D()
 .decl E(a:M)
 .decl F(a:M,b:N)
 .decl G(a:M,b:N)

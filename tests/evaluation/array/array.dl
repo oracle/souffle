@@ -2,13 +2,16 @@
 // Simple array data structure.
 
 // The default or NULL value for an element of the array.
-.decl default(null:number) input
+.decl default(null:number)
+.input default()
 
 // The parameters to the array, including its length.
-.decl parameters(length:number) input
+.decl parameters(length:number)
+.input parameters()
 
 // The values of the elements in the array, specified by index. Note that any unspecified elements will take the default value.
-.decl values(index:number, value:number) input
+.decl values(index:number, value:number)
+.input values()
 
 // The indices of the array, used as a background set to ground the index parameter of elements.
 .decl indices(index:number) output

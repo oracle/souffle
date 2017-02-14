@@ -22,26 +22,46 @@
 // EDB //
 /////////
 
-.decl DirectFieldIndexSignature(class:Type, index:FieldSignatureRef, field:FieldSignatureRef) input
-.decl DirectSuperclass(subclass:Type, superclass:Type)  input
-.decl DirectSuperinterface(type:Type, superinterface:Type)  input
-.decl HeapAllocationType(heapAllocation:HeapAllocationRef, allocationType:Type)  input
-.decl ThisVar(method:MethodSignatureRef, thisVariable:VarRef)  input
-.decl ReturnVar(returnVariable:VarRef, method:MethodSignatureRef)  input
-.decl SpecialMethodInvocationSignature(callsite:InvocationRef, calledMethod:MethodSignatureRef)  input
-.decl SpecialMethodInvocationBase(callsite:InvocationRef, instanceVariable:VarRef)  input
-.decl StaticMethodInvocationSignature(callsite:InvocationRef, calledMethod:MethodSignatureRef)  input
-.decl VirtualMethodInvocationSignature(callsite:InvocationRef, calledMethod:MethodSignatureRef)  input
-.decl VirtualMethodInvocationBase(callsite:InvocationRef, instanceVariable:VarRef)  input
-.decl VarType(variable:VarRef, type:Type)  input
-.decl FormalParam(index:Int, containingMethod:MethodSignatureRef, variable:VarRef)  input
-.decl ActualParam(index:Int, callsite:InvocationRef, actualVariable:VarRef)  input
-.decl AssignReturnValue(callsite:InvocationRef, variableAssignedTo:VarRef)  input
-.decl AssignCast(castType:Type, variableCast:VarRef, variableAssignedTp:VarRef, containingMethod:MethodSignatureRef) input
-.decl AssignLocal(variableAssigned:VarRef, variableAssignedTo:VarRef, containingMethod:MethodSignatureRef)  input
-.decl AssignHeapAllocation(heapAllocation:HeapAllocationRef, variableAssignedTo:VarRef, containingMethod:MethodSignatureRef)  input
-.decl LoadInstanceFieldIndex(instanceVariable:VarRef, field:FieldSignatureRef, variableAssignedTo:VarRef, containingMethod:MethodSignatureRef)  input
-.decl StoreInstanceFieldIndex(storedVariable:VarRef, instanceVariable:VarRef, field:FieldSignatureRef, containingMethod:MethodSignatureRef)  input
+.decl DirectFieldIndexSignature(class:Type, index:FieldSignatureRef, field:FieldSignatureRef)
+.input DirectFieldIndexSignature()
+.decl DirectSuperclass(subclass:Type, superclass:Type) 
+.input DirectSuperclass()
+.decl DirectSuperinterface(type:Type, superinterface:Type) 
+.input DirectSuperinterface()
+.decl HeapAllocationType(heapAllocation:HeapAllocationRef, allocationType:Type) 
+.input HeapAllocationType()
+.decl ThisVar(method:MethodSignatureRef, thisVariable:VarRef) 
+.input ThisVar()
+.decl ReturnVar(returnVariable:VarRef, method:MethodSignatureRef) 
+.input ReturnVar()
+.decl SpecialMethodInvocationSignature(callsite:InvocationRef, calledMethod:MethodSignatureRef) 
+.input SpecialMethodInvocationSignature()
+.decl SpecialMethodInvocationBase(callsite:InvocationRef, instanceVariable:VarRef) 
+.input SpecialMethodInvocationBase()
+.decl StaticMethodInvocationSignature(callsite:InvocationRef, calledMethod:MethodSignatureRef) 
+.input StaticMethodInvocationSignature()
+.decl VirtualMethodInvocationSignature(callsite:InvocationRef, calledMethod:MethodSignatureRef) 
+.input VirtualMethodInvocationSignature()
+.decl VirtualMethodInvocationBase(callsite:InvocationRef, instanceVariable:VarRef) 
+.input VirtualMethodInvocationBase()
+.decl VarType(variable:VarRef, type:Type) 
+.input VarType()
+.decl FormalParam(index:Int, containingMethod:MethodSignatureRef, variable:VarRef) 
+.input FormalParam()
+.decl ActualParam(index:Int, callsite:InvocationRef, actualVariable:VarRef) 
+.input ActualParam()
+.decl AssignReturnValue(callsite:InvocationRef, variableAssignedTo:VarRef) 
+.input AssignReturnValue()
+.decl AssignCast(castType:Type, variableCast:VarRef, variableAssignedTp:VarRef, containingMethod:MethodSignatureRef)
+.input AssignCast()
+.decl AssignLocal(variableAssigned:VarRef, variableAssignedTo:VarRef, containingMethod:MethodSignatureRef) 
+.input AssignLocal()
+.decl AssignHeapAllocation(heapAllocation:HeapAllocationRef, variableAssignedTo:VarRef, containingMethod:MethodSignatureRef) 
+.input AssignHeapAllocation()
+.decl LoadInstanceFieldIndex(instanceVariable:VarRef, field:FieldSignatureRef, variableAssignedTo:VarRef, containingMethod:MethodSignatureRef) 
+.input LoadInstanceFieldIndex()
+.decl StoreInstanceFieldIndex(storedVariable:VarRef, instanceVariable:VarRef, field:FieldSignatureRef, containingMethod:MethodSignatureRef) 
+.input StoreInstanceFieldIndex()
 
 
 .decl InstanceVar(instanceVariable:VarRef)

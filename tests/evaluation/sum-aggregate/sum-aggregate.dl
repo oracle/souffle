@@ -1,7 +1,9 @@
 .type String 
 
-.decl Benchmark(n : String, query: String, backend: String, trans: String, time: number, mem : number) input
-.decl Metrics(snapshot: String, numIns : number, numEni: number) input
+.decl Benchmark(n : String, query: String, backend: String, trans: String, time: number, mem : number)
+.input Benchmark()
+.decl Metrics(snapshot: String, numIns : number, numEni: number)
+.input Metrics()
 
 .decl DOM(n:number) output
 .decl SUM(n:number) output

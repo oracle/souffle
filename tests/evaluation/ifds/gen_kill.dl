@@ -21,34 +21,46 @@
 .type Node = String
 .type DataFlowFact = String
 
-.decl StartNode(n:Node) input
-.decl ReturnNode(n:Node) input
-.decl Procedure(p:Procedure) input
-.decl Node(n:Node) input
-.decl DataFlowFact(f:DataFlowFact) input
+.decl StartNode(n:Node)
+.input StartNode()
+.decl ReturnNode(n:Node)
+.input ReturnNode()
+.decl Procedure(p:Procedure)
+.input Procedure()
+.decl Node(n:Node)
+.input Node()
+.decl DataFlowFact(f:DataFlowFact)
+.input DataFlowFact()
 
 //EDB relations
 
 //Intraprocedural edge from m to n in procedure p
-.decl e0(p:Procedure, m:Node, n:Node) input
+.decl e0(p:Procedure, m:Node, n:Node)
+.input e0()
 
 //Call-to-return edge between call node m and after-return node n in procedure p
-.decl e1(p:Procedure, m:Node, n:Node) input
+.decl e1(p:Procedure, m:Node, n:Node)
+.input e1()
 
 //Data-flow function on edge(m,n) where nkill is a fact that is NOT killed 
-.decl f_nk(p:Procedure, m:Node, n:Node, nkill:DataFlowFact) input
+.decl f_nk(p:Procedure, m:Node, n:Node, nkill:DataFlowFact)
+.input f_nk()
 
 //Data-flow function on edge(m,n) where gen is a fact that is generated
-.decl f_g(p:Procedure, m:Node, n:Node, gen:DataFlowFact) input
+.decl f_g(p:Procedure, m:Node, n:Node, gen:DataFlowFact)
+.input f_g()
 
 //Node m in procedure p calls procedure q
-.decl call_site(p:Procedure, q:Procedure, m:Node) input
+.decl call_site(p:Procedure, q:Procedure, m:Node)
+.input call_site()
 
 //Actual parameter in position i of call site m in procedure p is x
-.decl Actual(p:Procedure, m:Node, i:Integer, x:DataFlowFact) input
+.decl Actual(p:Procedure, m:Node, i:Integer, x:DataFlowFact)
+.input Actual()
 
 //Formal parameter in position i of procedure p is y
-.decl Formal(q:Procedure, i:Integer, y:DataFlowFact) input
+.decl Formal(q:Procedure, i:Integer, y:DataFlowFact)
+.input Formal()
 
 //IDB relations
 

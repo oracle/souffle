@@ -86,11 +86,15 @@ get_by_key(k, v, tail, conf) :-
 .decl required_out(ws : Wire_state)
 required_out([w, v]) :- required_out_fi(w, v).
 //which wires are required to have certain values
-.decl required_out_fi(w : Wire, v : number) input
+.decl required_out_fi(w : Wire, v : number)
+.input required_out_fi()
 
-.decl circuit_and(result : Wire, op1 : Wire, op2 : Wire) input
-.decl circuit_or(result : Wire, op1 : Wire, op2 : Wire) input
-.decl circuit_not(result : Wire, op1 : Wire) input
+.decl circuit_and(result : Wire, op1 : Wire, op2 : Wire)
+.input circuit_and()
+.decl circuit_or(result : Wire, op1 : Wire, op2 : Wire)
+.input circuit_or()
+.decl circuit_not(result : Wire, op1 : Wire)
+.input circuit_not()
 
 // evaluate the wire's required value from a set of inputs
 .decl evaluate(circuit_state : Wire_list, wire_state : Wire_state)

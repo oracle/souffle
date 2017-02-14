@@ -1,7 +1,8 @@
 // Find the shorted outward edge for every Node
 .type Node
 
-.decl Edge(n:Node, m:Node, w:number) input
+.decl Edge(n:Node, m:Node, w:number)
+.input Edge()
 
 .decl OutDegree(n:Node, l:number) output
 

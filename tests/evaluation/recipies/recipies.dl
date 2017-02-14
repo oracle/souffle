@@ -1,8 +1,10 @@
 .type Text
 
-.decl food(name:Text, carbs:number, fat:number, protein:number, per:number, measure:Text) input
+.decl food(name:Text, carbs:number, fat:number, protein:number, per:number, measure:Text)
+.input food()
 
-.decl recipie(index: number, name:Text, amount: number, measure: Text) input
+.decl recipie(index: number, name:Text, amount: number, measure: Text)
+.input recipie()
 
 .decl max_index(result:number) output
 

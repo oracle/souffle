@@ -6,10 +6,12 @@ W(nil,1,nil).
 .decl X(a:List) output
 X(nil).
 
-.decl Y(a:List, b:number, c:List) input
+.decl Y(a:List, b:number, c:List)
+.input Y()
 Y(nil,1,nil). 
 
-.decl Z(a:List, b:List) input output
+.decl Z(a:List, b:List) output
+.input Z()
 Z(nil,nil).
 
 

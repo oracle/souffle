@@ -5,12 +5,14 @@
 // Graph
 
 // Vertices
-.decl vertices(v:symbol) input
+.decl vertices(v:symbol)
+.input vertices()
 .decl vertex(v:symbol) output
 vertex(v) :- vertices(v).
 
 // Edges
-.decl edges(v1:symbol, v2:symbol) input
+.decl edges(v1:symbol, v2:symbol)
+.input edges()
 .decl edge(v1:symbol, v2:symbol) output
 edge(v1, v2) :- vertex(v1), vertex(v2), edges(v1, v2).
 

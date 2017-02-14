@@ -3,8 +3,10 @@
 .decl Instance3(d:number) output
 .decl Instance4(d:number) output
 
-.decl In(s1: number, s2:number, s3:number, d1:number, d2:number, d3:number, d:number) input
-.decl Tbl(s1: number, s2:number, s3:number, in:number) input
+.decl In(s1: number, s2:number, s3:number, d1:number, d2:number, d3:number, d:number)
+.input In()
+.decl Tbl(s1: number, s2:number, s3:number, in:number)
+.input Tbl()
 
 Instance1(d) :- In(s1, _, s3, d1, d2, d3, d), 
                    Tbl(s1, _, s3, 1), Tbl(d1, d2, d3, 0), 
