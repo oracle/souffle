@@ -30,8 +30,11 @@ void Tui::runCommand(std::vector<std::string> c) {
     }
 
     if (alive) {
+        // remake tables to get new data
         rul_table_state = out.getRulTable();
         rel_table_state = out.getRelTable();
+
+        setupTabCompletion();
     }
 
     if (c[0].compare("top") == 0) {
@@ -86,7 +89,9 @@ void Tui::runProf() {
         top();
     }
 
-    rl_inhibit_completion = 1;
+    linereader = InputReader();
+    linereader.setPrompt("\n> ");
+    setupTabCompletion();
 
     while (true) {
         if (!loaded) {
@@ -96,19 +101,15 @@ void Tui::runProf() {
             }
         }
         std::string input;
-        char* x = readline("\n> ");
-        if ((x != NULL) && (x[0] == '\0')) {
-            input = "";
-        } else {
-            input = std::string(x);
-        }
+        input = linereader.getInput();
 
+        std::cout << std::endl;
         if (input.empty()) {
             std::cout << "Unknown command. Type help for a list of commands.\n";
             continue;
         }
 
-        add_history(input.c_str());
+        linereader.addHistory(input.c_str());
 
         std::vector<std::string> c = Tools::split(input, " ");
 
@@ -384,6 +385,26 @@ void Tui::load(std::string method, std::string load_file) {
     } else {
         std::cout << "Error: File not found\n";
     }
+}
+
+void Tui::setupTabCompletion() {
+    linereader.clearTabCompletion();
+
+    linereader.appendTabCompletion("rel");
+    linereader.appendTabCompletion("rul");
+    linereader.appendTabCompletion("rul id");
+    linereader.appendTabCompletion("graph ");
+    linereader.appendTabCompletion("top");
+    linereader.appendTabCompletion("help");
+
+    // add rel tab completes after the rest so users can see all commands first
+    for (auto& row : out.formatTable(rel_table_state, precision)) {
+        linereader.appendTabCompletion("rel "+row[5]);
+        linereader.appendTabCompletion("graph "+row[5]+" tot_t");
+        linereader.appendTabCompletion("graph "+row[5]+" copy_t");
+        linereader.appendTabCompletion("graph "+row[5]+" tuples");
+    }
+
 }
 
 void Tui::help() {

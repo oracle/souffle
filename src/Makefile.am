@@ -35,9 +35,11 @@ souffle_profile_SOURCES = souffle_prof.cpp profilerlib/Cell.hpp \
                           profilerlib/Table.hpp                 \
                           profilerlib/Tui.cpp                   \
                           profilerlib/Tui.hpp                   \
-                          profilerlib/html_string.hpp
+                          profilerlib/html_string.hpp           \
+                          profilerlib/UserInputReader.cpp       \
+                          profilerlib/UserInputReader.hpp
 
-souffle_profile_CXXFLAGS = $(souffle_CPPFLAGS) -ledit
+souffle_profile_CXXFLAGS = $(souffle_CPPFLAGS)
 
 nodist_souffle_mcpp_SOURCES = $(BUILT_SOURCES)
  

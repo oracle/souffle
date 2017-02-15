@@ -22,7 +22,7 @@ then
         then
           sudo apt-get -y install debhelper devscripts
         fi
-        sudo apt-get -y install build-essential g++ automake autoconf bison flex openjdk-8-jdk lsb-release libtool libedit-dev
+        sudo apt-get -y install build-essential g++ automake autoconf bison flex openjdk-8-jdk lsb-release libtool
     fi
     # The following lines are hacked because travis stopped working around 5/12/16, if you can remove them and travis still works, then great
 #    source /opt/jdk_switcher/jdk_switcher.sh
@@ -37,6 +37,6 @@ fi
 if [ $TRAVIS_OS_NAME == osx ]
 then
    brew update
-   brew install md5sha1sum bison libtool homebrew/dupes/libedit
+   brew install md5sha1sum bison libtool
    brew link bison --force
 fi
