@@ -218,7 +218,7 @@ std::string Tools::trimWhitespace(std::string str) {
     if (first != std::string::npos) {
         str.erase(0, first);
         size_t last = str.find_last_not_of(whitespace);
-        str.erase(last+1);
+        str.erase(last + 1);
     } else {
         str.clear();
     }
