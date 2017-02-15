@@ -259,7 +259,6 @@ AC_CHECK_HEADER(zlib.h,,[AC_MSG_ERROR([required library zlib missing])])
 AC_CHECK_LIB(z, compress,,
           [AC_MSG_ERROR([required library zlib missing])])
 
-PKG_CHECK_MODULES(LIBEDIT, libedit)
 
 dnl Enables OpenMP in the souffle compiler and interpreter
 AC_OPENMP
