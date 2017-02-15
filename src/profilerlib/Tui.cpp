@@ -100,7 +100,7 @@ void Tui::runProf() {
         if ((x != NULL) && (x[0] == '\0')) {
             input = "";
         } else {
-            input = std::string(x);
+            input = Tools::trimWhitespace(std::string(x));
         }
 
         if (input.empty()) {
