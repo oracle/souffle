@@ -1,0 +1,8 @@
+.decl A(x:symbol)
+A("hello").
+A("yell").
+A("me").
+
+.decl B(x:number, y:symbol) output
+B(len(x),x) :- A(x).
+
