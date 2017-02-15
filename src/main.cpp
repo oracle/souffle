@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -34,288 +14,233 @@
  *
  ***********************************************************************/
 
-#include <config.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <libgen.h>
-#include <limits.h>
-#include <string.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <getopt.h>
-
-#include <chrono>
-#include <list>
-#include <iostream>
-#include <fstream>
-#include <string>
-
-#include "AstProgram.h"
-#include "AstUtils.h"
-#include "AstTuner.h"
 #include "AstAnalysis.h"
-#include "AstTranslationUnit.h"
-#include "AstTransformer.h"
+#include "AstProgram.h"
 #include "AstSemanticChecker.h"
+#include "AstTransformer.h"
 #include "AstTransforms.h"
-#include "PrecedenceGraph.h"
-#include "Util.h"
-#include "SymbolTable.h"
-#include "ParserDriver.h"
+#include "AstTranslationUnit.h"
+#include "AstTuner.h"
+#include "AstUtils.h"
+#include "BddbddbBackend.h"
 #include "ComponentModel.h"
-
-#include "RamTranslator.h"
+#include "Global.h"
+#include "ParserDriver.h"
+#include "PrecedenceGraph.h"
 #include "RamExecutor.h"
 #include "RamStatement.h"
+#include "RamTranslator.h"
+#include "SymbolTable.h"
+#include "Util.h"
 
+#include <chrono>
+#include <fstream>
+#include <iostream>
+#include <list>
+#include <string>
 
-/** 
- *  Show help page.
- */
-void helpPage(bool error, int argc, char**argv)  
-{
-    if (error) {
-        for(int i=0;i<argc;i++) {
-            std::cerr << argv[i] << " "; 
-        }
-        std::cerr << "\nError parsing command-line arguments\n";
-    }
-    std::cerr << "=======================================================================================================\n";
-    std::cerr << "souffle -- Oracle Labs' datalog engine.\n";
-    std::cerr << "Usage: souffle [OPTION] FILE.\n";
-    std::cerr << "-------------------------------------------------------------------------------------------------------\n";
-    std::cerr << "Options:\n";
-    std::cerr << "    -F<DIR>, --fact-dir=<DIR>      Specify directory for fact files\n";
-    std::cerr << "    -I<DIR>, --include-dir=<DIR>   Specify directory for include files\n";
-    std::cerr << "    -D<DIR>, --output-dir=<DIR>    Specify directory for output relations\n";
-    std::cerr << "                                      (if <DIR> is -, output is written to stdout)\n";
-    std::cerr << "\n";
-    std::cerr << "    -j<N>, --jobs=<N>              Run interpreter/compiler in parallel using N threads, N=auto for system default\n";
-    std::cerr << "\n";
-    std::cerr << "    -c, --compile                  Compile datalog (translating to C++)\n";
-    std::cerr << "    --auto-schedule                Switch on automated clause scheduling for compiler\n";
-    std::cerr << "    -o <FILE>, --dl-program=<FILE> Write executable program to <FILE> (without executing it)\n";
-    std::cerr << "\n";
-    std::cerr << "    -p<FILE>, --profile=<FILE>     Enable profiling and write profile data to <FILE>\n";
-    std::cerr << "    -d, --debug                    Enable debug mode\n";
-    std::cerr << "\n";
-    std::cerr << "    --debug-report=<FILE>          Write debugging output to HTML report\n";
-    std::cerr << "\n";
-    std::cerr << "    -v, --verbose                  Verbose output\n";
-    std::cerr << "-------------------------------------------------------------------------------------------------------\n";
-    std::cerr << "Version: " << PACKAGE_VERSION << "\n";
-    std::cerr << "-------------------------------------------------------------------------------------------------------\n";
-    std::cerr << "Copyright (c) 2013, 2015, Oracle and/or its affiliates.\n";
-    std::cerr << "All rights reserved.\n";
-    std::cerr << "=======================================================================================================\n";
-    exit(1);
-}
+#include <config.h>
+#include <ctype.h>
+#include <errno.h>
+#include <getopt.h>
+#include <libgen.h>
+#include <limits.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
-/**
- *  print error message and exit 
- */
-void fail(const std::string &str)
-{
-    std::cerr << str << "\n"; 
-    exit(1);
-}
+namespace souffle {
 
-/**
- *  Check whether a file exists in the file system 
- */
-inline bool existFile (const std::string& name) {
-    struct stat buffer;   
-    if (stat (name.c_str(), &buffer) == 0) {
-        if ((buffer.st_mode & S_IFREG) != 0) {
-            return true;
-        }
-    }
-    return false; 
-}
-/**
- *  Check whether a directory exists in the file system 
- */
-inline bool existDir (const std::string& name) {
-    struct stat buffer;   
-    if (stat (name.c_str(), &buffer) == 0) {
-        if ((buffer.st_mode & S_IFDIR) != 0) {
-            return true;
-        }
-    }
-    return false; 
-}
-
-static void wrapPassesForDebugReporting(std::vector<std::unique_ptr<AstTransformer>> &transforms) {
+static void wrapPassesForDebugReporting(std::vector<std::unique_ptr<AstTransformer>>& transforms) {
     for (unsigned int i = 0; i < transforms.size(); i++) {
         transforms[i] = std::unique_ptr<AstTransformer>(new DebugReporter(std::move(transforms[i])));
     }
 }
 
-int main(int argc, char **argv) 
-{
-
-    /* Time taking for overall runtime */ 
+int main(int argc, char** argv) {
+    /* Time taking for overall runtime */
     auto souffle_start = std::chrono::high_resolution_clock::now();
 
-    std::string debugReportFile; /* filename to output debug report */
-    std::string outputDir = "."; /* output directory for resulting csv files */
-    std::string includeOpt;      /* include options for c-preprocessor */
-    std::string profile;         /* filename of profile log */
+    /* have all to do with command line arguments in its own scope, as these are accessible through the global
+     * configuration only */
+    {
+        Global::config().processArgs(argc, argv,
+                []() {
+                    std::stringstream header;
+                    header << "============================================================================"
+                           << std::endl;
+                    header << "souffle -- A datalog engine." << std::endl;
+                    header << "Usage: souffle [OPTION] FILE." << std::endl;
+                    header << "----------------------------------------------------------------------------"
+                           << std::endl;
+                    header << "Options:" << std::endl;
+                    return header.str();
+                }(),
+                []() {
+                    std::stringstream footer;
+                    footer << "----------------------------------------------------------------------------"
+                           << std::endl;
+                    footer << "Version: " << PACKAGE_VERSION << "" << std::endl;
+                    footer << "----------------------------------------------------------------------------"
+                           << std::endl;
+                    footer << "Copyright (c) 2013, 2015, Oracle and/or its affiliates." << std::endl;
+                    footer << "All rights reserved." << std::endl;
+                    footer << "============================================================================"
+                           << std::endl;
+                    return footer.str();
+                }(),
+                // command line options, the environment will be filled with the arguments passed to them, or
+                // the empty string if they take none
+                []() {
+                    MainOption opts[] = {
+                            {"", 0, "", "-unknown-", false,
+                                    ""},  // main option, the datalog program itself, key is always empty
+                            {"fact-dir", 'F', "DIR", ".", false, "Specify directory for fact files."},
+                            {"include-dir", 'I', "DIR", ".", true, "Specify directory for include files."},
+                            {"output-dir", 'D', "DIR", ".", false,
+                                    "Specify directory for output relations (if <DIR> is -, output is "
+                                    "written to stdout)."},
+                            {"jobs", 'j', "N", "1", false,
+                                    "Run interpreter/compiler in parallel using N threads, N=auto for system "
+                                    "default."},
+                            {"compile", 'c', "", "", false, "Compile datalog (translating to C++)."},
+                            {"auto-schedule", 'a', "", "", false,
+                                    "Switch on automated clause scheduling for compiler."},
+                            {"generate", 'g', "FILE", "", false,
+                                    "Only generate sources of compilable analysis and write it to <FILE>."},
+                            {"no-warn", 'w', "", "", false, "Disable warnings."},
+                            {"dl-program", 'o', "FILE", "", false,
+                                    "Write executable program to <FILE> (without executing it)."},
+                            {"profile", 'p', "FILE", "", false,
+                                    "Enable profiling and write profile data to <FILE>."},
+                            {"debug", 'd', "", "", false, "Enable debug mode."},
+                            {"bddbddb", 'b', "FILE", "", false, "Convert input into bddbddb file format."},
+                            {"debug-report", 'r', "FILE", "", false,
+                                    "Write debugging output to HTML report."},
+                            {"verbose", 'v', "", "", false, "Verbose output."},
+                            {"help", 'h', "", "", false, "Display this help message."},
+                            // TODO
+                            {"breadth-limit", 3, "N", "", false,
+                                    "Specify the breadth limit used for the topological ordering of strongly "
+                                    "connected components."},
+                            {"depth-limit", 4, "N", "", false,
+                                    "Specify the depth limit used for the topological ordering of strongly "
+                                    "connected components."},
+                            {"lookahead", 5, "N", "", false,
+                                    "Specify the lookahead used for the topological ordering of strongly "
+                                    "connected components."}};
+                    return std::vector<MainOption>(std::begin(opts), std::end(opts));
+                }());
 
-    std::string outputFileName = "";
-    std::string factFileDir = ".";
+        // ------ command line arguments -------------
 
-    bool verbose  = false;    /* flag for verbose output */
-    bool compile = false;     /* flag for enabling compilation */
-    bool tune = false;        /* flag for enabling / disabling the rule scheduler */
-    bool logging = false;     /* flag for profiling */ 
-    bool debug = false;       /* flag for enabling debug mode */
-
-    enum {optAutoSchedule=1,
-          optDebugReportFile=2};
-
-    // long options
-    option longOptions[] = {
-        { "fact-dir", true, nullptr, 'F' },
-        { "include-dir", true, nullptr, 'I' },
-        { "output-dir", true, nullptr, 'D' },
-        //
-        { "jobs", true, nullptr, 'j' },
-        //
-        { "compile", false, nullptr, 'c' },
-        { "auto-schedule", false, nullptr, optAutoSchedule },
-        { "dl-program", true, nullptr, 'o' },
-        //
-        { "debug-report", true, nullptr, optDebugReportFile },
-        //
-        { "profile", true, nullptr, 'p' },
-        //
-        { "debug", false, nullptr, 'd' },
-        // 
-        { "verbose", false, nullptr, 'v' },
-        // the terminal option -- needs to be null
-        { nullptr, false, nullptr, 0 }
-    };
-
-    static unsigned num_threads = 1;	  /* the number of threads to use for execution, 0 system-choice, 1 sequential */
-    int c;     /* command-line arguments processing */
-    while ((c = getopt_long(argc, argv, "cj:D:F:I:p:o:hvd", longOptions, nullptr)) != EOF) {
-        switch(c) {
-                /* Print debug / profiling information */
-            case 'v':
-                verbose = true;
-                break;
-
-                /* Enable compiler flag */
-            case 'c':
-                compile = true; 
-                break;
-
-                /* Set number of jobs */ 
-            case 'j':
-                num_threads = atoi(optarg);
-                break;
-
-                /* Output file name of generated executable program */
-            case 'o':
-                outputFileName = optarg;
-                compile = true; 
-                break;
-
-                /* Fact directories */
-            case 'F':
-                // Add conditional check:
-                // if (factFileDir != NULL) { 
-                //   fail("Fact directory option can only be specified once (-F%s -F%s)!\n", factFileDir, optarg);
-                // } else if (!existDir(optarg)) {
-                //   fail("Fact directory %s does not exists!\n", optarg);
-                //}
-                factFileDir = optarg;
-                break;
-
-                /* Output directory for resulting .csv files */
-            case 'D':
-                outputDir = optarg;
-                if (strcmp(optarg, "-") && !existDir(optarg)) {
-                    fail("error: ouput directory " + std::string(optarg) + " does not exists");
-                }
-                break;
-
-                /* Include directory for Datalog specifications */
-            case 'I':
-                if (!existDir(optarg)) {
-                    fail("error: include directory " + std::string(optarg) + " does not exists");
-                }
-                if(includeOpt == "") { 
-                    includeOpt = "-I" + std::string(optarg);
-                } else {
-                    includeOpt = includeOpt + " -I" + std::string(optarg);
-                }
-                break;
-
-                /* File-name for profile log */
-            case 'p':
-                logging = true; 
-                profile = optarg;
-                break;
-
-                /* Enable debug mode */
-            case 'd':
-                debug = true;
-                break;
-
-                /* Enable auto scheduler */ 
-            case optAutoSchedule:
-                tune = true;
-                compile = true; 
-                break;
-
-                /* Enable generation of debug output report */
-            case optDebugReportFile:
-                debugReportFile = optarg;
-                break;
-
-                /* Show help page */
-            case 'h':
-                helpPage(false,argc,argv);
-                break;
-
-            case '?':
-                helpPage(true,argc,argv);
-                break;
-
-            default:
-                ASSERT("Default label in getopt switch");
+        /* for the help option, if given simply print the help text then exit */
+        if (Global::config().has("help")) {
+            std::cerr << Global::config().help();
+            return 0;
         }
-    }
 
-    if (tune && outputFileName == "") { 
-       fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
-    } 
-        
+        /* check that datalog program exists */
+        if (!Global::config().has("") || !existFile(Global::config().get("")))
+            ERROR("cannot open file " + std::string(Global::config().get("")));
 
-    /* collect all input files for the C pre-processor */ 
-    std::string filenames = "";
-    if (optind < argc) {
-        for (; optind < argc; optind++) {
-            if (!existFile(argv[optind])) {
-                fail("error: cannot open file " + std::string(argv[optind])); 
+        // TODO
+        if (Global::config().has("breadth-limit")) {
+            int limit = std::stoi(Global::config().get("breadth-limit"));
+            if (limit <= 0) {
+                ERROR("error: breadth limit must be 1 or more");
             }
-            if (filenames == "") { 
-                filenames = argv[optind];
+            TopologicallySortedSCCGraph::BREADTH_LIMIT = limit;
+        }
+        if (Global::config().has("depth-limit")) {
+            int limit = std::stoi(Global::config().get("depth-limit"));
+            if (limit <= 0) {
+                ERROR("error: depth limit must be 1 or more");
+            }
+            TopologicallySortedSCCGraph::DEPTH_LIMIT = limit;
+        }
+        if (Global::config().has("lookahead")) {
+            if (Global::config().has("breadth-limit") || Global::config().has("depth-limit"))
+                ERROR("error: only one of either lookahead or depth-limit and breadth-limit may be "
+                      "specified");
+            int lookahead = std::stoi(Global::config().get("lookahead"));
+            if (lookahead <= 0) {
+                ERROR("error: lookahead must be 1 or more");
+            }
+            TopologicallySortedSCCGraph::LOOKAHEAD = lookahead;
+        }
+
+        /* turn on compilation of executables */
+        if (Global::config().has("dl-program")) {
+            Global::config().set("compile");
+        }
+
+        /* for the jobs option, to determine the number of threads used */
+        if (Global::config().has("jobs")) {
+            if (isNumber(Global::config().get("jobs").c_str())) {
+                if (std::stoi(Global::config().get("jobs")) < 1)
+                    ERROR("Number of jobs in the -j/--jobs options must be greater than zero!");
             } else {
-                filenames = filenames + " " + std::string(argv[optind]);
+                if (!Global::config().has("jobs", "auto"))
+                    ERROR("Wrong parameter " + Global::config().get("jobs") + " for option -j/--jobs!");
+                Global::config().set("jobs", "0");
             }
+        } else {
+            ERROR("Wrong parameter " + Global::config().get("jobs") + " for option -j/--jobs!");
         }
-    } else {
-        helpPage(true,argc,argv);
+
+        /* if an output directory is given, check it exists */
+        if (Global::config().has("output-dir") && !Global::config().has("output-dir", "-") &&
+                !existDir(Global::config().get("output-dir")))
+            ERROR("output directory " + Global::config().get("output-dir") + " does not exists");
+
+        /* turn on compilation if auto-scheduling is enabled */
+        if (Global::config().has("auto-schedule") && !Global::config().has("compile"))
+            Global::config().set("compile");
+
+        /* ensure that if auto-scheduling is enabled an output file is given */
+        if (Global::config().has("auto-schedule") && !Global::config().has("dl-program"))
+            ERROR("no executable is specified for auto-scheduling (option -o <FILE>)");
+
+        /* collect all input directories for the c pre-processor */
+        if (Global::config().has("include-dir")) {
+            std::string currentInclude = "";
+            std::string allIncludes = "-I";
+            for (const char& ch : Global::config().get("include-dir")) {
+                if (ch == ' ') {
+                    if (!existDir(currentInclude)) {
+                        ERROR("include directory " + currentInclude + " does not exists");
+                    } else {
+                        allIncludes += " -I";
+                        allIncludes += currentInclude;
+                        currentInclude = "";
+                    }
+                } else {
+                    currentInclude += ch;
+                }
+            }
+            allIncludes += currentInclude;
+            Global::config().set("include-dir", allIncludes);
+        }
     }
+
+    // ------ start souffle -------------
+
+    std::string programName = which(argv[0]);
+
+    if (programName.empty()) ERROR("failed to determine souffle executable path");
 
     /* Create the pipe to establish a communication between cpp and souffle */
-    std::string cmd = SOUFFLECPP;
-    cmd  += " -nostdinc " + includeOpt + " " + filenames;
-    FILE* in = popen(cmd.c_str(), "r"); 
+    std::string cmd = ::findTool("souffle-mcpp", programName, ".");
+
+    if (!isExecutable(cmd)) {
+        ERROR("failed to locate souffle preprocessor");
+    }
+
+    cmd += " " + Global::config().get("include-dir") + " " + Global::config().get("");
+    FILE* in = popen(cmd.c_str(), "r");
 
     /* Time taking for parsing */
     auto parser_start = std::chrono::high_resolution_clock::now();
@@ -323,25 +248,30 @@ int main(int argc, char **argv)
     // ------- parse program -------------
 
     // parse file
-    std::unique_ptr<AstTranslationUnit> translationUnit = ParserDriver::parseTranslationUnit("<stdin>", in);
+    std::unique_ptr<AstTranslationUnit> translationUnit =
+            ParserDriver::parseTranslationUnit("<stdin>", in, Global::config().has("no-warn"));
 
     // close input pipe
     int preprocessor_status = pclose(in);
-    if (preprocessor_status != 0) {
-        // an error message was already printed by the pre-processor
-        return preprocessor_status;
+    if (preprocessor_status == -1) {
+        perror(NULL);
+        ERROR("failed to close pre-processor pipe");
     }
 
     /* Report run-time of the parser if verbose flag is set */
-    if (verbose) {
+    if (Global::config().has("verbose")) {
         auto parser_end = std::chrono::high_resolution_clock::now();
-        std::cout << "Parse Time: " << std::chrono::duration<double>(parser_end-parser_start).count()<< "sec\n";
+        std::cout << "Parse Time: " << std::chrono::duration<double>(parser_end - parser_start).count()
+                  << "sec\n";
     }
 
     // ------- check for parse errors -------------
     if (translationUnit->getErrorReport().getNumErrors() != 0) {
         std::cerr << translationUnit->getErrorReport();
-        fail(std::to_string(translationUnit->getErrorReport().getNumErrors()) + " errors generated, evaluation aborted");
+        std::cerr << std::to_string(translationUnit->getErrorReport().getNumErrors()) +
+                             " errors generated, evaluation aborted"
+                  << std::endl;
+        exit(1);
     }
 
     // ------- rewriting / optimizations -------------
@@ -350,35 +280,61 @@ int main(int argc, char **argv)
     transforms.push_back(std::unique_ptr<AstTransformer>(new ComponentInstantiationTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new UniqueAggregationVariablesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new AstSemanticChecker()));
-    transforms.push_back(std::unique_ptr<AstTransformer>(new ResolveAliasesTransformer()));
+    if (Global::config().get("bddbddb").empty()) {
+        transforms.push_back(std::unique_ptr<AstTransformer>(new ResolveAliasesTransformer()));
+    }
     transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRelationCopiesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new MaterializeAggregationQueriesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveEmptyRelationsTransformer()));
-    if (!debug) {
+    if (!Global::config().has("debug")) {
         transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRedundantRelationsTransformer()));
     }
     transforms.push_back(std::unique_ptr<AstTransformer>(new AstExecutionPlanChecker()));
-    if (tune) {
-        transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer(factFileDir, verbose, !debugReportFile.empty())));
+    if (Global::config().has("auto-schedule")) {
+        transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer()));
     }
-    if (!debugReportFile.empty()) {
+    if (!Global::config().get("debug-report").empty()) {
         auto parser_end = std::chrono::high_resolution_clock::now();
-        std::string runtimeStr = "(" + std::to_string(std::chrono::duration<double>(parser_end-parser_start).count()) + "s)";
+        std::string runtimeStr =
+                "(" + std::to_string(std::chrono::duration<double>(parser_end - parser_start).count()) + "s)";
         DebugReporter::generateDebugReport(*translationUnit, "Parsing", "After Parsing " + runtimeStr);
         wrapPassesForDebugReporting(transforms);
     }
 
-    for (const auto &transform : transforms) {
+    for (const auto& transform : transforms) {
         transform->apply(*translationUnit);
 
         /* Abort evaluation of the program if errors were encountered */
         if (translationUnit->getErrorReport().getNumErrors() != 0) {
             std::cerr << translationUnit->getErrorReport();
-            fail(std::to_string(translationUnit->getErrorReport().getNumErrors()) + " errors generated, evaluation aborted");
+            std::cerr << std::to_string(translationUnit->getErrorReport().getNumErrors()) +
+                                 " errors generated, evaluation aborted"
+                      << std::endl;
+            exit(1);
         }
     }
     if (translationUnit->getErrorReport().getNumIssues() != 0) {
         std::cerr << translationUnit->getErrorReport();
+    }
+
+    // ------- (optional) conversions -------------
+
+    // conduct the bddbddb file export
+    if (!Global::config().get("bddbddb").empty()) {
+        try {
+            if (Global::config().get("bddbddb") == "-") {
+                // use STD-OUT
+                toBddbddb(std::cout, *translationUnit);
+            } else {
+                // create an output file
+                std::ofstream out(Global::config().get("bddbddb").c_str());
+                toBddbddb(out, *translationUnit);
+            }
+        } catch (const UnsupportedConstructException& uce) {
+            ERROR("failed to convert input specification into bddbddb syntax because " +
+                    std::string(uce.what()));
+        }
+        return 0;
     }
 
     // ------- execution -------------
@@ -386,76 +342,81 @@ int main(int argc, char **argv)
     auto ram_start = std::chrono::high_resolution_clock::now();
 
     /* translate AST to RAM */
-    std::unique_ptr<RamStatement> ramProg = RamTranslator(logging).translateProgram(*translationUnit);
+    std::unique_ptr<RamStatement> ramProg =
+            RamTranslator(Global::config().has("profile")).translateProgram(*translationUnit);
 
-    if (!debugReportFile.empty()) {
+    if (!Global::config().get("debug-report").empty()) {
         if (ramProg) {
             auto ram_end = std::chrono::high_resolution_clock::now();
-            std::string runtimeStr = "(" + std::to_string(std::chrono::duration<double>(ram_end-ram_start).count()) + "s)";
+            std::string runtimeStr =
+                    "(" + std::to_string(std::chrono::duration<double>(ram_end - ram_start).count()) + "s)";
             std::stringstream ramProgStr;
             ramProgStr << *ramProg;
-            translationUnit->getDebugReport().addSection(DebugReporter::getCodeSection("ram-program", "RAM Program " + runtimeStr, ramProgStr.str()));
+            translationUnit->getDebugReport().addSection(DebugReporter::getCodeSection(
+                    "ram-program", "RAM Program " + runtimeStr, ramProgStr.str()));
         }
 
         if (!translationUnit->getDebugReport().empty()) {
-            std::ofstream debugReportStream(debugReportFile);
+            std::ofstream debugReportStream(Global::config().get("debug-report"));
             debugReportStream << translationUnit->getDebugReport();
         }
     }
 
     /* run RAM program */
-    if (!ramProg) return 0;
+    if (!ramProg) {
+        return 0;
+    }
 
     // pick executor
-    
     std::unique_ptr<RamExecutor> executor;
-    if (compile) {
+    if (Global::config().has("generate") || Global::config().has("compile")) {
+        /* Locate souffle-compile script */
+        std::string compileCmd = ::findTool("souffle-compile", programName, ".");
+        /* Fail if a souffle-compile executable is not found */
+        if (!isExecutable(compileCmd)) ERROR("failed to locate souffle-compile");
+        compileCmd += " ";
         // configure compiler
-        executor = std::unique_ptr<RamExecutor>(new RamCompiler(outputFileName));
-        if (verbose) {
-           executor -> setReportTarget(std::cout); 
+        executor = std::unique_ptr<RamExecutor>(new RamCompiler(compileCmd));
+        if (Global::config().has("verbose")) {
+            executor->setReportTarget(std::cout);
         }
     } else {
         // configure interpreter
-        if (tune) {
+        if (Global::config().has("auto-schedule")) {
             executor = std::unique_ptr<RamExecutor>(new RamGuidedInterpreter());
         } else {
             executor = std::unique_ptr<RamExecutor>(new RamInterpreter());
         }
     }
 
-    // configure executor
-    auto& config = executor->getConfig();
-    config.setSourceFileName(filenames);
-    config.setFactFileDir(factFileDir);
-    config.setOutputDir(outputDir);
-    config.setNumThreads(num_threads);
-    config.setLogging(logging);
-    config.setProfileName(profile);
-    config.setDebug(debug);
+    // check if this is code generation only
+    if (Global::config().has("generate")) {
+        // just generate, no compile, no execute
+        static_cast<const RamCompiler*>(executor.get())
+                ->generateCode(translationUnit->getSymbolTable(), *ramProg, Global::config().get("generate"));
 
-    std::string dir = dirname(argv[0]); 
-    if (dir == "." && argv[0][0] != '.' ) {
-       dir = "";
-    } else if (dir.size() > 0) {
-       dir += "/";
-    }
-    config.setCompileScript( "/bin/bash " + dir + "souffle-compile ");
-
-    // check if this is a compile only
-    if (compile && outputFileName != "") {
+        // check if this is a compile only
+    } else if (Global::config().has("compile") && Global::config().has("dl-program")) {
         // just compile, no execute
-        static_cast<const RamCompiler*>(executor.get())->compileToBinary(translationUnit->getSymbolTable(), *ramProg);
+        static_cast<const RamCompiler*>(executor.get())
+                ->compileToBinary(translationUnit->getSymbolTable(), *ramProg);
     } else {
         // run executor
         executor->execute(translationUnit->getSymbolTable(), *ramProg);
     }
 
     /* Report overall run-time in verbose mode */
-    if (verbose) { 
+    if (Global::config().has("verbose")) {
         auto souffle_end = std::chrono::high_resolution_clock::now();
-        std::cout << "Total Time: " << std::chrono::duration<double>(souffle_end-souffle_start).count() << "sec\n";
+        std::cout << "Total Time: " << std::chrono::duration<double>(souffle_end - souffle_start).count()
+                  << "sec\n";
     }
 
     return 0;
+}
+
+}  // end of namespace souffle
+
+int main(int argc, char** argv) {
+    return souffle::main(argc, argv);
 }

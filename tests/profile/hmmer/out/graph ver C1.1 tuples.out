@@ -1,6 +1,6 @@
-  C1.1  LptrVar(v) :-     DirectFlow(v,w),    LptrVar(w).
+  C1.1  "LptrVar(v) :- \n   DirectFlow(v,w),\n   LptrVar(w)."
 
   NO   TUPLES
 
    0     7575 | ****************************************************************
-
+

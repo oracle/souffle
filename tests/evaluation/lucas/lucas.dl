@@ -1,0 +1,13 @@
+// Compute a Lucas Sequence.
+
+// Maximum sequence element.
+.decl lim(l:number) input
+
+// Coefficients for the sequence.
+.decl pq(p:number, q:number) input
+
+// Relation composing the i'th element of this sequence.
+// Base cases given in the .facts file.
+.decl lucas(i:number, n:number) input output
+
+lucas(I+1, P*N - Q*M) :- lucas(I, N), lucas(I-1, M), pq(P, Q), !lim(I).

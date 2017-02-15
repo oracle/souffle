@@ -1,0 +1,102 @@
+#!/bin/bash
+
+#
+# .souffle-sh
+#
+# This script provides a nice shell environment for working with Souffle.
+# Simply do a 'source .souffle-sh' from the terminal to start using it.
+#
+
+export SOUFFLE=$(pwd)
+
+JOBS=8
+
+alias souffle=$SOUFFLE/src/souffle
+alias souffle-profile=$SOUFFLE/src/souffle-profile
+
+souffle_ubuntu() {
+sudo apt-get update && \
+sudo apt-get upgrade && \
+sudo apt-get install \
+	git \
+	automake \
+	autoconf \
+	libtool \
+	doxygen \
+	flex \
+	bison \
+	sqlite \
+	libsqlite3-dev \
+	libedit-dev \
+	valgrind \
+	gdb \
+	graphviz \
+	default-jdk \
+	default-jre \
+    zlib-*
+}
+
+souffle_setup() {
+    cd $SOUFFLE && \
+    chmod 775 bootstrap && \
+    ./bootstrap && \
+    chmod 775 configure && \
+    ./configure && \
+    make -j$JOBS && \
+    cd -
+}
+
+souffle_teardown() {
+    cd $SOUFFLE && \
+    git clean -xdf && \
+    cd -
+}
+
+souffle_make() {
+    cd $SOUFFLE && \
+    make -j$JOBS $1 && \
+    cd -
+}
+
+souffle_reset() {
+    read -p "Continue?" && \
+    git reset --hard HEAD && \
+    souffle_teardown && \
+    souffle_setup && \
+    souffle_make
+}
+
+souffle_commit() {
+    cd $SOUFFLE && \
+    git add . && \
+    git commit -m "$(date)" && \
+    cd -
+}
+
+souffle_push() {
+    souffle_commit && \
+    cd $SOUFFLE && \
+    git push origin $(git branch | grep \* | sed 's/^\*\s//g') && \
+    cd -
+}
+
+souffle_test() {
+    souffle_make &&
+    cd $SOUFFLE/tests && \
+    ./testsuite -j$JOBS $@ && \
+    cd -
+}
+
+souffle_debug() {
+    souffle_make && \
+    mkdir -p $SOUFFLE/tests/testsuite.dir/$1/$2 && \
+    ln -sf $SOUFFLE/tests/$1/$2/$2.dl $SOUFFLE/tests/testsuite.dir/$1/$2/$2.dl && \
+    $SOUFFLE/src/souffle $SOUFFLE/tests/$1/$2/$2.dl \
+        -F $SOUFFLE/tests/$1/$2/facts \
+        -D $SOUFFLE/tests/testsuite.dir/$1/$2 \
+        -j$JOBS \
+        --debug-report=$SOUFFLE/tests/testsuite.dir/$1/$2/$2.html \
+        $3 \
+        1> $SOUFFLE/tests/testsuite.dir/$1/$2/$2.out \
+        2> $SOUFFLE/tests/testsuite.dir/$1/$2/$2.err
+}

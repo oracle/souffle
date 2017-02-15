@@ -29,12 +29,12 @@ Error: Invalid cycle in inheritance for component G in file comp_name_resolution
 .comp G : F { }
 ^---------------
 Error: Invalid number of type parameters for component B in file comp_name_resolution.dl at line 53
-.init X = B
+.init Y = B
 ^-----------
 Error: Invalid number of type parameters for component B in file comp_name_resolution.dl at line 59
-.init X = B<symbol,symbol>
+.init W = B<symbol,symbol>
 ^--------------------------
 Error: Referencing undefined component M in file comp_name_resolution.dl at line 62
-.init X = M
+.init U = M
 ^-----------
 13 errors generated, evaluation aborted

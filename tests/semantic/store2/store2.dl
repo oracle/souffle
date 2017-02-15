@@ -1,0 +1,4 @@
+.decl A(x:number)
+A(1).
+.output A(IO=file,filename="AA.csv")
+.output A(IO=file,filename="BB.csv")

@@ -1,0 +1,3 @@
+.decl A(x:number)
+.input A(IO=stdout)
+.input A(IO=stdout)

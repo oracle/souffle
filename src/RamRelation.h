@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -33,39 +13,50 @@
  * Defines classes Table, TupleBlock, Index, and HashBlock for implementing
  * an ram relational database. A table consists of a linked list of
  * tuple blocks that contain tuples of the table. An index is a hash-index
- * whose hash table is stored in Index. The entry of a hash table entry 
- * refer to HashBlocks that are blocks of pointers that point to tuples 
- * in tuple blocks with the same hash.  
+ * whose hash table is stored in Index. The entry of a hash table entry
+ * refer to HashBlocks that are blocks of pointers that point to tuples
+ * in tuple blocks with the same hash.
  *
  ***********************************************************************/
 
 #pragma once
 
-#include <string>
+#include "IODirectives.h"
+#include "RamIndex.h"
+#include "RamTypes.h"
+#include "SymbolMask.h"
+#include "SymbolTable.h"
+#include "Table.h"
+#include "Util.h"
+
 #include <map>
+#include <string>
+
 #include <pthread.h>
 
-#include "Util.h"
-#include "RamTypes.h"
-#include "RamIndex.h"
-#include "Table.h"
-#include "SymbolTable.h"
-
+namespace souffle {
 
 // forward declaration
 class RamEnvironment;
 class RamRelation;
 
-
 class RamRelationIdentifier {
-
     std::string name;
     unsigned arity;
     std::vector<std::string> attributeNames;
     std::vector<std::string> attributeTypeQualifiers;
+    SymbolMask mask;
     bool input;
     bool computed;
     bool output;
+    bool btree;
+    bool brie;
+    bool eqrel;
+
+    bool isdata;
+    bool istemp;
+    IODirectives inputDirectives;
+    std::vector<IODirectives> outputDirectives;
 
     // allow the ram environment to cache lookup results
     friend class RamEnvironment;
@@ -73,16 +64,27 @@ class RamRelationIdentifier {
     mutable RamRelation* rel;
 
 public:
+    RamRelationIdentifier()
+            : arity(0), mask(arity), input(false), computed(false), output(false), btree(false), brie(false),
+              eqrel(false), isdata(false), istemp(false), last(nullptr), rel(nullptr) {}
 
-    RamRelationIdentifier() : arity(0), input(false), computed(false), output(false), last(nullptr), rel(nullptr) {
+    RamRelationIdentifier(const std::string& name, unsigned arity, const bool istemp)
+            : RamRelationIdentifier(name, arity) {
+        this->istemp = istemp;
     }
 
     RamRelationIdentifier(const std::string& name, unsigned arity,
             std::vector<std::string> attributeNames = {},
-            std::vector<std::string> attributeTypeQualifiers = {},
-            bool input = false, bool computed = false, bool output = false)
-        : name(name), arity(arity), attributeNames(attributeNames), attributeTypeQualifiers(attributeTypeQualifiers),
-          input(input), computed(computed), output(output), last(nullptr), rel(nullptr)  {
+            std::vector<std::string> attributeTypeQualifiers = {}, const SymbolMask& mask = SymbolMask(0),
+            const bool input = false, const bool computed = false, const bool output = false,
+            const bool btree = false, const bool brie = false, const bool eqrel = false,
+            const bool isdata = false, const IODirectives inputDirectives = IODirectives(),
+            const std::vector<IODirectives> outputDirectives = {}, const bool istemp = false)
+            : name(name), arity(arity), attributeNames(attributeNames),
+              attributeTypeQualifiers(attributeTypeQualifiers), mask(mask), input(input), computed(computed),
+              output(output), btree(btree), brie(brie), eqrel(eqrel), isdata(isdata), istemp(istemp),
+              inputDirectives(inputDirectives), outputDirectives(outputDirectives), last(nullptr),
+              rel(nullptr) {
         assert(this->attributeNames.size() == arity || this->attributeNames.empty());
         assert(this->attributeTypeQualifiers.size() == arity || this->attributeTypeQualifiers.empty());
     }
@@ -92,36 +94,65 @@ public:
     }
 
     const std::string getArg(uint32_t i) const {
-       if(!attributeNames.empty()) {
-           return attributeNames[i];
-       } else {
-           return "c"+std::to_string(i); 
-       }
-    }
-
-    const std::string getArgTypeQualifier(uint32_t i) const {
-        if (!attributeTypeQualifiers.empty()) {
-            return attributeTypeQualifiers[i];
-        } else {
-            assert(0 && "has no type qualifiers");
+        if (!attributeNames.empty()) {
+            return attributeNames[i];
+        } else if (arity == 0) {
             return "";
+        } else {
+            return "c" + std::to_string(i);
         }
     }
 
-    bool isInput() const {
+    const std::string getArgTypeQualifier(uint32_t i) const {
+        return (i < attributeTypeQualifiers.size()) ? attributeTypeQualifiers[i] : "";
+    }
+
+    const SymbolMask& getSymbolMask() const {
+        return mask;
+    }
+
+    const bool isInput() const {
         return input;
     }
 
-    bool isComputed() const {
+    const bool isComputed() const {
         return computed;
     }
 
-    bool isOutput() const {
+    const bool isOutput() const {
         return output;
+    }
+
+    const bool isBTree() const {
+        return btree;
+    }
+
+    const bool isBrie() const {
+        return brie;
+    }
+
+    const bool isEqRel() const {
+        return eqrel;
+    }
+
+    const bool isTemp() const {
+        return istemp;
+    }
+
+    const bool isData() const {
+        return isdata;
     }
 
     unsigned getArity() const {
         return arity;
+    }
+
+    const IODirectives& getInputDirectives() const {
+        return inputDirectives;
+    }
+
+    const std::vector<IODirectives>& getOutputDirectives() const {
+        return outputDirectives;
     }
 
     bool operator==(const RamRelationIdentifier& other) const {
@@ -139,71 +170,34 @@ public:
     void print(std::ostream& out) const {
         out << name << "(";
         out << getArg(0);
-        for(unsigned i=1;i<arity;i++) {
+        for (unsigned i = 1; i < arity; i++) {
             out << ",";
             out << getArg(i);
         }
         out << ")";
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const RamRelationIdentifier &rel) {
+    friend std::ostream& operator<<(std::ostream& out, const RamRelationIdentifier& rel) {
         rel.print(out);
-        return out; 
-    }
-
-};
-
-
-class SymbolMask {
-
-    std::vector<bool> mask;
-
-public:
-
-    SymbolMask(size_t arity) : mask(arity) {}
-
-    size_t getArity() const {
-        return mask.size();
-    }
-
-    bool isSymbol(size_t index) const {
-        return index < getArity() && mask[index];
-    }
-
-    void setSymbol(size_t index, bool value = true) {
-        mask[index] = value;
-    }
-
-    void print(std::ostream& out) const {
-        out << mask << "\n";
-    }
-
-    friend std::ostream& operator<<(std::ostream& out, const SymbolMask& mask) {
-        mask.print(out);
         return out;
     }
-
 };
 
-
 class RamRelation {
-
     static const int BLOCK_SIZE = 1024;
 
     struct Block {
-
         size_t size;
         size_t used;
         std::unique_ptr<Block> next;
         std::unique_ptr<RamDomain[]> data;
 
-        Block(size_t s = BLOCK_SIZE) : size(s), used(0), next(nullptr), data(new RamDomain[size]) { }
+        Block(size_t s = BLOCK_SIZE) : size(s), used(0), next(nullptr), data(new RamDomain[size]) {}
 
         size_t getFreeSpace() const {
             return size - used;
         }
     };
-
 
     /** The name / arity of this relation */
     RamRelationIdentifier id;
@@ -221,17 +215,18 @@ class RamRelation {
     mutable pthread_mutex_t lock;
 
 public:
-    using SymbolTable = souffle::SymbolTable; // XXX pending namespace cleanup
+    using SymbolTable = souffle::SymbolTable;  // XXX pending namespace cleanup
 
     RamRelation(const RamRelationIdentifier& id)
-        : id(id), num_tuples(0), head(std::unique_ptr<Block>(new Block())), tail(head.get()), totalIndex(nullptr) {
+            : id(id), num_tuples(0), head(std::unique_ptr<Block>(new Block())), tail(head.get()),
+              totalIndex(nullptr) {
         pthread_mutex_init(&lock, NULL);
     }
 
     RamRelation(const RamRelation& other) = delete;
 
     RamRelation(RamRelation&& other)
-        : id(other.id), num_tuples(other.num_tuples), tail(other.tail), totalIndex(other.totalIndex) {
+            : id(other.id), num_tuples(other.num_tuples), tail(other.tail), totalIndex(other.totalIndex) {
         pthread_mutex_init(&lock, NULL);
 
         // take over ownership
@@ -239,10 +234,24 @@ public:
         indices.swap(other.indices);
     }
 
-    ~RamRelation() { }
+    ~RamRelation() {}
 
     RamRelation& operator=(const RamRelation& other) = delete;
-    RamRelation& operator=(RamRelation&& other) = delete;
+
+    RamRelation& operator=(RamRelation&& other) {
+        ASSERT(getArity() == other.getArity());
+
+        id = other.id;
+        num_tuples = other.num_tuples;
+        tail = other.tail;
+        totalIndex = other.totalIndex;
+
+        // take over ownership
+        head.swap(other.head);
+        indices.swap(other.indices);
+
+        return *this;
+    }
 
     /** Obtains the identifier of this relation */
     const RamRelationIdentifier& getID() const {
@@ -270,24 +279,33 @@ public:
     }
 
     /** insert a new tuple to table */
-    void insert(const RamDomain *tuple) {
+    void insert(const RamDomain* tuple) {
+        // check for null-arity
+        auto arity = getArity();
+        if (arity == 0) {
+            // set number of tuples to one -- that's it
+            num_tuples = 1;
+            return;
+        }
+
         // make existence check
         if (exists(tuple)) return;
 
         // prepare tail
-        auto arity = getArity();
-        if (tail->getFreeSpace() < arity) {
+        if (tail->getFreeSpace() < arity || arity == 0) {
             tail->next = std::unique_ptr<Block>(new Block());
             tail = tail->next.get();
         }
 
         // insert element into tail
         RamDomain* newTuple = &tail->data[tail->used];
-        for(size_t i=0; i<arity; ++i) newTuple[i] = tuple[i];
+        for (size_t i = 0; i < arity; ++i) {
+            newTuple[i] = tuple[i];
+        }
         tail->used += arity;
 
         // update all indexes with new tuple
-        for(const auto& cur : indices) {
+        for (const auto& cur : indices) {
             cur.second->insert(newTuple);
         }
 
@@ -296,8 +314,8 @@ public:
     }
 
     /** a convenience function for inserting tuples */
-    template<typename ... Args>
-    void insert(RamDomain first, Args ... rest) {
+    template <typename... Args>
+    void insert(RamDomain first, Args... rest) {
         RamDomain tuple[] = {first, RamDomain(rest)...};
         insert(tuple);
     }
@@ -305,7 +323,7 @@ public:
     /** Merges all elements of the given relation into this relation */
     void insert(const RamRelation& other) {
         assert(getArity() == other.getArity());
-        for(const auto& cur : other) {
+        for (const auto& cur : other) {
             insert(cur);
         }
     }
@@ -315,27 +333,39 @@ public:
         std::unique_ptr<Block> newHead(new Block());
         head.swap(newHead);
         tail = head.get();
-        for(const auto& cur : indices) {
+        for (const auto& cur : indices) {
             cur.second->purge();
         }
         num_tuples = 0;
     }
 
+    /** get index for a given set of keys using a cached index as a helper. Keys are encoded as bits for each
+     * column */
+    RamIndex* getIndex(const SearchColumns& key, RamIndex* cachedIndex) const {
+        if (!cachedIndex) return getIndex(key);
+        return getIndex(cachedIndex->order());
+    }
+
     /** get index for a given set of keys. Keys are encoded as bits for each column */
-    RamIndex* getIndex(SearchColumns key) const {
+    RamIndex* getIndex(const SearchColumns& key) const {
+        // suffix for order, if no matching prefix exists
+        std::vector<unsigned char> suffix;
+        suffix.reserve(getArity());
 
         // convert to order
         RamIndexOrder order;
-        for(size_t k=1,i=0; i<getArity(); i++,k*=2) {
-            if(key & k) {
+        for (size_t k = 1, i = 0; i < getArity(); i++, k *= 2) {
+            if (key & k) {
                 order.append(i);
+            } else {
+                suffix.push_back(i);
             }
         }
 
         // see whether there is an order with a matching prefix
         RamIndex* res = nullptr;
         pthread_mutex_lock(&lock);
-        for(auto it = indices.begin(); !res && it != indices.end(); ++it) {
+        for (auto it = indices.begin(); !res && it != indices.end(); ++it) {
             if (order.isCompatible(it->first)) res = it->second.get();
         }
         pthread_mutex_unlock(&lock);
@@ -344,8 +374,8 @@ public:
         if (res) return res;
 
         // extend index to full index
-        for(size_t i=0; i<getArity(); i++) {
-            if (!order.covers(i)) order.append(i);
+        for (auto cur : suffix) {
+            order.append(cur);
         }
         assert(order.isComplete());
 
@@ -360,11 +390,11 @@ public:
         pthread_mutex_lock(&lock);
         auto pos = indices.find(order);
         if (pos == indices.end()) {
-            std::unique_ptr<RamIndex> &newIndex = indices[order];
+            std::unique_ptr<RamIndex>& newIndex = indices[order];
             newIndex = std::unique_ptr<RamIndex>(new RamIndex(order));
-            for(const auto& cur : *this) newIndex->insert(cur);
+            newIndex->insert(this->begin(), this->end());
             res = newIndex.get();
-        }  else {
+        } else {
             res = pos->second.get();
         }
         pthread_mutex_unlock(&lock);
@@ -373,54 +403,63 @@ public:
 
     /** Obtains a full index-key for this relation */
     SearchColumns getTotalIndexKey() const {
-        return (1 << (getArity()))-1;
+        return (1 << (getArity())) - 1;
     }
 
     /** check whether a tuple exists in the relation */
     bool exists(const RamDomain* tuple) const {
-        if (!totalIndex)
-            totalIndex = getIndex(getTotalIndexKey());
+        // handle arity 0
+        if (getArity() == 0) return !empty();
+
+        // handle all other arities
+        if (!totalIndex) totalIndex = getIndex(getTotalIndexKey());
         return totalIndex->exists(tuple);
     }
 
-    /** input table in csv format from file */ 
-    bool load(std::istream &is, SymbolTable& symTable, const SymbolMask& mask);
+    /** input table as memory */
+    bool load(std::vector<std::vector<std::string>> data, SymbolTable& symTable, const SymbolMask& mask);
 
-    /** print table in csv formt to file */
-    void store(std::ostream &os, const SymbolTable& symTable, const SymbolMask& mask) const;
-
+    /** store data to vectors */
+    void store(std::vector<std::vector<std::string>>& result, const SymbolTable& symTable,
+            const SymbolMask& mask) const;
 
     // --- iterator ---
 
-    /** Iterator for relation */ 
-    class iterator : public std::iterator<std::forward_iterator_tag,RamDomain*> {
+    /** Iterator for relation */
+    class iterator : public std::iterator<std::forward_iterator_tag, RamDomain*> {
+        Block* cur;
+        RamDomain* tuple;
+        size_t arity;
 
-        Block *cur;
-        RamDomain *tuple;
-        size_t arity; 
+    public:
+        iterator() : cur(nullptr), tuple(nullptr), arity(0) {}
 
-    public: 
+        iterator(Block* c, RamDomain* t, size_t a) : cur(c), tuple(t), arity(a) {}
 
-        iterator()
-            : cur(nullptr), tuple(nullptr), arity(0) { }
-
-        iterator(Block *c, RamDomain *t, size_t a)
-            : cur(c), tuple(t), arity(a) {}
-
-        const RamDomain *operator*() {
-            return tuple; 
-        } 
+        const RamDomain* operator*() {
+            return tuple;
+        }
 
         bool operator==(const iterator& other) const {
             return tuple == other.tuple;
         }
 
-        bool operator!=(const iterator &other) const {
+        bool operator!=(const iterator& other) const {
             return (tuple != other.tuple);
         }
 
         iterator& operator++() {
+            // check for end
             if (!cur) return *this;
+
+            // support 0-arity
+            if (arity == 0) {
+                // move to end
+                *this = iterator();
+                return *this;
+            }
+
+            // support all other arities
             tuple += arity;
             if (tuple >= &cur->data[cur->used]) {
                 cur = cur->next.get();
@@ -432,17 +471,26 @@ public:
 
     /** get iterator begin of relation */
     inline iterator begin() const {
+        // check for emptiness
         if (empty()) return end();
-        return iterator(head.get(), &head->data[0], getArity());
+
+        // support 0-arity
+        auto arity = getArity();
+        if (arity == 0) {
+            Block dummyBlock;
+            RamDomain dummyTuple;
+            return iterator(&dummyBlock, &dummyTuple, 0);
+        }
+
+        // support non-empty non-zero arity relation
+        return iterator(head.get(), &head->data[0], arity);
     }
 
-    /** get iterator begin of relation */ 
+    /** get iterator begin of relation */
     inline iterator end() const {
-        return iterator(); 
+        return iterator();
     }
 };
-
-
 
 /**
  * An environment encapsulates all the context information required for
@@ -464,9 +512,7 @@ class RamEnvironment {
     int counter;
 
 public:
-
-    RamEnvironment(SymbolTable& symbolTable)
-        : symbolTable(symbolTable), counter(0) {}
+    RamEnvironment(SymbolTable& symbolTable) : symbolTable(symbolTable), counter(0) {}
 
     /**
      * Obtains a reference to the enclosed symbol table.
@@ -522,7 +568,6 @@ public:
      * id, but the correct content).
      */
     const RamRelation& getRelation(const RamRelationIdentifier& id) const {
-
         // use cached value if available
         if (id.last == this) return *id.rel;
 
@@ -562,6 +607,6 @@ public:
         data.erase(id.getName());
         id.last = nullptr;
     }
-
 };
 
+}  // end of namespace souffle

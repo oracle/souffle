@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -37,33 +17,47 @@
 
 #pragma once
 
-#include <ctype.h>
-
-#include <iostream>
-#include <string>
-#include <vector>
-#include <set>
-#include <memory>
-
-#include "AstNode.h"
-#include "AstType.h"
 #include "AstAttribute.h"
 #include "AstClause.h"
+#include "AstIODirective.h"
+#include "AstNode.h"
 #include "AstRelationIdentifier.h"
+#include "AstType.h"
+
+#include <iostream>
+#include <memory>
+#include <set>
+#include <string>
+#include <vector>
+
+#include <ctype.h>
 
 /** Types of relation qualifiers defined as bits in a word */
 
-/* relation is read from csv file */ 
+/* relation is read from csv file */
 #define INPUT_RELATION (0x1)
 
-/* relation is written to csv file */ 
+/* relation is written to csv file */
 #define OUTPUT_RELATION (0x2)
 
-/* number of tuples are written to stdout */ 
+/* number of tuples are written to stdout */
 #define PRINTSIZE_RELATION (0x4)
 
-/* Rules of a relation defined in a component can be overwritten by sub-component */ 
+/* Rules of a relation defined in a component can be overwritten by sub-component */
 #define OVERRIDABLE_RELATION (0x8)
+
+#define DATA_RELATION (0x10)
+
+/* Relation uses a brie data structure */
+#define BRIE_RELATION (0x20)
+
+/* Relation uses a btree data structure */
+#define BTREE_RELATION (0x40)
+
+/* Relation uses a union relation */
+#define EQREL_RELATION (0x80)
+
+namespace souffle {
 
 /*!
  * @class Relation
@@ -86,21 +80,28 @@ protected:
     int qualifier;
 
     /** Clauses associated with this relation. Clauses could be
-      * either facts or rules. 
-      */ 
+      * either facts or rules.
+      */
     std::vector<std::unique_ptr<AstClause>> clauses;
 
+    /** IO directives associated with this relation.
+      */
+    std::vector<std::unique_ptr<AstIODirective>> ioDirectives;
+
 public:
+    AstRelation() : qualifier(0) {}
 
-    AstRelation() : qualifier(0) { }
-
-    ~AstRelation()  { }
+    ~AstRelation() {}
 
     /** Return the name of the relation */
-    const AstRelationIdentifier& getName() const { return name; }
+    const AstRelationIdentifier& getName() const {
+        return name;
+    }
 
     /** Set name for this relation */
-    void setName(const AstRelationIdentifier& n) { name = n; }
+    void setName(const AstRelationIdentifier& n) {
+        name = n;
+    }
 
     /** Add a new used type to this relation */
     void addAttribute(std::unique_ptr<AstAttribute> attr) {
@@ -109,55 +110,101 @@ public:
     }
 
     /** Return the arity of this relation */
-    size_t getArity() const { return attributes.size(); }
+    size_t getArity() const {
+        return attributes.size();
+    }
 
     /** Return the declared type at position @p idx */
-    AstAttribute *getAttribute(size_t idx) const { return attributes[idx].get(); }
+    AstAttribute* getAttribute(size_t idx) const {
+        return attributes[idx].get();
+    }
 
     /** Obtains a list of the contained attributes */
-    std::vector<AstAttribute *> getAttributes() const { return toPtrVector(attributes); }
+    std::vector<AstAttribute*> getAttributes() const {
+        return toPtrVector(attributes);
+    }
 
     /** Return qualifier associated with this relation */
-    int getQualifier() const { return qualifier; }
+    int getQualifier() const {
+        return qualifier;
+    }
 
     /** Set qualifier associated with this relation */
-    void setQualifier(int q) { qualifier = q; }
+    void setQualifier(int q) {
+        qualifier = q;
+    }
 
     /** Check whether relation is an output relation */
-    bool isOutput() const { return (qualifier & OUTPUT_RELATION) != 0; }
+    bool isOutput() const {
+        return (qualifier & OUTPUT_RELATION) != 0;
+    }
 
     /** Check whether relation is an input relation */
-    bool isInput() const { return (qualifier & INPUT_RELATION) != 0; }
+    bool isInput() const {
+        return (qualifier & INPUT_RELATION) != 0;
+    }
+
+    /** Check whether relation is to/from memory */
+    bool isData() const {
+        return (qualifier & DATA_RELATION) != 0;
+    }
+
+    /** Check whether relation is a brie relation */
+    bool isBrie() const {
+        return (qualifier & BRIE_RELATION) != 0;
+    }
+
+    /** Check whether relation is a btree relation */
+    bool isBTree() const {
+        return (qualifier & BTREE_RELATION) != 0;
+    }
+
+    /** Check whether relation is a equivalence relation */
+    bool isEqRel() const {
+        return (qualifier & EQREL_RELATION) != 0;
+    }
 
     /** Check whether relation is an input relation */
-    bool isPrintSize() const { return (qualifier & PRINTSIZE_RELATION) != 0; }
+    bool isPrintSize() const {
+        return (qualifier & PRINTSIZE_RELATION) != 0;
+    }
 
     /** Check whether relation is an output relation */
-    bool isComputed() const { return isOutput() || isPrintSize(); }
+    bool isComputed() const {
+        return isOutput() || isPrintSize();
+    }
 
     /** Check whether relation is an overridable relation */
-    bool isOverridable() const { return (qualifier & OVERRIDABLE_RELATION) != 0; }
+    bool isOverridable() const {
+        return (qualifier & OVERRIDABLE_RELATION) != 0;
+    }
 
     /** Print string representation of the relation to a given output stream */
-    virtual void print(std::ostream &os) const {
+    virtual void print(std::ostream& os) const {
         os << ".decl " << this->getName() << "(";
-        os << attributes[0]->getAttributeName() << ":" << attributes[0]->getTypeName();
-        for (size_t i=1; i<attributes.size(); ++i) {
-            os << "," << attributes[i]->getAttributeName() << ":" << attributes[i]->getTypeName();
+        if (attributes.size() > 0) {
+            os << attributes[0]->getAttributeName() << ":" << attributes[0]->getTypeName();
+
+            for (size_t i = 1; i < attributes.size(); ++i) {
+                os << "," << attributes[i]->getAttributeName() << ":" << attributes[i]->getTypeName();
+            }
         }
-        os << ") " ;
-        if (isInput()) { 
-            os << "input "; 
-        } 
-        if (isOutput()) { 
-            os << "output "; 
-        } 
-        if (isPrintSize()) { 
-            os << "printsize "; 
-        } 
+        os << ") ";
+        if (isInput()) {
+            os << "input ";
+        }
+        if (isOutput()) {
+            os << "output ";
+        }
+        if (isData()) {
+            os << "output ";
+        }
+        if (isPrintSize()) {
+            os << "printsize ";
+        }
         if (isOverridable()) {
-            os << "overridable "; 
-        } 
+            os << "overridable ";
+        }
     }
 
     /** Creates a clone if this AST sub-structure */
@@ -165,35 +212,51 @@ public:
         auto res = new AstRelation();
         res->name = name;
         res->setSrcLoc(getSrcLoc());
-        for(const auto& cur : attributes) res->attributes.push_back(std::unique_ptr<AstAttribute>(cur->clone()));
-        for(const auto& cur : clauses)    res->clauses.push_back(std::unique_ptr<AstClause>(cur->clone()));
+        for (const auto& cur : attributes)
+            res->attributes.push_back(std::unique_ptr<AstAttribute>(cur->clone()));
+        for (const auto& cur : clauses) res->clauses.push_back(std::unique_ptr<AstClause>(cur->clone()));
+        for (const auto& cur : ioDirectives) {
+            res->ioDirectives.push_back(std::unique_ptr<AstIODirective>(cur->clone()));
+        }
         res->qualifier = qualifier;
         return res;
     }
 
     /** Mutates this node */
     virtual void apply(const AstNodeMapper& map) {
-        for(auto& cur : attributes) cur = map(std::move(cur));
-        for(auto& cur : clauses) cur = map(std::move(cur));
+        for (auto& cur : attributes) {
+            cur = map(std::move(cur));
+        }
+        for (auto& cur : clauses) {
+            cur = map(std::move(cur));
+        }
+        for (auto& cur : ioDirectives) {
+            cur = map(std::move(cur));
+        }
     }
 
     /** Return i-th clause associated with this relation */
-    AstClause *getClause(size_t idx) const { return clauses[idx].get(); }
+    AstClause* getClause(size_t idx) const {
+        return clauses[idx].get();
+    }
 
     /** Obtains a list of the associated clauses */
-    std::vector<AstClause *> getClauses() const { return toPtrVector(clauses); }
+    std::vector<AstClause*> getClauses() const {
+        return toPtrVector(clauses);
+    }
 
     /** Add a clause to the relation */
     void addClause(std::unique_ptr<AstClause> clause) {
         ASSERT(clause && "Undefined clause");
         ASSERT(clause->getHead() && "Undefined head of the clause");
-        ASSERT(clause->getHead()->getName() == name && "Name of the atom in the head of the clause and the relation do not match");
+        ASSERT(clause->getHead()->getName() == name &&
+                "Name of the atom in the head of the clause and the relation do not match");
         clauses.push_back(std::move(clause));
     }
 
     /** Removes the given clause from this relation */
     bool removeClause(const AstClause* clause) {
-        for(auto it = clauses.begin(); it != clauses.end(); ++it) {
+        for (auto it = clauses.begin(); it != clauses.end(); ++it) {
             if (**it == *clause) {
                 clauses.erase(it);
                 return true;
@@ -203,25 +266,62 @@ public:
     }
 
     /** Return the number of clauses associated with this relation */
-    size_t clauseSize() const { return clauses.size(); }
+    size_t clauseSize() const {
+        return clauses.size();
+    }
 
     /** Obtains a list of all embedded child nodes */
     virtual std::vector<const AstNode*> getChildNodes() const {
         std::vector<const AstNode*> res;
-        for(const auto& cur : attributes) res.push_back(cur.get());
-        for(const auto& cur : clauses) res.push_back(cur.get());
+        for (const auto& cur : attributes) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : clauses) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : ioDirectives) {
+            res.push_back(cur.get());
+        }
         return res;
     }
 
-protected:
+    void addIODirectives(std::unique_ptr<AstIODirective> directive) {
+        ASSERT(directive && "Undefined directive");
+        // Make sure the old style qualifiers still work.
+        if (directive->isInput()) {
+            qualifier |= INPUT_RELATION;
+        } else if (directive->isOutput()) {
+            qualifier |= OUTPUT_RELATION;
+        } else if (directive->isPrintSize()) {
+            qualifier |= PRINTSIZE_RELATION;
+        }
+        ioDirectives.push_back(std::move(directive));
+    }
 
+    std::vector<AstIODirective*> getIODirectives() const {
+        return toPtrVector(ioDirectives);
+    }
+
+protected:
     /** Implements the node comparison for this node type */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstRelation*>(&node));
         const AstRelation& other = static_cast<const AstRelation&>(node);
-        return name == name &&
-                equal_targets(attributes, other.attributes) &&
-                equal_targets(clauses, other.clauses);
+        return name == other.name && equal_targets(attributes, other.attributes) &&
+               equal_targets(clauses, other.clauses);
     }
-
 };
+
+struct AstNameComparison {
+    bool operator()(const AstRelation* x, const AstRelation* y) const {
+        if (x != nullptr && y != nullptr) {
+            return x->getName() < y->getName();
+        } else {
+            return y != nullptr;
+        }
+    }
+};
+
+typedef std::set<const AstRelation*, AstNameComparison> AstRelationSet;
+
+}  // end of namespace souffle

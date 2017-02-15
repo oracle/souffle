@@ -1,0 +1,7 @@
+.decl A(x:number)
+A(1).
+A(2).
+
+.decl B(x:number)
+B(x) :- A(x).
+.printsize B

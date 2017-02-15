@@ -1,7 +1,54 @@
 sudo: required
-dist: trusty
 language: cpp
-before_install: 
-  - sudo apt-get -qq update
-  - sudo apt-get -y install bison
-script: ./bootstrap && ./configure && make && make check
+
+install:
+  - "./.travis/install.sh"
+
+os:
+  - linux
+  - osx
+compiler:
+  - clang
+  - gcc
+# The build takes about 4 minutes (2017016) before testsuite starts running
+env:
+  - TEST_FORMAT=1
+  - MAKEPACKAGE=1
+  - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS=",-j8,-p profile.log"
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-c -j8"
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS=-c
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="--auto-schedule -o testprog"
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-c -p profile.log"
+dist: trusty
+osx_image: xcode7.3
+
+matrix:
+  exclude: 
+  - os: linux
+    compiler: gcc
+    env: TEST_FORMAT=1
+  - os: osx
+    compiler: clang
+    env: TEST_FORMAT=1
+  - os: linux 
+    compiler: clang
+    env: MAKEPACKAGE=1 
+  - os: osx
+    compiler: gcc
+
+script: 
+  - "./.travis/run.sh"
+
+after_failure:
+  - "./.travis/after_failure.sh"
+
+deploy:
+  skip_cleanup: true
+  provider: releases
+  api_key:
+    secure: rWSbE68NuY6ULn7moKvbH1WmOGWljm2R5DwIO6HXmBa8yP3SVk5zSIL/cFoWB5cvqEqIvvRqypRcZuR75lMYefhUq93S/uk8/Sh420g0u3Hcav6wvOmEaQIs/1lkIkIV5GitLKIIXzTgfJ28jnTrrHrVuD6b4bcNJhXcMOxhMG8yeCxgi9DCc3sugBdFPMIOCDU9nb4SCjTq0YluWcTfFzpkD+QtgZzeLyopjldOAAAWx7ZqbpzHxTHJHH/9UZEI8OVDAEhPOawygZaGonUDfVSk04YdPl+Y5pRMXcC2MRVjwaDZVmuHKzJ2QSPwDkr199aONbJLJEpDTBv/ABLIjl+W/js5+hO8jFMdZopFvhOBAhYMka+AQQg860TJhgiXs00Kp/UPGr9OXZnEHWRjdo8KuWz/akOhAvWfnxeoxaBY32V0H1RKIwVvdCE5rekMmJDqgqTJTivIU9w/tDID7I7uvJaZ2bxygMwec+Jfnwlw8iPndWLrU8kVpPkGLVmnllrNAoUvH0wURc9kqwW8pzVyU660yqPNslcFjLIJWWyPgSxI4FcEySu7HaEFy/ukNmLpI+XSpQu8SYofK+xiklkd5fNq7LDn28AvVd8AyZnuBSA3PqzR3Yma1isAsiObcNLtTh6yvx7Nu3GcfcYkmjqFjcpRfww27F+6P0w5Rbk=
+  file_glob: true
+  file: deploy/*
+  on:
+    tags: true

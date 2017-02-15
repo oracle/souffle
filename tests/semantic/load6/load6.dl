@@ -1,0 +1,4 @@
+.decl A(x:number, y:number) input
+
+.decl B(x:number, y:number) output
+B(x,y) :- A(x,y).

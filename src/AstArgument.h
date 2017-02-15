@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -38,16 +18,18 @@
 
 #pragma once
 
-#include <string>
-#include <list>
-#include <memory>
-
-#include "SymbolTable.h"
 #include "AstNode.h"
 #include "AstType.h"
 #include "BinaryOperator.h"
-
+#include "SymbolTable.h"
 #include "TypeSystem.h"
+#include "UnaryOperator.h"
+
+#include <list>
+#include <memory>
+#include <string>
+
+namespace souffle {
 
 /* Forward declarations */
 class AstClause;
@@ -59,9 +41,7 @@ class AstLiteral;
  * @brief Intermediate representation of an argument of a Literal (e.g., a variable or a constant)
  */
 class AstArgument : public AstNode {
-
 public:
-
     virtual ~AstArgument() {}
 
     /** Obtains a list of all embedded child nodes */
@@ -70,8 +50,7 @@ public:
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstArgument* clone() const =0;
-
+    virtual AstArgument* clone() const = 0;
 };
 
 /**
@@ -84,7 +63,7 @@ protected:
     std::string name;
 
 public:
-    AstVariable(const std::string& n) : AstArgument(), name(n)   { }
+    AstVariable(const std::string& n) : AstArgument(), name(n) {}
 
     /** Updates this variable name */
     void setName(const std::string& name) {
@@ -92,12 +71,12 @@ public:
     }
 
     /** @return Variable name */
-    const std::string &getName() const {
-        return name; 
+    const std::string& getName() const {
+        return name;
     }
 
     /** Print argument to the given output stream */
-    virtual void print(std::ostream &os) const {
+    virtual void print(std::ostream& os) const {
         os << name;
     }
 
@@ -114,14 +93,12 @@ public:
     }
 
 protected:
-
     /** Implements the node comparison for this node type */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstVariable*>(&node));
         const AstVariable& other = static_cast<const AstVariable&>(node);
         return name == other.name;
     }
-
 };
 
 /**
@@ -130,13 +107,11 @@ protected:
  */
 class AstUnnamedVariable : public AstArgument {
 protected:
-
 public:
-    AstUnnamedVariable() : AstArgument() {
-    }
+    AstUnnamedVariable() : AstArgument() {}
 
     /** Print argument to the given output stream */
-    virtual void print(std::ostream &os) const {
+    virtual void print(std::ostream& os) const {
         os << "_";
     }
 
@@ -153,13 +128,11 @@ public:
     }
 
 protected:
-
     /** Implements the node comparison for this node type */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstUnnamedVariable*>(&node));
         return true;
     }
-
 };
 
 /**
@@ -168,13 +141,11 @@ protected:
  */
 class AstCounter : public AstArgument {
 protected:
-
 public:
-    AstCounter() : AstArgument() { 
-    }
+    AstCounter() : AstArgument() {}
 
     /** Print argument to the given output stream */
-    virtual void print(std::ostream &os) const {
+    virtual void print(std::ostream& os) const {
         os << "$";
     }
 
@@ -191,13 +162,11 @@ public:
     }
 
 protected:
-
     /** Implements the node comparison for this node type */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstCounter*>(&node));
         return true;
     }
-
 };
 
 /**
@@ -207,14 +176,15 @@ protected:
 class AstConstant : public AstArgument {
 protected:
     /** Index of this Constant in the SymbolTable */
-    size_t idx;
+    AstDomain idx;
 
 public:
-    AstConstant(size_t i) : AstArgument(), idx(i) {
-    }
+    AstConstant(AstDomain i) : AstArgument(), idx(i) {}
 
     /** @return Return the index of this constant in the SymbolTable */
-    size_t getIndex() const { return idx; }
+    AstDomain getIndex() const {
+        return idx;
+    }
 
     /** Mutates this node */
     virtual void apply(const AstNodeMapper& mapper) {
@@ -222,14 +192,12 @@ public:
     }
 
 protected:
-
     /** Implements the node comparison for this node type */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstConstant*>(&node));
         const AstConstant& other = static_cast<const AstConstant&>(node);
         return idx == other.idx;
     }
-
 };
 
 /**
@@ -237,14 +205,13 @@ protected:
  * @brief Subclass of Argument that represents a datalog constant value
  */
 class AstStringConstant : public AstConstant {
-    using SymbolTable = souffle::SymbolTable; // XXX pending namespace cleanup
-    SymbolTable *symTable; 
-    AstStringConstant(SymbolTable *symTable, size_t index) : AstConstant(index), symTable(symTable) {}
+    using SymbolTable = souffle::SymbolTable;  // XXX pending namespace cleanup
+    SymbolTable* symTable;
+    AstStringConstant(SymbolTable* symTable, size_t index) : AstConstant(index), symTable(symTable) {}
 
 public:
-
-    AstStringConstant(SymbolTable& symTable, const char *c)
-        : AstConstant(symTable.lookup(c)), symTable(&symTable) {}
+    AstStringConstant(SymbolTable& symTable, const char* c)
+            : AstConstant(symTable.lookup(c)), symTable(&symTable) {}
 
     /** @return String representation of this Constant */
     const std::string getConstant() const {
@@ -252,7 +219,7 @@ public:
     }
 
     /** @brief Print argument to the given output stream */
-    virtual void print(std::ostream &os) const {
+    virtual void print(std::ostream& os) const {
         os << "\"" << getConstant() << "\"";
     }
 
@@ -270,13 +237,11 @@ public:
  */
 class AstNumberConstant : public AstConstant {
 public:
-
-    AstNumberConstant(size_t num)
-        : AstConstant(num) {}
+    AstNumberConstant(AstDomain num) : AstConstant(num) {}
 
     /** @brief Print argument to the given output stream */
-    virtual void print(std::ostream &os) const {
-        os << (int64_t)idx;
+    virtual void print(std::ostream& os) const {
+        os << (AstDomain)idx;
     }
 
     /** Creates a clone if this AST sub-structure */
@@ -293,11 +258,10 @@ public:
  */
 class AstNullConstant : public AstConstant {
 public:
-
     AstNullConstant() : AstConstant(0) {}
 
     /** @brief Print argument to the given output stream */
-    virtual void print(std::ostream &os) const {
+    virtual void print(std::ostream& os) const {
         os << '-';
     }
 
@@ -313,87 +277,54 @@ public:
  * @class AstFunctor
  * @brief A common base class for AST functors
  */
-class AstFunctor : public AstArgument {
-};
+class AstFunctor : public AstArgument {};
 
 /**
  * @class UnaryFunctor
- * @brief Subclass of Argument that represents a unary function application
+ * @brief Subclass of Argument that represents a unary function
  */
 class AstUnaryFunctor : public AstFunctor {
-public:
-
-    /**
-     * An enumeration of supported functions.
-     */
-    enum Function {
-        // -- numerical --
-        ORDINAL, 
-        NEGATION
-
-        // -- symbolic --
-    };
-
 protected:
-
-    Function fun;
+    UnaryOp fun;
 
     std::unique_ptr<AstArgument> operand;
 
 public:
+    AstUnaryFunctor(UnaryOp fun, std::unique_ptr<AstArgument> o) : fun(fun), operand(std::move(o)) {}
 
-    AstUnaryFunctor(Function fun, std::unique_ptr<AstArgument> o)
-        : fun(fun), operand(std::move(o)) {}
+    virtual ~AstUnaryFunctor() {}
 
-    virtual ~AstUnaryFunctor() { }
-
-    AstArgument *getOperand() const {
+    AstArgument* getOperand() const {
         return operand.get();
     }
 
-    Function getFunction() const {
+    UnaryOp getFunction() const {
         return fun;
     }
 
+    /** Check if the return value of this function is a number type. */
     bool isNumerical() const {
-        switch (fun) {
-        case ORDINAL: return true;
-        case NEGATION: return true;
-        }
-        assert(false && "Unsupported operator encountered!");
-        return false;
+        return isNumericUnaryOp(fun);
     }
 
+    /** Check if the return value of this function is a symbol type. */
     bool isSymbolic() const {
-        switch (fun) {
-        case ORDINAL: return false;
-        case NEGATION: return false; 
-        }
-        assert(false && "Unsupported operator encountered!");
-        return false;
+        return isSymbolicUnaryOp(fun);
     }
 
+    /** Check if the argument of this function is a number type. */
     bool acceptsNumbers() const {
-        switch (fun) {
-        case ORDINAL: return false;
-        case NEGATION: return true;
-        }
-        assert(false && "Unsupported operator encountered!");
-        return false;
+        return unaryOpAcceptsNumbers(fun);
     }
 
+    /** Check if the argument of this function is a symbol type. */
     bool acceptsSymbols() const {
-        switch (fun) {
-        case ORDINAL: return true;
-        case NEGATION: return false;
-        }
-        assert(false && "Unsupported operator encountered!");
-        return false;
+        return unaryOpAcceptsSymbols(fun);
     }
 
     /** Print argument to the given output stream */
-    virtual void print(std::ostream &os) const {
-        os << getSymbolFor(fun);
+    virtual void print(std::ostream& os) const {
+        os << getSymbolForUnaryOp(fun);
         os << "(";
         operand->print(os);
         os << ")";
@@ -401,7 +332,7 @@ public:
 
     /** Creates a clone if this AST sub-structure */
     virtual AstUnaryFunctor* clone() const {
-        AstUnaryFunctor* res = new AstUnaryFunctor(fun, std::unique_ptr<AstArgument>(operand->clone()));
+        auto res = new AstUnaryFunctor(fun, std::unique_ptr<AstArgument>(operand->clone()));
         res->setSrcLoc(getSrcLoc());
         return res;
     }
@@ -418,25 +349,13 @@ public:
         return res;
     }
 
-    /** Obtains a printable name for the given function */
-    static const char* getSymbolFor(Function fun) {
-        switch(fun) {
-        case ORDINAL : return "ord";
-        case NEGATION : return "-";
-        }
-        assert(false && "Unknown function!");
-        return "?";
-    }
-
 protected:
-
     /** Implements the node comparison for this node type */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstUnaryFunctor*>(&node));
         const AstUnaryFunctor& other = static_cast<const AstUnaryFunctor&>(node);
         return fun == other.fun && *operand == *other.operand;
     }
-
 };
 
 /**
@@ -445,23 +364,21 @@ protected:
  */
 class AstBinaryFunctor : public AstFunctor {
 protected:
-
     BinaryOp fun;
 
     std::unique_ptr<AstArgument> lhs, rhs;
 
 public:
-
     AstBinaryFunctor(BinaryOp fun, std::unique_ptr<AstArgument> l, std::unique_ptr<AstArgument> r)
-        : fun(fun), lhs(std::move(l)), rhs(std::move(r)) {}
+            : fun(fun), lhs(std::move(l)), rhs(std::move(r)) {}
 
-    virtual ~AstBinaryFunctor() { }
+    virtual ~AstBinaryFunctor() {}
 
-    AstArgument *getLHS() const {
+    AstArgument* getLHS() const {
         return lhs.get();
     }
 
-    AstArgument *getRHS() const {
+    AstArgument* getRHS() const {
         return rhs.get();
     }
 
@@ -469,35 +386,48 @@ public:
         return fun;
     }
 
+    /** Check if the return value of this function is a number type. */
     bool isNumerical() const {
         return isNumericBinaryOp(fun);
     }
 
+    /** Check if the return value of this function is a symbol type. */
     bool isSymbolic() const {
         return isSymbolicBinaryOp(fun);
     }
 
+    /** Check if the arguments of this function are number types. */
+    bool acceptsNumbers() const {
+        return binaryOpAcceptsNumbers(fun);
+    }
+
+    /** Check if the arguments of this function are symbol types. */
+    bool acceptsSymbols() const {
+        return binaryOpAcceptsSymbols(fun);
+    }
+
     /** Print argument to the given output stream */
-    virtual void print(std::ostream &os) const {
-        if (isNumerical()) { 
+    virtual void print(std::ostream& os) const {
+        if (isNumericBinaryOp(fun)) {
             os << "(";
             lhs->print(os);
             os << getSymbolForBinaryOp(fun);
-            rhs->print(os); 
+            rhs->print(os);
             os << ")";
         } else {
             os << getSymbolForBinaryOp(fun);
             os << "(";
             lhs->print(os);
-            os << ","; 
-            rhs->print(os); 
+            os << ",";
+            rhs->print(os);
             os << ")";
-        } 
+        }
     }
 
     /** Creates a clone if this AST sub-structure */
     virtual AstBinaryFunctor* clone() const {
-        auto res = new AstBinaryFunctor(fun, std::unique_ptr<AstArgument>(lhs->clone()), std::unique_ptr<AstArgument>(rhs->clone()));
+        auto res = new AstBinaryFunctor(
+                fun, std::unique_ptr<AstArgument>(lhs->clone()), std::unique_ptr<AstArgument>(rhs->clone()));
         res->setSrcLoc(getSrcLoc());
         return res;
     }
@@ -517,14 +447,12 @@ public:
     }
 
 protected:
-
     /** Implements the node comparison for this node type */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstBinaryFunctor*>(&node));
         const AstBinaryFunctor& other = static_cast<const AstBinaryFunctor&>(node);
         return fun == other.fun && *lhs == *other.lhs && *rhs == *other.rhs;
     }
-
 };
 
 /**
@@ -532,33 +460,30 @@ protected:
  * new record.
  */
 class AstRecordInit : public AstArgument {
-
     /** The list of components to be aggregated into a record */
-	std::vector<std::unique_ptr<AstArgument>> args;
+    std::vector<std::unique_ptr<AstArgument>> args;
 
 public:
+    AstRecordInit() {}
 
+    ~AstRecordInit() {}
 
-	AstRecordInit() {}
+    void add(std::unique_ptr<AstArgument> arg) {
+        args.push_back(std::move(arg));
+    }
 
-	~AstRecordInit() { }
+    std::vector<AstArgument*> getArguments() const {
+        return toPtrVector(args);
+    }
 
-	void add(std::unique_ptr<AstArgument> arg) {
-		args.push_back(std::move(arg));
-	}
+    virtual void print(std::ostream& os) const {
+        os << "[" << join(args, ",", print_deref<std::unique_ptr<AstArgument>>()) << "]";
+    }
 
-	std::vector<AstArgument *> getArguments() const {
-	    return toPtrVector(args);
-	}
-
-	virtual void print(std::ostream& os) const {
-		os << "[" << join(args, ",", print_deref<std::unique_ptr<AstArgument>>()) << "]";
-	}
-
-	/** Creates a clone if this AST sub-structure */
+    /** Creates a clone if this AST sub-structure */
     virtual AstRecordInit* clone() const {
         auto res = new AstRecordInit();
-        for(auto &cur : args) {
+        for (auto& cur : args) {
             res->args.push_back(std::unique_ptr<AstArgument>(cur->clone()));
         }
         res->setSrcLoc(getSrcLoc());
@@ -567,7 +492,7 @@ public:
 
     /** Mutates this node */
     virtual void apply(const AstNodeMapper& map) {
-        for(auto& arg : args) {
+        for (auto& arg : args) {
             arg = map(std::move(arg));
         }
     }
@@ -575,40 +500,42 @@ public:
     /** Obtains a list of all embedded child nodes */
     virtual std::vector<const AstNode*> getChildNodes() const {
         auto res = AstArgument::getChildNodes();
-        for(auto &cur : args) res.push_back(cur.get());
+        for (auto& cur : args) {
+            res.push_back(cur.get());
+        }
         return res;
     }
 
 protected:
-
     /** Implements the node comparison for this node type */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstRecordInit*>(&node));
         const AstRecordInit& other = static_cast<const AstRecordInit&>(node);
         return equal_targets(args, other.args);
     }
-
 };
 
 /**
  * An argument capable of casting a value of one type into another.
  */
 class AstTypeCast : public AstArgument {
-
     /** The value to be casted */
-	std::unique_ptr<AstArgument> value;
+    std::unique_ptr<AstArgument> value;
 
-	/** The target type name */
-	std::string type;
+    /** The target type name */
+    std::string type;
 
 public:
+    AstTypeCast(std::unique_ptr<AstArgument> value, const std::string& type)
+            : value(std::move(value)), type(type) {}
 
-	AstTypeCast(std::unique_ptr<AstArgument> value, const std::string& type)
-		: value(std::move(value)), type(type) {}
+    virtual void print(std::ostream& os) const {
+        os << *value << " as " << type;
+    }
 
-	virtual void print(std::ostream& os) const {
-		os << *value << " as " << type;
-	}
+    AstArgument* getValue() const {
+        return value.get();
+    }
 
     /** Obtains a list of all embedded child nodes */
     virtual std::vector<const AstNode*> getChildNodes() const {
@@ -630,36 +557,27 @@ public:
     }
 
 protected:
-
     /** Implements the node comparison for this node type */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstTypeCast*>(&node));
         const AstTypeCast& other = static_cast<const AstTypeCast&>(node);
         return type == other.type && *value == *other.value;
     }
-
 };
 
 /**
  * An argument aggregating a value from a sub-query.
  */
 class AstAggregator : public AstArgument {
-
 public:
-
     /**
      * The kind of utilized aggregation operator.
      * Note: lower-case is utilized due to a collision with
      *  constants in the parser.
      */
-    enum Op {
-        min,
-        max,
-        count
-    };
+    enum Op { min, max, count, sum };
 
 private:
-
     /** The aggregation operator of this aggregation step */
     Op fun;
 
@@ -670,12 +588,11 @@ private:
     std::vector<std::unique_ptr<AstLiteral>> body;
 
 public:
-
     /** Creates a new aggregation node */
     AstAggregator(Op fun) : fun(fun), expr(nullptr) {}
 
     /** Destructor */
-    ~AstAggregator() { }
+    ~AstAggregator() {}
 
     // -- getters and setters --
 
@@ -691,7 +608,7 @@ public:
         return expr.get();
     }
 
-    std::vector<AstLiteral *> getBodyLiterals() const {
+    std::vector<AstLiteral*> getBodyLiterals() const {
         return toPtrVector(body);
     }
 
@@ -717,16 +634,18 @@ public:
     /** Mutates this node */
     virtual void apply(const AstNodeMapper& map) {
         if (expr) expr = map(std::move(expr));
-        for(auto& cur : body) cur = map(std::move(cur));
+        for (auto& cur : body) {
+            cur = map(std::move(cur));
+        }
     }
 
 protected:
-
     /** Implements the node comparison for this node type */
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstAggregator*>(&node));
         const AstAggregator& other = static_cast<const AstAggregator&>(node);
         return fun == other.fun && equal_ptr(expr, other.expr) && equal_targets(body, other.body);
     }
-
 };
+
+}  // end of namespace souffle

@@ -1,21 +1,23 @@
   ----- Rules of a Relation -----
    TOT_T  NREC_T   REC_T  COPY_T    TUPLES      ID NAME                     
 
-    .251    .006    .245    .000     21190      R1 LptrVar                  
+      10    .005    9.01    .516    397202      R1 IsPtr                    
  ---------------------------------------------------------
-    .124    .000    .123    .001      7575    C1.1 LptrVar                  
-    .122    .000    .122    .000      2689    C1.2 LptrVar                  
-    .005    .005    .000    .000      9270    N1.3 LptrVar                  
-    .000    .000    .000    .000      1337    N1.4 LptrVar                  
-    .000    .000    .000    .000       274    N1.1 LptrVar                  
-    .000    .000    .000    .000        45    N1.2 LptrVar                  
+    7.75    .000    7.40    .349    182479    C1.2 IsPtr                    
+    1.77    .000    1.42    .352    184083    C1.1 IsPtr                    
+    .242    .000    .189    .053     27746    C1.3 IsPtr                    
+    .003    .003    .000    .000      1522    N1.4 IsPtr                    
+    .001    .001    .000    .000      1053    N1.3 IsPtr                    
+    .000    .000    .000    .000       274    N1.2 IsPtr                    
+    .000    .000    .000    .000        45    N1.1 IsPtr                    
 
-Src locator: ../../tests/evaluation/hmmer/hmmer.dl [18:1-18:22]
+Src locator:hmmer.dl [19:1-19:25]
 
-   C1.1  LptrVar(v) :-     DirectFlow(v,w),    LptrVar(w).
-   C1.2  LptrVar(v) :-     DirectFlow(w,v),    LptrVar(w).
-   N1.3  LptrVar(v) :-     Load(_,v).
-   N1.4  LptrVar(v) :-     Store(_,v).
-   N1.1  LptrVar(v) :-     StackAlloc(v,_).
-   N1.2  LptrVar(v) :-     HeapAlloc(v,_).
-
+   C1.2  IsPtr(dest,o) :-     Load(dest,addr),    IsPtr(addr,o1),    Memory(o1,o).
+   C1.1  IsPtr(dest,o) :-     DirectFlow(src,dest),    IsPtr(src,o).
+   C1.3  IsPtr(v,o) :-     ExtReturn(arg,v),    IsReachable(arg,o).
+   N1.4  IsPtr(v,"ttt_obj") :-     ExtReturn(_,v).
+   N1.3  IsPtr(v,o) :-     Global(v,o).
+   N1.2  IsPtr(v,o) :-     StackAlloc(v,o).
+   N1.1  IsPtr(v,o) :-     HeapAlloc(v,o).
+

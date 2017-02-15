@@ -1,0 +1,13 @@
+jni/include/Jni_*.h
+*.jar
+*.la
+*.class
+/com/
+.*
+!/.gitignore
+*.o
+*.Plo
+*.Po
+*.lo
+
+

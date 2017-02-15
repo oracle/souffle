@@ -5,4 +5,4 @@
 .decl R(type1:Type, type2:XType)
 
 .type U = Type | B
-.type R = [ a:Type, b:B , a:A ]
+.type V = [ a:Type, b:B , a:A ]

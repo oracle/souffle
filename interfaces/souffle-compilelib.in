@@ -1,0 +1,3 @@
+g++ -fPIC -O3 -rdynamic -D__EMBEDDED_SOUFFLE__ -DJNI_INTERFACE -W -std=c++11 -c -I/user/local/include $1.cpp -o /tmp/$1.a
+g++ -rdynamic -shared -lsqlite3 -o lib$1.so /tmp/$1.a
+

@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -37,9 +17,6 @@
 
 #pragma once
 
-#include <vector>
-#include <functional>
-
 #include "AstArgument.h"
 #include "AstAttribute.h"
 #include "AstClause.h"
@@ -47,6 +24,11 @@
 #include "AstProgram.h"
 #include "AstRelation.h"
 #include "AstType.h"
+
+#include <functional>
+#include <vector>
+
+namespace souffle {
 
 /** A tag type required for the is_visitor type trait to identify AstVisitors */
 struct ast_visitor_tag {};
@@ -60,14 +42,13 @@ struct ast_visitor_tag {};
  * @tparam R the result type produced by a visit call
  * @tparam Params extra parameters to be passed to the visit call
  */
-template<typename R = void, typename ... Params>
+template <typename R = void, typename... Params>
 struct AstVisitor : public ast_visitor_tag {
-
     /** A virtual destructor */
     virtual ~AstVisitor() {}
 
     /** The main entry for the user allowing visitors to be utilized as functions */
-    R operator()(const AstNode& node, Params ... args) {
+    R operator()(const AstNode& node, Params... args) {
         return visit(node, args...);
     }
 
@@ -79,13 +60,11 @@ struct AstVisitor : public ast_visitor_tag {
      * @param node the node to be visited
      * @param args a list of extra parameters to be forwarded
      */
-    virtual R visit(const AstNode& node, Params ... args) {
+    virtual R visit(const AstNode& node, Params... args) {
+// dispatch node processing based on dynamic type
 
-        // dispatch node processing based on dynamic type
-
-        #define FORWARD(Kind) \
-            if (const auto* n = dynamic_cast<const Ast ## Kind *>(&node)) \
-                return visit ## Kind (*n, args...);
+#define FORWARD(Kind) \
+    if (const auto* n = dynamic_cast<const Ast##Kind*>(&node)) return visit##Kind(*n, args...);
 
         // types
         FORWARD(PrimitiveType);
@@ -116,7 +95,7 @@ struct AstVisitor : public ast_visitor_tag {
         FORWARD(Relation);
         FORWARD(Program);
 
-        #undef FORWARD
+#undef FORWARD
 
         // did not work ...
 
@@ -126,11 +105,10 @@ struct AstVisitor : public ast_visitor_tag {
     }
 
 protected:
-
-    #define LINK(Node,Parent) \
-        virtual R visit ## Node (const Ast ## Node & n, Params ... args) { \
-            return visit ## Parent ( n , args... ); \
-        }
+#define LINK(Node, Parent)                                      \
+    virtual R visit##Node(const Ast##Node& n, Params... args) { \
+        return visit##Parent(n, args...);                       \
+    }
 
     // -- types --
     LINK(PrimitiveType, Type);
@@ -152,12 +130,11 @@ protected:
 
     LINK(UnaryFunctor, Functor)
     LINK(BinaryFunctor, Functor)
-    LINK(Functor,Argument)
+    LINK(Functor, Argument)
 
     LINK(Aggregator, Argument)
 
     LINK(Argument, Node);
-
 
     // literals
     LINK(Atom, Literal)
@@ -165,20 +142,18 @@ protected:
     LINK(Constraint, Literal)
     LINK(Literal, Node);
 
-
     // -- others --
     LINK(Program, Node);
     LINK(Attribute, Node);
     LINK(Clause, Node);
     LINK(Relation, Node);
 
-    #undef LINK
+#undef LINK
 
     /** The base case for all visitors -- if no more specific overload was defined */
     virtual R visitNode(const AstNode& node, Params... args) {
         return R();
     }
-
 };
 
 /**
@@ -190,11 +165,11 @@ protected:
  * @param visitor the visitor to be applied on each node
  * @param args a list of extra parameters to be forwarded to the visitor
  */
-template<typename R, typename ... Ps, typename ... Args>
-void visitDepthFirstPreOrder(const AstNode& root, AstVisitor<R,Ps...>& visitor, Args& ... args) {
+template <typename R, typename... Ps, typename... Args>
+void visitDepthFirstPreOrder(const AstNode& root, AstVisitor<R, Ps...>& visitor, Args&... args) {
     visitor(root, args...);
-    for(const AstNode* cur : root.getChildNodes()) {
-        visitDepthFirstPreOrder(*cur, visitor, args ...);
+    for (const AstNode* cur : root.getChildNodes()) {
+        if (cur) visitDepthFirstPreOrder(*cur, visitor, args...);
     }
 }
 
@@ -207,10 +182,10 @@ void visitDepthFirstPreOrder(const AstNode& root, AstVisitor<R,Ps...>& visitor, 
  * @param visitor the visitor to be applied on each node
  * @param args a list of extra parameters to be forwarded to the visitor
  */
-template<typename R, typename ... Ps, typename ... Args>
-void visitDepthFirstPostOrder(const AstNode& root, AstVisitor<R,Ps...>& visitor, Args& ... args) {
-    for(const AstNode* cur : root.getChildNodes()) {
-        visitDepthFirstPreOrder(*cur, visitor, args ...);
+template <typename R, typename... Ps, typename... Args>
+void visitDepthFirstPostOrder(const AstNode& root, AstVisitor<R, Ps...>& visitor, Args&... args) {
+    for (const AstNode* cur : root.getChildNodes()) {
+        if (cur) visitDepthFirstPreOrder(*cur, visitor, args...);
     }
     visitor(root, args...);
 }
@@ -224,49 +199,49 @@ void visitDepthFirstPostOrder(const AstNode& root, AstVisitor<R,Ps...>& visitor,
  * @param visitor the visitor to be applied on each node
  * @param args a list of extra parameters to be forwarded to the visitor
  */
-template<typename R, typename ... Ps, typename ... Args>
-void visitDepthFirst(const AstNode& root, AstVisitor<R,Ps...>& visitor, Args& ... args) {
+template <typename R, typename... Ps, typename... Args>
+void visitDepthFirst(const AstNode& root, AstVisitor<R, Ps...>& visitor, Args&... args) {
     visitDepthFirstPreOrder(root, visitor, args...);
 }
 
 namespace {
 
-    /**
-     * A specialized visitor wrapping a lambda function -- an auxiliary type required
-     * for visitor convenience functions.
-     */
-    template<typename R, typename N>
-    struct LambdaVisitor : public AstVisitor<void> {
-        std::function<R(const N&)> lambda;
-        LambdaVisitor(const std::function<R(const N&)>& lambda) : lambda(lambda) {}
-        virtual void visit(const AstNode& node) {
-            if (const N* n = dynamic_cast<const N*>(&node)) {
-                lambda(*n);
-            }
+/**
+ * A specialized visitor wrapping a lambda function -- an auxiliary type required
+ * for visitor convenience functions.
+ */
+template <typename R, typename N>
+struct LambdaVisitor : public AstVisitor<void> {
+    std::function<R(const N&)> lambda;
+    LambdaVisitor(const std::function<R(const N&)>& lambda) : lambda(lambda) {}
+    virtual void visit(const AstNode& node) {
+        if (const N* n = dynamic_cast<const N*>(&node)) {
+            lambda(*n);
         }
-    };
-
-    /**
-     * A factory function for creating LambdaVisitor instances.
-     */
-    template<typename R, typename N>
-    LambdaVisitor<R,N> makeLambdaVisitor(const std::function<R(const N&)>& fun) {
-        return LambdaVisitor<R,N>(fun);
     }
+};
 
-    /**
-     * A type trait determining whether a given type is a visitor or not.
-     */
-    template<typename T>
-    struct is_visitor {
-        enum { value = std::is_base_of<ast_visitor_tag,T>::value };
-    };
+/**
+ * A factory function for creating LambdaVisitor instances.
+ */
+template <typename R, typename N>
+LambdaVisitor<R, N> makeLambdaVisitor(const std::function<R(const N&)>& fun) {
+    return LambdaVisitor<R, N>(fun);
+}
 
-    template<typename T>
-    struct is_visitor<const T> : public is_visitor<T> {};
+/**
+ * A type trait determining whether a given type is a visitor or not.
+ */
+template <typename T>
+struct is_visitor {
+    enum { value = std::is_base_of<ast_visitor_tag, T>::value };
+};
 
-    template<typename T>
-    struct is_visitor<T&> : public is_visitor<T> {};
+template <typename T>
+struct is_visitor<const T> : public is_visitor<T> {};
+
+template <typename T>
+struct is_visitor<T&> : public is_visitor<T> {};
 }
 
 /**
@@ -278,7 +253,7 @@ namespace {
  * @param fun the function to be applied
  * @param args a list of extra parameters to be forwarded to the visitor
  */
-template<typename R, typename N>
+template <typename R, typename N>
 void visitDepthFirst(const AstNode& root, const std::function<R(const N&)>& fun) {
     auto visitor = makeLambdaVisitor(fun);
     visitDepthFirst<void>(root, visitor);
@@ -293,13 +268,10 @@ void visitDepthFirst(const AstNode& root, const std::function<R(const N&)>& fun)
  * @param fun the function to be applied
  * @param args a list of extra parameters to be forwarded to the visitor
  */
-template<
-    typename Lambda,
-    typename R = typename lambda_traits<Lambda>::result_type,
-    typename N = typename lambda_traits<Lambda>::arg0_type
->
-typename std::enable_if<!is_visitor<Lambda>::value ,void>::type
-visitDepthFirst(const AstNode& root, const Lambda& fun) {
+template <typename Lambda, typename R = typename lambda_traits<Lambda>::result_type,
+        typename N = typename lambda_traits<Lambda>::arg0_type>
+typename std::enable_if<!is_visitor<Lambda>::value, void>::type visitDepthFirst(
+        const AstNode& root, const Lambda& fun) {
     visitDepthFirst(root, std::function<R(const N&)>(fun));
 }
 
@@ -312,9 +284,9 @@ visitDepthFirst(const AstNode& root, const Lambda& fun) {
  * @param fun the function to be applied
  * @param args a list of extra parameters to be forwarded to the visitor
  */
-template<typename T, typename Lambda>
+template <typename T, typename Lambda>
 void visitDepthFirst(const std::vector<T*>& list, const Lambda& fun) {
-    for(const auto& cur : list) {
+    for (const auto& cur : list) {
         visitDepthFirst(*cur, fun);
     }
 }
@@ -328,9 +300,9 @@ void visitDepthFirst(const std::vector<T*>& list, const Lambda& fun) {
  * @param fun the function to be applied
  * @param args a list of extra parameters to be forwarded to the visitor
  */
-template<typename T, typename Lambda>
+template <typename T, typename Lambda>
 void visitDepthFirst(const std::vector<std::unique_ptr<T>>& list, const Lambda& fun) {
-    for(const auto& cur : list) {
+    for (const auto& cur : list) {
         visitDepthFirst(*cur, fun);
     }
 }
@@ -344,7 +316,7 @@ void visitDepthFirst(const std::vector<std::unique_ptr<T>>& list, const Lambda& 
  * @param fun the function to be applied
  * @param args a list of extra parameters to be forwarded to the visitor
  */
-template<typename R, typename N>
+template <typename R, typename N>
 void visitDepthFirstPostOrder(const AstNode& root, const std::function<R(const N&)>& fun) {
     auto visitor = makeLambdaVisitor(fun);
     visitDepthFirstPostOrder<void>(root, visitor);
@@ -359,13 +331,11 @@ void visitDepthFirstPostOrder(const AstNode& root, const std::function<R(const N
  * @param fun the function to be applied
  * @param args a list of extra parameters to be forwarded to the visitor
  */
-template<
-    typename Lambda,
-    typename R = typename lambda_traits<Lambda>::result_type,
-    typename N = typename lambda_traits<Lambda>::arg0_type
->
-typename std::enable_if<!is_visitor<Lambda>::value ,void>::type
-visitDepthFirstPostOrder(const AstNode& root, const Lambda& fun) {
+template <typename Lambda, typename R = typename lambda_traits<Lambda>::result_type,
+        typename N = typename lambda_traits<Lambda>::arg0_type>
+typename std::enable_if<!is_visitor<Lambda>::value, void>::type visitDepthFirstPostOrder(
+        const AstNode& root, const Lambda& fun) {
     visitDepthFirstPostOrder(root, std::function<R(const N&)>(fun));
 }
 
+}  // end of namespace souffle
