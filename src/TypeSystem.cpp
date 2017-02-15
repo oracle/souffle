@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file TypeSystem.h
+ * @file TypeSystem.cpp
  *
  * Covers basic operations constituting Souffle's type system.
  *
