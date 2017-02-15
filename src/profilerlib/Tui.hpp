@@ -11,22 +11,13 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
 #include <dirent.h>
-
-// TODO
-//#ifdef __linux__
-//#include <editline.h>
-//#endif
-//#ifdef __OpenBSD__
-//#include <readline/readline.h>
-//#endif
-#include <editline/readline.h>
 
 #include "DataComparator.hpp"
 #include "OutputProcessor.hpp"
 #include "Reader.hpp"
 #include "StringUtils.hpp"
+#include "UserInputReader.hpp"
 #include "html_string.hpp"
 
 class Tui {
@@ -40,6 +31,7 @@ private:
     Table rel_table_state;
     Table rul_table_state;
     std::shared_ptr<Reader> reader;
+    InputReader linereader;
 
 public:
     Tui(std::string filename, bool live, bool gui);
@@ -59,6 +51,8 @@ public:
     void load(std::string method, std::string load_file);
 
     static void help();
+
+    void setupTabCompletion();
 
     void top();
 
