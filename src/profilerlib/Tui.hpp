@@ -13,13 +13,12 @@
 #include <vector>
 #include <dirent.h>
 
-
 #include "DataComparator.hpp"
 #include "OutputProcessor.hpp"
 #include "Reader.hpp"
 #include "StringUtils.hpp"
-#include "html_string.hpp"
 #include "UserInputReader.hpp"
+#include "html_string.hpp"
 
 class Tui {
 private:

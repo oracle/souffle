@@ -15,7 +15,6 @@
 #include <memory>
 #include <vector>
 
-
 class DataComparator {
 public:
     /* descending order comparator used to sort rows */

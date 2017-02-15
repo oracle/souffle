@@ -12,28 +12,22 @@
 
 #include "UserInputReader.hpp"
 
-
 void InputReader::getch() {
     char buf = 0;
     struct termios old = {0};
-    if (tcgetattr(0, &old) < 0)
-        perror("tcsetattr()");
+    if (tcgetattr(0, &old) < 0) perror("tcsetattr()");
     old.c_lflag &= ~ICANON;
     old.c_lflag &= ~ECHO;
     old.c_cc[VMIN] = 1;
     old.c_cc[VTIME] = 0;
-    if (tcsetattr(0, TCSANOW, &old) < 0)
-        perror("tcsetattr ICANON");
-    if (read(0, &buf, 1) < 0)
-        perror ("read()");
+    if (tcsetattr(0, TCSANOW, &old) < 0) perror("tcsetattr ICANON");
+    if (read(0, &buf, 1) < 0) perror("read()");
     old.c_lflag |= ICANON;
     old.c_lflag |= ECHO;
-    if (tcsetattr(0, TCSADRAIN, &old) < 0)
-        perror ("tcsetattr ~ICANON");
+    if (tcsetattr(0, TCSADRAIN, &old) < 0) perror("tcsetattr ~ICANON");
 
     current_char = buf;
 }
-
 
 std::string InputReader::getInput() {
     output = "";
@@ -43,7 +37,6 @@ std::string InputReader::getInput() {
     tab_pos = 0;
     in_tab_complete = false;
     in_history = false;
-
 
     std::cout << this->prompt << std::flush;
     getch();
@@ -61,7 +54,7 @@ std::string InputReader::getInput() {
                 arrow_key = true;
             }
         } else {
-            if (current_char == 27) { // esc char for arrow keys
+            if (current_char == 27) {  // esc char for arrow keys
                 escaped = true;
             } else if (current_char == '\t') {
                 tabComplete();
@@ -82,7 +75,6 @@ std::string InputReader::getInput() {
                     std::cout << current_char << std::flush;
                     showFullText(output);
                 }
-
             }
         }
 
@@ -104,7 +96,7 @@ void InputReader::setPrompt(std::string prompt) {
 }
 
 void InputReader::appendTabCompletion(std::vector<std::string> commands) {
-    tab_completion.insert(std::end(tab_completion),std::begin(commands),std::end(commands));
+    tab_completion.insert(std::end(tab_completion), std::begin(commands), std::end(commands));
 }
 
 void InputReader::appendTabCompletion(std::string command) {
@@ -120,8 +112,8 @@ void InputReader::tabComplete() {
         current_tab_completes = std::vector<std::string>();
         original_tab_val = output;
         bool found_tab = false;
-        for (auto &a: tab_completion) {
-            if (a.find(original_tab_val)==0) {
+        for (auto& a : tab_completion) {
+            if (a.find(original_tab_val) == 0) {
                 current_tab_completes.push_back(a);
                 found_tab = true;
             }
@@ -139,7 +131,7 @@ void InputReader::tabComplete() {
             std::cout << current_tab_val << std::flush;
         }
     } else {
-        if (tab_pos+1>=current_tab_completes.size()) {
+        if (tab_pos + 1 >= current_tab_completes.size()) {
             clearPrompt(current_tab_val.size());
             current_tab_val = original_tab_val;
             in_tab_complete = false;
@@ -166,8 +158,8 @@ void InputReader::clearHistory() {
 }
 
 void InputReader::addHistory(std::string hist) {
-    for (auto &a: history) {
-        if (hist.compare(a)==0) {
+    for (auto& a : history) {
+        if (hist.compare(a) == 0) {
             return;
         }
     }
@@ -188,7 +180,7 @@ void InputReader::historyUp() {
         original_hist_cursor_pos = cursor_pos;
         in_history = true;
         clearPrompt(output.size());
-        hist_pos = history.size()-1;
+        hist_pos = history.size() - 1;
         current_hist_val = history.back();
         cursor_pos = current_hist_val.size();
         std::cout << current_hist_val << std::flush;
@@ -208,7 +200,7 @@ void InputReader::historyUp() {
 void InputReader::historyDown() {
     if (in_history) {
         clearPrompt(current_hist_val.size());
-        if (hist_pos+1 < history.size()) {
+        if (hist_pos + 1 < history.size()) {
             hist_pos++;
             current_hist_val = history.at((unsigned)hist_pos);
             cursor_pos = current_hist_val.size();
@@ -240,57 +232,55 @@ void InputReader::moveCursor(char direction) {
         default:
             break;
     }
-
 }
 
 void InputReader::moveCursorRight() {
     if (in_history) {
-        if (cursor_pos<current_hist_val.size()) {
+        if (cursor_pos < current_hist_val.size()) {
             cursor_pos++;
-            std::cout << (char) 27 << '[' << 'C' << std::flush;
+            std::cout << (char)27 << '[' << 'C' << std::flush;
         }
     } else if (in_tab_complete) {
-        if (cursor_pos<current_tab_val.size()) {
+        if (cursor_pos < current_tab_val.size()) {
             cursor_pos++;
-            std::cout << (char) 27 << '[' << 'C' << std::flush;
+            std::cout << (char)27 << '[' << 'C' << std::flush;
         }
-    } else if (cursor_pos<output.size()) {
+    } else if (cursor_pos < output.size()) {
         cursor_pos++;
-        std::cout << (char) 27 << '[' << 'C' << std::flush;
+        std::cout << (char)27 << '[' << 'C' << std::flush;
     }
 }
 
 void InputReader::moveCursorLeft() {
     if (cursor_pos > 0) {
         cursor_pos--;
-        std::cout << (char) 27 << '[' << 'D' << std::flush;
+        std::cout << (char)27 << '[' << 'D' << std::flush;
     }
 }
 
 void InputReader::backspace() {
     if (cursor_pos > 0) {
-        output.erase(output.begin() + cursor_pos-1);
+        output.erase(output.begin() + cursor_pos - 1);
         moveCursorLeft();
         showFullText(output);
     }
 }
 void InputReader::showFullText(std::string text) {
     clearPrompt(text.size());
-    for (unsigned long i=0; i < text.size(); i++) {
+    for (unsigned long i = 0; i < text.size(); i++) {
         std::cout << text.at(i) << std::flush;
     }
 
-    for (unsigned long i=(unsigned)cursor_pos; i < text.size(); i++) {
+    for (unsigned long i = (unsigned)cursor_pos; i < text.size(); i++) {
         std::cout << "\b" << std::flush;
     }
 }
 
-
 void InputReader::clearPrompt(long text_len) {
-    for (unsigned long i=(unsigned)cursor_pos; i < text_len+1; i++) {
-        std::cout << (char) 27 << "[C" << std::flush;
+    for (unsigned long i = (unsigned)cursor_pos; i < text_len + 1; i++) {
+        std::cout << (char)27 << "[C" << std::flush;
     }
-    for (unsigned long i=0; i < text_len+1; i++) {
+    for (unsigned long i = 0; i < text_len + 1; i++) {
         std::cout << "\b \b" << std::flush;
     }
 }

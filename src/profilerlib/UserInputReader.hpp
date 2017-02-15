@@ -6,16 +6,15 @@
 * - <souffle root>/licenses/SOUFFLE-UPL.txt
 */
 
-
 #pragma once
 
-#include <unistd.h>
-#include <termios.h>
-#include <stdio.h>
-#include <string>
-#include <sstream>
-#include <vector>
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <stdio.h>
+#include <termios.h>
+#include <unistd.h>
 
 class InputReader {
 private:
@@ -36,9 +35,8 @@ private:
     std::vector<std::string> current_tab_completes;
     long original_hist_cursor_pos;
 
-
 public:
-    InputReader() : prompt("Input: "), in_tab_complete(false),in_history(false) {
+    InputReader() : prompt("Input: "), in_tab_complete(false), in_history(false) {
         clearTabCompletion();
         clearHistory();
     }
@@ -61,5 +59,3 @@ public:
     void clearPrompt(long text_len);
     void showFullText(std::string text);
 };
-
-

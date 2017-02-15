@@ -399,12 +399,11 @@ void Tui::setupTabCompletion() {
 
     // add rel tab completes after the rest so users can see all commands first
     for (auto& row : out.formatTable(rel_table_state, precision)) {
-        linereader.appendTabCompletion("rel "+row[5]);
-        linereader.appendTabCompletion("graph "+row[5]+" tot_t");
-        linereader.appendTabCompletion("graph "+row[5]+" copy_t");
-        linereader.appendTabCompletion("graph "+row[5]+" tuples");
+        linereader.appendTabCompletion("rel " + row[5]);
+        linereader.appendTabCompletion("graph " + row[5] + " tot_t");
+        linereader.appendTabCompletion("graph " + row[5] + " copy_t");
+        linereader.appendTabCompletion("graph " + row[5] + " tuples");
     }
-
 }
 
 void Tui::help() {
