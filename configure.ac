@@ -87,10 +87,35 @@ AS_IF([test -z "$BISON"], [AC_MSG_ERROR([bison not found.])])
 # Enable packaging option
 AC_ARG_ENABLE(
   [host-packaging],
-  [enable packaging using a given distribution],
-  [SOUFFLE_PACKAGING=1],
-  [unset SOUFFLE_PACKAGING]
+  AS_HELP_STRING([--enable-host-packaging], [Enable packaging using a given distribution])
 )
+AS_IF([test "x$enable_host_packaging" = "xyes"], [SOUFFLE_PACKAGING=1],
+  [test "x$enable_host_packaging" != "xyes"], [unset SOUFFLE_PACKAGING]
+)
+
+# Disable libz
+AC_ARG_ENABLE(
+  [libz],
+  AS_HELP_STRING([--disable-libz], [Disable use of libz file compression])
+)
+AS_IF([test "x$enable_libz" != "xno"], [
+    AC_CHECK_HEADER(zlib.h,,[AC_MSG_ERROR([required library zlib missing])])
+    AC_CHECK_LIB(z, compress,,[AC_MSG_ERROR([required library zlib missing])])
+    AS_VAR_APPEND(CXXFLAGS, [" -DUSE_LIBZ "])
+])
+AM_CONDITIONAL([LIBZ], [test "x$enable_libz" != "xno"])
+
+# Disable sqlite3
+AC_ARG_ENABLE(
+  [sqlite],
+  AS_HELP_STRING([--disable-sqlite], [Disable use of sqlite IO])
+)
+AS_IF([test "x$enable_sqlite" != "xno"], [
+    AC_CHECK_HEADER(sqlite3.h,,[AC_MSG_ERROR([required library sqlite3 missing])])
+    AC_CHECK_LIB(sqlite3, sqlite3_open,,[AC_MSG_ERROR([required library sqlite3 missing])])
+    AS_VAR_APPEND(CXXFLAGS, [" -DUSE_SQLITE "])
+])
+AM_CONDITIONAL([SQLITE], [test "x$enable_sqlite" != "xno"])
 
 ##
 ## START PART 1 MCPP DEFS
@@ -252,13 +277,6 @@ DIST_PACKAGING([bsd],[BSD_PACKAGE],[PKGBUILD],[pkgbuild])
 dnl Enable pthread library
 AC_CHECK_LIB(pthread, pthread_create,,
           [AC_MSG_ERROR([required library pthread missing])])
-AC_CHECK_HEADER(sqlite3.h,,[AC_MSG_ERROR([required library sqlite3 missing])])
-AC_CHECK_LIB(sqlite3, sqlite3_open,,
-          [AC_MSG_ERROR([required library sqlite3 missing])])
-AC_CHECK_HEADER(zlib.h,,[AC_MSG_ERROR([required library zlib missing])])
-AC_CHECK_LIB(z, compress,,
-          [AC_MSG_ERROR([required library zlib missing])])
-
 
 dnl Enables OpenMP in the souffle compiler and interpreter
 AC_OPENMP
