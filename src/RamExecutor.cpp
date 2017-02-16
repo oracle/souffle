@@ -720,25 +720,12 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
         }
 
         bool visitStore(const RamStore& store) {
-            bool toConsole = (Global::config().get("output-dir") == "-");
             if (store.getRelation().isData()) {
                 return true;
             }
 
             auto& rel = env.getRelation(store.getRelation());
             for (IODirectives ioDirectives : store.getRelation().getOutputDirectives()) {
-                // Support old style input directives.
-                if (ioDirectives.isEmpty()) {
-                    if (toConsole) {
-                        ioDirectives.setIOType("stdout");
-                        ioDirectives.setRelationName(store.getRelation().getName());
-                    } else {
-                        ioDirectives.setIOType("file");
-                        ioDirectives.setFileName(
-                                Global::config().get("output-dir") + "/" + store.getFileName());
-                    }
-                }
-
                 try {
                     IOSystem::getInstance()
                             .getWriter(
@@ -2110,20 +2097,9 @@ std::string RamCompiler::generateCode(
     // issue printAll method
     os << "public:\n";
     os << "void printAll(std::string dirname=\"" << Global::config().get("output-dir") << "\") {\n";
-    bool toConsole = (Global::config().get("output-dir") == "-");
     visitDepthFirst(stmt, [&](const RamStatement& node) {
         if (auto store = dynamic_cast<const RamStore*>(&node)) {
             for (IODirectives ioDirectives : store->getRelation().getOutputDirectives()) {
-                if (ioDirectives.isEmpty()) {
-                    if (toConsole) {
-                        ioDirectives.setIOType("stdout");
-                        ioDirectives.setRelationName(store->getRelation().getName());
-                    } else {
-                        ioDirectives.setIOType("file");
-                        ioDirectives.setFileName(
-                                Global::config().get("output-dir") + "/" + store->getFileName());
-                    }
-                }
                 os << "try {";
                 os << "IODirectives ioDirectives(" << ioDirectives << ");";
                 os << "IOSystem::getInstance().getWriter(";
