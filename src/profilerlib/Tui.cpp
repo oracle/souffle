@@ -203,7 +203,7 @@ void Tui::outputJson() {
                 Tools::cleanJsonOut(row[2]->getDoubVal()).c_str(),
                 Tools::cleanJsonOut(row[3]->getDoubVal()).c_str(), row[4]->getLongVal(),
                 row[7]->getStringVal().c_str());
-        source_loc = row[7]->getStringVal(); // if (source_loc.empty()) {...} faster?
+        source_loc = row[7]->getStringVal();  // if (source_loc.empty()) {...} faster?
         for (auto& _rel_row : rul_table_state.getRows()) {
             Row rel_row = *_rel_row;
             if (rel_row[7]->getStringVal().compare(row[5]->getStringVal()) == 0) {
@@ -318,23 +318,22 @@ void Tui::outputJson() {
     }
     std::fprintf(outfile, "},");
 
-    std::string source_file_loc = Tools::split(source_loc, " ").at(0); // add error check?
+    std::string source_file_loc = Tools::split(source_loc, " ").at(0);  // add error check?
     std::ifstream source_file(source_file_loc);
     if (!source_file.is_open()) {
-        std::cout << "Error opening \"" << source_file_loc << "\", creating GUI without source locator." << std::endl;
+        std::cout << "Error opening \"" << source_file_loc << "\", creating GUI without source locator."
+                  << std::endl;
     } else {
         std::string str;
-        std::fprintf(outfile,"code:[");
+        std::fprintf(outfile, "code:[");
         while (getline(source_file, str)) {
-
-            std::fprintf(outfile,"\"%s\",",Tools::escapeQuotes(str).c_str());
+            std::fprintf(outfile, "\"%s\",", Tools::escapeQuotes(str).c_str());
         }
-        std::fprintf(outfile,"]");
+        std::fprintf(outfile, "]");
         source_file.close();
     }
 
-
-    std::fprintf(outfile,"};");
+    std::fprintf(outfile, "};");
     std::fprintf(outfile, "%s", html.get_second_half().c_str());
 
     fclose(outfile);
