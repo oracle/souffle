@@ -184,8 +184,8 @@ namespace {
  * The location of some value in a loop nest.
  */
 struct Location {
-    int level;  // < the loop level
-    int component;  // < the component within the tuple created in the given level
+    int level;         // < the loop level
+    int component;     // < the component within the tuple created in the given level
     std::string name;  // < name of the variable
 
     bool operator==(const Location& loc) const {
