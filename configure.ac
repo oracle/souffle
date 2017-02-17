@@ -32,12 +32,20 @@ AM_CONDITIONAL([JAVAI], [test x$java = xtrue])
 
 dnl Do not set default CFLAGS and CXXFLAGS
 CXXFLAGS=" -Wall -std=c++11  $CXXFLAGS"
+
+# Enable debug mode
+AC_ARG_ENABLE(
+  [debug],
+  [AS_HELP_STRING([--enable-debug], [Enable debug mode])]
+)
+AS_IF([test "x$enable_debug" = "xyes"], [CXXFLAGS="$CXXFLAGS -O0 -g3"],
+  [test "x$enable_debug" != "xyes"], [CXXFLAGS="$CXXFLAGS -O3"]
+)
+
 if test "$BUILD_TYPE" == "Debug" ; then
+  AC_MSG_WARN( [BUILD_TYPE environment variable is deprecated. Use --enable-debug])
   # set up debug mode
   CXXFLAGS="$CXXFLAGS -O0 -g3"
-else
-  # default is release mode
-  CXXFLAGS="$CXXFLAGS -O3"
 fi
 
 AC_ISC_POSIX
