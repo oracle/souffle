@@ -527,7 +527,6 @@ AC_CONFIG_LINKS([include/souffle/WriteStreamCSV.h:src/WriteStreamCSV.h])
 AC_CONFIG_LINKS([include/souffle/WriteStreamSQLite.h:src/WriteStreamSQLite.h])
 AC_CONFIG_LINKS([include/souffle/SymbolMask.h:src/SymbolMask.h])
 AC_CONFIG_LINKS([include/souffle/SymbolTable.h:src/SymbolTable.h])
-AC_CONFIG_LINKS([include/souffle/SqliteRelationWriter.h:src/SqliteRelationWriter.h])
 
 AM_MISSING_PROG([AUTOM4TE], [autom4te])
 

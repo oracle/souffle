@@ -157,7 +157,6 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
                         IterUtils.h             \
                         SymbolTable.h           \
                         RamLogger.h             \
-                        SqliteRelationWriter.h  \
                         $(sqlite_sources)       \
                         $(libz_sources)         \
                         IODirectives.h          \
