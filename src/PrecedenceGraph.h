@@ -131,34 +131,29 @@ public:
     // TODO
     size_t getSCCForRelation(const AstRelation* relation) {
         return sccGraph.vertexTable().getIndex(relation);
-        // return nodeToSCC[relation];
     }
 
     // TODO
     /** Get all successor SCCs of a specified scc. */
     const std::set<size_t>& getSuccessorSCCs(size_t scc) {
         return sccGraph.getSuccessors(scc);
-        // return succSCC[scc];
     }
 
     // TODO
     /** Get all predecessor SCCs of a specified scc. */
     const std::set<size_t>& getPredecessorSCCs(size_t scc) {
         return sccGraph.getPredecessors(scc);
-        // return predSCC[scc];
     }
 
     // TODO
     const std::set<const AstRelation*> getRelationsForSCC(size_t scc) {
         return sccGraph.vertexTable().get(scc);
-        // return SCC[scc];
     }
 
     // TODO
     /** Return the number of strongly connected components in the SCC graph */
     size_t getNumSCCs() {
         return sccGraph.vertexCount();
-        // return succSCC.size();
     }
 
     bool isRecursive(size_t scc) {
@@ -206,9 +201,6 @@ public:
         return false;
     }
 
-
-    /** Output strongly connected component graph in graphviz format */
-    void outputSCCGraph(std::ostream& os);
 };
 
 /**
