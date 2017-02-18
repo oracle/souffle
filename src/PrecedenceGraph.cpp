@@ -209,6 +209,13 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
     // default color is black
     std::fill(sccColor.begin(), sccColor.end(), 0);
 
+    // TODO
+    // std::cerr << std::endl;
+    // outputSCCGraph(std::cerr);
+    // std::cerr << std::endl;
+    // sccGraph.print(std::cerr);
+    // std::cerr << std::endl;
+
 }
 
 /* Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
