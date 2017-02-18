@@ -105,6 +105,56 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
             return env.incCounter();
         }
 
+        // unary functions 
+
+        RamDomain visitUnaryOperator(const RamUnaryOperator& op) {
+            switch (op.getOperator()) {
+                case UnaryOp::NEG:
+                    return -visit(op.getValue());
+                case UnaryOp::BNOT:
+                    return ~visit(op.getValue());
+                case UnaryOp::LNOT:
+                    return !visit(op.getValue());
+                case UnaryOp::ORD:
+                    return visit(op.getValue());
+                case UnaryOp::STRLEN:
+                    return strlen(env.getSymbolTable().resolve(visit(op.getValue())));
+                case UnaryOp::SIN:
+                    return sin(visit(op.getValue()));
+                case UnaryOp::COS:
+                    return cos(visit(op.getValue()));
+                case UnaryOp::TAN:
+                    return tan(visit(op.getValue()));
+                case UnaryOp::ASIN:
+                    return asin(visit(op.getValue()));
+                case UnaryOp::ACOS:
+                    return acos(visit(op.getValue()));
+                case UnaryOp::ATAN:
+                    return atan(visit(op.getValue()));
+                case UnaryOp::SINH:
+                    return sinh(visit(op.getValue()));
+                case UnaryOp::COSH:
+                    return cosh(visit(op.getValue()));
+                case UnaryOp::TANH:
+                    return tanh(visit(op.getValue()));
+                case UnaryOp::ASINH:
+                    return asinh(visit(op.getValue()));
+                case UnaryOp::ACOSH:
+                    return acosh(visit(op.getValue()));
+                case UnaryOp::ATANH:
+                    return atanh(visit(op.getValue()));
+                case UnaryOp::LOG:
+                    return log(visit(op.getValue()));
+                case UnaryOp::EXP:
+                    return exp(visit(op.getValue()));
+                default:
+                    assert(0 && "unsupported operator");
+                    return 0;
+            }
+        }
+
+        // binary functions 
+
         RamDomain visitBinaryOperator(const RamBinaryOperator& op) {
             switch (op.getOperator()) {
                 // arithmetic
@@ -158,46 +208,20 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
                     return 0;
             }
         }
-        RamDomain visitUnaryOperator(const RamUnaryOperator& op) {
+
+        // ternary functions 
+
+        RamDomain visitTernaryOperator(const RamTernaryOperator& op) {
             switch (op.getOperator()) {
-                case UnaryOp::NEG:
-                    return -visit(op.getValue());
-                case UnaryOp::BNOT:
-                    return ~visit(op.getValue());
-                case UnaryOp::LNOT:
-                    return !visit(op.getValue());
-                case UnaryOp::ORD:
-                    return visit(op.getValue());
-                case UnaryOp::STRLEN:
-                    return strlen(env.getSymbolTable().resolve(visit(op.getValue())));
-                case UnaryOp::SIN:
-                    return sin(visit(op.getValue()));
-                case UnaryOp::COS:
-                    return cos(visit(op.getValue()));
-                case UnaryOp::TAN:
-                    return tan(visit(op.getValue()));
-                case UnaryOp::ASIN:
-                    return asin(visit(op.getValue()));
-                case UnaryOp::ACOS:
-                    return acos(visit(op.getValue()));
-                case UnaryOp::ATAN:
-                    return atan(visit(op.getValue()));
-                case UnaryOp::SINH:
-                    return sinh(visit(op.getValue()));
-                case UnaryOp::COSH:
-                    return cosh(visit(op.getValue()));
-                case UnaryOp::TANH:
-                    return tanh(visit(op.getValue()));
-                case UnaryOp::ASINH:
-                    return asinh(visit(op.getValue()));
-                case UnaryOp::ACOSH:
-                    return acosh(visit(op.getValue()));
-                case UnaryOp::ATANH:
-                    return atanh(visit(op.getValue()));
-                case UnaryOp::LOG:
-                    return log(visit(op.getValue()));
-                case UnaryOp::EXP:
-                    return exp(visit(op.getValue()));
+                // arithmetic
+                case TernaryOp::SUBSTR: {
+                    auto idx = visit(op.getArg(0));
+                    std::cout << "i: " << idx << "\n";
+                    std::string str = env.getSymbolTable().resolve(idx);
+                    std::string sub_str = str.substr(visit(op.getArg(1)),visit(op.getArg(2)));
+                    std::cout << "s: " << str << " ss: " << sub_str << "\n";
+                    return env.getSymbolTable().lookup(sub_str.c_str());
+                }
                 default:
                     assert(0 && "unsupported operator");
                     return 0;

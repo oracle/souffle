@@ -268,19 +268,36 @@ std::map<const AstArgument*, bool> getConstTerms(const AstClause& clause) {
             addConstraint(imply(rhs, lhs));
         }
 
-        // #3 - const is propagated through operators
+        // #3 - const is propagated via unary functors
+        void visitUnaryFunctor(const AstUnaryFunctor& cur) {
+            auto fun = getVar(cur);
+            auto op = getVar(cur.getOperand());
+
+            addConstraint(imply(op, fun));
+        }
+
+        // #4 - const is propagated via binary functors
         void visitBinaryFunctor(const AstBinaryFunctor& cur) {
             auto fun = getVar(cur);
             auto lhs = getVar(cur.getLHS());
             auto rhs = getVar(cur.getRHS());
 
-            // if two are constants, the last is too
             addConstraint(imply({lhs, rhs}, fun));
             addConstraint(imply({fun, lhs}, rhs));
             addConstraint(imply({fun, rhs}, lhs));
         }
 
-        // #4 - if pack nodes and its components
+        // #5 - const is propagated via ternary functors
+        void visitTernaryFunctor(const AstTernaryFunctor& cur) {
+            auto fun = getVar(cur);
+            auto a0 = getVar(cur.getArg(0));
+            auto a1 = getVar(cur.getArg(1));
+            auto a2 = getVar(cur.getArg(2));
+
+            addConstraint(imply({a0, a1, a2}, fun));
+        }
+
+        // #6 - if pack nodes and its components
         void visitRecordInit(const AstRecordInit& init) {
             auto pack = getVar(init);
 
@@ -692,7 +709,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
 
         Analysis(const TypeEnvironment& env, const AstProgram* program) : env(env), program(program) {}
 
-        // #1 - atoms define types of arguments
+        // predicate
         void visitAtom(const AstAtom& atom) {
             // get relation
             auto rel = getAtomRelation(&atom, program);
@@ -711,18 +728,19 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             }
         }
 
-        // #2 - constants constrain types
+        // symbol
         void visitStringConstant(const AstStringConstant& cnst) {
             // this type has to be a sub-type of symbol
             addConstraint(isSubtypeOf(getVar(cnst), env.getSymbolType()));
         }
 
+        // number 
         void visitNumberConstant(const AstNumberConstant& cnst) {
             // this type has to be a sub-type of number
             addConstraint(isSubtypeOf(getVar(cnst), env.getNumberType()));
         }
 
-        // #3 - binary relations constrain types
+        // binary constraint
         void visitConstraint(const AstConstraint& rel) {
             auto lhs = getVar(rel.getLHS());
             auto rhs = getVar(rel.getRHS());
@@ -730,7 +748,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             addConstraint(isSubtypeOf(rhs, lhs));
         }
 
-        // #4 - result of unary functor
+        // unary functor 
         void visitUnaryFunctor(const AstUnaryFunctor& fun) {
             auto out = getVar(fun);
             auto in = getVar(fun.getOperand());
@@ -744,7 +762,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             if (fun.acceptsSymbols()) addConstraint(isSubtypeOf(in, env.getSymbolType()));
         }
 
-        // #5 - result of binary functor
+        // binary functor
         void visitBinaryFunctor(const AstBinaryFunctor& fun) {
             auto cur = getVar(fun);
             auto lhs = getVar(fun.getLHS());
@@ -763,13 +781,39 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             if (fun.acceptsSymbols(1)) addConstraint(isSubtypeOf(rhs, env.getSymbolType()));
         }
 
-        // #6 - counter are numeric types
+        // ternary functor
+        void visitTernaryFunctor(const AstTernaryFunctor& fun) {
+            auto cur = getVar(fun);
+
+            auto a0 = getVar(fun.getArg(0));
+            auto a1 = getVar(fun.getArg(1));
+            auto a2 = getVar(fun.getArg(2));
+
+            // add a constraint for the return type of the ternary functor
+            if (fun.isNumerical()) addConstraint(isSubtypeOf(cur, env.getNumberType()));
+            if (fun.isSymbolic()) addConstraint(isSubtypeOf(cur, env.getSymbolType()));
+
+            // add a constraint for the first argument of the ternary functor
+            if (fun.acceptsNumbers(0)) addConstraint(isSubtypeOf(a0, env.getNumberType()));
+            if (fun.acceptsSymbols(0)) addConstraint(isSubtypeOf(a0, env.getSymbolType()));
+
+            // add a constraint for the second argument of the ternary functor
+            if (fun.acceptsNumbers(1)) addConstraint(isSubtypeOf(a1, env.getNumberType()));
+            if (fun.acceptsSymbols(1)) addConstraint(isSubtypeOf(a1, env.getSymbolType()));
+
+            // add a constraint for the third argument of the ternary functor
+            if (fun.acceptsNumbers(2)) addConstraint(isSubtypeOf(a2, env.getNumberType()));
+            if (fun.acceptsSymbols(2)) addConstraint(isSubtypeOf(a2, env.getSymbolType()));
+
+        }
+
+        // counter
         void visitCounter(const AstCounter& counter) {
             // this value must be a number value
             addConstraint(isSubtypeOf(getVar(counter), env.getNumberType()));
         }
 
-        // #7 - components of records
+        // components of records
         void visitRecordInit(const AstRecordInit& init) {
             // link element types with sub-values
             auto rec = getVar(init);
@@ -780,7 +824,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             }
         }
 
-        // #8 - visit aggregates
+        // visit aggregates
         void visitAggregator(const AstAggregator& agg) {
             // this value must be a number value
             addConstraint(isSubtypeOf(getVar(agg), env.getNumberType()));

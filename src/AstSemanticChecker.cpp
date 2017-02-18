@@ -184,6 +184,44 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
 
     });
 
+    // - binary functors -
+    visitDepthFirst(nodes, [&](const AstTernaryFunctor& fun) {
+
+        // check left and right side
+        auto a0 = fun.getArg(0);
+        auto a1 = fun.getArg(1);
+        auto a2 = fun.getArg(2);
+
+        // check numeric types of result, first and second argument 
+        if (fun.isNumerical() && !isNumberType(typeAnalysis.getTypes(&fun))) {
+            report.addError("Non-numeric use for numeric functor", fun.getSrcLoc());
+        }
+        if (fun.acceptsNumbers(0) && !isNumberType(typeAnalysis.getTypes(a0))) {
+            report.addError("Non-numeric first argument for functor", a0->getSrcLoc());
+        } 
+        if (fun.acceptsNumbers(1) && !isNumberType(typeAnalysis.getTypes(a1))) {
+            report.addError("Non-numeric second argument for functor", a1->getSrcLoc());
+        } 
+        if (fun.acceptsNumbers(2) && !isNumberType(typeAnalysis.getTypes(a2))) {
+            report.addError("Non-numeric third argument for functor", a2->getSrcLoc());
+        } 
+
+        // check symbolic types of result, first and second argument 
+        if (fun.isSymbolic() && !isSymbolType(typeAnalysis.getTypes(&fun))) {
+            report.addError("Non-symbolic use for symbolic functor", fun.getSrcLoc());
+        }
+        if (fun.acceptsSymbols(0) && !isSymbolType(typeAnalysis.getTypes(a0))) {
+            report.addError("Non-symbolic first argument for functor", a0->getSrcLoc());
+        }
+        if (fun.acceptsSymbols(1) && !isSymbolType(typeAnalysis.getTypes(a1))) {
+            report.addError("Non-symbolic second argument for functor", a1->getSrcLoc());
+        }
+        if (fun.acceptsSymbols(2) && !isSymbolType(typeAnalysis.getTypes(a2))) {
+            report.addError("Non-symbolic third argument for functor", a2->getSrcLoc());
+        }
+
+    });
+
     // - binary relation -
     visitDepthFirst(nodes, [&](const AstConstraint& rel) {
 
@@ -278,6 +316,8 @@ static bool hasUnnamedVariable(const AstArgument* arg) {
         return hasUnnamedVariable(uf->getOperand());
     } else if (const AstBinaryFunctor* bf = dynamic_cast<const AstBinaryFunctor*>(arg)) {
         return hasUnnamedVariable(bf->getLHS()) || hasUnnamedVariable(bf->getRHS());
+    } else if (const AstTernaryFunctor* tf = dynamic_cast<const AstTernaryFunctor*>(arg)) {
+        return hasUnnamedVariable(tf->getArg(0)) || hasUnnamedVariable(tf->getArg(1)) || hasUnnamedVariable(tf->getArg(2));
     } else if (const AstRecordInit* ri = dynamic_cast<const AstRecordInit*>(arg)) {
         return any_of(ri->getArguments(), (bool (*)(const AstArgument*))hasUnnamedVariable);
     } else if (dynamic_cast<const AstAggregator*>(arg)) {
@@ -343,23 +383,30 @@ void AstSemanticChecker::checkArgument(
         ErrorReport& report, const AstProgram& program, const AstArgument& arg) {
     if (const AstAggregator* agg = dynamic_cast<const AstAggregator*>(&arg)) {
         checkAggregator(report, program, *agg);
+    } else if (const AstUnaryFunctor* unaryFunc = dynamic_cast<const AstUnaryFunctor*>(&arg)) {
+        checkArgument(report, program, *unaryFunc->getOperand());
     } else if (const AstBinaryFunctor* binFunc = dynamic_cast<const AstBinaryFunctor*>(&arg)) {
         checkArgument(report, program, *binFunc->getLHS());
         checkArgument(report, program, *binFunc->getRHS());
-    } else if (const AstUnaryFunctor* unaryFunc = dynamic_cast<const AstUnaryFunctor*>(&arg)) {
-        checkArgument(report, program, *unaryFunc->getOperand());
-    }
+    } else if (const AstTernaryFunctor* ternFunc = dynamic_cast<const AstTernaryFunctor*>(&arg)) {
+        checkArgument(report, program, *ternFunc->getArg(0));
+        checkArgument(report, program, *ternFunc->getArg(1));
+        checkArgument(report, program, *ternFunc->getArg(2));
+    } 
 }
 
 static bool isConstantArithExpr(const AstArgument& argument) {
     if (dynamic_cast<const AstNumberConstant*>(&argument)) {
         return true;
+    } else if (const AstUnaryFunctor* unOp = dynamic_cast<const AstUnaryFunctor*>(&argument)) {
+        return unOp->isNumerical() && isConstantArithExpr(*unOp->getOperand());
     } else if (const AstBinaryFunctor* binOp = dynamic_cast<const AstBinaryFunctor*>(&argument)) {
         return binOp->isNumerical() && isConstantArithExpr(*binOp->getLHS()) &&
                isConstantArithExpr(*binOp->getRHS());
-    } else if (const AstUnaryFunctor* unOp = dynamic_cast<const AstUnaryFunctor*>(&argument)) {
-        return unOp->isNumerical() && isConstantArithExpr(*unOp->getOperand());
-    }
+    } else if (const AstTernaryFunctor* ternOp = dynamic_cast<const AstTernaryFunctor*>(&argument)) {
+        return ternOp->isNumerical() && isConstantArithExpr(*ternOp->getArg(0)) &&
+               isConstantArithExpr(*ternOp->getArg(1)) && isConstantArithExpr(*ternOp->getArg(2));
+    } 
     return false;
 }
 
@@ -368,13 +415,17 @@ void AstSemanticChecker::checkConstant(ErrorReport& report, const AstArgument& a
         report.addError("Variable " + var->getName() + " in fact", var->getSrcLoc());
     } else if (dynamic_cast<const AstUnnamedVariable*>(&argument)) {
         report.addError("Underscore in fact", argument.getSrcLoc());
+    } else if (dynamic_cast<const AstUnaryFunctor*>(&argument)) {
+        if (!isConstantArithExpr(argument)) {
+            report.addError("Unary function in fact", argument.getSrcLoc());
+        }
     } else if (dynamic_cast<const AstBinaryFunctor*>(&argument)) {
         if (!isConstantArithExpr(argument)) {
             report.addError("Binary function in fact", argument.getSrcLoc());
         }
-    } else if (dynamic_cast<const AstUnaryFunctor*>(&argument)) {
+    } else if (dynamic_cast<const AstTernaryFunctor*>(&argument)) {
         if (!isConstantArithExpr(argument)) {
-            report.addError("Unary function in fact", argument.getSrcLoc());
+            report.addError("Ternary function in fact", argument.getSrcLoc());
         }
     } else if (dynamic_cast<const AstCounter*>(&argument)) {
         report.addError("Counter in fact", argument.getSrcLoc());

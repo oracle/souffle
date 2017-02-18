@@ -23,10 +23,12 @@
 #include "SymbolTable.h"
 #include "UnaryFunctorOps.h"
 #include "BinaryFunctorOps.h"
+#include "TernaryFunctorOps.h"
 
 #include <algorithm>
 #include <sstream>
 #include <string>
+#include <array>
 
 #include <stdlib.h>
 
@@ -51,6 +53,9 @@ public:
     }
 };
 
+/**
+ * Unary function
+ */
 class RamUnaryOperator : public RamValue {
 private:
     UnaryOp op;
@@ -87,6 +92,9 @@ public:
     }
 };
 
+/**
+ * Binary function 
+ */
 class RamBinaryOperator : public RamValue {
 private:
     BinaryOp op;
@@ -135,6 +143,57 @@ public:
     /** Obtains a list of child nodes */
     virtual std::vector<const RamNode*> getChildNodes() const {
         return toVector<const RamNode*>(lhs.get(), rhs.get());
+    }
+};
+
+/**
+ * Ternary Function
+ */
+class RamTernaryOperator : public RamValue {
+private:
+    TernaryOp op;
+    std::array<std::unique_ptr<RamValue>,3> arg;
+
+public:
+    RamTernaryOperator(TernaryOp op, 
+                       std::unique_ptr<RamValue> a0, 
+                       std::unique_ptr<RamValue> a1,
+                       std::unique_ptr<RamValue> a2)
+            : RamValue(RN_BinaryOperator, a0->isConstant() && a1->isConstant() && a2->isConstant()), 
+              op(op), 
+              arg({{std::move(a0), std::move(a1), std::move(a2)}}) {
+    }
+
+    virtual ~RamTernaryOperator() {
+    }
+
+    virtual void print(std::ostream& os) const {
+        os << getSymbolForTernaryOp(op);
+        os << "(";
+        arg[0]->print(os);
+        os << ",";
+        arg[1]->print(os);
+        os << ",";
+        arg[2]->print(os);
+        os << ")";
+    }
+
+    const RamValue* getArg(int i) const {
+        return arg[i].get();
+    }
+
+    TernaryOp getOperator() const {
+        return op;
+    }
+
+    size_t getLevel() const {
+        return std::max(std::max(arg[0]->getLevel(), arg[1]->getLevel()), 
+                        arg[2]->getLevel());
+    }
+
+    /** Obtains a list of child nodes */
+    virtual std::vector<const RamNode*> getChildNodes() const {
+        return toVector<const RamNode*>(arg[0].get(), arg[1].get(), arg[2].get());
     }
 };
 
