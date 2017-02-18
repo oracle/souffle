@@ -1,0 +1,328 @@
+/*
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
+ */
+
+/************************************************************************
+ *
+ * @file PrecedenceGraph.cpp
+ *
+ * Defines the class for precedence graph to build the precedence graph,
+ * compute strongly connected components of the precedence graph, and
+ * build the strongly connected component graph.
+ *
+ ***********************************************************************/
+
+#pragma once
+
+#include "AstAnalysis.h"
+#include "AstProgram.h"
+#include "AstTranslationUnit.h"
+#include "GraphUtils.h"
+
+#include <iomanip>
+#include <list>
+#include <map>
+#include <stack>
+#include <string>
+#include <vector>
+
+namespace souffle {
+
+typedef Graph<const AstRelation*, AstNameComparison> AstRelationGraph;
+
+/**
+ * Analysis pass computing the precedence graph of the relations of the datalog progam.
+ */
+class PrecedenceGraph : public AstAnalysis {
+private:
+    /** Adjacency list of precedence graph (determined by the dependencies of the relations) */
+    AstRelationGraph precedenceGraph;
+
+public:
+    static constexpr const char* name = "precedence-graph";
+
+    virtual void run(const AstTranslationUnit& translationUnit);
+
+    /** Output precedence graph in graphviz format to a given stream */
+    void outputPrecedenceGraph(std::ostream& os);
+
+    const AstRelationSet& getPredecessors(const AstRelation* relation) {
+        assert(precedenceGraph.hasVertex(relation) && "Relation not present in precedence graph!");
+        return precedenceGraph.getSuccessors(relation);
+    }
+
+    const AstRelationGraph getGraph() const {
+        return precedenceGraph;
+    }
+};
+
+/**
+ * Analysis pass identifying relations which do not contribute to the computation
+ * of the output relations.
+ */
+class RedundantRelations : public AstAnalysis {
+private:
+    PrecedenceGraph* precedenceGraph;
+
+    std::set<const AstRelation*> redundantRelations;
+
+public:
+    static constexpr const char* name = "redundant-relations";
+
+    virtual void run(const AstTranslationUnit& translationUnit);
+
+    const std::set<const AstRelation*>& getRedundantRelations() {
+        return redundantRelations;
+    }
+};
+
+/**
+ * Analysis pass identifying clauses which are recursive.
+ */
+class RecursiveClauses : public AstAnalysis {
+private:
+    std::set<const AstClause*> recursiveClauses;
+
+    /** Determines whether the given clause is recursive within the given program */
+    bool computeIsRecursive(const AstClause& clause, const AstTranslationUnit& translationUnit) const;
+
+public:
+    static constexpr const char* name = "recursive-clauses";
+
+    virtual void run(const AstTranslationUnit& translationUnit);
+
+    bool isRecursive(const AstClause* clause) const {
+        return recursiveClauses.count(clause);
+    }
+};
+
+/**
+ * Analysis pass computing the strongly connected component (SCC) graph for the datalog program.
+ */
+class SCCGraph : public AstAnalysis {
+private:
+    PrecedenceGraph* precedenceGraph;
+
+    // TODO
+    HyperGraph<index::SetTable, const AstRelation*> sccGraph;
+
+    /** List of colors of SCC nodes, default is black. */
+    std::vector<size_t> sccColor;
+
+public:
+
+    const HyperGraph<index::SetTable, const AstRelation*>& getGraph() {
+        return sccGraph;
+    }
+
+    static constexpr const char* name = "scc-graph";
+
+    virtual void run(const AstTranslationUnit& translationUnit) {
+        precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>();
+        sccGraph = GraphTransform::toSCCGraph<index::SetTable>(precedenceGraph->getGraph());
+        sccColor.resize(getNumSCCs());
+        std::fill(sccColor.begin(), sccColor.end(), 0);
+    }
+
+    // TODO
+    size_t getSCCForRelation(const AstRelation* relation) {
+        return sccGraph.vertexTable().getIndex(relation);
+    }
+
+    // TODO
+    /** Get all successor SCCs of a specified scc. */
+    const std::set<size_t>& getSuccessorSCCs(size_t scc) {
+        return sccGraph.getSuccessors(scc);
+    }
+
+    // TODO
+    /** Get all predecessor SCCs of a specified scc. */
+    const std::set<size_t>& getPredecessorSCCs(size_t scc) {
+        return sccGraph.getPredecessors(scc);
+    }
+
+    // TODO
+    const std::set<const AstRelation*> getRelationsForSCC(size_t scc) {
+        return sccGraph.vertexTable().get(scc);
+    }
+
+    // TODO
+    /** Return the number of strongly connected components in the SCC graph */
+    size_t getNumSCCs() {
+        return sccGraph.vertexCount();
+    }
+
+    bool isRecursive(size_t scc) {
+        const std::set<const AstRelation*>& sccRelations = getRelationsForSCC(scc);
+        if (sccRelations.size() == 1) {
+            const AstRelation* singleRelation = *sccRelations.begin();
+            if (!precedenceGraph->getPredecessors(singleRelation).count(singleRelation)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool isRecursive(const AstRelation* relation) {
+        return isRecursive(getSCCForRelation(relation));
+    }
+
+
+    /** Get the color of an SCC. */
+    const size_t getColor(const size_t scc) {
+        return sccColor[scc];
+    }
+
+    /** Set the color of an SCC. */
+    void setColor(const size_t scc, const size_t color) {
+        sccColor[scc] = color;
+    }
+
+    /** Fill all SCCs to the given color. */
+    void fillColors(const size_t color) {
+        std::fill(sccColor.begin(), sccColor.end(), color);
+    }
+
+    /** Check if a given SCC has a predecessor of the specified color. */
+    const bool hasPredecessorOfColor(size_t scc, const size_t color) {
+        for (auto pred : getPredecessorSCCs(scc))
+            if (getColor(pred) == color) return true;
+        return false;
+    }
+
+    /** Check if a given SCC has a successor of the specified color. */
+    const bool hasSuccessorOfColor(size_t scc, const size_t color) {
+        for (auto succ : getSuccessorSCCs(scc))
+            if (getColor(succ) == color) return true;
+        return false;
+    }
+
+};
+
+/**
+ * Analysis pass computing a topologically sorted strongly connected component (SCC) graph.
+ */
+class TopologicallySortedSCCGraph : public AstAnalysis {
+private:
+    /** The strongly connected component (SCC) graph. */
+    SCCGraph* sccGraph;
+
+    /** The final topological ordering of the SCCs. */
+    std::vector<int> orderedSCCs;
+
+    /** Marker type to compute topological ordering. */
+    enum Colour { WHITE = 0xFFFFFF, GRAY = 0x7f7f7f, BLACK = 0x000000 };
+
+    /** Calculate the topological ordering cost of a permutation of as of yet unordered SCCs
+    using the ordered SCCs. Returns -1 if the given vector is not a valid topological ordering. */
+    const int topologicalOrderingCost(const std::vector<int>& permutationOfSCCs) const;
+
+    /** Recursive component for the forwards algorithm computing the topological ordering of the SCCs. */
+    void forwardAlgorithmRecursive(int scc);
+
+    /* Forwardss algorithm for computing the topological order of SCCs, based on Khan's algorithm. */
+    void forwardAlgorithm();
+
+public:
+
+
+    static constexpr const char* name = "topological-scc-graph";
+
+    virtual void run(const AstTranslationUnit& translationUnit);
+
+    SCCGraph* getSCCGraph() {
+        return sccGraph;
+    }
+
+    const std::vector<int>& getSCCOrder() {
+        return orderedSCCs;
+    }
+
+    /** Output topologically sorted strongly connected component graph in text format */
+    void outputTopologicallySortedSCCGraph(std::ostream& os);
+};
+
+/**
+ * A single step in a relation schedule, consisting of the relations computed in the step
+ * and the relations that are no longer required at that step.
+ */
+class RelationScheduleStep {
+private:
+    std::set<const AstRelation*> computedRelations;
+    std::set<const AstRelation*> expiredRelations;
+    const bool recursive;
+
+public:
+    RelationScheduleStep(std::set<const AstRelation*> computedRelations,
+            std::set<const AstRelation*> expiredRelations, const bool recursive)
+            : computedRelations(computedRelations), expiredRelations(expiredRelations), recursive(recursive) {
+    }
+
+    const std::set<const AstRelation*>& getComputedRelations() const {
+        return computedRelations;
+    }
+
+    const std::set<const AstRelation*>& getExpiredRelations() const {
+        return expiredRelations;
+    }
+
+    bool isRecursive() const {
+        return recursive;
+    }
+};
+
+/**
+ * Analysis pass computing a schedule for computing relations.
+ */
+class RelationSchedule : public AstAnalysis {
+private:
+    TopologicallySortedSCCGraph* topsortSCCGraph;
+    PrecedenceGraph* precedenceGraph;
+
+    /** Relations computed and expired relations at each step */
+    std::vector<RelationScheduleStep> schedule;
+
+    std::vector<std::set<const AstRelation*>> computeRelationExpirySchedule(
+            const AstTranslationUnit& translationUnit);
+
+public:
+    static constexpr const char* name = "relation-schedule";
+
+    virtual void run(const AstTranslationUnit& translationUnit);
+
+    const std::vector<RelationScheduleStep>& getSchedule() {
+        return schedule;
+    }
+
+    bool isRecursive(const AstRelation* relation) {
+        return topsortSCCGraph->getSCCGraph()->isRecursive(relation);
+    }
+
+    void dump() {
+        std::cerr << "begin schedule\n";
+        for (RelationScheduleStep& step : schedule) {
+            std::cerr << "computed: ";
+            for (const AstRelation* compRel : step.getComputedRelations()) {
+                std::cerr << compRel->getName() << ", ";
+            }
+            std::cerr << "\nexpired: ";
+            for (const AstRelation* compRel : step.getExpiredRelations()) {
+                std::cerr << compRel->getName() << ", ";
+            }
+            std::cerr << "\n";
+            if (step.isRecursive()) {
+                std::cerr << "recursive";
+            } else {
+                std::cerr << "not recursive";
+            }
+            std::cerr << "\n";
+        }
+        std::cerr << "end schedule\n";
+    }
+};
+
+}  // end of namespace souffle
