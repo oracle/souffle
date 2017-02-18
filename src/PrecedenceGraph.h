@@ -109,25 +109,9 @@ private:
 
     // TODO
     HyperGraph<index::SetTable, const AstRelation*> sccGraph;
-
-    /** Map from node number to SCC number */
-    std::map<const AstRelation*, int> nodeToSCC;
-
-    /** List of colors of SCC nodes, default is black. */
     std::vector<size_t> sccColor;
 
-    /** Adjacency lists for the SCC graph */
-    std::vector<std::set<size_t>> succSCC;
 
-    /** Predecessor set for the SCC graph */
-    std::vector<std::set<size_t>> predSCC;
-
-    /** Relations contained in a SCC */
-    std::vector<std::set<const AstRelation*>> SCC;
-
-    /** Recursive scR method for computing SCC */
-    void scR(const AstRelation* relation, std::map<const AstRelation*, int>& preOrder, size_t& counter,
-            std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, size_t& numSCCs);
    /*
     * Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
     * Java by Robert Sedgewick / Part 5 / Graph *  algorithms). The algorithm has linear
@@ -189,7 +173,12 @@ public:
 
     static constexpr const char* name = "scc-graph";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    virtual void run(const AstTranslationUnit& translationUnit) {
+        precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>();
+        sccGraph = toSCCGraph<index::SetTable>(precedenceGraph->getGraph());
+        sccColor.resize(getNumSCCs());
+        std::fill(sccColor.begin(), sccColor.end(), 0);
+    }
 
     // TODO
     size_t getSCCForRelation(const AstRelation* relation) {
@@ -276,6 +265,111 @@ public:
     }
 };
 
+//
+///**
+// * Analysis pass computing a topologically sorted strongly connected component (SCC) graph.
+// */
+//class TopologicallySortedSCCGraph : public AstAnalysis {
+//private:
+//    /** The strongly connected component (SCC) graph. */
+//    SCCGraph* sccGraph;
+//
+//    /** The topological ordering of the SCCs. */
+//    std::vector<size_t> orderedSCCs;
+//
+//    /** The cost of the topological ordering. */
+//    template <typename Node, template <typename...> typename Container, typename Compare = std::less<Node>>
+//    const int orderCost(IndexGraph<Node, Container, Compare> graph,
+//            const std::vector<size_t>& permutationOfSCCs) const {
+//        // create variables to hold the cost of the current SCC and the permutation as a whole
+//        int costOfSCC = 0;
+//        int costOfPermutation = -1;
+//        // obtain an iterator to the end of the already ordered partition of sccs
+//        auto it_k = permutationOfSCCs.begin() + orderedSCCs.size();
+//        // for each of the scc's in the ordering, resetting the cost of the scc to zero on each loop
+//        for (auto it_i = permutationOfSCCs.begin(); it_i != permutationOfSCCs.end(); ++it_i, costOfSCC = 0) {
+//            // if the index of the current scc is after the end of the ordered partition
+//            if (it_i >= it_k)
+//                // check that the index of all predecessor sccs of are before the index of the current scc
+//                for (auto scc : sccGraph->backingGraph().getPredecessors(*it_i))
+//                    if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i)
+//                        // if not, the sort is not a valid topological sort
+//                        return -1;
+//            // otherwise, calculate the cost of the current scc
+//            // as the number of sccs with an index before the current scc
+//            for (auto it_j = permutationOfSCCs.begin(); it_j != it_i; ++it_j)
+//                // having some successor scc with an index after the current scc
+//                for (auto scc : sccGraph->backingGraph().getSuccessors(*it_j))
+//                    if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i) costOfSCC++;
+//            // and if this cost is greater than the maximum recorded cost for the whole permutation so far,
+//            // set the cost of the permutation to it
+//            if (costOfSCC > costOfPermutation) costOfPermutation = costOfSCC;
+//        }
+//        return costOfPermutation;
+//    }
+//
+//    /** Pre-process the SCC graph; recursively contract roots, contract leaves, and smooth vertices of out
+//     * degree 1.  */
+//    IndexGraph<size_t, std::deque> preProcessGraph(IndexGraph<const AstRelation*, std::set, AstNameComparison> originalGraph) const {
+//        IndexGraph<size_t, std::deque> indexGraph = IndexGraph<size_t, std::deque>::toIndexGraph(originalGraph);
+//
+//        bool flag = true;
+//        int in, out, non = -1;
+//        while (flag) {
+//            flag = false;
+//            for (size_t vertex : indexGraph.allVertices()) {
+//                if (!indexGraph.hasVertex(vertex)) continue;
+//                in = indexGraph.getPredecessors(vertex).size();
+//                out = indexGraph.getSuccessors(vertex).size();
+//                if (in == 0 && out == 0 && (non < 0 || vertex != (size_t) non)) {
+//                    if (non < 0)
+//                        non = vertex;
+//                    else
+//                        indexGraph.mergeVertex(non, vertex);
+//                    flag = true;
+//                    continue;
+//                } else
+//                if (in == 1 && out == 0) {
+//                    indexGraph.contractEdge(*indexGraph.getPredecessors(vertex).begin(), vertex);
+//                    flag = true;
+//                    continue;
+//                } else
+//                if (out == 1) {
+//                    indexGraph.contractEdge(*indexGraph.getSuccessors(vertex).begin(), vertex);
+//                    flag = true;
+//                    continue;
+//                }
+//            }
+//        }
+//
+//        return indexGraph;
+//
+//    }
+//
+//public:
+//    static constexpr const char* name = "topological-scc-graph";
+//
+//    virtual void run(const AstTranslationUnit& translationUnit) {
+//        sccGraph = translationUnit.getAnalysis<SCCGraph>();
+//        orderedSCCs = GraphOrder::innerOrder(preProcessGraph(sccGraph->backingGraph()), &GraphSearch::khansAlgorithm);
+//    }
+//
+//    SCCGraph* getSCCGraph() const {
+//        return sccGraph;
+//    }
+//
+//    const std::vector<size_t>& getSCCOrder() const {
+//        return orderedSCCs;
+//    }
+//
+//    /** Output topologically sorted strongly connected component graph in text format */
+//    void outputTopologicallySortedSCCGraph(std::ostream& os) const {
+//        for (size_t i = 0; i < orderedSCCs.size(); i++)
+//            os << "[" << join(sccGraph->backingGraph().objectsForVertex(orderedSCCs[i])) << "]\n";
+//        os << "\n";
+//        os << "cost: " << orderCost(sccGraph->backingGraph(), orderedSCCs) << "\n";
+//    }
+//};
 /**
  * Analysis pass computing a topologically sorted strongly connected component (SCC) graph.
  */
