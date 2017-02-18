@@ -20,10 +20,10 @@
 
 #include "AstNode.h"
 #include "AstType.h"
-#include "BinaryOperator.h"
 #include "SymbolTable.h"
 #include "TypeSystem.h"
-#include "UnaryOperator.h"
+#include "UnaryFunctorOps.h"
+#include "BinaryFunctorOps.h"
 
 #include <list>
 #include <memory>
@@ -205,7 +205,7 @@ protected:
  * @brief Subclass of Argument that represents a datalog constant value
  */
 class AstStringConstant : public AstConstant {
-    using SymbolTable = souffle::SymbolTable;  // XXX pending namespace cleanup
+    using SymbolTable = souffle::SymbolTable;  // TODO: pending namespace cleanup
     SymbolTable* symTable;
     AstStringConstant(SymbolTable* symTable, size_t index) : AstConstant(index), symTable(symTable) {}
 
@@ -281,7 +281,7 @@ class AstFunctor : public AstArgument {};
 
 /**
  * @class UnaryFunctor
- * @brief Subclass of Argument that represents a unary function
+ * @brief Subclass of Argument that represents a unary functor
  */
 class AstUnaryFunctor : public AstFunctor {
 protected:
@@ -302,22 +302,22 @@ public:
         return fun;
     }
 
-    /** Check if the return value of this function is a number type. */
+    /** Check if the return value of this functor is a number type. */
     bool isNumerical() const {
         return isNumericUnaryOp(fun);
     }
 
-    /** Check if the return value of this function is a symbol type. */
+    /** Check if the return value of this functor is a symbol type. */
     bool isSymbolic() const {
         return isSymbolicUnaryOp(fun);
     }
 
-    /** Check if the argument of this function is a number type. */
+    /** Check if the argument of this functor is a number type. */
     bool acceptsNumbers() const {
         return unaryOpAcceptsNumbers(fun);
     }
 
-    /** Check if the argument of this function is a symbol type. */
+    /** Check if the argument of this functor is a symbol type. */
     bool acceptsSymbols() const {
         return unaryOpAcceptsSymbols(fun);
     }
@@ -360,7 +360,7 @@ protected:
 
 /**
  * @class BinaryFunctor
- * @brief Subclass of Argument that represents a binary function
+ * @brief Subclass of Argument that represents a binary functor
  */
 class AstBinaryFunctor : public AstFunctor {
 protected:
@@ -386,24 +386,24 @@ public:
         return fun;
     }
 
-    /** Check if the return value of this function is a number type. */
+    /** Check if the return value of this functor is a number type. */
     bool isNumerical() const {
         return isNumericBinaryOp(fun);
     }
 
-    /** Check if the return value of this function is a symbol type. */
+    /** Check if the return value of this functor is a symbol type. */
     bool isSymbolic() const {
         return isSymbolicBinaryOp(fun);
     }
 
-    /** Check if the arguments of this function are number types. */
-    bool acceptsNumbers() const {
-        return binaryOpAcceptsNumbers(fun);
+    /** Check if the arguments of this functor are number types. */
+    bool acceptsNumbers(int arg) const {
+        return binaryOpAcceptsNumbers(arg, fun);
     }
 
-    /** Check if the arguments of this function are symbol types. */
-    bool acceptsSymbols() const {
-        return binaryOpAcceptsSymbols(fun);
+    /** Check if the arguments of this functor are symbol types. */
+    bool acceptsSymbols(int arg) const {
+        return binaryOpAcceptsSymbols(arg, fun);
     }
 
     /** Print argument to the given output stream */

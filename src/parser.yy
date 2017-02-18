@@ -41,8 +41,9 @@
     #include "AstIODirective.h"
     #include "AstArgument.h"
     #include "AstNode.h"
-    #include "BinaryOperator.h"
-    #include "UnaryOperator.h"
+    #include "UnaryFunctorOps.h"
+    #include "BinaryFunctorOps.h"
+    #include "BinaryConstraintOps.h"
     #include "AstParserUtils.h"
     
     #include "AstSrcLocation.h"

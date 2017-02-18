@@ -24,7 +24,6 @@
 #include "AstTypeAnalysis.h"
 #include "AstUtils.h"
 #include "AstVisitor.h"
-#include "BinaryOperator.h"
 #include "ComponentModel.h"
 #include "GraphUtils.h"
 #include "PrecedenceGraph.h"
@@ -133,34 +132,25 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
         // check arg
         auto arg = fun.getOperand();
 
-        // check numerical operators
-        if (fun.isNumerical()) {
-            if (!isNumberType(typeAnalysis.getTypes(&fun))) {
-                report.addError("Non-numerical use for numeric function", fun.getSrcLoc());
-            }
+        // check appropriate use use of a numeric functor
+        if (fun.isNumerical() && !isNumberType(typeAnalysis.getTypes(&fun))) {
+            report.addError("Non-numeric use for numeric functor", fun.getSrcLoc());
         }
 
-        // check numerical operands
-        if (fun.acceptsNumbers()) {
-            if (!isNumberType(typeAnalysis.getTypes(arg))) {
-                report.addError("Non-numerical operand for numeric function", arg->getSrcLoc());
-            }
+        // check argument type of a numeric functor 
+        if (fun.acceptsNumbers() && !isNumberType(typeAnalysis.getTypes(arg))) {
+            report.addError("Non-numeric argument for numeric functor", arg->getSrcLoc());
         }
 
         // check symbolic operators
-        if (fun.isSymbolic()) {
-            if (!isSymbolType(typeAnalysis.getTypes(&fun))) {
-                report.addError("Non-symbol use for string function", fun.getSrcLoc());
-            }
+        if (fun.isSymbolic() && !isSymbolType(typeAnalysis.getTypes(&fun))) {
+            report.addError("Non-symbolic use for symbolic functor", fun.getSrcLoc());
         }
 
         // check symbolic operands
-        if (fun.acceptsSymbols()) {
-            if (!isSymbolType(typeAnalysis.getTypes(arg))) {
-                report.addError("Non-symbol operand for string function", arg->getSrcLoc());
-            }
+        if (fun.acceptsSymbols() && !isSymbolType(typeAnalysis.getTypes(arg))) {
+            report.addError("Non-symbolic argument for symbolic functor", arg->getSrcLoc());
         }
-
     });
 
     // - binary functors -
@@ -170,38 +160,26 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
         auto lhs = fun.getLHS();
         auto rhs = fun.getRHS();
 
-        // check numerical operators
-        if (fun.isNumerical()) {
-            if (!isNumberType(typeAnalysis.getTypes(&fun))) {
-                report.addError("Non-numerical use for numeric function", fun.getSrcLoc());
-            }
+        // check numeric types of result, first and second argument 
+        if (fun.isNumerical() && !isNumberType(typeAnalysis.getTypes(&fun))) {
+            report.addError("Non-numeric use for numeric functor", fun.getSrcLoc());
         }
+        if (fun.acceptsNumbers(0) && !isNumberType(typeAnalysis.getTypes(lhs))) {
+            report.addError("Non-numeric first argument for functor", lhs->getSrcLoc());
+        } 
+        if (fun.acceptsNumbers(1) && !isNumberType(typeAnalysis.getTypes(rhs))) {
+            report.addError("Non-numeric second argument for functor", rhs->getSrcLoc());
+        } 
 
-        // check numerical operands
-        if (fun.acceptsNumbers()) {
-            if (!isNumberType(typeAnalysis.getTypes(lhs))) {
-                report.addError("Non-numerical operand for numeric function", lhs->getSrcLoc());
-            }
-            if (!isNumberType(typeAnalysis.getTypes(rhs))) {
-                report.addError("Non-numerical operand for numeric function", rhs->getSrcLoc());
-            }
+        // check symbolic types of result, first and second argument 
+        if (fun.isSymbolic() && !isSymbolType(typeAnalysis.getTypes(&fun))) {
+            report.addError("Non-symbolic use for symbolic functor", fun.getSrcLoc());
         }
-
-        // check symbolic operators
-        if (fun.isSymbolic()) {
-            if (!isSymbolType(typeAnalysis.getTypes(&fun))) {
-                report.addError("Non-symbol use for string function", fun.getSrcLoc());
-            }
+        if (fun.acceptsSymbols(0) && !isSymbolType(typeAnalysis.getTypes(lhs))) {
+            report.addError("Non-symbolic first argument for functor", lhs->getSrcLoc());
         }
-
-        // check symbolic operands
-        if (fun.acceptsSymbols()) {
-            if (!isSymbolType(typeAnalysis.getTypes(lhs))) {
-                report.addError("Non-symbol operand for string function", lhs->getSrcLoc());
-            }
-            if (!isSymbolType(typeAnalysis.getTypes(rhs))) {
-                report.addError("Non-symbol operand for string function", rhs->getSrcLoc());
-            }
+        if (fun.acceptsSymbols(1) && !isSymbolType(typeAnalysis.getTypes(rhs))) {
+            report.addError("Non-symbolic second argument for functor", rhs->getSrcLoc());
         }
 
     });

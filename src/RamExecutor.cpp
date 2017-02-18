@@ -17,7 +17,8 @@
 #include "RamExecutor.h"
 #include "AstRelation.h"
 #include "AstVisitor.h"
-#include "BinaryOperator.h"
+#include "BinaryFunctorOps.h"
+#include "BinaryConstraintOps.h"
 #include "IOSystem.h"
 #include "RamAutoIndex.h"
 #include "RamData.h"
@@ -26,7 +27,7 @@
 #include "RamVisitor.h"
 #include "RuleScheduler.h"
 #include "TypeSystem.h"
-#include "UnaryOperator.h"
+#include "UnaryFunctorOps.h"
 
 #include <algorithm>
 #include <chrono>

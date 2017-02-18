@@ -16,13 +16,13 @@
 
 #pragma once
 
-#include "BinaryOperator.h"
 #include "RamIndex.h"
 #include "RamNode.h"
 #include "RamRecords.h"
 #include "RamRelation.h"
 #include "SymbolTable.h"
-#include "UnaryOperator.h"
+#include "UnaryFunctorOps.h"
+#include "BinaryFunctorOps.h"
 
 #include <algorithm>
 #include <sstream>

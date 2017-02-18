@@ -17,7 +17,7 @@
 #include "AstTypeAnalysis.h"
 #include "AstUtils.h"
 #include "AstVisitor.h"
-#include "BinaryOperator.h"
+#include "BinaryConstraintOps.h"
 #include "Constraints.h"
 #include "Util.h"
 
@@ -730,31 +730,37 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             addConstraint(isSubtypeOf(rhs, lhs));
         }
 
-        // #4 - result of unary function
+        // #4 - result of unary functor
         void visitUnaryFunctor(const AstUnaryFunctor& fun) {
             auto out = getVar(fun);
             auto in = getVar(fun.getOperand());
 
-            // depends on operator
+            // add a constraint for the return type of the unary functor
             if (fun.isNumerical()) addConstraint(isSubtypeOf(out, env.getNumberType()));
             if (fun.isSymbolic()) addConstraint(isSubtypeOf(out, env.getSymbolType()));
 
+            // add a constraint for the argument type of the unary functor
             if (fun.acceptsNumbers()) addConstraint(isSubtypeOf(in, env.getNumberType()));
             if (fun.acceptsSymbols()) addConstraint(isSubtypeOf(in, env.getSymbolType()));
         }
 
-        // #5 - result of binary function
+        // #5 - result of binary functor
         void visitBinaryFunctor(const AstBinaryFunctor& fun) {
             auto cur = getVar(fun);
             auto lhs = getVar(fun.getLHS());
             auto rhs = getVar(fun.getRHS());
 
-            // depends on operator
+            // add a constraint for the return type of the binary functor
             if (fun.isNumerical()) addConstraint(isSubtypeOf(cur, env.getNumberType()));
             if (fun.isSymbolic()) addConstraint(isSubtypeOf(cur, env.getSymbolType()));
 
-            // type(cur) <: super(type(lhs),type(rhs))
-            addConstraint(isSubtypeOfSuperType(cur, {lhs, rhs}));
+            // add a constraint for the first argument of the binary functor
+            if (fun.acceptsNumbers(0)) addConstraint(isSubtypeOf(lhs, env.getNumberType()));
+            if (fun.acceptsSymbols(0)) addConstraint(isSubtypeOf(lhs, env.getSymbolType()));
+
+            // add a constraint for the second argument of the binary functor
+            if (fun.acceptsNumbers(1)) addConstraint(isSubtypeOf(rhs, env.getNumberType()));
+            if (fun.acceptsSymbols(1)) addConstraint(isSubtypeOf(rhs, env.getSymbolType()));
         }
 
         // #6 - counter are numeric types
@@ -774,7 +780,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             }
         }
 
-        // #8 - visit aggregate functions
+        // #8 - visit aggregates
         void visitAggregator(const AstAggregator& agg) {
             // this value must be a number value
             addConstraint(isSubtypeOf(getVar(agg), env.getNumberType()));

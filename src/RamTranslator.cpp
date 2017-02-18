@@ -22,10 +22,10 @@
 #include "AstTypeAnalysis.h"
 #include "AstUtils.h"
 #include "AstVisitor.h"
-#include "BinaryOperator.h"
 #include "Global.h"
 #include "PrecedenceGraph.h"
 #include "RamStatement.h"
+#include "BinaryConstraintOps.h"
 
 namespace souffle {
 
