@@ -165,8 +165,9 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
     succSCC.clear();
 
     // TODO
-    std::vector<AstRelation*> listOfRelations = translationUnit.getProgram()->getRelations();
-    std::set<AstRelation*, AstNameComparison> relations = std::set<AstRelation*, AstNameComparison>(listOfRelations.begin(), listOfRelations.end());
+    // std::vector<AstRelation*> listOfRelations = translationUnit.getProgram()->getRelations();
+    // const std::set<const AstRelation*, AstNameComparison> relations = std::set<const AstRelation*, AstNameComparison>(listOfRelations.begin(), listOfRelations.end());
+    const std::set<const AstRelation*, AstNameComparison> relations = precedenceGraph->getGraph().allVertices();
 
     size_t counter = 0;
     size_t numSCCs = 0;
@@ -207,6 +208,7 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
     sccColor.resize(getNumSCCs());
     // default color is black
     std::fill(sccColor.begin(), sccColor.end(), 0);
+
 }
 
 /* Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
