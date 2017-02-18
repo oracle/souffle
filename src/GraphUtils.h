@@ -280,7 +280,7 @@ class HyperGraph : public Graph<size_t> {
             os << "digraph {";
             for (const auto& iter : this->successors) {
                 if (!first) os << ";\n";
-                os << iter.first << " [label=\"";
+                os << "\"" << iter.first << "\"" << " [label=\"";
                 first = true;
                 for (const auto& inner : this->table.get(iter.first)) {
                     if (!first) os << ",";
@@ -289,7 +289,7 @@ class HyperGraph : public Graph<size_t> {
                 }
                 os << "\"]";
                 for (const auto& successor : iter.second) {
-                    os << ";\n" << iter.first << " -> " << successor;
+                    os << ";\n" << "\"" << iter.first << "\"" << " -> " << "\"" << successor << "\"";
                 }
             }
             os << "}\n" << std::endl;
