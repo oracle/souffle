@@ -22,125 +22,149 @@
 
 namespace souffle {
 
-/**
- * A simple graph structure for graph-based operations.
- */
 template <typename Node, typename Compare = std::less<Node>>
 class Graph {
-    // not a very efficient but simple graph representation
-    std::set<Node, Compare> nodes;  // all the nodes in the graph
-    std::map<Node, std::set<Node, Compare>> forward;  // all edges forward directed
-    std::map<Node, std::set<Node, Compare>> backward;  // all edges backward
+
+protected:
+
+    std::set<Node, Compare> nodes;
+
+    std::map<Node, std::set<Node, Compare>> predecessors;
+
+    std::map<Node, std::set<Node, Compare>> successors;
 
 public:
-    /**
-     * Adds a new edge from the given node to the target node.
-     */
-    void insertEdge(const Node& from, const Node& to) {
-        insertVertex(from);
-        insertVertex(to);
-        forward[from].insert(to);
-        backward[to].insert(from);
-    }
 
-    /**
-     * Adds a node.
-     */
-    void insertVertex(const Node& node) {
-        auto iter = nodes.insert(node);
-        if (iter.second) {
-            forward.insert(std::make_pair(node, std::set<Node, Compare>()));
-            backward.insert(std::make_pair(node, std::set<Node, Compare>()));
-        }
-    }
-
-    /** Obtains a reference to the set of all nodes */
     const std::set<Node, Compare>& allVertices() const {
         return nodes;
     }
 
-    /** Returns the set of nodes the given node has edges to */
-    const std::set<Node, Compare>& getSuccessors(const Node& from) {
-        assert(hasVertex(from));
-        return forward.find(from)->second;
+    const size_t vertexCount() const {
+        return nodes.size();
     }
 
-    /** Determines whether the given node is present */
-    bool hasVertex(const Node& node) const {
-        return nodes.find(node) != nodes.end();
+    virtual void insertVertex(const Node& vertex) {
+        if (hasVertex(vertex)) return;
+        if (nodes.insert(vertex).second) {
+            successors.insert(std::make_pair(vertex, std::set<Node, Compare>()));
+            predecessors.insert(std::make_pair(vertex, std::set<Node, Compare>()));
+        }
     }
 
-    /** Determines whether the given edge is present */
-    bool hasEdge(const Node& from, const Node& to) const {
-        auto pos = forward.find(from);
-        if (pos == forward.end()) return false;
-        auto p2 = pos->second.find(to);
-        return p2 != pos->second.end();
+    virtual void removeVertex(const Node& vertex) {
+        if (!hasVertex(vertex)) return;
+        for (const Node& in : predecessors.at(vertex))
+            removeEdge(in, vertex);
+        for (const Node& out : successors.at(vertex))
+            removeEdge(vertex, out);
+        nodes.erase(vertex);
+        successors.erase(vertex);
+        predecessors.erase(vertex);
     }
 
-    /** Determines whether there is a directed path between the two nodes */
-    bool hasPath(const Node& from, const Node& to) const {
-        // quick check
-        if (!hasVertex(from) || !hasVertex(to)) return false;
+    const bool hasVertex(const Node& vertex) const {
+        return nodes.find(vertex) != nodes.end();
+    }
 
-        // conduct a depth-first search starting at from
+    const std::map<Node, std::set<Node, Compare>>& allEdges() const {
+        return successors;
+    }
+
+    virtual void insertEdge(const Node& vertex1, const Node& vertex2) {
+        if (hasEdge(vertex1, vertex2)) return;
+        if (!hasVertex(vertex1))
+            insertVertex(vertex1);
+        if (!hasVertex(vertex2))
+            insertVertex(vertex2);
+        successors.at(vertex1).insert(vertex2);
+        predecessors.at(vertex2).insert(vertex1);
+    }
+
+    virtual void removeEdge(const Node& vertex1, const Node& vertex2) {
+        if (!hasEdge(vertex1, vertex2)) return;
+        successors.at(vertex1).erase(vertex2);
+        predecessors.at(vertex2).erase(vertex1);
+    }
+
+    const bool hasEdge(const Node& vertex1, const Node& vertex2) const {
+        return (hasVertex(vertex1) && hasVertex(vertex2))
+                       ? successors.at(vertex1).find(vertex2) != successors.at(vertex1).end()
+                       : false;
+    }
+
+    const bool hasPath(const Node& fromVertex, const Node& toVertex) const {
+        if (!hasVertex(fromVertex) || !hasVertex(toVertex)) return false;
         bool found = false;
         bool first = true;
-        visitDepthFirst(from, [&](const Node& cur) {
-            found = !first && (found || cur == to);
+        visitDepthFirst(fromVertex, [&](const Node& current) {
+            found = !first && (found || current == toVertex);
             first = false;
         });
         return found;
     }
 
-    /** Obtains the set of all nodes in the same clique than the given node */
-    std::set<Node, Compare> getClique(const Node& node) const {
-        std::set<Node, Compare> res;
-        res.insert(node);
-        for (const auto& cur : allVertices()) {
-            if (hasPath(node, cur) && hasPath(cur, node)) res.insert(cur);
-        }
-        return res;
+    const std::set<Node, Compare>& getSuccessors(const Node& vertex) const {
+        assert(hasVertex(vertex));
+        return successors.at(vertex);
     }
 
-    /** A generic utility for depth-first visits */
+    const void insertSuccessors(const Node& vertex, const std::set<Node, Compare>& vertices) {
+        for (const auto& successor : vertices)
+            insertEdge(vertex, successor);
+    }
+
+    const std::set<Node, Compare>& getPredecessors(const Node& vertex) const {
+        assert(hasVertex(vertex));
+        return predecessors.at(vertex);
+    }
+
+    const void insertPredecessors(const Node& vertex, const std::set<Node, Compare>& vertices) {
+        for (const auto& predecessor : vertices)
+            insertEdge(predecessor, vertex);
+    }
+
+    std::set<Node, Compare> getClique(const Node& fromVertex) const {
+        assert(hasVertex(fromVertex));
+        std::set<Node, Compare> clique;
+        clique.insert(fromVertex);
+        for (const auto& toVertex : allVertices())
+            if (hasPath(fromVertex, toVertex) && hasPath(toVertex, fromVertex))
+                clique.insert(toVertex);
+        return clique;
+    }
+
     template <typename Lambda>
-    void visitDepthFirst(const Node& node, const Lambda& lambda) const {
+    void visitDepthFirst(const Node& vertex, const Lambda lambda) const {
         std::set<Node, Compare> visited;
-        visitDepthFirst(node, lambda, visited);
+        visitDepthFirst(vertex, lambda, visited);
     }
 
-    /** Enables graphs to be printed (e.g. for debugging) */
-    void print(std::ostream& out) const {
+    friend std::ostream& operator<<(std::ostream& os, const Graph& graph) {
+        graph.print(os);
+        return os;
+    }
+
+    virtual void print(std::ostream& os) const {
         bool first = true;
-        out << "digraph {";
-        for (const auto& cur : forward) {
-            for (const auto& trg : cur.second) {
-                if (!first) out << ";";
-                out << "\"" << cur.first << "\"" << "->" << "\"" << trg << "\"";
+        os << "digraph {";
+        for (const auto& vertex : successors) {
+            for (const auto& successor : vertex.second) {
+                if (!first) os << ";";
+                os << "\"" << vertex.first << "\"" << "->" << "\"" << successor << "\"";
                 first = false;
             }
         }
-        out << "}" << std::endl;
-    }
-
-    friend std::ostream& operator<<(std::ostream& out, const Graph& g) {
-        g.print(out);
-        return out;
+        os << "}" << std::endl;
     }
 
 private:
-    /** The internal implementation of depth-first visits */
+
     template <typename Lambda>
-    void visitDepthFirst(const Node& node, const Lambda& lambda, std::set<Node, Compare>& visited) const {
-        lambda(node);
-        auto pos = forward.find(node);
-        if (pos == forward.end()) return;
-        for (const auto& cur : pos->second) {
-            if (visited.insert(cur).second) {
-                visitDepthFirst(cur, lambda, visited);
-            }
-        }
+    void visitDepthFirst(const Node& vertex, const Lambda lambda, std::set<Node, Compare>& visited) const {
+        lambda(vertex);
+        if (!hasVertex(vertex)) return;
+        for (const auto& it : successors.at(vertex))
+            if (visited.insert(it).second) visitDepthFirst(it, lambda, visited);
     }
 };
 

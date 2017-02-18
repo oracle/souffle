@@ -47,18 +47,7 @@ void PrecedenceGraph::run(const AstTranslationUnit& translationUnit) {
 }
 
 void PrecedenceGraph::outputPrecedenceGraph(std::ostream& os) {
-    /* Print dependency graph */
-    os << "digraph \"dependence-graph\" {\n";
-    /* Print node of dependence graph */
-    for (const AstRelation* rel : precedenceGraph.allVertices())
-        if (rel) os << "\t\"" << rel->getName() << "\" [label = \"" << rel->getName() << "\"];\n";
-
-    for (const AstRelation* rel : precedenceGraph.allVertices())
-        if (rel)
-            for (const AstRelation* adjRel : precedenceGraph.getSuccessors(rel))
-                if (adjRel) os << "\t\"" << adjRel->getName() << "\" -> \"" << rel->getName() << "\";\n";
-
-    os << "}\n";
+    precedenceGraph.print(os);
 }
 
 void RedundantRelations::run(const AstTranslationUnit& translationUnit) {
@@ -294,186 +283,34 @@ const int TopologicallySortedSCCGraph::topologicalOrderingCost(
     return costOfPermutation;
 }
 
-void TopologicallySortedSCCGraph::bestCostTopologicalOrdering(std::vector<int>& lookaheadSCCs) const {
-    // exit early if there is only one scc in the lookahead
-    if (lookaheadSCCs.size() == 1) {
-        return;
-    }
-    // otherwise, create a vector to hold a permutation of the lookahead sccs and to store the best
-    // cost permutation so far
-    int bestCostOfPermutation = -1;
-    std::vector<int> permutationOfSCCs = orderedSCCs;
-    std::vector<int> bestPermutationOfSCCs;
-    // sort the lookahead scc's
-    std::sort(lookaheadSCCs.begin(), lookaheadSCCs.end());
-    // then iterate through all permutations of them
-    do {
-        // erase the previous permutation of lookahead scc's from the current permutation, if it exists
-        if (permutationOfSCCs.size() > orderedSCCs.size())
-            permutationOfSCCs.erase(permutationOfSCCs.begin() + orderedSCCs.size(), permutationOfSCCs.end());
-        // then add the next permutation of lookahead scc's to the current permutation of sccs
-        permutationOfSCCs.insert(permutationOfSCCs.end(), lookaheadSCCs.begin(), lookaheadSCCs.end());
-        // obtain the cost of the ordering of the current permutation of sccs
-        int costOfPermutation = topologicalOrderingCost(permutationOfSCCs);
-        // if the ordering is not topologically valid, do nothing
-        if (costOfPermutation == -1) {
-            continue;
-        }
-        // otherwise, if this cost is better than the best cost so far
-        if (costOfPermutation < bestCostOfPermutation || bestCostOfPermutation == -1) {
-            // record it as the best cost and this ordering as the best ordering
-            bestCostOfPermutation = costOfPermutation;
-            bestPermutationOfSCCs = lookaheadSCCs;
-        }
-    } while (std::next_permutation(lookaheadSCCs.begin(), lookaheadSCCs.end()));
-    // finally, set the lookahead scc's to the best cost ordering
-    lookaheadSCCs = bestPermutationOfSCCs;
-}
-
-void TopologicallySortedSCCGraph::backwardAlgorithmRecursive(int sv, std::vector<int>& lookaheadSCCs) {
-    // check that the input node does not have a temporary marking
-    if (sccGraph->getColor(sv) == GRAY) {
-        assert("SCC graph is not a DAG");
-        // otherwise, if it is unvisited
-    } else if (sccGraph->getColor(sv) == WHITE) {
-        // give it a temporary marking
-        sccGraph->setColor(sv, GRAY);
-        // for each of its predecessors
-        for (int scc : sccGraph->getPredecessorSCCs(sv)) {
-            // use these as the argument in a recursive call to this function
-            backwardAlgorithmRecursive(scc, lookaheadSCCs);
-        }
-        // give the original scc a permanent marking
-        sccGraph->setColor(sv, BLACK);
-        // if a lookahead of greater than 1 has been defined
-        if (LOOKAHEAD > 1) {
-            // if the lookahead set is not yet full
-            if (lookaheadSCCs.size() < LOOKAHEAD) {
-                // add the current input node
-                lookaheadSCCs.push_back(sv);
-            }
-            // if the lookahead set is full now
-            if (lookaheadSCCs.size() == LOOKAHEAD) {
-                // compute the best cost ordering over the lookahead set
-                bestCostTopologicalOrdering(lookaheadSCCs);
-                // add the lookahead set to the permanent ordering
-                orderedSCCs.insert(orderedSCCs.end(), lookaheadSCCs.begin(), lookaheadSCCs.end());
-                // make sure to clear it
-                lookaheadSCCs.clear();
-            }
-        } else {
-            // if no lookahead is defined, simply add the input node to the permanent ordering
-            orderedSCCs.push_back(sv);
-        }
-    }
-}
-
-void TopologicallySortedSCCGraph::backwardAlgorithm() {
-    // empty vector to hold lookahead set
-    std::vector<int> lookaheadSCCs;
-    // run reverse DFS for each node in the scc graph
-    for (int su = 0; su < sccGraph->getNumSCCs(); ++su) {
-        backwardAlgorithmRecursive(su, lookaheadSCCs);
-    }
-    // if the lookahead set is not empty
-    if (!lookaheadSCCs.empty()) {
-        // find the best cost topological ordering over it
-        bestCostTopologicalOrdering(lookaheadSCCs);
-        // and append it to the permanent ordering
-        orderedSCCs.insert(orderedSCCs.end(), lookaheadSCCs.begin(), lookaheadSCCs.end());
-    }
-}
-
-void TopologicallySortedSCCGraph::findForwardLookahead(
-        int scc, std::vector<int>& lookaheadSCCs, unsigned int depth) {
-    // set the current breadth for this level to 0
-    unsigned int breadth = 0;
-    // for each of the successor sccs of the input scc
-    for (auto scc_i : sccGraph->getSuccessorSCCs(scc)) {
-        // if the breadth limit is exceeded, return
-        if (breadth >= BREADTH_LIMIT) {
-            return;
-        }
-        // otherwise, if the successor is unvisited and has no unvisited predecessors
-        if (sccGraph->getColor(scc_i) == WHITE && !sccGraph->hasPredecessorOfColor(scc_i, WHITE)) {
-            // add it to the current lookahead set
-            lookaheadSCCs.push_back(scc_i);
-            // assign it a temporary marking
-            sccGraph->setColor(scc_i, GRAY);
-            // if the current depth is less than the depth limit
-            if (depth < DEPTH_LIMIT)
-                // run the algorithm recursively on the successor, incrementing the current depth
-                findForwardLookahead(scc_i, lookaheadSCCs, depth + 1);
-            // and increment the current breadth
-            ++breadth;
-        }
-    }
-}
 
 void TopologicallySortedSCCGraph::forwardAlgorithmRecursive(int scc) {
-    // if either the breadth or depth limit requires there be a lookahead set
-    if (BREADTH_LIMIT > 1 || DEPTH_LIMIT > 1) {
-        // obtain the set of all lookahead sccs, i.e. those to be sorted in this round
-        std::vector<int> lookaheadSCCs;
-        findForwardLookahead(scc, lookaheadSCCs, 1);
-        // if there are none, simply return
-        if (lookaheadSCCs.size() == 0) {
-            return;
+   // create a flag to indicate that a successor was visited (by default it hasn't been)
+    bool found = false;
+    // for each successor of the input scc
+    auto scc_i = sccGraph->getSuccessorSCCs(scc).begin();
+    for (; scc_i != sccGraph->getSuccessorSCCs(scc).end(); ++scc_i) {
+        // if it is white, but has no white predecessors
+        if (sccGraph->getColor(*scc_i) == WHITE && !sccGraph->hasPredecessorOfColor(*scc_i, WHITE)) {
+            // give it a temporary marking
+            sccGraph->setColor(*scc_i, GRAY);
+            // add it to the permanent ordering
+            orderedSCCs.push_back(*scc_i);
+            // and use it as a root node in a recursive call to this function
+            forwardAlgorithmRecursive(*scc_i);
+            // finally, indicate that a successor has been found for this node
+            found = true;
         }
-        // compute the best cost topological ordering over the set of lookahead sccs
-        bestCostTopologicalOrdering(lookaheadSCCs);
-        // and append it to the final list of ordered sccs
-        orderedSCCs.insert(orderedSCCs.end(), lookaheadSCCs.begin(), lookaheadSCCs.end());
-        // prepend the root scc given as an argument to the list of lookahead sccs
-        lookaheadSCCs.insert(lookaheadSCCs.begin(), scc);
-        // for each scc in the lookahead set
-        for (auto scc_i : lookaheadSCCs) {
-            // if it has unvisited successors
-            if (sccGraph->hasSuccessorOfColor(scc_i, WHITE)) {
-                // give it an incomplete marking
-                sccGraph->setColor(scc_i, RED);
-                // and use it as the root scc in a recursive call to this function
-                forwardAlgorithmRecursive(scc_i);
-            } else {
-                // otherwise, mark it as complete
-                sccGraph->setColor(scc_i, BLACK);
-            }
-        }
-        // if the original root node given as an argument has an incomplete marking, unvisited
-        // successors, and no unvisited predecessors
-        if (sccGraph->getColor(scc) == RED && sccGraph->hasSuccessorOfColor(scc, WHITE) &&
-                !sccGraph->hasPredecessorOfColor(scc, WHITE))
-            // use it as the root scc again in a recursive call to this function
-            forwardAlgorithmRecursive(scc);
-        // both breadth and depth limits are 1, i.e. no lookahead
-    } else {
-        // create a flag to indicate that a successor was visited (by default it hasn't been)
-        bool found = false;
-        // for each successor of the input scc
-        auto scc_i = sccGraph->getSuccessorSCCs(scc).begin();
-        for (; scc_i != sccGraph->getSuccessorSCCs(scc).end(); ++scc_i) {
-            // if it is white, but has no white predecessors
-            if (sccGraph->getColor(*scc_i) == WHITE && !sccGraph->hasPredecessorOfColor(*scc_i, WHITE)) {
-                // give it a temporary marking
-                sccGraph->setColor(*scc_i, GRAY);
-                // add it to the permanent ordering
-                orderedSCCs.push_back(*scc_i);
-                // and use it as a root node in a recursive call to this function
-                forwardAlgorithmRecursive(*scc_i);
-                // finally, indicate that a successor has been found for this node
-                found = true;
-            }
-        }
-        // return at once if no valid successors have been found; as either it has none or they all have a
-        // better predecessor
-        if (!found) {
-            return;
-        }
-        // otherwise, if more white successors remain for the current scc, use it again as the root node in a
-        // recursive call to this function
-        if (sccGraph->hasSuccessorOfColor(scc, WHITE) && !sccGraph->hasPredecessorOfColor(scc, WHITE))
-            forwardAlgorithmRecursive(scc);
     }
+    // return at once if no valid successors have been found; as either it has none or they all have a
+    // better predecessor
+    if (!found) {
+        return;
+    }
+    // otherwise, if more white successors remain for the current scc, use it again as the root node in a
+    // recursive call to this function
+    if (sccGraph->hasSuccessorOfColor(scc, WHITE) && !sccGraph->hasPredecessorOfColor(scc, WHITE))
+        forwardAlgorithmRecursive(scc);
 }
 
 void TopologicallySortedSCCGraph::forwardAlgorithm() {
@@ -497,10 +334,6 @@ void TopologicallySortedSCCGraph::forwardAlgorithm() {
     }
 }
 
-unsigned int TopologicallySortedSCCGraph::BREADTH_LIMIT = 1;
-unsigned int TopologicallySortedSCCGraph::DEPTH_LIMIT = 1;
-unsigned int TopologicallySortedSCCGraph::LOOKAHEAD = 0;
-
 void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit) {
     // obtain the scc graph
     sccGraph = translationUnit.getAnalysis<SCCGraph>();
@@ -508,15 +341,8 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
     orderedSCCs.clear();
     // and mark all sccs as unvisited
     sccGraph->fillColors(WHITE);
-    // if a lookahead has been given explicitly
-    if (LOOKAHEAD != 0) {
-        // generate topological ordering using backwards algorithm (like reverse DFS)
-        backwardAlgorithm();
-        // otherwise, by default
-    } else {
-        // generate topological ordering using forwards algorithm (like Khan's algorithm)
-        forwardAlgorithm();
-    }
+    // generate topological ordering using forwards algorithm (like Khan's algorithm)
+    forwardAlgorithm();
 }
 
 void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream& os) {
