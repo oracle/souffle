@@ -17,8 +17,8 @@
 #include "RamExecutor.h"
 #include "AstRelation.h"
 #include "AstVisitor.h"
-#include "BinaryFunctorOps.h"
 #include "BinaryConstraintOps.h"
+#include "BinaryFunctorOps.h"
 #include "IOSystem.h"
 #include "RamAutoIndex.h"
 #include "RamData.h"
@@ -105,7 +105,7 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
             return env.incCounter();
         }
 
-        // unary functions 
+        // unary functions
 
         RamDomain visitUnaryOperator(const RamUnaryOperator& op) {
             switch (op.getOperator()) {
@@ -153,7 +153,7 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
             }
         }
 
-        // binary functions 
+        // binary functions
 
         RamDomain visitBinaryOperator(const RamBinaryOperator& op) {
             switch (op.getOperator()) {
@@ -198,10 +198,10 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
 
                 // strings
                 case BinaryOp::CAT: {
-                    return env.getSymbolTable().lookup(
-                            (std::string(env.getSymbolTable().resolve(visit(op.getLHS()))) +
-                                    std::string(env.getSymbolTable().resolve(visit(op.getRHS()))))
-                                    .c_str());
+                    return env.getSymbolTable().lookup((
+                            std::string(env.getSymbolTable().resolve(visit(op.getLHS()))) +
+                            std::string(env.getSymbolTable().resolve(
+                                    visit(op.getRHS())))).c_str());
                 }
                 default:
                     assert(0 && "unsupported operator");
@@ -209,14 +209,22 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
             }
         }
 
-        // ternary functions 
+        // ternary functions
 
         RamDomain visitTernaryOperator(const RamTernaryOperator& op) {
             switch (op.getOperator()) {
                 case TernaryOp::SUBSTR: {
-                    auto idx = visit(op.getArg(0));
-                    std::string str = env.getSymbolTable().resolve(idx);
-                    std::string sub_str = str.substr(visit(op.getArg(1)),visit(op.getArg(2)));
+                    auto symbol = visit(op.getArg(0));
+                    std::string str = env.getSymbolTable().resolve(symbol);
+                    auto idx = visit(op.getArg(1));
+                    auto len = visit(op.getArg(2));
+                    std::string sub_str;
+                    try {
+                        sub_str = str.substr(idx, len);
+                    } catch (...) {
+                        std::cerr << "warning: wrong index position provided by substr(\"";
+                        std::cerr << str << "\"," << idx << "," << len << ") functor.\n";
+                    }
                     return env.getSymbolTable().lookup(sub_str.c_str());
                 }
                 default:
@@ -1846,9 +1854,9 @@ public:
         switch (op.getOperator()) {
             case TernaryOp::SUBSTR:
                 out << "(RamDomain)symTable.lookup(";
-                out << "(std::string(symTable.resolve((size_t)";
+                out << "(substr_wrapper(symTable.resolve((size_t)";
                 out << print(op.getArg(0));
-                out << ")).substr((";
+                out << "),(";
                 out << print(op.getArg(1));
                 out << "),(";
                 out << print(op.getArg(2));
@@ -1857,7 +1865,7 @@ public:
             default:
                 assert(0 && "Unsupported Operation!");
         }
-    } 
+    }
 
     // -- records --
 
@@ -1867,7 +1875,6 @@ public:
             << "})"
             << ")";
     }
-
 
     // -- safety net --
 
@@ -1997,12 +2004,19 @@ std::string RamCompiler::generateCode(
     // print wrapper for regex
     os << "class " << classname << " : public SouffleProgram {\n";
     os << "private:\n";
-    os << "static bool regex_wrapper(const char *pattern, const char *text) {\n";
+    os << "static inline bool regex_wrapper(const char *pattern, const char *text) {\n";
     os << "   bool result = false; \n";
     os << "   try { result = std::regex_match(text, std::regex(pattern)); } catch(...) { \n";
     os << "     std::cerr << \"warning: wrong pattern provided for match(\\\"\" << pattern << \"\\\",\\\"\" "
           "<< text << \"\\\")\\n\";\n}\n";
     os << "   return result;\n";
+    os << "}\n";
+    os << "static inline std::string substr_wrapper(const char *str, size_t idx, size_t len) {\n";
+    os << "   std::string sub_str, result; \n";
+    os << "   try { result = std::string(str).substr(idx,len); } catch(...) { \n";
+    os << "     std::cerr << \"warning: wrong index position provided by substr(\\\"\";\n";
+    os << "     std::cerr << str << \"\\\",\" << idx << \",\" << len << \") functor.\\n\";\n";
+    os << "   } return result;\n";
     os << "}\n";
 
     if (Global::config().has("profile")) {

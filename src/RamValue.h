@@ -16,19 +16,19 @@
 
 #pragma once
 
+#include "BinaryFunctorOps.h"
 #include "RamIndex.h"
 #include "RamNode.h"
 #include "RamRecords.h"
 #include "RamRelation.h"
 #include "SymbolTable.h"
-#include "UnaryFunctorOps.h"
-#include "BinaryFunctorOps.h"
 #include "TernaryFunctorOps.h"
+#include "UnaryFunctorOps.h"
 
 #include <algorithm>
+#include <array>
 #include <sstream>
 #include <string>
-#include <array>
 
 #include <stdlib.h>
 
@@ -93,7 +93,7 @@ public:
 };
 
 /**
- * Binary function 
+ * Binary function
  */
 class RamBinaryOperator : public RamValue {
 private:
@@ -152,20 +152,15 @@ public:
 class RamTernaryOperator : public RamValue {
 private:
     TernaryOp op;
-    std::array<std::unique_ptr<RamValue>,3> arg;
+    std::array<std::unique_ptr<RamValue>, 3> arg;
 
 public:
-    RamTernaryOperator(TernaryOp op, 
-                       std::unique_ptr<RamValue> a0, 
-                       std::unique_ptr<RamValue> a1,
-                       std::unique_ptr<RamValue> a2)
-            : RamValue(RN_TernaryOperator, a0->isConstant() && a1->isConstant() && a2->isConstant()), 
-              op(op), 
-              arg({{std::move(a0), std::move(a1), std::move(a2)}}) {
-    }
+    RamTernaryOperator(TernaryOp op, std::unique_ptr<RamValue> a0, std::unique_ptr<RamValue> a1,
+            std::unique_ptr<RamValue> a2)
+            : RamValue(RN_TernaryOperator, a0->isConstant() && a1->isConstant() && a2->isConstant()), op(op),
+              arg({{std::move(a0), std::move(a1), std::move(a2)}}) {}
 
-    virtual ~RamTernaryOperator() {
-    }
+    virtual ~RamTernaryOperator() {}
 
     virtual void print(std::ostream& os) const {
         os << getSymbolForTernaryOp(op);
@@ -187,8 +182,7 @@ public:
     }
 
     size_t getLevel() const {
-        return std::max(std::max(arg[0]->getLevel(), arg[1]->getLevel()), 
-                        arg[2]->getLevel());
+        return std::max(std::max(arg[0]->getLevel(), arg[1]->getLevel()), arg[2]->getLevel());
     }
 
     /** Obtains a list of child nodes */
@@ -275,7 +269,7 @@ public:
     RamPack(std::vector<std::unique_ptr<RamValue>> values)
             : RamValue(RN_Pack,
                       all_of(values,
-                               [](const std::unique_ptr<RamValue>& v) { return v && v->isConstant(); })),
+                              [](const std::unique_ptr<RamValue>& v) { return v && v->isConstant(); })),
               values(std::move(values)) {}
 
     ~RamPack() {}

@@ -21,7 +21,7 @@
 namespace souffle {
 
 /******************************************
- * Helper Functions for Binary Constraints 
+ * Helper Functions for Binary Constraints
  ******************************************/
 
 /**
@@ -43,7 +43,7 @@ enum class BinaryRelOp {
 
 /**
  * Negated Constraint Operator
- * Each opeprator requires a negated operator which is 
+ * Each opeprator requires a negated operator which is
  * necessary for the expansion of complex rule bodies with disjunction and negation.
  */
 inline BinaryRelOp negate(BinaryRelOp op) {
@@ -131,7 +131,7 @@ inline BinaryRelOp getBinaryRelOpForSymbol(const std::string& symbol) {
  */
 
 /**
- * Determines whether arguments of constraint are numeric 
+ * Determines whether arguments of constraint are numeric
  */
 inline bool isNumericBinaryRelOp(const BinaryRelOp op) {
     switch (op) {
@@ -157,7 +157,7 @@ inline bool isNumericBinaryRelOp(const BinaryRelOp op) {
 }
 
 /**
- * Determines whether arguments of constraint are numeric 
+ * Determines whether arguments of constraint are numeric
  */
 inline bool isSymbolicBinaryRelOp(const BinaryRelOp op) {
     return !isNumericBinaryRelOp(op);

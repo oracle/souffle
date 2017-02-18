@@ -20,16 +20,16 @@
 
 #include "AstNode.h"
 #include "AstType.h"
+#include "BinaryFunctorOps.h"
 #include "SymbolTable.h"
+#include "TernaryFunctorOps.h"
 #include "TypeSystem.h"
 #include "UnaryFunctorOps.h"
-#include "BinaryFunctorOps.h"
-#include "TernaryFunctorOps.h"
 
+#include <array>
 #include <list>
 #include <memory>
 #include <string>
-#include <array>
 
 namespace souffle {
 
@@ -366,9 +366,9 @@ protected:
  */
 class AstBinaryFunctor : public AstFunctor {
 protected:
-    BinaryOp fun;  // binary operator 
-    std::unique_ptr<AstArgument> lhs; // first argument
-    std::unique_ptr<AstArgument> rhs; // second argument
+    BinaryOp fun;                      // binary operator
+    std::unique_ptr<AstArgument> lhs;  // first argument
+    std::unique_ptr<AstArgument> rhs;  // second argument
 
 public:
     AstBinaryFunctor(BinaryOp fun, std::unique_ptr<AstArgument> l, std::unique_ptr<AstArgument> r)
@@ -464,21 +464,17 @@ protected:
 class AstTernaryFunctor : public AstFunctor {
 protected:
     TernaryOp fun;
-    std::array<std::unique_ptr<AstArgument>,3> arg;
+    std::array<std::unique_ptr<AstArgument>, 3> arg;
 
 public:
-    AstTernaryFunctor(TernaryOp fun, 
-                      std::unique_ptr<AstArgument> a1, 
-                      std::unique_ptr<AstArgument> a2,
-                      std::unique_ptr<AstArgument> a3)
-            : fun(fun), 
-              arg({{std::move(a1), std::move(a2), std::move(a3)}}) { 
-    }
+    AstTernaryFunctor(TernaryOp fun, std::unique_ptr<AstArgument> a1, std::unique_ptr<AstArgument> a2,
+            std::unique_ptr<AstArgument> a3)
+            : fun(fun), arg({{std::move(a1), std::move(a2), std::move(a3)}}) {}
 
     virtual ~AstTernaryFunctor() {}
 
     AstArgument* getArg(int idx) const {
-        assert(idx >=0 && idx < 3 && "wrong argument"); 
+        assert(idx >= 0 && idx < 3 && "wrong argument");
         return arg[idx].get();
     }
 
@@ -520,10 +516,8 @@ public:
 
     /** Clone this node  */
     virtual AstTernaryFunctor* clone() const {
-        auto res = new AstTernaryFunctor(fun, 
-                                         std::unique_ptr<AstArgument>(arg[0]->clone()), 
-                                         std::unique_ptr<AstArgument>(arg[1]->clone()), 
-                                         std::unique_ptr<AstArgument>(arg[2]->clone()));
+        auto res = new AstTernaryFunctor(fun, std::unique_ptr<AstArgument>(arg[0]->clone()),
+                std::unique_ptr<AstArgument>(arg[1]->clone()), std::unique_ptr<AstArgument>(arg[2]->clone()));
         res->setSrcLoc(getSrcLoc());
         return res;
     }
@@ -549,9 +543,7 @@ protected:
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstTernaryFunctor*>(&node));
         const AstTernaryFunctor& other = static_cast<const AstTernaryFunctor&>(node);
-        return fun == other.fun && 
-               *arg[0] == *other.arg[0] && 
-               *arg[1] == *other.arg[1] && 
+        return fun == other.fun && *arg[0] == *other.arg[0] && *arg[1] == *other.arg[1] &&
                *arg[2] == *other.arg[2];
     }
 };

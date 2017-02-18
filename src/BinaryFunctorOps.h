@@ -133,7 +133,7 @@ inline bool isSymbolicBinaryOp(const BinaryOp op) {
  * Determines whether an argument has a number value.
  */
 inline bool binaryOpAcceptsNumbers(int arg, const BinaryOp op) {
-    assert(arg >= 0 && arg < 2 && "argument out of range"); 
+    assert(arg >= 0 && arg < 2 && "argument out of range");
     switch (op) {
         case BinaryOp::ADD:
         case BinaryOp::SUB:

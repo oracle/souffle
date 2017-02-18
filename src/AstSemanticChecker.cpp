@@ -21,7 +21,6 @@
 #include "AstRelation.h"
 #include "AstTranslationUnit.h"
 #include "AstTypeAnalysis.h"
-#include "AstTypeAnalysis.h"
 #include "AstUtils.h"
 #include "AstVisitor.h"
 #include "ComponentModel.h"
@@ -137,7 +136,7 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
             report.addError("Non-numeric use for numeric functor", fun.getSrcLoc());
         }
 
-        // check argument type of a numeric functor 
+        // check argument type of a numeric functor
         if (fun.acceptsNumbers() && !isNumberType(typeAnalysis.getTypes(arg))) {
             report.addError("Non-numeric argument for numeric functor", arg->getSrcLoc());
         }
@@ -160,18 +159,18 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
         auto lhs = fun.getLHS();
         auto rhs = fun.getRHS();
 
-        // check numeric types of result, first and second argument 
+        // check numeric types of result, first and second argument
         if (fun.isNumerical() && !isNumberType(typeAnalysis.getTypes(&fun))) {
             report.addError("Non-numeric use for numeric functor", fun.getSrcLoc());
         }
         if (fun.acceptsNumbers(0) && !isNumberType(typeAnalysis.getTypes(lhs))) {
             report.addError("Non-numeric first argument for functor", lhs->getSrcLoc());
-        } 
+        }
         if (fun.acceptsNumbers(1) && !isNumberType(typeAnalysis.getTypes(rhs))) {
             report.addError("Non-numeric second argument for functor", rhs->getSrcLoc());
-        } 
+        }
 
-        // check symbolic types of result, first and second argument 
+        // check symbolic types of result, first and second argument
         if (fun.isSymbolic() && !isSymbolType(typeAnalysis.getTypes(&fun))) {
             report.addError("Non-symbolic use for symbolic functor", fun.getSrcLoc());
         }
@@ -192,21 +191,21 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
         auto a1 = fun.getArg(1);
         auto a2 = fun.getArg(2);
 
-        // check numeric types of result, first and second argument 
+        // check numeric types of result, first and second argument
         if (fun.isNumerical() && !isNumberType(typeAnalysis.getTypes(&fun))) {
             report.addError("Non-numeric use for numeric functor", fun.getSrcLoc());
         }
         if (fun.acceptsNumbers(0) && !isNumberType(typeAnalysis.getTypes(a0))) {
             report.addError("Non-numeric first argument for functor", a0->getSrcLoc());
-        } 
+        }
         if (fun.acceptsNumbers(1) && !isNumberType(typeAnalysis.getTypes(a1))) {
             report.addError("Non-numeric second argument for functor", a1->getSrcLoc());
-        } 
+        }
         if (fun.acceptsNumbers(2) && !isNumberType(typeAnalysis.getTypes(a2))) {
             report.addError("Non-numeric third argument for functor", a2->getSrcLoc());
-        } 
+        }
 
-        // check symbolic types of result, first and second argument 
+        // check symbolic types of result, first and second argument
         if (fun.isSymbolic() && !isSymbolType(typeAnalysis.getTypes(&fun))) {
             report.addError("Non-symbolic use for symbolic functor", fun.getSrcLoc());
         }
@@ -317,7 +316,8 @@ static bool hasUnnamedVariable(const AstArgument* arg) {
     } else if (const AstBinaryFunctor* bf = dynamic_cast<const AstBinaryFunctor*>(arg)) {
         return hasUnnamedVariable(bf->getLHS()) || hasUnnamedVariable(bf->getRHS());
     } else if (const AstTernaryFunctor* tf = dynamic_cast<const AstTernaryFunctor*>(arg)) {
-        return hasUnnamedVariable(tf->getArg(0)) || hasUnnamedVariable(tf->getArg(1)) || hasUnnamedVariable(tf->getArg(2));
+        return hasUnnamedVariable(tf->getArg(0)) || hasUnnamedVariable(tf->getArg(1)) ||
+               hasUnnamedVariable(tf->getArg(2));
     } else if (const AstRecordInit* ri = dynamic_cast<const AstRecordInit*>(arg)) {
         return any_of(ri->getArguments(), (bool (*)(const AstArgument*))hasUnnamedVariable);
     } else if (dynamic_cast<const AstAggregator*>(arg)) {
@@ -392,7 +392,7 @@ void AstSemanticChecker::checkArgument(
         checkArgument(report, program, *ternFunc->getArg(0));
         checkArgument(report, program, *ternFunc->getArg(1));
         checkArgument(report, program, *ternFunc->getArg(2));
-    } 
+    }
 }
 
 static bool isConstantArithExpr(const AstArgument& argument) {
@@ -406,7 +406,7 @@ static bool isConstantArithExpr(const AstArgument& argument) {
     } else if (const AstTernaryFunctor* ternOp = dynamic_cast<const AstTernaryFunctor*>(&argument)) {
         return ternOp->isNumerical() && isConstantArithExpr(*ternOp->getArg(0)) &&
                isConstantArithExpr(*ternOp->getArg(1)) && isConstantArithExpr(*ternOp->getArg(2));
-    } 
+    }
     return false;
 }
 
@@ -863,10 +863,10 @@ bool AstExecutionPlanChecker::transform(AstTranslationUnit& translationUnit) {
                 if (version <= clause->getExecutionPlan()->getMaxVersion()) {
                     for (const auto& cur : clause->getExecutionPlan()->getOrders()) {
                         if (cur.first >= version) {
-                            translationUnit.getErrorReport().addDiagnostic(Diagnostic(
-                                    Diagnostic::ERROR, DiagnosticMessage("execution plan for version " +
-                                                                                 std::to_string(cur.first),
-                                                               cur.second->getSrcLoc()),
+                            translationUnit.getErrorReport().addDiagnostic(Diagnostic(Diagnostic::ERROR,
+                                    DiagnosticMessage(
+                                            "execution plan for version " + std::to_string(cur.first),
+                                            cur.second->getSrcLoc()),
                                     {DiagnosticMessage("only versions 0.." + std::to_string(version - 1) +
                                                        " permitted")}));
                         }

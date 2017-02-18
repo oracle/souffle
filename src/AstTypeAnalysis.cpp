@@ -734,7 +734,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             addConstraint(isSubtypeOf(getVar(cnst), env.getSymbolType()));
         }
 
-        // number 
+        // number
         void visitNumberConstant(const AstNumberConstant& cnst) {
             // this type has to be a sub-type of number
             addConstraint(isSubtypeOf(getVar(cnst), env.getNumberType()));
@@ -748,7 +748,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             addConstraint(isSubtypeOf(rhs, lhs));
         }
 
-        // unary functor 
+        // unary functor
         void visitUnaryFunctor(const AstUnaryFunctor& fun) {
             auto out = getVar(fun);
             auto in = getVar(fun.getOperand());
@@ -804,7 +804,6 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             // add a constraint for the third argument of the ternary functor
             if (fun.acceptsNumbers(2)) addConstraint(isSubtypeOf(a2, env.getNumberType()));
             if (fun.acceptsSymbols(2)) addConstraint(isSubtypeOf(a2, env.getSymbolType()));
-
         }
 
         // counter

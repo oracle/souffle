@@ -77,10 +77,10 @@ inline bool isSymbolicTernaryOp(const TernaryOp op) {
  * Determines whether an argument has a number value.
  */
 inline bool ternaryOpAcceptsNumbers(int arg, const TernaryOp op) {
-    assert(arg >= 0 && arg < 3 && "argument out of range"); 
+    assert(arg >= 0 && arg < 3 && "argument out of range");
     switch (op) {
         case TernaryOp::SUBSTR:
-            return arg == 1 || arg ==2;
+            return arg == 1 || arg == 2;
         default:
             break;
     }
