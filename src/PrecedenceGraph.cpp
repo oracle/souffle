@@ -162,8 +162,8 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
 
     /* Compute SCC */
     std::vector<AstRelation*> relations = translationUnit.getProgram()->getRelations();
-    unsigned int counter = 0;
-    int numSCCs = 0;
+    size_t counter = 0;
+    size_t numSCCs = 0;
     std::stack<const AstRelation *> S, P;
     std::map<const AstRelation*, int> preOrder;  // Pre-order number of a node (for Gabow's Algo)
     for (const AstRelation* relation : relations) {
@@ -206,8 +206,8 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
 /* Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
  * Java by Robert Sedgewick / Part 5 / Graph *  algorithms). The algorithm has linear
  * runtime. */
-void SCCGraph::scR(const AstRelation* w, std::map<const AstRelation*, int>& preOrder, unsigned int& counter,
-        std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, int& numSCCs) {
+void SCCGraph::scR(const AstRelation* w, std::map<const AstRelation*, int>& preOrder, size_t& counter,
+        std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, size_t& numSCCs) {
     preOrder[w] = counter++;
     S.push(w);
     P.push(w);

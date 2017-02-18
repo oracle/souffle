@@ -111,32 +111,32 @@ private:
     std::map<const AstRelation*, int> nodeToSCC;
 
     /** List of colors of SCC nodes, default is black. */
-    std::vector<unsigned int> sccColor;
+    std::vector<size_t> sccColor;
 
     /** Adjacency lists for the SCC graph */
-    std::vector<std::set<int>> succSCC;
+    std::vector<std::set<size_t>> succSCC;
 
     /** Predecessor set for the SCC graph */
-    std::vector<std::set<int>> predSCC;
+    std::vector<std::set<size_t>> predSCC;
 
     /** Relations contained in a SCC */
     std::vector<std::set<const AstRelation*>> SCC;
 
     /** Recursive scR method for computing SCC */
-    void scR(const AstRelation* relation, std::map<const AstRelation*, int>& preOrder, unsigned int& counter,
-            std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, int& numSCCs);
+    void scR(const AstRelation* relation, std::map<const AstRelation*, int>& preOrder, size_t& counter,
+            std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, size_t& numSCCs);
 
 public:
     static constexpr const char* name = "scc-graph";
 
     virtual void run(const AstTranslationUnit& translationUnit);
 
-    int getSCCForRelation(const AstRelation* relation) {
+    size_t getSCCForRelation(const AstRelation* relation) {
         return nodeToSCC[relation];
     }
 
-    bool isRecursive(int scc) {
-        const std::set<const AstRelation*>& sccRelations = getRelationsForSCC(int scc);
+    bool isRecursive(size_t scc) {
+        const std::set<const AstRelation*>& sccRelations = getRelationsForSCC(scc);
         if (sccRelations.size() == 1) {
             const AstRelation* singleRelation = *sccRelations.begin();
             if (!precedenceGraph->getPredecessors(singleRelation).count(singleRelation)) {
@@ -151,50 +151,50 @@ public:
     }
 
     /** Return the number of strongly connected components in the SCC graph */
-    int getNumSCCs() {
+    size_t getNumSCCs() {
         return succSCC.size();
     }
 
     /** Get the color of an SCC. */
-    const unsigned int getColor(const int scc) {
+    const size_t getColor(const size_t scc) {
         return sccColor[scc];
     }
 
     /** Set the color of an SCC. */
-    void setColor(const int scc, const unsigned int color) {
+    void setColor(const size_t scc, const size_t color) {
         sccColor[scc] = color;
     }
 
     /** Fill all SCCs to the given color. */
-    void fillColors(const unsigned int color) {
+    void fillColors(const size_t color) {
         std::fill(sccColor.begin(), sccColor.end(), color);
     }
 
     /** Check if a given SCC has a predecessor of the specified color. */
-    const bool hasPredecessorOfColor(int scc, const unsigned int color) {
+    const bool hasPredecessorOfColor(size_t scc, const size_t color) {
         for (auto pred : getPredecessorSCCs(scc))
             if (getColor(pred) == color) return true;
         return false;
     }
 
     /** Check if a given SCC has a successor of the specified color. */
-    const bool hasSuccessorOfColor(int scc, const unsigned int color) {
+    const bool hasSuccessorOfColor(size_t scc, const size_t color) {
         for (auto succ : getSuccessorSCCs(scc))
             if (getColor(succ) == color) return true;
         return false;
     }
 
     /** Get all successor SCCs of a specified scc. */
-    const std::set<int>& getSuccessorSCCs(int scc) {
+    const std::set<size_t>& getSuccessorSCCs(size_t scc) {
         return succSCC[scc];
     }
 
     /** Get all predecessor SCCs of a specified scc. */
-    const std::set<int>& getPredecessorSCCs(int scc) {
+    const std::set<size_t>& getPredecessorSCCs(size_t scc) {
         return predSCC[scc];
     }
 
-    const std::set<const AstRelation*> getRelationsForSCC(int scc) {
+    const std::set<const AstRelation*> getRelationsForSCC(size_t scc) {
         return SCC[scc];
     }
 
