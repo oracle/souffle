@@ -186,27 +186,51 @@ class HyperGraph : public Graph<size_t> {
 
     public:
 
-        const Table<Node>& vertexTable() { return this->table; }
+        const Table<Node>& vertexTable() {
+            return this->table;
+        }
 
         void insertVertex(const size_t vertex) {
             Graph<size_t>::insertVertex(vertex);
-            this->table.append(vertex);
+            this->table.set(vertex);
         }
 
         void insertVertex(const size_t vertex, const Node& object) {
             Graph<size_t>::insertVertex(vertex);
-            this->table.append(vertex, object);
+            this->table.setIndex(object, vertex);
         }
 
         template <template <typename...> class T>
         void insertVertex(const size_t vertex, const T<Node>& objects) {
             Graph<size_t>::insertVertex(vertex);
-            this->table.append(vertex, objects);
+            this->table.set(vertex, objects);
         }
 
         void removeVertex(const size_t vertex) {
             Graph<size_t>::removeVertex(vertex);
             this->table.remove(vertex);
+        }
+
+        void appendToVertex(const size_t vertex, const Node& object) {
+            if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
+            this->table.append(vertex, object);
+        }
+
+        template <template <typename...> class T>
+        void appendToVertex(const size_t vertex, const T<Node>& objects) {
+            if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
+            this->table.append(vertex, objects);
+        }
+
+        void prependToVertex(const size_t vertex, const Node& object) {
+            if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
+            this->table.prepend(vertex, object);
+        }
+
+        template <template <typename...> class T>
+        void prependToVertex(const size_t vertex, const T<Node>& objects) {
+            if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
+            this->table.prepend(vertex, objects);
         }
 
         void joinVertices(const size_t subjectVertex, const size_t deletedVertex) {
@@ -268,12 +292,13 @@ private:
             return;
 
         Node v;
+        size_t s = sccGraph.vertexCount();
+        sccGraph.insertVertex(s);
         do {
             v = S.top();
             S.pop();
-            sccGraph.insertVertex(sccGraph.vertexCount(), v);
+            sccGraph.appendToVertex(s, v);
         } while(v != w);
-
     }
 
 
@@ -302,64 +327,3 @@ public:
 
 
 }  // end of namespace souffle
-
-
-/*
-
-
-        private:
-            index::CollectionIndexTable<Node, Container> indices;
-
-        public:
-                  const bool isRecursive(const size_t vertex) const {
-
-                        const Container<Node>& objects = objectsForVertex(vertex);
-                        if (objects.size() == 1) {
-                            const Node& representative = *objects.begin();
-                            for (const size_t predecessor : this->getPredecessors(vertex))
-                                for (const Node& inner : objectsForVertex(predecessor))
-                                    if (inner == representative)
-                                        return true;
-                        }
-                        return false;
-                    }
-
-                    const bool isRecursive(const Node& object) const {
-                        return isRecursive(vertexForObject(object));
-                    }
-
-
-            IndexGraph() : Graph<size_t>() {}
-
-            IndexGraph(const Graph<Node, Compare>& graph) : Graph<size_t>() {
-                size_t index = 0;
-                for (const Node& vertex : graph.allVertices()) {
-                    this->insertVertex(index, vertex);
-                    ++index;
-                }
-                for (const Node& vertex : graph.allVertices()) {
-                    index = this->vertexForObject(vertex);
-                    for (const Node& successor : graph.getSuccessors(vertex)) {
-                        this->insertEdge(index, this->vertexForObject(successor));
-                    }
-                }
-            }
-
-            template<typename OtherNode, template <typename...> typename OtherContainer, typename OtherCompare = std::less<OtherNode>>
-            static IndexGraph<Node, Container, Compare> toIndexGraph(IndexGraph<OtherNode, OtherContainer, OtherCompare> oldGraph) {
-                IndexGraph<Node, Container, Compare> newGraph = IndexGraph<Node, Container, Compare>();
-                for (const size_t vertex : oldGraph.allVertices()) {
-                    newGraph.insertVertex(vertex, vertex);
-                }
-                int index;
-                for (const size_t vertex : oldGraph.allVertices()) {
-                    index = newGraph.vertexForObject(vertex);
-                    for (const size_t successor : oldGraph.getSuccessors(vertex)) {
-                        newGraph.insertEdge(index, newGraph.vertexForObject(successor));
-                    }
-                }
-                return newGraph;
-            }
-
-
-*/

@@ -96,7 +96,7 @@ public:
     }
 
     /* Set the collection of objects for the given index. */
-    virtual void set(const size_t index, const Container<Object>& objects) {
+    virtual void set(const size_t index, const Container<Object>& objects = Container<Object>()) {
         assert(index <= indexToObject.size());
         if (index == indexToObject.size())
             indexToObject.push_back(objects);
@@ -148,7 +148,7 @@ class CollectionIndexTable : public ObjectToIndex<Object>, public IndexToObjects
 public:
 
     /** Set the index for the given object. */
-    void setIndex(const Object& object, const size_t index) const {
+    void setIndex(const Object& object, const size_t index) {
          if (this->hasIndex(index)) {
             const Container<Object> objects = this->get(index);
             for (const Object& object : objects) ObjectToIndex<Object>::removeIndex(object);
@@ -158,7 +158,7 @@ public:
     }
 
     /** Set the collection of objects for the given index. */
-    void set(const size_t index, const Container<Object>& objects) const {
+    void set(const size_t index, const Container<Object>& objects = Container<Object>()) {
         for (const Object& object : objects)
             ObjectToIndex<Object>::setIndex(object, index);
         IndexToObjects<Object, Container>::set(index, objects);
