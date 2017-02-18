@@ -152,41 +152,6 @@ bool RecursiveClauses::computeIsRecursive(
     return false;
 }
 
-
-
-
-/* Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
- * Java by Robert Sedgewick / Part 5 / Graph *  algorithms). The algorithm has linear
- * runtime. */
-void SCCGraph::scR(const AstRelation* w, std::map<const AstRelation*, int>& preOrder, size_t& counter,
-        std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, size_t& numSCCs) {
-    preOrder[w] = counter++;
-    S.push(w);
-    P.push(w);
-    for (const AstRelation* t : precedenceGraph->getPredecessors(w)) {
-        if (preOrder[t] == -1) {
-            scR(t, preOrder, counter, S, P, numSCCs);
-        } else if (nodeToSCC[t] == -1) {
-            while (preOrder[P.top()] > preOrder[t]) {
-                P.pop();
-            }
-        }
-    }
-    if (P.top() == w) {
-        P.pop();
-    } else
-        return;
-
-    const AstRelation* v;
-    do {
-        v = S.top();
-        S.pop();
-        nodeToSCC[v] = numSCCs;
-    } while (v != w);
-    numSCCs++;
-}
-
-
 void SCCGraph::outputSCCGraph(std::ostream& os) {
         bool first = true;
         os << "digraph {";
