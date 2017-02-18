@@ -621,8 +621,8 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(
         for (size_t pos = 0; pos < atom->argSize(); ++pos) {
             if (AstConstant* c = dynamic_cast<AstConstant*>(atom->getArgument(pos))) {
                 op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
-                        std::unique_ptr<RamValue>(
-                                new RamElementAccess(level, pos, getRelation(atom).getArg(pos))),
+                        std::unique_ptr<RamValue>(new RamElementAccess(
+                                level, pos, getRelation(atom).getArg(pos))),
                         std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
             }
         }
@@ -653,14 +653,14 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(
             for (size_t pos = 0; pos < atom->argSize(); ++pos) {
                 if (AstConstant* c = dynamic_cast<AstConstant*>(atom->getArgument(pos))) {
                     op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
-                            std::unique_ptr<RamValue>(
-                                    new RamElementAccess(level, pos, getRelation(atom).getArg(pos))),
+                            std::unique_ptr<RamValue>(new RamElementAccess(
+                                    level, pos, getRelation(atom).getArg(pos))),
                             std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
                 } else if (AstAggregator* agg = dynamic_cast<AstAggregator*>(atom->getArgument(pos))) {
                     auto loc = valueIndex.getAggregatorLocation(*agg);
-                    op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
-                            std::unique_ptr<RamValue>(
-                                    new RamElementAccess(level, pos, getRelation(atom).getArg(pos))),
+                    op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(
+                            BinaryRelOp::EQ, std::unique_ptr<RamValue>(new RamElementAccess(
+                                                     level, pos, getRelation(atom).getArg(pos))),
                             std::unique_ptr<RamValue>(
                                     new RamElementAccess(loc.level, loc.component, loc.name)))));
                 }
@@ -694,9 +694,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(
         // all other appearances
         for (const Location& loc : cur.second) {
             if (first != loc) {
-                op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
-                        std::unique_ptr<RamValue>(
-                                new RamElementAccess(first.level, first.component, first.name)),
+                op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(
+                        BinaryRelOp::EQ, std::unique_ptr<RamValue>(new RamElementAccess(
+                                                 first.level, first.component, first.name)),
                         std::unique_ptr<RamValue>(
                                 new RamElementAccess(loc.level, loc.component, loc.name)))));
             }
@@ -879,10 +879,10 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
 
         /* create update statements for fixpoint (even iteration) */
         appendStmt(updateRelTable1,
-                std::unique_ptr<RamStatement>(
-                        new RamSequence(std::unique_ptr<RamStatement>(new RamMerge(rrel[rel], relNew[rel])),
-                                std::unique_ptr<RamStatement>(new RamSwap(relDelta[rel], relNew[rel])),
-                                std::unique_ptr<RamStatement>(new RamClear(relNew[rel])))));
+                std::unique_ptr<RamStatement>(new RamSequence(
+                        std::unique_ptr<RamStatement>(new RamMerge(rrel[rel], relNew[rel])),
+                        std::unique_ptr<RamStatement>(new RamSwap(relDelta[rel], relNew[rel])),
+                        std::unique_ptr<RamStatement>(new RamClear(relNew[rel])))));
 
         /* measure update time for each relation */
         if (logging) {

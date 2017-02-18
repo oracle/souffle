@@ -111,8 +111,8 @@ void ParserDriver::addIODirective(AstIODirective* d) {
         if (cur->getName() == d->getName() && cur->isInput() && d->isInput()) {
             Diagnostic err(Diagnostic::ERROR,
                     DiagnosticMessage(
-                            "Redefinition of input directives for relation " + toString(d->getName()),
-                            d->getSrcLoc()),
+                                   "Redefinition of input directives for relation " + toString(d->getName()),
+                                   d->getSrcLoc()),
                     {DiagnosticMessage("Previous definition", cur->getSrcLoc())});
             translationUnit->getErrorReport().addDiagnostic(err);
             return;
