@@ -104,7 +104,7 @@ public:
             return *reinterpret_cast<unsigned char*>(gptr());
         }
 
-        int charsPutBack = gptr() - eback();
+        unsigned charsPutBack = gptr() - eback();
         if (charsPutBack > reserveSize) {
             charsPutBack = reserveSize;
         }
