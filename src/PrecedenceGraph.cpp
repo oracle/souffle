@@ -153,70 +153,7 @@ bool RecursiveClauses::computeIsRecursive(
 }
 
 
-void SCCGraph::run(const AstTranslationUnit& translationUnit) {
-    precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>();
 
-    // TODO
-    sccGraph = GraphTransform::toSCCGraph<index::SetTable>(precedenceGraph->getGraph());
-
-    SCC.clear();
-    nodeToSCC.clear();
-    predSCC.clear();
-    succSCC.clear();
-
-    // TODO
-    // std::vector<AstRelation*> listOfRelations = translationUnit.getProgram()->getRelations();
-    // const std::set<const AstRelation*, AstNameComparison> relations = std::set<const AstRelation*, AstNameComparison>(listOfRelations.begin(), listOfRelations.end());
-    const std::set<const AstRelation*, AstNameComparison> relations = precedenceGraph->getGraph().allVertices();
-
-    size_t counter = 0;
-    size_t numSCCs = 0;
-    std::stack<const AstRelation *> S, P;
-    std::map<const AstRelation*, int> preOrder;  // Pre-order number of a node (for Gabow's Algo)
-    for (const AstRelation* relation : relations) {
-        nodeToSCC[relation] = preOrder[relation] = -1;
-    }
-    for (const AstRelation* relation : relations) {
-        if (preOrder[relation] == -1) {
-            scR(relation, preOrder, counter, S, P, numSCCs);
-        }
-    }
-
-    /* Build SCC graph */
-    succSCC.resize(numSCCs);
-    predSCC.resize(numSCCs);
-    for (const AstRelation* u : relations) {
-        for (const AstRelation* v : precedenceGraph->getPredecessors(u)) {
-            int scc_u = nodeToSCC[u];
-            int scc_v = nodeToSCC[v];
-            ASSERT(scc_u >= 0 && scc_u < numSCCs && "Wrong range");
-            ASSERT(scc_v >= 0 && scc_v < numSCCs && "Wrong range");
-            if (scc_u != scc_v) {
-                predSCC[scc_u].insert(scc_v);
-                succSCC[scc_v].insert(scc_u);
-            }
-        }
-    }
-
-    /* Store the relations for each SCC */
-    SCC.resize(numSCCs);
-    for (const AstRelation* relation : relations) {
-        SCC[nodeToSCC[relation]].insert(relation);
-    }
-
-    /* Set the starting color for all SCCs. */
-    sccColor.resize(getNumSCCs());
-    // default color is black
-    std::fill(sccColor.begin(), sccColor.end(), 0);
-
-    // TODO
-    // std::cerr << std::endl;
-    // outputSCCGraph(std::cerr);
-    // std::cerr << std::endl;
-    // sccGraph.print(std::cerr);
-    // std::cerr << std::endl;
-
-}
 
 /* Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
  * Java by Robert Sedgewick / Part 5 / Graph *  algorithms). The algorithm has linear

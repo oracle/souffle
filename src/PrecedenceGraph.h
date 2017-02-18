@@ -110,29 +110,23 @@ private:
     // TODO
     HyperGraph<index::SetTable, const AstRelation*> sccGraph;
 
-    /** Map from node number to SCC number */
-    std::map<const AstRelation*, int> nodeToSCC;
-
     /** List of colors of SCC nodes, default is black. */
     std::vector<size_t> sccColor;
 
-    /** Adjacency lists for the SCC graph */
-    std::vector<std::set<size_t>> succSCC;
-
-    /** Predecessor set for the SCC graph */
-    std::vector<std::set<size_t>> predSCC;
-
-    /** Relations contained in a SCC */
-    std::vector<std::set<const AstRelation*>> SCC;
-
-    /** Recursive scR method for computing SCC */
-    void scR(const AstRelation* relation, std::map<const AstRelation*, int>& preOrder, size_t& counter,
-            std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, size_t& numSCCs);
-
 public:
+
+    const HyperGraph<index::SetTable, const AstRelation*>& getGraph() {
+        return sccGraph;
+    }
+
     static constexpr const char* name = "scc-graph";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    virtual void run(const AstTranslationUnit& translationUnit) {
+        precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>();
+        sccGraph = GraphTransform::toSCCGraph<index::SetTable>(precedenceGraph->getGraph());
+        sccColor.resize(getNumSCCs());
+        std::fill(sccColor.begin(), sccColor.end(), 0);
+    }
 
     // TODO
     size_t getSCCForRelation(const AstRelation* relation) {
