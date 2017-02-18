@@ -250,25 +250,6 @@ void SCCGraph::scR(const AstRelation* w, std::map<const AstRelation*, int>& preO
 }
 
 
-void SCCGraph::outputSCCGraph(std::ostream& os) {
-        bool first = true;
-        os << "digraph {";
-        for (size_t scc = 0; scc < getNumSCCs(); ++scc) {
-            if (!first) os << ";\n";
-            os << scc << " [label=\"";
-            first = true;
-            for (const auto& inner : this->getRelationsForSCC(scc)) {
-                if (!first) os << ",";
-                os << inner;
-                first = false;
-            }
-            os << "\"]";
-            for (const auto& successor : getSuccessorSCCs(scc)) {
-                os << ";\n" << scc << " -> " << successor;
-            }
-        }
-        os << "}\n" << std::endl;
-}
 
 const int TopologicallySortedSCCGraph::topologicalOrderingCost(
         const std::vector<int>& permutationOfSCCs) const {
