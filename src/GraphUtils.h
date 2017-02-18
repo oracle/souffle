@@ -36,9 +36,9 @@ public:
     /**
      * Adds a new edge from the given node to the target node.
      */
-    void addEdge(const Node& from, const Node& to) {
-        addNode(from);
-        addNode(to);
+    void insertEdge(const Node& from, const Node& to) {
+        insertVertex(from);
+        insertVertex(to);
         forward[from].insert(to);
         backward[to].insert(from);
     }
@@ -46,7 +46,7 @@ public:
     /**
      * Adds a node.
      */
-    void addNode(const Node& node) {
+    void insertVertex(const Node& node) {
         auto iter = nodes.insert(node);
         if (iter.second) {
             forward.insert(std::make_pair(node, std::set<Node, Compare>()));
@@ -55,23 +55,23 @@ public:
     }
 
     /** Obtains a reference to the set of all nodes */
-    const std::set<Node, Compare>& getNodes() const {
+    const std::set<Node, Compare>& allNodes() const {
         return nodes;
     }
 
     /** Returns the set of nodes the given node has edges to */
-    const std::set<Node, Compare>& getEdges(const Node& from) {
-        assert(contains(from));
+    const std::set<Node, Compare>& getSuccessors(const Node& from) {
+        assert(hasVertex(from));
         return forward.find(from)->second;
     }
 
     /** Determines whether the given node is present */
-    bool contains(const Node& node) const {
+    bool hasVertex(const Node& node) const {
         return nodes.find(node) != nodes.end();
     }
 
     /** Determines whether the given edge is present */
-    bool contains(const Node& from, const Node& to) const {
+    bool hasEdge(const Node& from, const Node& to) const {
         auto pos = forward.find(from);
         if (pos == forward.end()) return false;
         auto p2 = pos->second.find(to);
@@ -79,9 +79,9 @@ public:
     }
 
     /** Determines whether there is a directed path between the two nodes */
-    bool reaches(const Node& from, const Node& to) const {
+    bool hasPath(const Node& from, const Node& to) const {
         // quick check
-        if (!contains(from) || !contains(to)) return false;
+        if (!hasVertex(from) || !hasVertex(to)) return false;
 
         // conduct a depth-first search starting at from
         bool found = false;
@@ -97,8 +97,8 @@ public:
     std::set<Node, Compare> getClique(const Node& node) const {
         std::set<Node, Compare> res;
         res.insert(node);
-        for (const auto& cur : getNodes()) {
-            if (reaches(node, cur) && reaches(cur, node)) res.insert(cur);
+        for (const auto& cur : allNodes()) {
+            if (hasPath(node, cur) && hasPath(cur, node)) res.insert(cur);
         }
         return res;
     }
@@ -116,7 +116,7 @@ public:
         out << "{";
         for (const auto& cur : forward) {
             for (const auto& trg : cur.second) {
-                if (!first) out << ",";
+                if (!first) out << ";";
                 out << cur.first << "->" << trg;
                 first = false;
             }

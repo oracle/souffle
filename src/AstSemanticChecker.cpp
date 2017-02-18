@@ -242,8 +242,8 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
 
     // check for cyclic dependencies
     const AstRelationGraph& depGraph = precedenceGraph.getGraph();
-    for (const AstRelation* cur : depGraph.getNodes()) {
-        if (depGraph.reaches(cur, cur)) {
+    for (const AstRelation* cur : depGraph.allVertices()) {
+        if (depGraph.hasPath(cur, cur)) {
             AstRelationSet clique = depGraph.getClique(cur);
             for (const AstRelation* cyclicRelation : clique) {
                 // Negations and aggregations need to be stratified
