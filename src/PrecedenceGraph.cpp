@@ -152,7 +152,6 @@ bool RecursiveClauses::computeIsRecursive(
     return false;
 }
 
-
 const int TopologicallySortedSCCGraph::topologicalOrderingCost(
         const std::vector<int>& permutationOfSCCs) const {
     // create variables to hold the cost of the current SCC and the permutation as a whole

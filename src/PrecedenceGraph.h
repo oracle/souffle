@@ -104,13 +104,13 @@ public:
  * Analysis pass computing the strongly connected component (SCC) graph for the datalog program.
  */
 class SCCGraph : public AstAnalysis {
+
 private:
     PrecedenceGraph* precedenceGraph;
 
-    // TODO
     HyperGraph<index::SetTable, const AstRelation*> sccGraph;
-    std::vector<size_t> sccColor;
 
+    std::vector<size_t> sccColor;
 
    /*
     * Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
@@ -165,6 +165,7 @@ private:
                         sccGraph.insertEdge(sccGraph.vertexTable().getIndex(vertex), sccGraph.vertexTable().getIndex(predecessor));
             return sccGraph;
     }
+
 public:
 
      const HyperGraph<index::SetTable, const AstRelation*>& getGraph() {
@@ -180,33 +181,28 @@ public:
         std::fill(sccColor.begin(), sccColor.end(), 0);
     }
 
-    // TODO
     size_t getSCCForRelation(const AstRelation* relation) {
         return sccGraph.vertexTable().getIndex(relation);
         // return nodeToSCC[relation];
     }
 
-    // TODO
     /** Get all successor SCCs of a specified scc. */
     const std::set<size_t>& getSuccessorSCCs(size_t scc) {
         return sccGraph.getSuccessors(scc);
         // return succSCC[scc];
     }
 
-    // TODO
     /** Get all predecessor SCCs of a specified scc. */
     const std::set<size_t>& getPredecessorSCCs(size_t scc) {
         return sccGraph.getPredecessors(scc);
         // return predSCC[scc];
     }
 
-    // TODO
     const std::set<const AstRelation*> getRelationsForSCC(size_t scc) {
         return sccGraph.vertexTable().get(scc);
         // return SCC[scc];
     }
 
-    // TODO
     /** Return the number of strongly connected components in the SCC graph */
     size_t getNumSCCs() {
         return sccGraph.vertexCount();
@@ -227,7 +223,6 @@ public:
     bool isRecursive(const AstRelation* relation) {
         return isRecursive(getSCCForRelation(relation));
     }
-
 
     /** Get the color of an SCC. */
     const size_t getColor(const size_t scc) {
@@ -263,6 +258,7 @@ public:
     void outputSCCGraph(std::ostream& os) {
         getGraph().print(os);
     }
+
 };
 
 ///**
@@ -272,10 +268,10 @@ public:
 //private:
 //    /** The strongly connected component (SCC) graph. */
 //    SCCGraph* sccGraph;
-//
+
 //    /** The topological ordering of the SCCs. */
 //    std::vector<size_t> orderedSCCs;
-//
+
 //    /** The cost of the topological ordering. */
 //    template <template <typename> class Table, typename Node>
 //    const int orderCost(HyperGraph<Table, Node> graph,
@@ -306,12 +302,12 @@ public:
 //        }
 //        return costOfPermutation;
 //    }
-//
+
 //    /** Pre-process the SCC graph; recursively contract roots, contract leaves, and smooth vertices of out
 //     * degree 1.  */
 //    HyperGraph<index::SeqTable, size_t> preProcessGraph(HyperGraph<index::SetTable, const AstRelation*> originalGraph) const {
 //        HyperGraph<index::SeqTable, size_t> indexGraph = HyperGraph<index::SeqTable, size_t>::toHyperGraph(originalGraph);
-//
+
 //        bool flag = true;
 //        int in, out, non = -1;
 //        while (flag) {
@@ -340,27 +336,27 @@ public:
 //                }
 //            }
 //        }
-//
+
 //        return indexGraph;
-//
+
 //    }
-//
+
 //public:
 //    static constexpr const char* name = "topological-scc-graph";
-//
+
 //    virtual void run(const AstTranslationUnit& translationUnit) {
 //        sccGraph = translationUnit.getAnalysis<SCCGraph>();
 //        orderedSCCs = GraphOrder::innerOrder(preProcessGraph(sccGraph->getGraph()), &GraphSearch::khansAlgorithm);
 //    }
-//
+
 //    SCCGraph* getSCCGraph() const {
 //        return sccGraph;
 //    }
-//
+
 //    const std::vector<size_t>& getSCCOrder() const {
 //        return orderedSCCs;
 //    }
-//
+
 //    /** Output topologically sorted strongly connected component graph in text format */
 //    void outputTopologicallySortedSCCGraph(std::ostream& os) const {
 //        for (size_t i = 0; i < orderedSCCs.size(); i++)
