@@ -157,7 +157,7 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
     precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>();
 
     // TODO
-    sccGraph = GraphTransform::toSCCGraph<index::SetTable>(precedenceGraph->getGraph());
+    sccGraph = toSCCGraph<index::SetTable>(precedenceGraph->getGraph());
 
     SCC.clear();
     nodeToSCC.clear();
