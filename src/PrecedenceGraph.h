@@ -51,8 +51,8 @@ public:
     void outputPrecedenceGraph(std::ostream& os);
 
     const AstRelationSet& getPredecessors(const AstRelation* relation) {
-        assert(precedenceGraph.contains(relation) && "Relation not present in precedence graph!");
-        return precedenceGraph.getEdges(relation);
+        assert(precedenceGraph.hasVertex(relation) && "Relation not present in precedence graph!");
+        return precedenceGraph.getSuccessors(relation);
     }
 
     const AstRelationGraph getGraph() const {

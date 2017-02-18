@@ -32,7 +32,7 @@ void PrecedenceGraph::run(const AstTranslationUnit& translationUnit) {
     std::vector<AstRelation*> relations = translationUnit.getProgram()->getRelations();
 
     for (AstRelation* r : relations) {
-        precedenceGraph.addNode(r);
+        precedenceGraph.insertVertex(r);
         for (size_t i = 0; i < r->clauseSize(); i++) {
             AstClause* c = r->getClause(i);
             const std::set<const AstRelation*>& dependencies =
@@ -40,7 +40,7 @@ void PrecedenceGraph::run(const AstTranslationUnit& translationUnit) {
             for (std::set<const AstRelation*>::const_iterator irs = dependencies.begin();
                     irs != dependencies.end(); ++irs) {
                 const AstRelation* source = (*irs);
-                precedenceGraph.addEdge(r, source);
+                precedenceGraph.insertEdge(r, source);
             }
         }
     }
@@ -50,12 +50,12 @@ void PrecedenceGraph::outputPrecedenceGraph(std::ostream& os) {
     /* Print dependency graph */
     os << "digraph \"dependence-graph\" {\n";
     /* Print node of dependence graph */
-    for (const AstRelation* rel : precedenceGraph.getNodes())
+    for (const AstRelation* rel : precedenceGraph.allVertices())
         if (rel) os << "\t\"" << rel->getName() << "\" [label = \"" << rel->getName() << "\"];\n";
 
-    for (const AstRelation* rel : precedenceGraph.getNodes())
+    for (const AstRelation* rel : precedenceGraph.allVertices())
         if (rel)
-            for (const AstRelation* adjRel : precedenceGraph.getEdges(rel))
+            for (const AstRelation* adjRel : precedenceGraph.getSuccessors(rel))
                 if (adjRel) os << "\t\"" << adjRel->getName() << "\" -> \"" << rel->getName() << "\";\n";
 
     os << "}\n";

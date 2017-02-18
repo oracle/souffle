@@ -55,7 +55,7 @@ public:
     }
 
     /** Obtains a reference to the set of all nodes */
-    const std::set<Node, Compare>& allNodes() const {
+    const std::set<Node, Compare>& allVertices() const {
         return nodes;
     }
 
@@ -97,7 +97,7 @@ public:
     std::set<Node, Compare> getClique(const Node& node) const {
         std::set<Node, Compare> res;
         res.insert(node);
-        for (const auto& cur : allNodes()) {
+        for (const auto& cur : allVertices()) {
             if (hasPath(node, cur) && hasPath(cur, node)) res.insert(cur);
         }
         return res;
@@ -113,15 +113,15 @@ public:
     /** Enables graphs to be printed (e.g. for debugging) */
     void print(std::ostream& out) const {
         bool first = true;
-        out << "{";
+        out << "digraph {";
         for (const auto& cur : forward) {
             for (const auto& trg : cur.second) {
                 if (!first) out << ";";
-                out << cur.first << "->" << trg;
+                out << "\"" << cur.first << "\"" << "->" << "\"" << trg << "\"";
                 first = false;
             }
         }
-        out << "}";
+        out << "}" << std::endl;
     }
 
     friend std::ostream& operator<<(std::ostream& out, const Graph& g) {
