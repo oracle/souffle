@@ -213,13 +213,10 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
 
         RamDomain visitTernaryOperator(const RamTernaryOperator& op) {
             switch (op.getOperator()) {
-                // arithmetic
                 case TernaryOp::SUBSTR: {
                     auto idx = visit(op.getArg(0));
-                    std::cout << "i: " << idx << "\n";
                     std::string str = env.getSymbolTable().resolve(idx);
                     std::string sub_str = str.substr(visit(op.getArg(1)),visit(op.getArg(2)));
-                    std::cout << "s: " << str << " ss: " << sub_str << "\n";
                     return env.getSymbolTable().lookup(sub_str.c_str());
                 }
                 default:
@@ -1716,79 +1713,6 @@ public:
         out << "(ctr++)";
     }
 
-    void visitBinaryOperator(const RamBinaryOperator& op, std::ostream& out) {
-        switch (op.getOperator()) {
-            // arithmetic
-            case BinaryOp::ADD: {
-                out << "(" << print(op.getLHS()) << ") + (" << print(op.getRHS()) << ")";
-                break;
-            }
-            case BinaryOp::SUB: {
-                out << "(" << print(op.getLHS()) << ") - (" << print(op.getRHS()) << ")";
-                break;
-            }
-            case BinaryOp::MUL: {
-                out << "(" << print(op.getLHS()) << ") * (" << print(op.getRHS()) << ")";
-                break;
-            }
-            case BinaryOp::DIV: {
-                out << "(" << print(op.getLHS()) << ") / (" << print(op.getRHS()) << ")";
-                break;
-            }
-            case BinaryOp::EXP: {
-                out << "(AstDomain)(std::pow((AstDomain)" << print(op.getLHS()) << ","
-                    << "(AstDomain)" << print(op.getRHS()) << "))";
-                break;
-            }
-            case BinaryOp::MOD: {
-                out << "(" << print(op.getLHS()) << ") % (" << print(op.getRHS()) << ")";
-                break;
-            }
-            case BinaryOp::BAND: {
-                out << "(" << print(op.getLHS()) << ") & (" << print(op.getRHS()) << ")";
-                break;
-            }
-            case BinaryOp::BOR: {
-                out << "(" << print(op.getLHS()) << ") | (" << print(op.getRHS()) << ")";
-                break;
-            }
-            case BinaryOp::BXOR: {
-                out << "(" << print(op.getLHS()) << ") ^ (" << print(op.getRHS()) << ")";
-                break;
-            }
-            case BinaryOp::LAND: {
-                out << "(" << print(op.getLHS()) << ") && (" << print(op.getRHS()) << ")";
-                break;
-            }
-            case BinaryOp::LOR: {
-                out << "(" << print(op.getLHS()) << ") || (" << print(op.getRHS()) << ")";
-                break;
-            }
-
-            // strings
-            case BinaryOp::CAT: {
-                out << "(RamDomain)symTable.lookup(";
-                out << "(std::string(symTable.resolve((size_t)";
-                out << print(op.getLHS());
-                out << ")) + std::string(symTable.resolve((size_t)";
-                out << print(op.getRHS());
-                out << "))).c_str())";
-                break;
-            }
-            default:
-                assert(0 && "Unsupported Operation!");
-        }
-    }
-
-    // -- records --
-
-    void visitPack(const RamPack& pack, std::ostream& out) {
-        out << "pack("
-            << "ram::Tuple<RamDomain," << pack.getValues().size() << ">({" << join(pack.getValues(), ",", rec)
-            << "})"
-            << ")";
-    }
-
     void visitUnaryOperator(const RamUnaryOperator& op, std::ostream& out) {
         switch (op.getOperator()) {
             case UnaryOp::ORD:
@@ -1853,6 +1777,97 @@ public:
                 break;
         }
     }
+
+    void visitBinaryOperator(const RamBinaryOperator& op, std::ostream& out) {
+        switch (op.getOperator()) {
+            // arithmetic
+            case BinaryOp::ADD: {
+                out << "(" << print(op.getLHS()) << ") + (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::SUB: {
+                out << "(" << print(op.getLHS()) << ") - (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::MUL: {
+                out << "(" << print(op.getLHS()) << ") * (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::DIV: {
+                out << "(" << print(op.getLHS()) << ") / (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::EXP: {
+                out << "(AstDomain)(std::pow((AstDomain)" << print(op.getLHS()) << ","
+                    << "(AstDomain)" << print(op.getRHS()) << "))";
+                break;
+            }
+            case BinaryOp::MOD: {
+                out << "(" << print(op.getLHS()) << ") % (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::BAND: {
+                out << "(" << print(op.getLHS()) << ") & (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::BOR: {
+                out << "(" << print(op.getLHS()) << ") | (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::BXOR: {
+                out << "(" << print(op.getLHS()) << ") ^ (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::LAND: {
+                out << "(" << print(op.getLHS()) << ") && (" << print(op.getRHS()) << ")";
+                break;
+            }
+            case BinaryOp::LOR: {
+                out << "(" << print(op.getLHS()) << ") || (" << print(op.getRHS()) << ")";
+                break;
+            }
+
+            // strings
+            case BinaryOp::CAT: {
+                out << "(RamDomain)symTable.lookup(";
+                out << "(std::string(symTable.resolve((size_t)";
+                out << print(op.getLHS());
+                out << ")) + std::string(symTable.resolve((size_t)";
+                out << print(op.getRHS());
+                out << "))).c_str())";
+                break;
+            }
+            default:
+                assert(0 && "Unsupported Operation!");
+        }
+    }
+
+    void visitTernaryOperator(const RamTernaryOperator& op, std::ostream& out) {
+        switch (op.getOperator()) {
+            case TernaryOp::SUBSTR:
+                out << "(RamDomain)symTable.lookup(";
+                out << "(std::string(symTable.resolve((size_t)";
+                out << print(op.getArg(0));
+                out << ")).substr((";
+                out << print(op.getArg(1));
+                out << "),(";
+                out << print(op.getArg(2));
+                out << ")).c_str()))";
+                break;
+            default:
+                assert(0 && "Unsupported Operation!");
+        }
+    } 
+
+    // -- records --
+
+    void visitPack(const RamPack& pack, std::ostream& out) {
+        out << "pack("
+            << "ram::Tuple<RamDomain," << pack.getValues().size() << ">({" << join(pack.getValues(), ",", rec)
+            << "})"
+            << ")";
+    }
+
 
     // -- safety net --
 

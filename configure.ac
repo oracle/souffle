@@ -19,6 +19,7 @@ AM_INIT_AUTOMAKE([foreign subdir-objects 1.9 tar-pax])
 AM_MAINTAINER_MODE
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIRS([m4])
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_ARG_ENABLE([java],
 [  --enable-java    Turn on java interface],

@@ -159,7 +159,7 @@ public:
                        std::unique_ptr<RamValue> a0, 
                        std::unique_ptr<RamValue> a1,
                        std::unique_ptr<RamValue> a2)
-            : RamValue(RN_BinaryOperator, a0->isConstant() && a1->isConstant() && a2->isConstant()), 
+            : RamValue(RN_TernaryOperator, a0->isConstant() && a1->isConstant() && a2->isConstant()), 
               op(op), 
               arg({{std::move(a0), std::move(a1), std::move(a2)}}) {
     }
