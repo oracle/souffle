@@ -198,6 +198,13 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
     sccColor.resize(getNumSCCs());
     // default color is black
     std::fill(sccColor.begin(), sccColor.end(), 0);
+
+    // TODO
+    std::cerr << "=== OLD ===" << std::endl;
+    outputSCCGraph(std::cerr);
+    std::cerr << "=== NEW ===" << std::endl;
+    GraphTransform::toSCCGraph<index::SetTable, const AstRelation*>(precedenceGraph->getGraph()).print(std::cerr);
+    std::cerr << std::endl;
 }
 
 /* Compute strongly connected components using Gabow's algorithm (cf. Algorithms in

@@ -19,6 +19,9 @@
 #include <map>
 #include <ostream>
 #include <set>
+#include <stack>
+
+#include "IndexUtils.h"
 
 namespace souffle {
 
@@ -133,6 +136,12 @@ public:
         return clique;
     }
 
+    virtual void joinVertices(const Node& subjectVertex, const Node& deletedVertex) {
+        insertSuccessors(subjectVertex, getSuccessors(deletedVertex));
+        insertPredecessors(subjectVertex, getPredecessors(deletedVertex));
+        removeVertex(deletedVertex);
+    }
+
     template <typename Lambda>
     void visitDepthFirst(const Node& vertex, const Lambda lambda) const {
         std::set<Node, Compare> visited;
@@ -168,4 +177,189 @@ private:
     }
 };
 
+template <template <typename> class Table, typename Node>
+class HyperGraph : public Graph<size_t> {
+
+    private:
+
+        Table<Node> table;
+
+    public:
+
+        const Table<Node>& vertexTable() { return this->table; }
+
+        void insertVertex(const size_t vertex) {
+            Graph<size_t>::insertVertex(vertex);
+            this->table.append(vertex);
+        }
+
+        void insertVertex(const size_t vertex, const Node& object) {
+            Graph<size_t>::insertVertex(vertex);
+            this->table.append(vertex, object);
+        }
+
+        template <template <typename...> class T>
+        void insertVertex(const size_t vertex, const T<Node>& objects) {
+            Graph<size_t>::insertVertex(vertex);
+            this->table.append(vertex, objects);
+        }
+
+        void removeVertex(const size_t vertex) {
+            Graph<size_t>::removeVertex(vertex);
+            this->table.remove(vertex);
+        }
+
+        void joinVertices(const size_t subjectVertex, const size_t deletedVertex) {
+            if (hasEdge(deletedVertex, subjectVertex))
+                this->table.moveAppend(deletedVertex, subjectVertex);
+            else
+                this->table.movePrepend(deletedVertex, subjectVertex);
+            Graph<size_t>::joinVertices(subjectVertex, deletedVertex);
+        }
+
+        virtual void print(std::ostream& os) const {
+            bool first = true;
+            os << "digraph {";
+            for (const auto& iter : this->successors) {
+                if (!first) os << ";";
+                os << iter.first << "[label=\"";
+                first = true;
+                for (const auto& inner : this->table.get(iter.first)) {
+                    if (!first) os << ",";
+                    os << inner;
+                    first = false;
+                }
+                os << "\"]";
+                for (const auto& successor : iter.second) {
+                    os << ";" << iter.first << "->" << successor;
+                }
+            }
+            os << "}" << std::endl;
+        }
+};
+
+class GraphTransform {
+
+private:
+
+   /*
+    * Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
+    * Java by Robert Sedgewick / Part 5 / Graph *  algorithms). The algorithm has linear
+    * runtime.
+    */
+    template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
+    static void toSCCGraph(const Graph<Node, Compare>& graph, HyperGraph<Table, Node>& sccGraph, const Node& w, std::map<Node, int>& preOrder, size_t& counter, std::stack<Node>& S, std::stack<Node>& P) {
+
+        preOrder[w] = counter++;
+
+        S.push(w);
+        P.push(w);
+
+        for(const Node& t : graph.getPredecessors(w))
+            if (preOrder[t] == -1)
+                toSCCGraph(graph, sccGraph, t, preOrder, counter, S, P);
+            else if (!sccGraph.vertexTable().has(t))
+                while (preOrder[P.top()] > preOrder[t])
+                    P.pop();
+
+        if (P.top() == w)
+            P.pop();
+        else
+            return;
+
+        Node v;
+        do {
+            v = S.top();
+            S.pop();
+            sccGraph.insertVertex(sccGraph.vertexCount(), v);
+        } while(v != w);
+
+    }
+
+
+public:
+
+    template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
+    static HyperGraph<Table, Node> toSCCGraph(const Graph<Node, Compare> graph) {
+            size_t counter = 0;
+            std::stack<Node> S, P;
+            std::map<Node, int> preOrder;
+            HyperGraph<Table, Node> sccGraph = HyperGraph<Table, Node>();
+            for (const Node& vertex : graph.allVertices())
+                   preOrder[vertex] = -1;
+            for (const Node& vertex : graph.allVertices())
+                if (preOrder[vertex]  == -1)
+                    toSCCGraph(graph, sccGraph, vertex, preOrder, counter, S, P);
+            for (const Node& vertex : graph.allVertices())
+                for (const Node& successor : graph.getSuccessors(vertex))
+                    if (vertex != successor)
+                        sccGraph.insertEdge(sccGraph.vertexTable().getIndex(vertex), sccGraph.vertexTable().getIndex(successor));
+            return sccGraph;
+    }
+
+};
+
+
+
 }  // end of namespace souffle
+
+
+/*
+
+
+        private:
+            index::CollectionIndexTable<Node, Container> indices;
+
+        public:
+                  const bool isRecursive(const size_t vertex) const {
+
+                        const Container<Node>& objects = objectsForVertex(vertex);
+                        if (objects.size() == 1) {
+                            const Node& representative = *objects.begin();
+                            for (const size_t predecessor : this->getPredecessors(vertex))
+                                for (const Node& inner : objectsForVertex(predecessor))
+                                    if (inner == representative)
+                                        return true;
+                        }
+                        return false;
+                    }
+
+                    const bool isRecursive(const Node& object) const {
+                        return isRecursive(vertexForObject(object));
+                    }
+
+
+            IndexGraph() : Graph<size_t>() {}
+
+            IndexGraph(const Graph<Node, Compare>& graph) : Graph<size_t>() {
+                size_t index = 0;
+                for (const Node& vertex : graph.allVertices()) {
+                    this->insertVertex(index, vertex);
+                    ++index;
+                }
+                for (const Node& vertex : graph.allVertices()) {
+                    index = this->vertexForObject(vertex);
+                    for (const Node& successor : graph.getSuccessors(vertex)) {
+                        this->insertEdge(index, this->vertexForObject(successor));
+                    }
+                }
+            }
+
+            template<typename OtherNode, template <typename...> typename OtherContainer, typename OtherCompare = std::less<OtherNode>>
+            static IndexGraph<Node, Container, Compare> toIndexGraph(IndexGraph<OtherNode, OtherContainer, OtherCompare> oldGraph) {
+                IndexGraph<Node, Container, Compare> newGraph = IndexGraph<Node, Container, Compare>();
+                for (const size_t vertex : oldGraph.allVertices()) {
+                    newGraph.insertVertex(vertex, vertex);
+                }
+                int index;
+                for (const size_t vertex : oldGraph.allVertices()) {
+                    index = newGraph.vertexForObject(vertex);
+                    for (const size_t successor : oldGraph.getSuccessors(vertex)) {
+                        newGraph.insertEdge(index, newGraph.vertexForObject(successor));
+                    }
+                }
+                return newGraph;
+            }
+
+
+*/

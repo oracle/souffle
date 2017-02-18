@@ -113,7 +113,8 @@ souffle_sources = \
               IODirectives.h                            \
               WriteStreamCSV.h      WriteStreamSQLite.h \
               IOSystem.h                                \
-              Global.cpp            Global.h
+              Global.cpp            Global.h            \
+              IndexUtils.h
 
 
 # -- build souffle as a library so it can be reused in testing

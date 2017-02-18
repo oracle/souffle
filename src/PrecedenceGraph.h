@@ -32,15 +32,13 @@
 
 namespace souffle {
 
-typedef Graph<const AstRelation*, AstNameComparison> AstRelationGraph;
-
 /**
  * Analysis pass computing the precedence graph of the relations of the datalog progam.
  */
 class PrecedenceGraph : public AstAnalysis {
 private:
     /** Adjacency list of precedence graph (determined by the dependencies of the relations) */
-    AstRelationGraph precedenceGraph;
+    Graph<const AstRelation*, AstNameComparison> precedenceGraph;
 
 public:
     static constexpr const char* name = "precedence-graph";
@@ -55,7 +53,7 @@ public:
         return precedenceGraph.getSuccessors(relation);
     }
 
-    const AstRelationGraph getGraph() const {
+    const Graph<const AstRelation*, AstNameComparison> getGraph() const {
         return precedenceGraph;
     }
 };
