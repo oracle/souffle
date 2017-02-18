@@ -195,7 +195,7 @@ class HyperGraph : public Graph<size_t> {
                 index++;
             }
             for (const size_t vertex : oldGraph.allVertices()) {
-                index = newGraph.vertexTable.getIndex(vertex);
+                index = newGraph.vertexTable().getIndex(vertex);
                 for (const size_t successor : oldGraph.getSuccessors(vertex)) {
                     newGraph.insertEdge(index, newGraph.vertexTable().getIndex(successor));
                 }
@@ -207,11 +207,11 @@ class HyperGraph : public Graph<size_t> {
         static HyperGraph<Table, Node> toHyperGraph(HyperGraph<OtherTable, OtherNode> oldGraph) {
             HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
             size_t index = 0;
-            for (const size_t vertex : oldGraph.allVertices()) {
-                newGraph.insertVertex(vertex, vertex);
+            for (; index < oldGraph.vertexCount(); ++index) {
+                newGraph.insertVertex(index, index);
             }
             for (const size_t vertex : oldGraph.allVertices()) {
-                index = newGraph.vertexTable.getIndex(vertex);
+                index = newGraph.vertexTable().getIndex(vertex);
                 for (const size_t successor : oldGraph.getSuccessors(vertex)) {
                     newGraph.insertEdge(index, newGraph.vertexTable().getIndex(successor));
                 }
