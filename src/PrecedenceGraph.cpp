@@ -161,7 +161,9 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
     succSCC.clear();
 
     /* Compute SCC */
-    std::vector<AstRelation*> relations = translationUnit.getProgram()->getRelations();
+    std::vector<AstRelation*> listOfRelations = translationUnit.getProgram()->getRelations();
+   std::set<AstRelation*, AstNameComparison> relations = std::set<AstRelation*, AstNameComparison>(listOfRelations.begin(), listOfRelations.end());
+
     size_t counter = 0;
     size_t numSCCs = 0;
     std::stack<const AstRelation *> S, P;
