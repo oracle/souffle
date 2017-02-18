@@ -107,6 +107,9 @@ class SCCGraph : public AstAnalysis {
 private:
     PrecedenceGraph* precedenceGraph;
 
+    // TODO
+    HyperGraph<index::SetTable, const AstRelation*> sccGraph;
+
     /** Map from node number to SCC number */
     std::map<const AstRelation*, int> nodeToSCC;
 
@@ -132,7 +135,31 @@ public:
     virtual void run(const AstTranslationUnit& translationUnit);
 
     size_t getSCCForRelation(const AstRelation* relation) {
+        // return sccGraph.vertexTable().getIndex(relation);
         return nodeToSCC[relation];
+    }
+
+    /** Get all successor SCCs of a specified scc. */
+    const std::set<size_t>& getSuccessorSCCs(size_t scc) {
+        // return sccGraph.getSuccessors(scc);
+        return succSCC[scc];
+    }
+
+    /** Get all predecessor SCCs of a specified scc. */
+    const std::set<size_t>& getPredecessorSCCs(size_t scc) {
+        // return sccGraph.getPredecessors(scc);
+        return predSCC[scc];
+    }
+
+    const std::set<const AstRelation*> getRelationsForSCC(size_t scc) {
+        // return sccGraph.vertexTable().get(scc);
+        return SCC[scc];
+    }
+
+    /** Return the number of strongly connected components in the SCC graph */
+    size_t getNumSCCs() {
+        // return sccGraph.vertexCount();
+        return succSCC.size();
     }
 
     bool isRecursive(size_t scc) {
@@ -150,10 +177,6 @@ public:
         return isRecursive(getSCCForRelation(relation));
     }
 
-    /** Return the number of strongly connected components in the SCC graph */
-    size_t getNumSCCs() {
-        return succSCC.size();
-    }
 
     /** Get the color of an SCC. */
     const size_t getColor(const size_t scc) {
@@ -184,19 +207,6 @@ public:
         return false;
     }
 
-    /** Get all successor SCCs of a specified scc. */
-    const std::set<size_t>& getSuccessorSCCs(size_t scc) {
-        return succSCC[scc];
-    }
-
-    /** Get all predecessor SCCs of a specified scc. */
-    const std::set<size_t>& getPredecessorSCCs(size_t scc) {
-        return predSCC[scc];
-    }
-
-    const std::set<const AstRelation*> getRelationsForSCC(size_t scc) {
-        return SCC[scc];
-    }
 
     /** Output strongly connected component graph in graphviz format */
     void outputSCCGraph(std::ostream& os);

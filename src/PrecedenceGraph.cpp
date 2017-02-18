@@ -155,14 +155,18 @@ bool RecursiveClauses::computeIsRecursive(
 
 void SCCGraph::run(const AstTranslationUnit& translationUnit) {
     precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>();
+
+    // TODO
+    sccGraph = GraphTransform::toSCCGraph<index::SetTable>(precedenceGraph->getGraph());
+
     SCC.clear();
     nodeToSCC.clear();
     predSCC.clear();
     succSCC.clear();
 
-    /* Compute SCC */
+    // TODO
     std::vector<AstRelation*> listOfRelations = translationUnit.getProgram()->getRelations();
-   std::set<AstRelation*, AstNameComparison> relations = std::set<AstRelation*, AstNameComparison>(listOfRelations.begin(), listOfRelations.end());
+    std::set<AstRelation*, AstNameComparison> relations = std::set<AstRelation*, AstNameComparison>(listOfRelations.begin(), listOfRelations.end());
 
     size_t counter = 0;
     size_t numSCCs = 0;
