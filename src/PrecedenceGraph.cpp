@@ -23,7 +23,9 @@
 #include "AstVisitor.h"
 
 #include <algorithm>
+#include <iostream>
 #include <set>
+
 
 namespace souffle {
 
@@ -151,15 +153,23 @@ bool RecursiveClauses::computeIsRecursive(
 }
 
 void SCCGraph::run(const AstTranslationUnit& translationUnit) {
+
     precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>();
+
+    // TODO
+    // sccGraph = GraphTransform::toSCCGraph<index::SetTable, const AstRelation*>(precedenceGraph->getGraph());
+
     SCC.clear();
     nodeToSCC.clear();
     predSCC.clear();
     succSCC.clear();
 
-    /* Compute SCC */
+    // TODO
     std::vector<AstRelation*> relations = translationUnit.getProgram()->getRelations();
-    unsigned int counter = 0;
+    // std::set<const AstRelation*, AstNameComparison> relations;
+    // relations.insert(relationsList.begin(), relationsList.end());
+
+    int counter = 0;
     int numSCCs = 0;
     std::stack<const AstRelation *> S, P;
     std::map<const AstRelation*, int> preOrder;  // Pre-order number of a node (for Gabow's Algo)
@@ -199,19 +209,13 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
     // default color is black
     std::fill(sccColor.begin(), sccColor.end(), 0);
 
-    // TODO
-    std::cerr << "=== OLD ===" << std::endl;
-    outputSCCGraph(std::cerr);
-    std::cerr << "=== NEW ===" << std::endl;
-    GraphTransform::toSCCGraph<index::SetTable, const AstRelation*>(precedenceGraph->getGraph()).print(std::cerr);
-    std::cerr << std::endl;
 }
 
 /* Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
  * Java by Robert Sedgewick / Part 5 / Graph *  algorithms). The algorithm has linear
  * runtime. */
-void SCCGraph::scR(const AstRelation* w, std::map<const AstRelation*, int>& preOrder, unsigned int& counter,
-        std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, int& numSCCs) {
+ void SCCGraph::scR(const AstRelation* w, std::map<const AstRelation*, int>& preOrder, int& counter,
+            std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, int numSCCs) {
     preOrder[w] = counter++;
     S.push(w);
     P.push(w);
@@ -239,24 +243,23 @@ void SCCGraph::scR(const AstRelation* w, std::map<const AstRelation*, int>& preO
 }
 
 void SCCGraph::outputSCCGraph(std::ostream& os) {
-    /* Print SCC graph */
-    os << "digraph \"scc-graph\" {\n";
-    /* Print nodes of SCC graph */
-    int numSCCs = getNumSCCs();
-    for (int scc = 0; scc < numSCCs; scc++) {
-        os << "\t snode" << scc << "[label = \"";
-        os << join(getRelationsForSCC(scc), ",\\n",
-                [](std::ostream& out, const AstRelation* rel) { out << rel->getName(); });
-        os << "\", color=\"#" << std::hex << std::setw(6) << std::setfill('0') << sccColor[scc] << "\" ];\n";
-    }
-
-    /* Print edges of SCC graph */
-    for (int scc = 0; scc < numSCCs; scc++) {
-        for (int successor : getSuccessorSCCs(scc)) {
-            os << "\tsnode" << scc << " -> snode" << successor << ";\n";
+        bool first = true;
+        os << "digraph {";
+        for (size_t scc = 0; scc < getNumSCCs(); ++scc) {
+            if (!first) os << ";\n";
+            os << scc << " [label=\"";
+            first = true;
+            for (const auto& inner : this->getRelationsForSCC(scc)) {
+                if (!first) os << ",";
+                os << inner;
+                first = false;
+            }
+            os << "\"]";
+            for (const auto& successor : getSuccessorSCCs(scc)) {
+                os << ";\n" << scc << " -> " << successor;
+            }
         }
-    }
-    os << "}\n";
+        os << "}\n" << std::endl;
 }
 
 const int TopologicallySortedSCCGraph::topologicalOrderingCost(
@@ -322,7 +325,7 @@ void TopologicallySortedSCCGraph::forwardAlgorithmRecursive(int scc) {
 
 void TopologicallySortedSCCGraph::forwardAlgorithm() {
     // for each of the sccs in the graph
-    for (int scc = 0; scc < sccGraph->getNumSCCs(); ++scc) {
+    for (size_t scc = 0; scc < sccGraph->getNumSCCs(); ++scc) {
         // if that scc has no predecessors
         if (sccGraph->getPredecessorSCCs(scc).empty()) {
             // put it in the ordering

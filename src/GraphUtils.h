@@ -221,8 +221,8 @@ class HyperGraph : public Graph<size_t> {
             bool first = true;
             os << "digraph {";
             for (const auto& iter : this->successors) {
-                if (!first) os << ";";
-                os << iter.first << "[label=\"";
+                if (!first) os << ";\n";
+                os << iter.first << " [label=\"";
                 first = true;
                 for (const auto& inner : this->table.get(iter.first)) {
                     if (!first) os << ",";
@@ -231,10 +231,10 @@ class HyperGraph : public Graph<size_t> {
                 }
                 os << "\"]";
                 for (const auto& successor : iter.second) {
-                    os << ";" << iter.first << "->" << successor;
+                    os << ";\n" << iter.first << " -> " << successor;
                 }
             }
-            os << "}" << std::endl;
+            os << "}\n" << std::endl;
         }
 };
 
@@ -291,9 +291,9 @@ public:
                 if (preOrder[vertex]  == -1)
                     toSCCGraph(graph, sccGraph, vertex, preOrder, counter, S, P);
             for (const Node& vertex : graph.allVertices())
-                for (const Node& successor : graph.getSuccessors(vertex))
-                    if (vertex != successor)
-                        sccGraph.insertEdge(sccGraph.vertexTable().getIndex(vertex), sccGraph.vertexTable().getIndex(successor));
+                for (const Node& predecessor : graph.getPredecessors(vertex))
+                    if (vertex != predecessor)
+                        sccGraph.insertEdge(sccGraph.vertexTable().getIndex(predecessor), sccGraph.vertexTable().getIndex(vertex));
             return sccGraph;
     }
 
