@@ -703,16 +703,11 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
                 return !err;
             }
 
-            std::string filename = Global::config().get("fact-dir") + "/" + load.getFileName();
             try {
-                IODirectives ioDirectives = load.getRelation().getInputDirectives();
-                if (ioDirectives.isEmpty()) {
-                    ioDirectives.setIOType("file");
-                    ioDirectives.setFileName(filename);
-                }
                 RamRelation& relation = env.getRelation(load.getRelation());
-                std::unique_ptr<ReadStream> reader = IOSystem::getInstance().getReader(
-                        load.getRelation().getSymbolMask(), env.getSymbolTable(), ioDirectives);
+                std::unique_ptr<ReadStream> reader =
+                        IOSystem::getInstance().getReader(load.getRelation().getSymbolMask(),
+                                env.getSymbolTable(), load.getRelation().getInputDirectives());
                 reader->readAll(relation);
             } catch (std::exception& e) {
                 std::cerr << e.what();
@@ -1191,7 +1186,7 @@ public:
     }
 
     void visitDrop(const RamDrop& drop, std::ostream& out) {
-        if (!Global::config().has("debug") || drop.getRelation().isTemp()) {
+        if (drop.getRelation().isTemp()) {
             out << getRelationName(drop.getRelation()) << "->"
                 << "purge();\n";
         }
@@ -2002,7 +1997,7 @@ std::string RamCompiler::generateCode(
         }
         initCons += name + "(new " + type + "())";
         deleteForNew += "delete " + name + ";\n";
-        if ((rel.isInput() || rel.isComputed() || Global::config().has("debug")) && !rel.isTemp()) {
+        if ((rel.isInput() || rel.isComputed()) && !rel.isTemp()) {
             os << "souffle::RelationWrapper<";
             os << relCtr++ << ",";
             os << type << ",";
@@ -2101,12 +2096,20 @@ std::string RamCompiler::generateCode(
 
     // issue printAll method
     os << "public:\n";
-    os << "void printAll(std::string dirname=\"" << Global::config().get("output-dir") << "\") {\n";
+    os << "void printAll(std::string dirname) {\n";
     visitDepthFirst(stmt, [&](const RamStatement& node) {
         if (auto store = dynamic_cast<const RamStore*>(&node)) {
             for (IODirectives ioDirectives : store->getRelation().getOutputDirectives()) {
                 os << "try {";
-                os << "IODirectives ioDirectives(" << ioDirectives << ");";
+                os << "std::map<std::string, std::string> directiveMap(" << ioDirectives << ");\n";
+                // If a directory has been specified then don't try to change it
+                if (!Global::config().has("output-dir")) {
+                    os << "if (!dirname.empty() && directiveMap[\"IO\"] == \"file\" && ";
+                    os << "directiveMap[\"filename\"].front() != '/') {";
+                    os << "directiveMap[\"filename\"] = dirname + \"/\" + directiveMap[\"filename\"];";
+                    os << "}";
+                }
+                os << "IODirectives ioDirectives(directiveMap);\n";
                 os << "IOSystem::getInstance().getWriter(";
                 os << "SymbolMask({" << store->getRelation().getSymbolMask() << "})";
                 os << ", symTable, ioDirectives";
@@ -2126,17 +2129,22 @@ std::string RamCompiler::generateCode(
 
     // issue loadAll method
     os << "public:\n";
-    os << "void loadAll(std::string dirname=\"" << Global::config().get("fact-dir") << "\") {\n";
+    os << "void loadAll(std::string dirname) {\n";
     visitDepthFirst(stmt, [&](const RamLoad& load) {
         IODirectives ioDirectives = load.getRelation().getInputDirectives();
-        if (ioDirectives.isEmpty()) {
-            ioDirectives.setIOType("file");
-            ioDirectives.setFileName(Global::config().get("fact-dir") + "/" + load.getFileName());
-        }
 
         // get some table details
         os << "try {";
-        os << "IODirectives ioDirectives(" << ioDirectives << ");\n";
+        os << "std::map<std::string, std::string> directiveMap(";
+        os << load.getRelation().getInputDirectives() << ");\n";
+        // If a directory has been specified then don't try to change it
+        if (!Global::config().has("fact-dir")) {
+            os << "if (!dirname.empty() && directiveMap[\"IO\"] == \"file\" && ";
+            os << "directiveMap[\"filename\"].front() != '/') {";
+            os << "directiveMap[\"filename\"] = dirname + \"/\" + directiveMap[\"filename\"];";
+            os << "}";
+        }
+        os << "IODirectives ioDirectives(directiveMap);\n";
         os << "IOSystem::getInstance().getReader(";
         os << "SymbolMask({" << load.getRelation().getSymbolMask() << "})";
         os << ", symTable, ioDirectives)->readAll(*" << getRelationName(load.getRelation());
@@ -2183,12 +2191,6 @@ std::string RamCompiler::generateCode(
     });
     os << "}\n";  // end of dumpOutputs() method
 
-    // issue dumpDB() method
-    os << "public:\n";
-    os << "void dumpDB(std::string filename, bool outputRelationsOnly) {\n";
-    os << "writeRelationsToSqlite(filename, this, outputRelationsOnly);\n";
-    os << "}\n";  // end of dumpDB() method
-
     os << "public:\n";
     os << "const SymbolTable &getSymbolTable() const {\n";
     os << "return symTable;\n";
@@ -2227,9 +2229,7 @@ std::string RamCompiler::generateCode(
         os << "false,\n";
         os << "R\"()\",\n";
     }
-    os << "R\"(" << Global::config().get("database") << ")\",\n";
-    os << std::stoi(Global::config().get("jobs")) << ",\n";
-    os << ((Global::config().has("debug")) ? "R\"(true)\"" : "R\"(false)\"");
+    os << std::stoi(Global::config().get("jobs")) << "\n";
     os << ");\n";
 
     os << "if (!opt.parse(argc,argv)) return 1;\n";
@@ -2247,10 +2247,7 @@ std::string RamCompiler::generateCode(
 
     os << "obj.loadAll(opt.getInputFileDir());\n";
     os << "obj.run();\n";
-    os << "if (!opt.getOutputFileDir().empty()) obj.printAll(opt.getOutputFileDir());\n";
-    os << "if (!opt.getOutputDatabaseName().empty()) obj.dumpDB(opt.getOutputDatabaseName(), "
-       << !Global::config().has("debug") << ");\n";
-
+    os << "obj.printAll(opt.getOutputFileDir());\n";
     os << "return 0;\n";
     os << "}\n";
     os << "#endif\n";

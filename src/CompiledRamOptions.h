@@ -64,26 +64,14 @@ protected:
     std::string profile_name;
 
     /**
-     * The name of the sqlite database file to write to.
-     */
-    std::string dbFilename;
-
-    /**
      * number of threads
      */
     size_t num_jobs;
 
-    /**
-     * debug flag
-     */
-    bool debug;
-
 public:
     // all argument constructor
-    CmdOptions(const char* s, const char* id, const char* od, bool pe, const char* pfn, const char* dbf,
-            size_t nj, bool de)
-            : src(s), input_dir(id), output_dir(od), profiling(pe), profile_name(pfn), dbFilename(dbf),
-              num_jobs(nj), debug(de) {}
+    CmdOptions(const char* s, const char* id, const char* od, bool pe, const char* pfn, size_t nj)
+            : src(s), input_dir(id), output_dir(od), profiling(pe), profile_name(pfn), num_jobs(nj) {}
 
     /**
      * get source code name
@@ -121,24 +109,10 @@ public:
     }
 
     /**
-     * get filename of the output database (or empty string if no database is being used)
-     */
-    const std::string& getOutputDatabaseName() {
-        return dbFilename;
-    }
-
-    /**
      * get number of jobs
      */
     size_t& getNumJobs() {
         return num_jobs;
-    }
-
-    /**
-     * is debug switch on
-     */
-    bool isDebug() {
-        return debug;
     }
 
     /**
@@ -161,7 +135,7 @@ public:
 #pragma GCC diagnostic ignored "-Wwrite-strings"
         // long options
         option longOptions[] = {{"facts", true, nullptr, 'F'}, {"output", true, nullptr, 'D'},
-                {"profile", true, nullptr, 'p'}, {"output-db", true, nullptr, 'o'},
+                {"profile", true, nullptr, 'p'},
 #ifdef _OPENMP
                 {"jobs", true, nullptr, 'j'},
 #endif
@@ -173,7 +147,7 @@ public:
         bool ok = true;
 
         int c; /* command-line arguments processing */
-        while ((c = getopt_long(argc, argv, "D:F:hp:j:o:", longOptions, nullptr)) != EOF) {
+        while ((c = getopt_long(argc, argv, "D:F:hp:j:", longOptions, nullptr)) != EOF) {
             switch (c) {
                 /* Fact directories */
                 case 'F':
@@ -198,13 +172,6 @@ public:
                         exit(1);
                     }
                     profile_name = optarg;
-                    break;
-                case 'o':
-                    if (existFile(optarg)) {
-                        printf("Database file %s already exists!\n", optarg);
-                        ok = false;
-                    }
-                    dbFilename = optarg;
                     break;
 #ifdef _OPENMP
                 case 'j':
@@ -260,7 +227,6 @@ private:
         std::cerr << "                                    (suppress output with \"\")\n";
         std::cerr << "    -F <DIR>, --facts=<DIR>      -- Specify directory for fact files\n";
         std::cerr << "                                    (default: " << input_dir << ")\n";
-        std::cerr << "    -o <file>, --output-db <file> -- output relations to database\n";
         if (profiling) {
             std::cerr << "    -p <file>, --profile=<file>  -- Specify filename for profiling\n";
             std::cerr << "                                    (default: " << profile_name << ")\n";

@@ -23,7 +23,6 @@
 #include "ParallelUtils.h"
 #include "RamLogger.h"
 #include "SouffleInterface.h"
-#include "SqliteRelationWriter.h"
 #include "SymbolTable.h"
 
 #include <array>

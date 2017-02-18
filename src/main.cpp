@@ -115,7 +115,6 @@ int main(int argc, char** argv) {
                                     "Write executable program to <FILE> (without executing it)."},
                             {"profile", 'p', "FILE", "", false,
                                     "Enable profiling and write profile data to <FILE>."},
-                            {"debug", 'd', "", "", false, "Enable debug mode."},
                             {"bddbddb", 'b', "FILE", "", false, "Convert input into bddbddb file format."},
                             {"debug-report", 'r', "FILE", "", false,
                                     "Write debugging output to HTML report."},
@@ -286,9 +285,7 @@ int main(int argc, char** argv) {
     transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRelationCopiesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new MaterializeAggregationQueriesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveEmptyRelationsTransformer()));
-    if (!Global::config().has("debug")) {
-        transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRedundantRelationsTransformer()));
-    }
+    transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRedundantRelationsTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new AstExecutionPlanChecker()));
     if (Global::config().has("auto-schedule")) {
         transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer()));

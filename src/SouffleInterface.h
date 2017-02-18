@@ -266,9 +266,6 @@ public:
     // print output relations (for debug purposes)
     virtual void dumpOutputs(std::ostream& out = std::cout) = 0;
 
-    // export relations to sqlite DB and dump to file
-    virtual void dumpDB(std::string filename, bool outputRelationsOnly = true) = 0;
-
     // get Relation
     Relation* getRelation(const std::string& name) const {
         auto it = relationMap.find(name);
