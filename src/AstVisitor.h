@@ -76,6 +76,7 @@ struct AstVisitor : public ast_visitor_tag {
         FORWARD(UnnamedVariable)
         FORWARD(UnaryFunctor)
         FORWARD(BinaryFunctor)
+        FORWARD(TernaryFunctor)
         FORWARD(Counter)
         FORWARD(NumberConstant)
         FORWARD(StringConstant)
@@ -100,7 +101,7 @@ struct AstVisitor : public ast_visitor_tag {
         // did not work ...
 
         std::cerr << "Unsupported type: " << typeid(node).name() << "\n";
-        assert(false && "Missing Node Category!");
+        assert(false && "Missing AST Node Category!");
         return R();
     }
 
@@ -130,6 +131,7 @@ protected:
 
     LINK(UnaryFunctor, Functor)
     LINK(BinaryFunctor, Functor)
+    LINK(TernaryFunctor, Functor)
     LINK(Functor, Argument)
 
     LINK(Aggregator, Argument)

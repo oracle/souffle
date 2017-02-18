@@ -41,8 +41,9 @@
     #include "AstIODirective.h"
     #include "AstArgument.h"
     #include "AstNode.h"
-    #include "BinaryOperator.h"
-    #include "UnaryOperator.h"
+    #include "UnaryFunctorOps.h"
+    #include "BinaryFunctorOps.h"
+    #include "BinaryConstraintOps.h"
     #include "AstParserUtils.h"
     
     #include "AstSrcLocation.h"
@@ -102,6 +103,7 @@
 %token CAT                       "concatenation of two strings"
 %token ORD                       "ordinal number of a string"
 %token STRLEN                    "length of a string"
+%token SUBSTR                    "sub-string of a string"
 %token MIN                       "min aggregator"
 %token MAX                       "max aggregator"
 %token COUNT                     "count aggregator"
@@ -498,6 +500,13 @@ arg: STRING {
      }
    | STRLEN LPAREN arg RPAREN {
        $$ = new AstUnaryFunctor(UnaryOp::STRLEN, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | SUBSTR LPAREN arg COMMA arg COMMA arg RPAREN {
+       $$ = new AstTernaryFunctor(TernaryOp::SUBSTR, 
+                                  std::unique_ptr<AstArgument>($3),
+                                  std::unique_ptr<AstArgument>($5),
+                                  std::unique_ptr<AstArgument>($7));
        $$->setSrcLoc(@$);
      }
    | arg AS IDENT {

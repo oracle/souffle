@@ -34,7 +34,8 @@
 #include "AstArgument.h"
 #include "AstTranslationUnit.h"
 #include "AstNode.h"
-#include "BinaryOperator.h"
+#include "BinaryConstraintOps.h"
+#include "BinaryFunctorOps.h"
 #include "AstParserUtils.h"
 
 #include "Logger.h"

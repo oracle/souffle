@@ -188,9 +188,8 @@ private:
 
         // process unary operators
         if (dynamic_cast<const AstUnaryFunctor*>(&fun)) {
+            // binary functors are not supported
             throw UnsupportedConstructException("Unsupported function: " + toString(fun));
-
-            // and binary operators
         } else if (const AstBinaryFunctor* binary = dynamic_cast<const AstBinaryFunctor*>(&fun)) {
             visit(*binary->getLHS(), binding);
             binding << getSymbolForBinaryOp(binary->getFunction());
@@ -198,7 +197,6 @@ private:
         } else {
             assert(false && "Unsupported functor!");
         }
-
         extra_literals.push_back(binding.str());
     }
 

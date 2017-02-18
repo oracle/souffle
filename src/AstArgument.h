@@ -20,11 +20,13 @@
 
 #include "AstNode.h"
 #include "AstType.h"
-#include "BinaryOperator.h"
+#include "BinaryFunctorOps.h"
 #include "SymbolTable.h"
+#include "TernaryFunctorOps.h"
 #include "TypeSystem.h"
-#include "UnaryOperator.h"
+#include "UnaryFunctorOps.h"
 
+#include <array>
 #include <list>
 #include <memory>
 #include <string>
@@ -205,7 +207,7 @@ protected:
  * @brief Subclass of Argument that represents a datalog constant value
  */
 class AstStringConstant : public AstConstant {
-    using SymbolTable = souffle::SymbolTable;  // XXX pending namespace cleanup
+    using SymbolTable = souffle::SymbolTable;  // TODO: pending namespace cleanup
     SymbolTable* symTable;
     AstStringConstant(SymbolTable* symTable, size_t index) : AstConstant(index), symTable(symTable) {}
 
@@ -281,7 +283,7 @@ class AstFunctor : public AstArgument {};
 
 /**
  * @class UnaryFunctor
- * @brief Subclass of Argument that represents a unary function
+ * @brief Subclass of Argument that represents a unary functor
  */
 class AstUnaryFunctor : public AstFunctor {
 protected:
@@ -302,22 +304,22 @@ public:
         return fun;
     }
 
-    /** Check if the return value of this function is a number type. */
+    /** Check if the return value of this functor is a number type. */
     bool isNumerical() const {
         return isNumericUnaryOp(fun);
     }
 
-    /** Check if the return value of this function is a symbol type. */
+    /** Check if the return value of this functor is a symbol type. */
     bool isSymbolic() const {
         return isSymbolicUnaryOp(fun);
     }
 
-    /** Check if the argument of this function is a number type. */
+    /** Check if the argument of this functor is a number type. */
     bool acceptsNumbers() const {
         return unaryOpAcceptsNumbers(fun);
     }
 
-    /** Check if the argument of this function is a symbol type. */
+    /** Check if the argument of this functor is a symbol type. */
     bool acceptsSymbols() const {
         return unaryOpAcceptsSymbols(fun);
     }
@@ -330,7 +332,7 @@ public:
         os << ")";
     }
 
-    /** Creates a clone if this AST sub-structure */
+    /** Creates a clone */
     virtual AstUnaryFunctor* clone() const {
         auto res = new AstUnaryFunctor(fun, std::unique_ptr<AstArgument>(operand->clone()));
         res->setSrcLoc(getSrcLoc());
@@ -360,13 +362,13 @@ protected:
 
 /**
  * @class BinaryFunctor
- * @brief Subclass of Argument that represents a binary function
+ * @brief Subclass of Argument that represents a binary functor
  */
 class AstBinaryFunctor : public AstFunctor {
 protected:
-    BinaryOp fun;
-
-    std::unique_ptr<AstArgument> lhs, rhs;
+    BinaryOp fun;                      // binary operator
+    std::unique_ptr<AstArgument> lhs;  // first argument
+    std::unique_ptr<AstArgument> rhs;  // second argument
 
 public:
     AstBinaryFunctor(BinaryOp fun, std::unique_ptr<AstArgument> l, std::unique_ptr<AstArgument> r)
@@ -386,24 +388,24 @@ public:
         return fun;
     }
 
-    /** Check if the return value of this function is a number type. */
+    /** Check if the return value of this functor is a number type. */
     bool isNumerical() const {
         return isNumericBinaryOp(fun);
     }
 
-    /** Check if the return value of this function is a symbol type. */
+    /** Check if the return value of this functor is a symbol type. */
     bool isSymbolic() const {
         return isSymbolicBinaryOp(fun);
     }
 
-    /** Check if the arguments of this function are number types. */
-    bool acceptsNumbers() const {
-        return binaryOpAcceptsNumbers(fun);
+    /** Check if the arguments of this functor are number types. */
+    bool acceptsNumbers(int arg) const {
+        return binaryOpAcceptsNumbers(arg, fun);
     }
 
-    /** Check if the arguments of this function are symbol types. */
-    bool acceptsSymbols() const {
-        return binaryOpAcceptsSymbols(fun);
+    /** Check if the arguments of this functor are symbol types. */
+    bool acceptsSymbols(int arg) const {
+        return binaryOpAcceptsSymbols(arg, fun);
     }
 
     /** Print argument to the given output stream */
@@ -424,7 +426,7 @@ public:
         }
     }
 
-    /** Creates a clone if this AST sub-structure */
+    /** Creates a clone */
     virtual AstBinaryFunctor* clone() const {
         auto res = new AstBinaryFunctor(
                 fun, std::unique_ptr<AstArgument>(lhs->clone()), std::unique_ptr<AstArgument>(rhs->clone()));
@@ -452,6 +454,97 @@ protected:
         assert(dynamic_cast<const AstBinaryFunctor*>(&node));
         const AstBinaryFunctor& other = static_cast<const AstBinaryFunctor&>(node);
         return fun == other.fun && *lhs == *other.lhs && *rhs == *other.rhs;
+    }
+};
+
+/**
+ * @class TernaryFunctor
+ * @brief Subclass of Argument that represents a binary functor
+ */
+class AstTernaryFunctor : public AstFunctor {
+protected:
+    TernaryOp fun;
+    std::array<std::unique_ptr<AstArgument>, 3> arg;
+
+public:
+    AstTernaryFunctor(TernaryOp fun, std::unique_ptr<AstArgument> a1, std::unique_ptr<AstArgument> a2,
+            std::unique_ptr<AstArgument> a3)
+            : fun(fun), arg({{std::move(a1), std::move(a2), std::move(a3)}}) {}
+
+    virtual ~AstTernaryFunctor() {}
+
+    AstArgument* getArg(int idx) const {
+        assert(idx >= 0 && idx < 3 && "wrong argument");
+        return arg[idx].get();
+    }
+
+    TernaryOp getFunction() const {
+        return fun;
+    }
+
+    /** Check if the return value of this functor is a number type. */
+    bool isNumerical() const {
+        return isNumericTernaryOp(fun);
+    }
+
+    /** Check if the return value of this functor is a symbol type. */
+    bool isSymbolic() const {
+        return isSymbolicTernaryOp(fun);
+    }
+
+    /** Check if the arguments of this functor are number types. */
+    bool acceptsNumbers(int arg) const {
+        return ternaryOpAcceptsNumbers(arg, fun);
+    }
+
+    /** Check if the arguments of this functor are symbol types. */
+    bool acceptsSymbols(int arg) const {
+        return ternaryOpAcceptsSymbols(arg, fun);
+    }
+
+    /** Print argument to the given output stream */
+    virtual void print(std::ostream& os) const {
+        os << getSymbolForTernaryOp(fun);
+        os << "(";
+        arg[0]->print(os);
+        os << ",";
+        arg[1]->print(os);
+        os << ",";
+        arg[2]->print(os);
+        os << ")";
+    }
+
+    /** Clone this node  */
+    virtual AstTernaryFunctor* clone() const {
+        auto res = new AstTernaryFunctor(fun, std::unique_ptr<AstArgument>(arg[0]->clone()),
+                std::unique_ptr<AstArgument>(arg[1]->clone()), std::unique_ptr<AstArgument>(arg[2]->clone()));
+        res->setSrcLoc(getSrcLoc());
+        return res;
+    }
+
+    /** Mutates this node */
+    virtual void apply(const AstNodeMapper& map) {
+        arg[0] = map(std::move(arg[0]));
+        arg[1] = map(std::move(arg[1]));
+        arg[2] = map(std::move(arg[2]));
+    }
+
+    /** Obtains a list of all embedded child nodes */
+    virtual std::vector<const AstNode*> getChildNodes() const {
+        auto res = AstArgument::getChildNodes();
+        res.push_back(arg[0].get());
+        res.push_back(arg[1].get());
+        res.push_back(arg[2].get());
+        return res;
+    }
+
+protected:
+    /** Implements the node comparison for this node type */
+    virtual bool equal(const AstNode& node) const {
+        assert(dynamic_cast<const AstTernaryFunctor*>(&node));
+        const AstTernaryFunctor& other = static_cast<const AstTernaryFunctor&>(node);
+        return fun == other.fun && *arg[0] == *other.arg[0] && *arg[1] == *other.arg[1] &&
+               *arg[2] == *other.arg[2];
     }
 };
 

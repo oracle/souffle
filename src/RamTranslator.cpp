@@ -22,7 +22,7 @@
 #include "AstTypeAnalysis.h"
 #include "AstUtils.h"
 #include "AstVisitor.h"
-#include "BinaryOperator.h"
+#include "BinaryConstraintOps.h"
 #include "Global.h"
 #include "PrecedenceGraph.h"
 #include "RamStatement.h"
@@ -388,6 +388,10 @@ std::unique_ptr<RamValue> translateValue(const AstArgument* arg, const ValueInde
     } else if (const AstBinaryFunctor* bf = dynamic_cast<const AstBinaryFunctor*>(arg)) {
         val = std::unique_ptr<RamValue>(new RamBinaryOperator(
                 bf->getFunction(), translateValue(bf->getLHS(), index), translateValue(bf->getRHS(), index)));
+    } else if (const AstTernaryFunctor* tf = dynamic_cast<const AstTernaryFunctor*>(arg)) {
+        val = std::unique_ptr<RamValue>(
+                new RamTernaryOperator(tf->getFunction(), translateValue(tf->getArg(0), index),
+                        translateValue(tf->getArg(1), index), translateValue(tf->getArg(2), index)));
     } else if (dynamic_cast<const AstCounter*>(arg)) {
         val = std::unique_ptr<RamValue>(new RamAutoIncrement());
     } else if (const AstRecordInit* init = dynamic_cast<const AstRecordInit*>(arg)) {

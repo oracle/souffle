@@ -140,7 +140,7 @@ public:
         (void)lease;  // avoid warning;
         if (idx >= size()) {
             // TODO: use different error reporting here!!
-            std::cerr << "Error index out of bounds in call to SymbolTable::resolve.";
+            std::cerr << "Error index out of bounds in call to SymbolTable::resolve.\n";
             exit(1);
         }
         return numToStr[idx];

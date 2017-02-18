@@ -73,9 +73,10 @@ struct RamVisitor : public ram_visitor_tag {
             // values
             FORWARD(ElementAccess);
             FORWARD(Number);
-            FORWARD(BinaryOperator);
-            FORWARD(AutoIncrement);
             FORWARD(UnaryOperator);
+            FORWARD(BinaryOperator);
+            FORWARD(TernaryOperator);
+            FORWARD(AutoIncrement);
             FORWARD(Pack);
 
             // conditions
@@ -117,7 +118,7 @@ struct RamVisitor : public ram_visitor_tag {
         // did not work ...
 
         std::cerr << "Unsupported type: " << typeid(node).name() << "\n";
-        assert(false && "Missing Node Category!");
+        assert(false && "Missing RAM Node Category!");
         return R();
     }
 
@@ -175,8 +176,9 @@ protected:
     // -- values --
     LINK(Number, Value)
     LINK(ElementAccess, Value)
-    LINK(BinaryOperator, Value)
     LINK(UnaryOperator, Value)
+    LINK(BinaryOperator, Value)
+    LINK(TernaryOperator, Value)
     LINK(AutoIncrement, Value)
     LINK(Pack, Value)
 

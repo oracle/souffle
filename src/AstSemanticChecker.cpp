@@ -21,10 +21,8 @@
 #include "AstRelation.h"
 #include "AstTranslationUnit.h"
 #include "AstTypeAnalysis.h"
-#include "AstTypeAnalysis.h"
 #include "AstUtils.h"
 #include "AstVisitor.h"
-#include "BinaryOperator.h"
 #include "ComponentModel.h"
 #include "GraphUtils.h"
 #include "PrecedenceGraph.h"
@@ -133,34 +131,25 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
         // check arg
         auto arg = fun.getOperand();
 
-        // check numerical operators
-        if (fun.isNumerical()) {
-            if (!isNumberType(typeAnalysis.getTypes(&fun))) {
-                report.addError("Non-numerical use for numeric function", fun.getSrcLoc());
-            }
+        // check appropriate use use of a numeric functor
+        if (fun.isNumerical() && !isNumberType(typeAnalysis.getTypes(&fun))) {
+            report.addError("Non-numeric use for numeric functor", fun.getSrcLoc());
         }
 
-        // check numerical operands
-        if (fun.acceptsNumbers()) {
-            if (!isNumberType(typeAnalysis.getTypes(arg))) {
-                report.addError("Non-numerical operand for numeric function", arg->getSrcLoc());
-            }
+        // check argument type of a numeric functor
+        if (fun.acceptsNumbers() && !isNumberType(typeAnalysis.getTypes(arg))) {
+            report.addError("Non-numeric argument for numeric functor", arg->getSrcLoc());
         }
 
         // check symbolic operators
-        if (fun.isSymbolic()) {
-            if (!isSymbolType(typeAnalysis.getTypes(&fun))) {
-                report.addError("Non-symbol use for string function", fun.getSrcLoc());
-            }
+        if (fun.isSymbolic() && !isSymbolType(typeAnalysis.getTypes(&fun))) {
+            report.addError("Non-symbolic use for symbolic functor", fun.getSrcLoc());
         }
 
         // check symbolic operands
-        if (fun.acceptsSymbols()) {
-            if (!isSymbolType(typeAnalysis.getTypes(arg))) {
-                report.addError("Non-symbol operand for string function", arg->getSrcLoc());
-            }
+        if (fun.acceptsSymbols() && !isSymbolType(typeAnalysis.getTypes(arg))) {
+            report.addError("Non-symbolic argument for symbolic functor", arg->getSrcLoc());
         }
-
     });
 
     // - binary functors -
@@ -170,38 +159,64 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
         auto lhs = fun.getLHS();
         auto rhs = fun.getRHS();
 
-        // check numerical operators
-        if (fun.isNumerical()) {
-            if (!isNumberType(typeAnalysis.getTypes(&fun))) {
-                report.addError("Non-numerical use for numeric function", fun.getSrcLoc());
-            }
+        // check numeric types of result, first and second argument
+        if (fun.isNumerical() && !isNumberType(typeAnalysis.getTypes(&fun))) {
+            report.addError("Non-numeric use for numeric functor", fun.getSrcLoc());
+        }
+        if (fun.acceptsNumbers(0) && !isNumberType(typeAnalysis.getTypes(lhs))) {
+            report.addError("Non-numeric first argument for functor", lhs->getSrcLoc());
+        }
+        if (fun.acceptsNumbers(1) && !isNumberType(typeAnalysis.getTypes(rhs))) {
+            report.addError("Non-numeric second argument for functor", rhs->getSrcLoc());
         }
 
-        // check numerical operands
-        if (fun.acceptsNumbers()) {
-            if (!isNumberType(typeAnalysis.getTypes(lhs))) {
-                report.addError("Non-numerical operand for numeric function", lhs->getSrcLoc());
-            }
-            if (!isNumberType(typeAnalysis.getTypes(rhs))) {
-                report.addError("Non-numerical operand for numeric function", rhs->getSrcLoc());
-            }
+        // check symbolic types of result, first and second argument
+        if (fun.isSymbolic() && !isSymbolType(typeAnalysis.getTypes(&fun))) {
+            report.addError("Non-symbolic use for symbolic functor", fun.getSrcLoc());
+        }
+        if (fun.acceptsSymbols(0) && !isSymbolType(typeAnalysis.getTypes(lhs))) {
+            report.addError("Non-symbolic first argument for functor", lhs->getSrcLoc());
+        }
+        if (fun.acceptsSymbols(1) && !isSymbolType(typeAnalysis.getTypes(rhs))) {
+            report.addError("Non-symbolic second argument for functor", rhs->getSrcLoc());
         }
 
-        // check symbolic operators
-        if (fun.isSymbolic()) {
-            if (!isSymbolType(typeAnalysis.getTypes(&fun))) {
-                report.addError("Non-symbol use for string function", fun.getSrcLoc());
-            }
+    });
+
+    // - binary functors -
+    visitDepthFirst(nodes, [&](const AstTernaryFunctor& fun) {
+
+        // check left and right side
+        auto a0 = fun.getArg(0);
+        auto a1 = fun.getArg(1);
+        auto a2 = fun.getArg(2);
+
+        // check numeric types of result, first and second argument
+        if (fun.isNumerical() && !isNumberType(typeAnalysis.getTypes(&fun))) {
+            report.addError("Non-numeric use for numeric functor", fun.getSrcLoc());
+        }
+        if (fun.acceptsNumbers(0) && !isNumberType(typeAnalysis.getTypes(a0))) {
+            report.addError("Non-numeric first argument for functor", a0->getSrcLoc());
+        }
+        if (fun.acceptsNumbers(1) && !isNumberType(typeAnalysis.getTypes(a1))) {
+            report.addError("Non-numeric second argument for functor", a1->getSrcLoc());
+        }
+        if (fun.acceptsNumbers(2) && !isNumberType(typeAnalysis.getTypes(a2))) {
+            report.addError("Non-numeric third argument for functor", a2->getSrcLoc());
         }
 
-        // check symbolic operands
-        if (fun.acceptsSymbols()) {
-            if (!isSymbolType(typeAnalysis.getTypes(lhs))) {
-                report.addError("Non-symbol operand for string function", lhs->getSrcLoc());
-            }
-            if (!isSymbolType(typeAnalysis.getTypes(rhs))) {
-                report.addError("Non-symbol operand for string function", rhs->getSrcLoc());
-            }
+        // check symbolic types of result, first and second argument
+        if (fun.isSymbolic() && !isSymbolType(typeAnalysis.getTypes(&fun))) {
+            report.addError("Non-symbolic use for symbolic functor", fun.getSrcLoc());
+        }
+        if (fun.acceptsSymbols(0) && !isSymbolType(typeAnalysis.getTypes(a0))) {
+            report.addError("Non-symbolic first argument for functor", a0->getSrcLoc());
+        }
+        if (fun.acceptsSymbols(1) && !isSymbolType(typeAnalysis.getTypes(a1))) {
+            report.addError("Non-symbolic second argument for functor", a1->getSrcLoc());
+        }
+        if (fun.acceptsSymbols(2) && !isSymbolType(typeAnalysis.getTypes(a2))) {
+            report.addError("Non-symbolic third argument for functor", a2->getSrcLoc());
         }
 
     });
@@ -300,6 +315,9 @@ static bool hasUnnamedVariable(const AstArgument* arg) {
         return hasUnnamedVariable(uf->getOperand());
     } else if (const AstBinaryFunctor* bf = dynamic_cast<const AstBinaryFunctor*>(arg)) {
         return hasUnnamedVariable(bf->getLHS()) || hasUnnamedVariable(bf->getRHS());
+    } else if (const AstTernaryFunctor* tf = dynamic_cast<const AstTernaryFunctor*>(arg)) {
+        return hasUnnamedVariable(tf->getArg(0)) || hasUnnamedVariable(tf->getArg(1)) ||
+               hasUnnamedVariable(tf->getArg(2));
     } else if (const AstRecordInit* ri = dynamic_cast<const AstRecordInit*>(arg)) {
         return any_of(ri->getArguments(), (bool (*)(const AstArgument*))hasUnnamedVariable);
     } else if (dynamic_cast<const AstAggregator*>(arg)) {
@@ -365,22 +383,29 @@ void AstSemanticChecker::checkArgument(
         ErrorReport& report, const AstProgram& program, const AstArgument& arg) {
     if (const AstAggregator* agg = dynamic_cast<const AstAggregator*>(&arg)) {
         checkAggregator(report, program, *agg);
+    } else if (const AstUnaryFunctor* unaryFunc = dynamic_cast<const AstUnaryFunctor*>(&arg)) {
+        checkArgument(report, program, *unaryFunc->getOperand());
     } else if (const AstBinaryFunctor* binFunc = dynamic_cast<const AstBinaryFunctor*>(&arg)) {
         checkArgument(report, program, *binFunc->getLHS());
         checkArgument(report, program, *binFunc->getRHS());
-    } else if (const AstUnaryFunctor* unaryFunc = dynamic_cast<const AstUnaryFunctor*>(&arg)) {
-        checkArgument(report, program, *unaryFunc->getOperand());
+    } else if (const AstTernaryFunctor* ternFunc = dynamic_cast<const AstTernaryFunctor*>(&arg)) {
+        checkArgument(report, program, *ternFunc->getArg(0));
+        checkArgument(report, program, *ternFunc->getArg(1));
+        checkArgument(report, program, *ternFunc->getArg(2));
     }
 }
 
 static bool isConstantArithExpr(const AstArgument& argument) {
     if (dynamic_cast<const AstNumberConstant*>(&argument)) {
         return true;
+    } else if (const AstUnaryFunctor* unOp = dynamic_cast<const AstUnaryFunctor*>(&argument)) {
+        return unOp->isNumerical() && isConstantArithExpr(*unOp->getOperand());
     } else if (const AstBinaryFunctor* binOp = dynamic_cast<const AstBinaryFunctor*>(&argument)) {
         return binOp->isNumerical() && isConstantArithExpr(*binOp->getLHS()) &&
                isConstantArithExpr(*binOp->getRHS());
-    } else if (const AstUnaryFunctor* unOp = dynamic_cast<const AstUnaryFunctor*>(&argument)) {
-        return unOp->isNumerical() && isConstantArithExpr(*unOp->getOperand());
+    } else if (const AstTernaryFunctor* ternOp = dynamic_cast<const AstTernaryFunctor*>(&argument)) {
+        return ternOp->isNumerical() && isConstantArithExpr(*ternOp->getArg(0)) &&
+               isConstantArithExpr(*ternOp->getArg(1)) && isConstantArithExpr(*ternOp->getArg(2));
     }
     return false;
 }
@@ -390,13 +415,17 @@ void AstSemanticChecker::checkConstant(ErrorReport& report, const AstArgument& a
         report.addError("Variable " + var->getName() + " in fact", var->getSrcLoc());
     } else if (dynamic_cast<const AstUnnamedVariable*>(&argument)) {
         report.addError("Underscore in fact", argument.getSrcLoc());
+    } else if (dynamic_cast<const AstUnaryFunctor*>(&argument)) {
+        if (!isConstantArithExpr(argument)) {
+            report.addError("Unary function in fact", argument.getSrcLoc());
+        }
     } else if (dynamic_cast<const AstBinaryFunctor*>(&argument)) {
         if (!isConstantArithExpr(argument)) {
             report.addError("Binary function in fact", argument.getSrcLoc());
         }
-    } else if (dynamic_cast<const AstUnaryFunctor*>(&argument)) {
+    } else if (dynamic_cast<const AstTernaryFunctor*>(&argument)) {
         if (!isConstantArithExpr(argument)) {
-            report.addError("Unary function in fact", argument.getSrcLoc());
+            report.addError("Ternary function in fact", argument.getSrcLoc());
         }
     } else if (dynamic_cast<const AstCounter*>(&argument)) {
         report.addError("Counter in fact", argument.getSrcLoc());

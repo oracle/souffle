@@ -17,7 +17,8 @@
 #include "RamExecutor.h"
 #include "AstRelation.h"
 #include "AstVisitor.h"
-#include "BinaryOperator.h"
+#include "BinaryConstraintOps.h"
+#include "BinaryFunctorOps.h"
 #include "IOSystem.h"
 #include "RamAutoIndex.h"
 #include "RamData.h"
@@ -26,7 +27,7 @@
 #include "RamVisitor.h"
 #include "RuleScheduler.h"
 #include "TypeSystem.h"
-#include "UnaryOperator.h"
+#include "UnaryFunctorOps.h"
 
 #include <algorithm>
 #include <chrono>
@@ -104,6 +105,56 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
             return env.incCounter();
         }
 
+        // unary functions
+
+        RamDomain visitUnaryOperator(const RamUnaryOperator& op) {
+            switch (op.getOperator()) {
+                case UnaryOp::NEG:
+                    return -visit(op.getValue());
+                case UnaryOp::BNOT:
+                    return ~visit(op.getValue());
+                case UnaryOp::LNOT:
+                    return !visit(op.getValue());
+                case UnaryOp::ORD:
+                    return visit(op.getValue());
+                case UnaryOp::STRLEN:
+                    return strlen(env.getSymbolTable().resolve(visit(op.getValue())));
+                case UnaryOp::SIN:
+                    return sin(visit(op.getValue()));
+                case UnaryOp::COS:
+                    return cos(visit(op.getValue()));
+                case UnaryOp::TAN:
+                    return tan(visit(op.getValue()));
+                case UnaryOp::ASIN:
+                    return asin(visit(op.getValue()));
+                case UnaryOp::ACOS:
+                    return acos(visit(op.getValue()));
+                case UnaryOp::ATAN:
+                    return atan(visit(op.getValue()));
+                case UnaryOp::SINH:
+                    return sinh(visit(op.getValue()));
+                case UnaryOp::COSH:
+                    return cosh(visit(op.getValue()));
+                case UnaryOp::TANH:
+                    return tanh(visit(op.getValue()));
+                case UnaryOp::ASINH:
+                    return asinh(visit(op.getValue()));
+                case UnaryOp::ACOSH:
+                    return acosh(visit(op.getValue()));
+                case UnaryOp::ATANH:
+                    return atanh(visit(op.getValue()));
+                case UnaryOp::LOG:
+                    return log(visit(op.getValue()));
+                case UnaryOp::EXP:
+                    return exp(visit(op.getValue()));
+                default:
+                    assert(0 && "unsupported operator");
+                    return 0;
+            }
+        }
+
+        // binary functions
+
         RamDomain visitBinaryOperator(const RamBinaryOperator& op) {
             switch (op.getOperator()) {
                 // arithmetic
@@ -157,46 +208,25 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
                     return 0;
             }
         }
-        RamDomain visitUnaryOperator(const RamUnaryOperator& op) {
+
+        // ternary functions
+
+        RamDomain visitTernaryOperator(const RamTernaryOperator& op) {
             switch (op.getOperator()) {
-                case UnaryOp::NEG:
-                    return -visit(op.getValue());
-                case UnaryOp::BNOT:
-                    return ~visit(op.getValue());
-                case UnaryOp::LNOT:
-                    return !visit(op.getValue());
-                case UnaryOp::ORD:
-                    return visit(op.getValue());
-                case UnaryOp::STRLEN:
-                    return strlen(env.getSymbolTable().resolve(visit(op.getValue())));
-                case UnaryOp::SIN:
-                    return sin(visit(op.getValue()));
-                case UnaryOp::COS:
-                    return cos(visit(op.getValue()));
-                case UnaryOp::TAN:
-                    return tan(visit(op.getValue()));
-                case UnaryOp::ASIN:
-                    return asin(visit(op.getValue()));
-                case UnaryOp::ACOS:
-                    return acos(visit(op.getValue()));
-                case UnaryOp::ATAN:
-                    return atan(visit(op.getValue()));
-                case UnaryOp::SINH:
-                    return sinh(visit(op.getValue()));
-                case UnaryOp::COSH:
-                    return cosh(visit(op.getValue()));
-                case UnaryOp::TANH:
-                    return tanh(visit(op.getValue()));
-                case UnaryOp::ASINH:
-                    return asinh(visit(op.getValue()));
-                case UnaryOp::ACOSH:
-                    return acosh(visit(op.getValue()));
-                case UnaryOp::ATANH:
-                    return atanh(visit(op.getValue()));
-                case UnaryOp::LOG:
-                    return log(visit(op.getValue()));
-                case UnaryOp::EXP:
-                    return exp(visit(op.getValue()));
+                case TernaryOp::SUBSTR: {
+                    auto symbol = visit(op.getArg(0));
+                    std::string str = env.getSymbolTable().resolve(symbol);
+                    auto idx = visit(op.getArg(1));
+                    auto len = visit(op.getArg(2));
+                    std::string sub_str;
+                    try {
+                        sub_str = str.substr(idx, len);
+                    } catch (...) {
+                        std::cerr << "warning: wrong index position provided by substr(\"";
+                        std::cerr << str << "\"," << idx << "," << len << ") functor.\n";
+                    }
+                    return env.getSymbolTable().lookup(sub_str.c_str());
+                }
                 default:
                     assert(0 && "unsupported operator");
                     return 0;
@@ -1686,6 +1716,71 @@ public:
         out << "(ctr++)";
     }
 
+    void visitUnaryOperator(const RamUnaryOperator& op, std::ostream& out) {
+        switch (op.getOperator()) {
+            case UnaryOp::ORD:
+                out << print(op.getValue());
+                break;
+            case UnaryOp::STRLEN:
+                out << "strlen(symTable.resolve((size_t)" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::NEG:
+                out << "(-(" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::BNOT:
+                out << "(~(" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::LNOT:
+                out << "(!(" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::SIN:
+                out << "sin((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::COS:
+                out << "cos((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::TAN:
+                out << "tan((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ASIN:
+                out << "asin((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ACOS:
+                out << "acos((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ATAN:
+                out << "atan((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::SINH:
+                out << "sinh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::COSH:
+                out << "cosh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::TANH:
+                out << "tanh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ASINH:
+                out << "asinh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ACOSH:
+                out << "acosh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ATANH:
+                out << "atanh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::LOG:
+                out << "log((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::EXP:
+                out << "exp((" << print(op.getValue()) << "))";
+                break;
+            default:
+                assert(0 && "Unsupported Operation!");
+                break;
+        }
+    }
+
     void visitBinaryOperator(const RamBinaryOperator& op, std::ostream& out) {
         switch (op.getOperator()) {
             // arithmetic
@@ -1750,6 +1845,23 @@ public:
         }
     }
 
+    void visitTernaryOperator(const RamTernaryOperator& op, std::ostream& out) {
+        switch (op.getOperator()) {
+            case TernaryOp::SUBSTR:
+                out << "(RamDomain)symTable.lookup(";
+                out << "(substr_wrapper(symTable.resolve((size_t)";
+                out << print(op.getArg(0));
+                out << "),(";
+                out << print(op.getArg(1));
+                out << "),(";
+                out << print(op.getArg(2));
+                out << ")).c_str()))";
+                break;
+            default:
+                assert(0 && "Unsupported Operation!");
+        }
+    }
+
     // -- records --
 
     void visitPack(const RamPack& pack, std::ostream& out) {
@@ -1757,71 +1869,6 @@ public:
             << "ram::Tuple<RamDomain," << pack.getValues().size() << ">({" << join(pack.getValues(), ",", rec)
             << "})"
             << ")";
-    }
-
-    void visitUnaryOperator(const RamUnaryOperator& op, std::ostream& out) {
-        switch (op.getOperator()) {
-            case UnaryOp::ORD:
-                out << print(op.getValue());
-                break;
-            case UnaryOp::STRLEN:
-                out << "strlen(symTable.resolve((size_t)" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::NEG:
-                out << "(-(" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::BNOT:
-                out << "(~(" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::LNOT:
-                out << "(!(" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::SIN:
-                out << "sin((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::COS:
-                out << "cos((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::TAN:
-                out << "tan((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::ASIN:
-                out << "asin((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::ACOS:
-                out << "acos((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::ATAN:
-                out << "atan((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::SINH:
-                out << "sinh((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::COSH:
-                out << "cosh((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::TANH:
-                out << "tanh((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::ASINH:
-                out << "asinh((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::ACOSH:
-                out << "acosh((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::ATANH:
-                out << "atanh((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::LOG:
-                out << "log((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::EXP:
-                out << "exp((" << print(op.getValue()) << "))";
-                break;
-            default:
-                assert(0 && "Unsupported Operation!");
-                break;
-        }
     }
 
     // -- safety net --
@@ -1952,12 +1999,19 @@ std::string RamCompiler::generateCode(
     // print wrapper for regex
     os << "class " << classname << " : public SouffleProgram {\n";
     os << "private:\n";
-    os << "static bool regex_wrapper(const char *pattern, const char *text) {\n";
+    os << "static inline bool regex_wrapper(const char *pattern, const char *text) {\n";
     os << "   bool result = false; \n";
     os << "   try { result = std::regex_match(text, std::regex(pattern)); } catch(...) { \n";
     os << "     std::cerr << \"warning: wrong pattern provided for match(\\\"\" << pattern << \"\\\",\\\"\" "
           "<< text << \"\\\")\\n\";\n}\n";
     os << "   return result;\n";
+    os << "}\n";
+    os << "static inline std::string substr_wrapper(const char *str, size_t idx, size_t len) {\n";
+    os << "   std::string sub_str, result; \n";
+    os << "   try { result = std::string(str).substr(idx,len); } catch(...) { \n";
+    os << "     std::cerr << \"warning: wrong index position provided by substr(\\\"\";\n";
+    os << "     std::cerr << str << \"\\\",\" << idx << \",\" << len << \") functor.\\n\";\n";
+    os << "   } return result;\n";
     os << "}\n";
 
     if (Global::config().has("profile")) {
