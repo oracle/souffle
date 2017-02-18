@@ -37,8 +37,7 @@ class AstVariable;
 class AstLiteral;
 
 /**
- * @class Argument
- * @brief Intermediate representation of an argument of a Literal (e.g., a variable or a constant)
+ * Intermediate representation of an argument of a Literal (e.g., a variable or a constant)
  */
 class AstArgument : public AstNode {
 public:
@@ -54,8 +53,7 @@ public:
 };
 
 /**
- * @class Variable
- * @brief Subclass of Argument that represents a named variable
+ * Subclass of Argument that represents a named variable
  */
 class AstVariable : public AstArgument {
 protected:
@@ -102,8 +100,7 @@ protected:
 };
 
 /**
- * @class Variable
- * @brief Subclass of Argument that represents an unnamed variable
+ * Subclass of Argument that represents an unnamed variable
  */
 class AstUnnamedVariable : public AstArgument {
 protected:
@@ -136,8 +133,7 @@ protected:
 };
 
 /**
- * @class Counter
- * @brief Subclass of Argument that represents a counter (for projections only)
+ * Subclass of Argument that represents a counter (for projections only)
  */
 class AstCounter : public AstArgument {
 protected:
@@ -170,8 +166,7 @@ protected:
 };
 
 /**
- * @class Constant
- * @brief Subclass of Argument that represents a datalog constant value
+ * Subclass of Argument that represents a datalog constant value
  */
 class AstConstant : public AstArgument {
 protected:
@@ -201,8 +196,7 @@ protected:
 };
 
 /**
- * @class Constant
- * @brief Subclass of Argument that represents a datalog constant value
+ * Subclass of Argument that represents a datalog constant value
  */
 class AstStringConstant : public AstConstant {
     using SymbolTable = souffle::SymbolTable;  // XXX pending namespace cleanup
@@ -218,7 +212,7 @@ public:
         return symTable->resolve(getIndex());
     }
 
-    /** @brief Print argument to the given output stream */
+    /**  Print argument to the given output stream */
     virtual void print(std::ostream& os) const {
         os << "\"" << getConstant() << "\"";
     }
@@ -232,14 +226,13 @@ public:
 };
 
 /**
- * @class Constant
- * @brief Subclass of Argument that represents a datalog constant value
+ * Subclass of Argument that represents a datalog constant value
  */
 class AstNumberConstant : public AstConstant {
 public:
     AstNumberConstant(AstDomain num) : AstConstant(num) {}
 
-    /** @brief Print argument to the given output stream */
+    /**  Print argument to the given output stream */
     virtual void print(std::ostream& os) const {
         os << (AstDomain)idx;
     }
@@ -253,14 +246,13 @@ public:
 };
 
 /**
- * @class AstNullConstant
- * @brief Subclass of AstConstant that represents a null-constant (no record)
+ * Subclass of AstConstant that represents a null-constant (no record)
  */
 class AstNullConstant : public AstConstant {
 public:
     AstNullConstant() : AstConstant(0) {}
 
-    /** @brief Print argument to the given output stream */
+    /**  Print argument to the given output stream */
     virtual void print(std::ostream& os) const {
         os << '-';
     }
@@ -274,14 +266,12 @@ public:
 };
 
 /**
- * @class AstFunctor
- * @brief A common base class for AST functors
+ * A common base class for AST functors
  */
 class AstFunctor : public AstArgument {};
 
 /**
- * @class UnaryFunctor
- * @brief Subclass of Argument that represents a unary function
+ * Subclass of Argument that represents a unary function
  */
 class AstUnaryFunctor : public AstFunctor {
 protected:
@@ -359,8 +349,7 @@ protected:
 };
 
 /**
- * @class BinaryFunctor
- * @brief Subclass of Argument that represents a binary function
+ * Subclass of Argument that represents a binary function
  */
 class AstBinaryFunctor : public AstFunctor {
 protected:

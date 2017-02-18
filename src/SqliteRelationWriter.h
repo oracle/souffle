@@ -45,6 +45,8 @@
 
 #include <sqlite3.h>
 
+namespace souffle {
+
 /* Execute SQL statement */
 inline void executeSQL(std::string sql, sqlite3* db) {
     assert(db && "Database connection is closed");
@@ -217,3 +219,6 @@ inline void writeRelationsToSqlite(std::string dbFilename, souffle::SouffleProgr
     sqlite3_close(db);
     ;
 }
+
+} // end of namespace souffle
+

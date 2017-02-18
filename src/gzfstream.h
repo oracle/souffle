@@ -19,6 +19,8 @@
 
 #include <zlib.h>
 
+namespace souffle {
+
 namespace gzfstream {
 
 namespace internal {
@@ -227,3 +229,5 @@ public:
 };
 
 } /* namespace gzfstream */
+
+} /* namespace souffle */
