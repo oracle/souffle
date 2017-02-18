@@ -130,6 +130,11 @@ private:
             std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, size_t& numSCCs);
 
 public:
+
+     const HyperGraph<index::SetTable, const AstRelation*>& getGraph() {
+        return sccGraph;
+     }
+
     static constexpr const char* name = "scc-graph";
 
     virtual void run(const AstTranslationUnit& translationUnit);
@@ -214,7 +219,9 @@ public:
 
 
     /** Output strongly connected component graph in graphviz format */
-    void outputSCCGraph(std::ostream& os);
+    void outputSCCGraph(std::ostream& os) {
+        getGraph().print(os);
+    }
 };
 
 /**
