@@ -24,10 +24,12 @@
 #include "TypeSystem.h"
 #include "UnaryFunctorOps.h"
 #include "BinaryFunctorOps.h"
+#include "TernaryFunctorOps.h"
 
 #include <list>
 #include <memory>
 #include <string>
+#include <array>
 
 namespace souffle {
 
@@ -330,7 +332,7 @@ public:
         os << ")";
     }
 
-    /** Creates a clone if this AST sub-structure */
+    /** Creates a clone */
     virtual AstUnaryFunctor* clone() const {
         auto res = new AstUnaryFunctor(fun, std::unique_ptr<AstArgument>(operand->clone()));
         res->setSrcLoc(getSrcLoc());
@@ -364,9 +366,9 @@ protected:
  */
 class AstBinaryFunctor : public AstFunctor {
 protected:
-    BinaryOp fun;
-
-    std::unique_ptr<AstArgument> lhs, rhs;
+    BinaryOp fun;  // binary operator 
+    std::unique_ptr<AstArgument> lhs; // first argument
+    std::unique_ptr<AstArgument> rhs; // second argument
 
 public:
     AstBinaryFunctor(BinaryOp fun, std::unique_ptr<AstArgument> l, std::unique_ptr<AstArgument> r)
@@ -424,7 +426,7 @@ public:
         }
     }
 
-    /** Creates a clone if this AST sub-structure */
+    /** Creates a clone */
     virtual AstBinaryFunctor* clone() const {
         auto res = new AstBinaryFunctor(
                 fun, std::unique_ptr<AstArgument>(lhs->clone()), std::unique_ptr<AstArgument>(rhs->clone()));
@@ -452,6 +454,105 @@ protected:
         assert(dynamic_cast<const AstBinaryFunctor*>(&node));
         const AstBinaryFunctor& other = static_cast<const AstBinaryFunctor&>(node);
         return fun == other.fun && *lhs == *other.lhs && *rhs == *other.rhs;
+    }
+};
+
+/**
+ * @class TernaryFunctor
+ * @brief Subclass of Argument that represents a binary functor
+ */
+class AstTernaryFunctor : public AstFunctor {
+protected:
+    TernaryOp fun;
+    std::array<std::unique_ptr<AstArgument>,3> arg;
+
+public:
+    AstTernaryFunctor(TernaryOp fun, 
+                      std::unique_ptr<AstArgument> a1, 
+                      std::unique_ptr<AstArgument> a2,
+                      std::unique_ptr<AstArgument> a3)
+            : fun(fun), 
+              arg({{std::move(a1), std::move(a2), std::move(a3)}}) { 
+    }
+
+    virtual ~AstTernaryFunctor() {}
+
+    AstArgument* getArg(int idx) const {
+        assert(idx >=0 && idx < 3 && "wrong argument"); 
+        return arg[idx].get();
+    }
+
+    TernaryOp getFunction() const {
+        return fun;
+    }
+
+    /** Check if the return value of this functor is a number type. */
+    bool isNumerical() const {
+        return isNumericTernaryOp(fun);
+    }
+
+    /** Check if the return value of this functor is a symbol type. */
+    bool isSymbolic() const {
+        return isSymbolicTernaryOp(fun);
+    }
+
+    /** Check if the arguments of this functor are number types. */
+    bool acceptsNumbers(int arg) const {
+        return ternaryOpAcceptsNumbers(arg, fun);
+    }
+
+    /** Check if the arguments of this functor are symbol types. */
+    bool acceptsSymbols(int arg) const {
+        return ternaryOpAcceptsSymbols(arg, fun);
+    }
+
+    /** Print argument to the given output stream */
+    virtual void print(std::ostream& os) const {
+        os << getSymbolForTernaryOp(fun);
+        os << "(";
+        arg[0]->print(os);
+        os << ",";
+        arg[1]->print(os);
+        os << ",";
+        arg[2]->print(os);
+        os << ")";
+    }
+
+    /** Clone this node  */
+    virtual AstTernaryFunctor* clone() const {
+        auto res = new AstTernaryFunctor(fun, 
+                                         std::unique_ptr<AstArgument>(arg[0]->clone()), 
+                                         std::unique_ptr<AstArgument>(arg[1]->clone()), 
+                                         std::unique_ptr<AstArgument>(arg[2]->clone()));
+        res->setSrcLoc(getSrcLoc());
+        return res;
+    }
+
+    /** Mutates this node */
+    virtual void apply(const AstNodeMapper& map) {
+        arg[0] = map(std::move(arg[0]));
+        arg[1] = map(std::move(arg[1]));
+        arg[2] = map(std::move(arg[2]));
+    }
+
+    /** Obtains a list of all embedded child nodes */
+    virtual std::vector<const AstNode*> getChildNodes() const {
+        auto res = AstArgument::getChildNodes();
+        res.push_back(arg[0].get());
+        res.push_back(arg[1].get());
+        res.push_back(arg[2].get());
+        return res;
+    }
+
+protected:
+    /** Implements the node comparison for this node type */
+    virtual bool equal(const AstNode& node) const {
+        assert(dynamic_cast<const AstTernaryFunctor*>(&node));
+        const AstTernaryFunctor& other = static_cast<const AstTernaryFunctor&>(node);
+        return fun == other.fun && 
+               *arg[0] == *other.arg[0] && 
+               *arg[1] == *other.arg[1] && 
+               *arg[2] == *other.arg[2];
     }
 };
 
