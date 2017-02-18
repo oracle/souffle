@@ -152,24 +152,17 @@ bool RecursiveClauses::computeIsRecursive(
     return false;
 }
 
+
 void SCCGraph::run(const AstTranslationUnit& translationUnit) {
-
     precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>();
-
-    // TODO
-    // sccGraph = GraphTransform::toSCCGraph<index::SetTable, const AstRelation*>(precedenceGraph->getGraph());
-
     SCC.clear();
     nodeToSCC.clear();
     predSCC.clear();
     succSCC.clear();
 
-    // TODO
+    /* Compute SCC */
     std::vector<AstRelation*> relations = translationUnit.getProgram()->getRelations();
-    // std::set<const AstRelation*, AstNameComparison> relations;
-    // relations.insert(relationsList.begin(), relationsList.end());
-
-    int counter = 0;
+    unsigned int counter = 0;
     int numSCCs = 0;
     std::stack<const AstRelation *> S, P;
     std::map<const AstRelation*, int> preOrder;  // Pre-order number of a node (for Gabow's Algo)
@@ -208,14 +201,13 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
     sccColor.resize(getNumSCCs());
     // default color is black
     std::fill(sccColor.begin(), sccColor.end(), 0);
-
 }
 
 /* Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
  * Java by Robert Sedgewick / Part 5 / Graph *  algorithms). The algorithm has linear
  * runtime. */
- void SCCGraph::scR(const AstRelation* w, std::map<const AstRelation*, int>& preOrder, int& counter,
-            std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, int numSCCs) {
+void SCCGraph::scR(const AstRelation* w, std::map<const AstRelation*, int>& preOrder, unsigned int& counter,
+        std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, int& numSCCs) {
     preOrder[w] = counter++;
     S.push(w);
     P.push(w);
@@ -241,6 +233,7 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
     } while (v != w);
     numSCCs++;
 }
+
 
 void SCCGraph::outputSCCGraph(std::ostream& os) {
         bool first = true;

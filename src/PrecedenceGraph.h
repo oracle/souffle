@@ -106,13 +106,12 @@ public:
 class SCCGraph : public AstAnalysis {
 private:
     PrecedenceGraph* precedenceGraph;
-    HyperGraph<index::SetTable, const AstRelation*> sccGraph;
 
     /** Map from node number to SCC number */
     std::map<const AstRelation*, int> nodeToSCC;
 
     /** List of colors of SCC nodes, default is black. */
-    std::vector<int> sccColor;
+    std::vector<unsigned int> sccColor;
 
     /** Adjacency lists for the SCC graph */
     std::vector<std::set<int>> succSCC;
@@ -124,8 +123,8 @@ private:
     std::vector<std::set<const AstRelation*>> SCC;
 
     /** Recursive scR method for computing SCC */
-    void scR(const AstRelation* relation, std::map<const AstRelation*, int>& preOrder, int& counter,
-            std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, int numSCCs);
+    void scR(const AstRelation* relation, std::map<const AstRelation*, int>& preOrder, unsigned int& counter,
+            std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, int& numSCCs);
 
 public:
     static constexpr const char* name = "scc-graph";
@@ -133,39 +132,11 @@ public:
     virtual void run(const AstTranslationUnit& translationUnit);
 
     int getSCCForRelation(const AstRelation* relation) {
-        // bool assertion = sccGraph.get(sccGraph.getIndex(relation)) == SCC[nodeToSCC[relation]];
-        // assert(assertion && "getSCCForRelation");
         return nodeToSCC[relation];
     }
 
-    /** Get all successor SCCs of a specified scc. */
-    const std::set<int>& getSuccessorSCCs(int scc) {
-        // bool assertion = sccGraph.getSuccessors(scc) == succSCC[scc]);
-        // assert(assertion && "getSuccessorSCCs");
-        return succSCC[scc];
-    }
-
-    /** Get all predecessor SCCs of a specified scc. */
-    const std::set<int>& getPredecessorSCCs(int scc) {
-        // bool assertion = sccGraph.getPredecessors(scc) == predSCC[scc]);
-        // assert(assertion && "getPredecessorSCCs");
-        return predSCC[scc];
-    }
-
-    const std::set<const AstRelation*> getRelationsForSCC(int scc) {
-        // bool assertion = sccGraph.get(scc) == SCC[scc];
-        // assert(assertion && "getRelationsForSCC");
-        return SCC[scc];
-    }
-
-    /** Return the number of strongly connected components in the SCC graph */
-    int getNumSCCs() {
-        // assert(sccGraph.vertexCount() == succSCC.size());
-        return succSCC.size();
-    }
-
     bool isRecursive(int scc) {
-        const std::set<const AstRelation*>& sccRelations = getRelationsForSCC(scc);
+        const std::set<const AstRelation*>& sccRelations = getRelationsForSCC(int scc);
         if (sccRelations.size() == 1) {
             const AstRelation* singleRelation = *sccRelations.begin();
             if (!precedenceGraph->getPredecessors(singleRelation).count(singleRelation)) {
@@ -179,34 +150,52 @@ public:
         return isRecursive(getSCCForRelation(relation));
     }
 
+    /** Return the number of strongly connected components in the SCC graph */
+    int getNumSCCs() {
+        return succSCC.size();
+    }
 
     /** Get the color of an SCC. */
-    const int getColor(const int scc) {
+    const unsigned int getColor(const int scc) {
         return sccColor[scc];
     }
 
     /** Set the color of an SCC. */
-    void setColor(const int scc, const int color) {
+    void setColor(const int scc, const unsigned int color) {
         sccColor[scc] = color;
     }
 
     /** Fill all SCCs to the given color. */
-    void fillColors(const int color) {
+    void fillColors(const unsigned int color) {
         std::fill(sccColor.begin(), sccColor.end(), color);
     }
 
     /** Check if a given SCC has a predecessor of the specified color. */
-    const bool hasPredecessorOfColor(int scc, const int color) {
+    const bool hasPredecessorOfColor(int scc, const unsigned int color) {
         for (auto pred : getPredecessorSCCs(scc))
             if (getColor(pred) == color) return true;
         return false;
     }
 
     /** Check if a given SCC has a successor of the specified color. */
-    const bool hasSuccessorOfColor(int scc, const int color) {
+    const bool hasSuccessorOfColor(int scc, const unsigned int color) {
         for (auto succ : getSuccessorSCCs(scc))
             if (getColor(succ) == color) return true;
         return false;
+    }
+
+    /** Get all successor SCCs of a specified scc. */
+    const std::set<int>& getSuccessorSCCs(int scc) {
+        return succSCC[scc];
+    }
+
+    /** Get all predecessor SCCs of a specified scc. */
+    const std::set<int>& getPredecessorSCCs(int scc) {
+        return predSCC[scc];
+    }
+
+    const std::set<const AstRelation*> getRelationsForSCC(int scc) {
+        return SCC[scc];
     }
 
     /** Output strongly connected component graph in graphviz format */
