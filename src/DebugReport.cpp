@@ -219,7 +219,7 @@ void DebugReporter::generateDebugReport(
             getDotGraphSection(id + "-prec-graph", "Precedence Graph", precGraphDot.str());
 
     std::stringstream sccGraphDot;
-    translationUnit.getAnalysis<SCCGraph>()->outputSCCGraph(sccGraphDot);
+    translationUnit.getAnalysis<SCCGraph>()->getGraph().print(sccGraphDot);
     DebugReportSection sccGraphSection =
             getDotGraphSection(id + "-scc-graph", "SCC Graph", sccGraphDot.str());
 
