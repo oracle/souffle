@@ -395,7 +395,7 @@ class GraphOrder {
 public:
     /** Appends the collection of objects in the table for each vertex to an order as the vertex is
      * encountered by the given search function, then returns that order. */
-    template <template <typename> typename Table, typename Node>
+    template <template <typename> class Table, typename Node>
     static const std::vector<Node> innerOrder(const HyperGraph<Table, Node>& graph,
             void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
         std::vector<Node> order;
@@ -408,7 +408,7 @@ public:
 
     /** Appends each vertex to an order as the vertex is encountered by the given search function, then
      * returns that order. */
-    template <template <typename> typename Table, typename Node>
+    template <template <typename> class Table, typename Node>
     static const std::vector<size_t> outerOrder(const HyperGraph<Table, Node>& graph,
             void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
         std::vector<size_t> order;
