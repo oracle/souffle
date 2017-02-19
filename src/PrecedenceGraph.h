@@ -122,19 +122,12 @@ public:
     }
 
 
-    bool isRecursive(size_t scc) {
-        const std::set<const AstRelation*>& sccRelations = getGraph().vertexTable().get(scc);
-        if (sccRelations.size() == 1) {
-            const AstRelation* singleRelation = *sccRelations.begin();
-            if (!precedenceGraph->getPredecessors(singleRelation).count(singleRelation)) {
-                return false;
-            }
-        }
-        return true;
+    const bool isRecursive(size_t scc) const {
+        return sccGraph.isRecursive(precedenceGraph->getGraph(), scc);
     }
 
-    bool isRecursive(const AstRelation* relation) {
-        return isRecursive(getGraph().vertexTable().getIndex(relation));
+    const bool isRecursive(const AstRelation* relation) const {
+        return sccGraph.isRecursive(precedenceGraph->getGraph(), relation);
     }
 
 };
@@ -151,59 +144,14 @@ private:
     /** The final topological ordering of the SCCs. */
     std::vector<size_t> orderedSCCs;
 
-
-
-
-const int topologicalOrderingCost(
-        const std::vector<size_t>& permutationOfSCCs) const {
-    // create variables to hold the cost of the current SCC and the permutation as a whole
-    int costOfSCC = 0;
-    int costOfPermutation = -1;
-    // obtain an iterator to the end of the already ordered partition of sccs
-    auto it_k = permutationOfSCCs.begin() + orderedSCCs.size();
-    // for each of the scc's in the ordering, resetting the cost of the scc to zero on each loop
-    for (auto it_i = permutationOfSCCs.begin(); it_i != permutationOfSCCs.end(); ++it_i, costOfSCC = 0) {
-        // if the index of the current scc is after the end of the ordered partition
-        if (it_i >= it_k)
-            // check that the index of all predecessor sccs of are before the index of the current scc
-            for (int scc : sccGraph->getGraph().getPredecessors(*it_i))
-                if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i)
-                    // if not, the sort is not a valid topological sort
-                    return -1;
-        // otherwise, calculate the cost of the current scc
-        // as the number of sccs with an index before the current scc
-        for (auto it_j = permutationOfSCCs.begin(); it_j != it_i; ++it_j)
-            // having some successor scc with an index after the current scc
-            for (int scc : sccGraph->getGraph().getSuccessors(*it_j))
-                if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i) costOfSCC++;
-        // and if this cost is greater than the maximum recorded cost for the whole permutation so far,
-        // set the cost of the permutation to it
-        if (costOfSCC > costOfPermutation) {
-            costOfPermutation = costOfSCC;
-        }
-    }
-    return costOfPermutation;
-}
-
-
-
 public:
-
 
     static constexpr const char* name = "topological-scc-graph";
 
 
 virtual void run(const AstTranslationUnit& translationUnit) {
-    // obtain the scc graph
     sccGraph = translationUnit.getAnalysis<SCCGraph>();
-    // generate topological ordering using forwards algorithm (like Khan's algorithm)
-
-    orderedSCCs = GraphUtils::khansAlgorithm(sccGraph->getGraph());
-    // orderedSCCs = khansAlgorithm(HyperGraph<index::SeqTable, size_t>::toHyperGraph(sccGraph->getGraph()));
-    // orderedSCCs = khansAlgorithm(preProcessGraph(sccGraph->getGraph()));
-    // TODO
-
-    // orderedSCCs = GraphOrder::innerOrder(preProcessGraph(sccGraph->getGraph()), &GraphSearch::khansAlgorithm);
+    orderedSCCs = GraphUtils::khansAlgorithm(GraphUtils::preProcessGraph<index::SetTable, const AstRelation*>(sccGraph->getGraph()));
 
 }
 
@@ -217,19 +165,10 @@ virtual void run(const AstTranslationUnit& translationUnit) {
 
 
 void outputTopologicallySortedSCCGraph(std::ostream& os) {
-//        for (size_t i = 0; i < orderedSCCs.size(); i++)
-//            os << "[" << join(sccGraph->getGraph().vertexTable().get(orderedSCCs[i])) << "]\n";
-//        os << "\n";
-//        os << "cost: " << orderCost(sccGraph->getGraph(), orderedSCCs) << "\n";
-    int numSCCs = orderedSCCs.size();
-    for (int i = 0; i < numSCCs; i++) {
-        os << "[";
-        os << join(sccGraph->getGraph().vertexTable().get(orderedSCCs[i]), ", ",
-                [](std::ostream& out, const AstRelation* rel) { out << rel->getName(); });
-        os << "]\n";
-    }
-    os << "\n";
-    os << "cost: " << topologicalOrderingCost(orderedSCCs) << "\n";
+        for (size_t i = 0; i < orderedSCCs.size(); i++)
+            os << "[" << join(sccGraph->getGraph().vertexTable().get(orderedSCCs[i])) << "]\n";
+        os << "\n";
+        os << "cost: " << GraphUtils::topologicalOrderingCost(sccGraph->getGraph(), orderedSCCs) << "\n";
 }
 
 };

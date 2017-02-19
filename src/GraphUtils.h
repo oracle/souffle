@@ -38,6 +38,10 @@ protected:
 
 public:
 
+    const bool isRecursive(const Node& vertex) const {
+        return successors.at(vertex).find(vertex) != successors.at(vertex).end();
+    }
+
     const std::set<Node, Compare>& allVertices() const {
         return nodes;
     }
@@ -217,6 +221,19 @@ class HyperGraph : public Graph<size_t> {
                 }
             }
             return newGraph;
+        }
+
+        template<typename Compare = std::less<Node>>
+       const bool isRecursive(const Graph<Node, Compare>& graph, size_t vertex) const {
+            const std::set<Node>& objects = vertexTable().get(vertex);
+            if (objects.size() == 1 && !graph.isRecursive(*objects.begin()))
+                    return false;
+            return true;
+        }
+
+        template<typename Compare = std::less<Node>>
+        const bool isRecursive(const Graph<Node, Compare>& graph, const Node& object) const {
+            return isRecursive(graph, vertexTable().getIndex(object));
         }
 
         const Table<Node>& vertexTable() const {
@@ -425,6 +442,43 @@ static const std::vector<size_t> khansAlgorithm(const HyperGraph<Table, Node>& g
     return order;
 }
 
+template<template <typename> class Table, typename Node, template <typename> class OtherTable, typename OtherNode>
+static const HyperGraph<Table, Node> preProcessGraph(const HyperGraph<OtherTable, OtherNode>& graph) {
+    // TODO
+    return graph;
+}
+
+template<template <typename> class Table, typename Node>
+static const int topologicalOrderingCost(const HyperGraph<Table, Node>& graph,
+        const std::vector<size_t>& order) {
+    // create variables to hold the cost of the current SCC and the permutation as a whole
+    int costOfSCC = 0;
+    int costOfPermutation = -1;
+    // for each of the scc's in the ordering, resetting the cost of the scc to zero on each loop
+    for (auto it_i = order.begin(); it_i != order.end(); ++it_i, costOfSCC = 0) {
+        // check that the index of all predecessor sccs of are before the index of the current scc
+        for (auto scc : graph.getPredecessors(*it_i))
+            if (std::find(order.begin(), it_i, scc) == it_i)
+                // if not, the sort is not a valid topological sort
+                return -1;
+        // otherwise, calculate the cost of the current scc
+        // as the number of sccs with an index before the current scc
+        for (auto it_j = order.begin(); it_j != it_i; ++it_j)
+            // having some successor scc with an index after the current scc
+            for (auto scc : graph.getSuccessors(*it_j))
+                if (std::find(order.begin(), it_i, scc) == it_i) costOfSCC++;
+        // and if this cost is greater than the maximum recorded cost for the whole permutation so far,
+        // set the cost of the permutation to it
+        if (costOfSCC > costOfPermutation) {
+            costOfPermutation = costOfSCC;
+        }
+    }
+    return costOfPermutation;
+}
+
+
+};
+
     /** Pre-process the SCC graph; recursively contract roots, contract leaves, and smooth vertices of out
 
 //     * degree 1.  */
@@ -465,37 +519,6 @@ static const std::vector<size_t> khansAlgorithm(const HyperGraph<Table, Node>& g
 //
 //    }
 
-};
-//    /** The cost of the topological ordering. */
-//    template <template <typename> class Table, typename Node>
-//    const int orderCost(HyperGraph<Table, Node> graph,
-//            const std::vector<size_t>& permutationOfSCCs) const {
-//        // create variables to hold the cost of the current SCC and the permutation as a whole
-//        int costOfSCC = 0;
-//        int costOfPermutation = -1;
-//        // obtain an iterator to the end of the already ordered partition of sccs
-//        auto it_k = permutationOfSCCs.begin() + orderedSCCs.size();
-//        // for each of the scc's in the ordering, resetting the cost of the scc to zero on each loop
-//        for (auto it_i = permutationOfSCCs.begin(); it_i != permutationOfSCCs.end(); ++it_i, costOfSCC = 0) {
-//            // if the index of the current scc is after the end of the ordered partition
-//            if (it_i >= it_k)
-//                // check that the index of all predecessor sccs of are before the index of the current scc
-//                for (auto scc : sccGraph->getGraph().getPredecessors(*it_i))
-//                    if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i)
-//                        // if not, the sort is not a valid topological sort
-//                        return -1;
-//            // otherwise, calculate the cost of the current scc
-//            // as the number of sccs with an index before the current scc
-//            for (auto it_j = permutationOfSCCs.begin(); it_j != it_i; ++it_j)
-//                // having some successor scc with an index after the current scc
-//                for (auto scc : sccGraph->getGraph().getSuccessors(*it_j))
-//                    if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i) costOfSCC++;
-//            // and if this cost is greater than the maximum recorded cost for the whole permutation so far,
-//            // set the cost of the permutation to it
-//            if (costOfSCC > costOfPermutation) costOfPermutation = costOfSCC;
-//        }
-//        return costOfPermutation;
-//    }
 //
 //class GraphOrder {
 //public:
@@ -529,98 +552,7 @@ static const std::vector<size_t> khansAlgorithm(const HyperGraph<Table, Node>& g
 //
 //};
 //
-//
-//class GraphSearch {
-//
-//private:
-//
-//    template <typename Lambda, typename Node, typename Compare>
-//    static void depthFirst(const Graph<Node, Compare>& graph, const Node& vertex, const Lambda lambda, std::set<Node, Compare>& visited) {
-//        lambda(vertex);
-//        for (const auto& it : graph.getSuccessors(vertex))
-//            if (visited.insert(it).second)
-//                depthFirst(graph, it, lambda, visited);
-//    }
-//
-//
-//    template <typename Lambda, typename Node, typename Compare>
-//    static void khansAlgorithm(const Graph<Node, Compare>& graph, const Node& vertex, const Lambda lambda, std::set<Node, Compare>& visited) {
-//        auto it = graph.getSuccessors(vertex).begin();
-//        for (; it != graph.getSuccessors(vertex).end(); ++it) {
-//            if (visited.find(*it) == visited.end()) {
-//                bool hasUnvisitedPredecessor = false;
-//                for (const Node& predecessor : graph.getPredecessors(*it)) {
-//                    if (visited.find(predecessor) == visited.end()) {
-//                        hasUnvisitedPredecessor = true;
-//                        break;
-//                    }
-//                }
-//                if (!hasUnvisitedPredecessor) {
-//                    lambda(*it);
-//                    visited.insert(*it);
-//                    khansAlgorithm(graph, vertex, lambda, visited);
-//                }
-//            }
-//        }
-//
-//        if (visited.find(*it) == visited.end()) return;
-//
-//        bool hasUnvisitedPredecessor = false;
-//        for (const Node& predecessor : graph.getPredecessors(*it)) {
-//            if (visited.find(predecessor) == visited.end()) {
-//                hasUnvisitedPredecessor = true;
-//                break;
-//            }
-//        }
-//
-//        bool hasUnvisitedSuccessor = false;
-//        for (const Node& successor : graph.getSuccessors(*it)) {
-//            if (visited.find(successor) == visited.end()) {
-//                hasUnvisitedSuccessor = true;
-//                break;
-//            }
-//        }
-//
-//        if (!hasUnvisitedPredecessor && hasUnvisitedSuccessor) {
-//            khansAlgorithm(graph, *it, lambda, visited);
-//        }
-//
-//    }
-//
-//public:
-//
-//    template <typename Lambda, typename Node, typename Compare>
-//    static void depthFirst(const Graph<Node, Compare>& graph, const Lambda lambda) {
-//        std::set<Node, Compare> visited = std::set<Node, Compare>();
-//        for (const Node& vertex : graph.allVertices()) {
-//            if (graph.getPredecessors(vertex).empty()) {
-//                lambda(vertex);
-//                visited.insert(vertex);
-//                if (!graph.getSuccessors(vertex).empty()) {
-//                    depthFirst(graph, vertex, lambda, visited);
-//                }
-//            }
-//        }
-//    }
-//
-//    template <typename Lambda, typename Node, typename Compare = std::less<Node>>
-//    static void khansAlgorithm(const Graph<Node, Compare>& graph, Lambda lambda) {
-//        std::set<Node, Compare> visited = std::set<Node, Compare>();
-//        for (const Node& vertex : graph.allVertices()) {
-//            if (graph.getPredecessors(vertex).empty()) {
-//                lambda(vertex);
-//                visited.insert(vertex);
-//                if (!graph.getSuccessors(vertex).empty()) {
-//                    khansAlgorithm(graph, vertex, lambda, visited);
-//                }
-//            }
-//        }
-//    }
-//
-//    // TODO
-//    template <typename Lambda, typename Node, typename Compare = std::less<Node>>
-//    static void reverseDepthFirst(const Graph<Node, Compare>& graph, Lambda lambda) {}
-//};
+
 
 
 }  // end of namespace souffle
