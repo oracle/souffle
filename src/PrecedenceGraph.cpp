@@ -48,10 +48,6 @@ void PrecedenceGraph::run(const AstTranslationUnit& translationUnit) {
     }
 }
 
-void PrecedenceGraph::outputPrecedenceGraph(std::ostream& os) {
-    precedenceGraph.print(os, true);
-}
-
 void RedundantRelations::run(const AstTranslationUnit& translationUnit) {
     precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>();
 
@@ -156,7 +152,7 @@ void RelationSchedule::run(const AstTranslationUnit& translationUnit) {
     topsortSCCGraph = translationUnit.getAnalysis<TopologicallySortedSCCGraph>();
     precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>();
 
-    int numSCCs = topsortSCCGraph->getSCCGraph()->getNumSCCs();
+    int numSCCs = topsortSCCGraph->getSCCGraph()->getGraph().vertexCount();
     std::vector<std::set<const AstRelation*>> relationExpirySchedule =
             computeRelationExpirySchedule(translationUnit);
 
@@ -164,7 +160,7 @@ void RelationSchedule::run(const AstTranslationUnit& translationUnit) {
     for (int i = 0; i < numSCCs; i++) {
         int scc = topsortSCCGraph->getSCCOrder()[i];
         const std::set<const AstRelation*> computedRelations =
-                topsortSCCGraph->getSCCGraph()->getRelationsForSCC(scc);
+                topsortSCCGraph->getSCCGraph()->getGraph().vertexTable().get(scc);
         schedule.emplace_back(computedRelations, relationExpirySchedule[i],
                 topsortSCCGraph->getSCCGraph()->isRecursive(scc));
     }
@@ -198,7 +194,7 @@ std::vector<std::set<const AstRelation*>> RelationSchedule::computeRelationExpir
 
         /* Add predecessors of relations computed in this step */
         int scc = topsortSCCGraph->getSCCOrder()[numSCCs - orderedSCC];
-        for (const AstRelation* r : topsortSCCGraph->getSCCGraph()->getRelationsForSCC(scc)) {
+        for (const AstRelation* r : topsortSCCGraph->getSCCGraph()->getGraph().vertexTable().get(scc)) {
             for (const AstRelation* predecessor : precedenceGraph->getPredecessors(r)) {
                 alive[orderedSCC].insert(predecessor);
             }

@@ -47,9 +47,6 @@ public:
 
     virtual void run(const AstTranslationUnit& translationUnit);
 
-    /** Output precedence graph in graphviz format to a given stream */
-    void outputPrecedenceGraph(std::ostream& os);
-
     const AstRelationSet& getPredecessors(const AstRelation* relation) {
         assert(precedenceGraph.hasVertex(relation) && "Relation not present in precedence graph!");
         return precedenceGraph.getSuccessors(relation);
@@ -124,31 +121,9 @@ public:
         sccGraph = GraphUtils::toSCCGraph<index::SetTable>(precedenceGraph->getGraph());
     }
 
-    size_t getSCCForRelation(const AstRelation* relation) {
-        return sccGraph.vertexTable().getIndex(relation);
-    }
-
-    /** Get all successor SCCs of a specified scc. */
-    const std::set<size_t>& getSuccessorSCCs(size_t scc) {
-        return sccGraph.getSuccessors(scc);
-    }
-
-    /** Get all predecessor SCCs of a specified scc. */
-    const std::set<size_t>& getPredecessorSCCs(size_t scc) {
-        return sccGraph.getPredecessors(scc);
-    }
-
-    const std::set<const AstRelation*> getRelationsForSCC(size_t scc) {
-        return sccGraph.vertexTable().get(scc);
-    }
-
-    /** Return the number of strongly connected components in the SCC graph */
-    size_t getNumSCCs() {
-        return sccGraph.vertexCount();
-    }
 
     bool isRecursive(size_t scc) {
-        const std::set<const AstRelation*>& sccRelations = getRelationsForSCC(scc);
+        const std::set<const AstRelation*>& sccRelations = getGraph().vertexTable().get(scc);
         if (sccRelations.size() == 1) {
             const AstRelation* singleRelation = *sccRelations.begin();
             if (!precedenceGraph->getPredecessors(singleRelation).count(singleRelation)) {
@@ -159,12 +134,7 @@ public:
     }
 
     bool isRecursive(const AstRelation* relation) {
-        return isRecursive(getSCCForRelation(relation));
-    }
-
-    /** Output strongly connected component graph in graphviz format */
-    void outputSCCGraph(std::ostream& os) {
-        getGraph().print(os);
+        return isRecursive(getGraph().vertexTable().getIndex(relation));
     }
 
 };
@@ -196,7 +166,7 @@ const int topologicalOrderingCost(
         // if the index of the current scc is after the end of the ordered partition
         if (it_i >= it_k)
             // check that the index of all predecessor sccs of are before the index of the current scc
-            for (int scc : sccGraph->getPredecessorSCCs(*it_i))
+            for (int scc : sccGraph->getGraph().getPredecessors(*it_i))
                 if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i)
                     // if not, the sort is not a valid topological sort
                     return -1;
@@ -204,7 +174,7 @@ const int topologicalOrderingCost(
         // as the number of sccs with an index before the current scc
         for (auto it_j = permutationOfSCCs.begin(); it_j != it_i; ++it_j)
             // having some successor scc with an index after the current scc
-            for (int scc : sccGraph->getSuccessorSCCs(*it_j))
+            for (int scc : sccGraph->getGraph().getSuccessors(*it_j))
                 if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i) costOfSCC++;
         // and if this cost is greater than the maximum recorded cost for the whole permutation so far,
         // set the cost of the permutation to it
@@ -254,7 +224,7 @@ void outputTopologicallySortedSCCGraph(std::ostream& os) {
     int numSCCs = orderedSCCs.size();
     for (int i = 0; i < numSCCs; i++) {
         os << "[";
-        os << join(sccGraph->getRelationsForSCC(orderedSCCs[i]), ", ",
+        os << join(sccGraph->getGraph().vertexTable().get(orderedSCCs[i]), ", ",
                 [](std::ostream& out, const AstRelation* rel) { out << rel->getName(); });
         os << "]\n";
     }

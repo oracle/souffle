@@ -214,7 +214,7 @@ void DebugReporter::generateDebugReport(
     DebugReportSection datalogSection = getCodeSection(id + "-dl", "Datalog", datalogSpec.str());
 
     std::stringstream precGraphDot;
-    translationUnit.getAnalysis<PrecedenceGraph>()->outputPrecedenceGraph(precGraphDot);
+    translationUnit.getAnalysis<PrecedenceGraph>()->getGraph().print(precGraphDot, true);
     DebugReportSection precedenceGraphSection =
             getDotGraphSection(id + "-prec-graph", "Precedence Graph", precGraphDot.str());
 
