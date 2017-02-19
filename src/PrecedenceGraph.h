@@ -147,10 +147,10 @@ public:
     virtual void run(const AstTranslationUnit& translationUnit) {
         sccGraph = translationUnit.getAnalysis<SCCGraph>();
         HyperGraph<index::SeqTable, size_t> graph = GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
-        // TODO: perform some transformations, for example
+        // TODO: perform some transforms, for example
         // GraphTransform::joinRecursive(graph, GraphTransform::SINGLES | GraphTransform::ROOTS | GraphTransform::LEAVES | GraphTransform::SMOOTH_BACKWARD);
         // TODO: find a better topological ordering algorithm
-        orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::khansAlgorithm);
+        orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::reverseDFS);
     }
 
     SCCGraph* getSCCGraph() const {

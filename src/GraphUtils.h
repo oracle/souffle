@@ -299,7 +299,7 @@ public:
 class GraphSearch {
 private:
 
-    /** Recursive component of Khan's Algorithm. */
+    /** Recursive component of Khan's algorithm. */
     template <typename Lambda, template <typename> class Table, typename Node>
     static void khansAlgorithm(const HyperGraph<Table, Node>& graph, const size_t vertex,
             std::vector<bool>& visited, Lambda lambda) {
@@ -339,12 +339,26 @@ private:
         if (!foundVisitedPredecessor && foundVisitedSuccessor) khansAlgorithm(graph, vertex, visited, lambda);
     }
 
+     /** Recursive component of reverse DFS algorithm. */
+    template <typename Lambda, template <typename> class Table, typename Node>
+    static void reverseDFS(const HyperGraph<Table, Node>& graph, const size_t vertex,
+            std::vector<bool>& visited, Lambda lambda) {
+        if (visited[vertex] == false) {
+            visited[vertex] = true;
+            for (size_t predecessor : graph.getPredecessors(vertex)) {
+                reverseDFS(graph, predecessor, visited, lambda);
+            }
+            lambda(vertex);
+        }
+    }
+
 public:
 
 
-    /** Search the graph in the order of Khan's algorithm, executing the given lambda function for each visited node. */
+    /** Search the graph in the order of Khan's algorithm, executing the given lambda function for each visited node. Note that this only works for acyclic graphs, otherwise behaviour is undefined. */
     template <typename Lambda, template <typename> class Table, typename Node>
     static void khansAlgorithm(const HyperGraph<Table, Node>& graph, Lambda lambda) {
+        // TODO: is this actually Khan's algorithm?
         std::vector<bool> visited;
         visited.resize(graph.vertexCount());
         std::fill(visited.begin(), visited.end(), false);
@@ -356,6 +370,23 @@ public:
             }
         }
     }
+
+    /** Search the graph in the order of the reverse DFS algorithm, executing the given lambda function for each visited node. Note that this only works for acyclic graphs, otherwise behaviour is undefined. */
+    template <typename Lambda, template <typename> class Table, typename Node>
+    static void reverseDFS(const HyperGraph<Table, Node>& graph, Lambda lambda) {
+        std::vector<bool> visited;
+        visited.resize(graph.vertexCount());
+        std::fill(visited.begin(), visited.end(), false);
+        for (size_t vertex : graph.allVertices()) {
+            if (graph.getPredecessors(vertex).empty() && graph.getSuccessors(vertex).empty()) {
+                visited[vertex] = true;
+                lambda(vertex);
+            } else {
+                reverseDFS(graph, vertex, visited, lambda);
+            }
+        }
+    }
+
 };
 
 /** A class to obtain node orderings for graph searches. */
@@ -480,6 +511,7 @@ public:
    /** Convert the given graph to an acyclic hyper-graph of the specified table type. */
     template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
     static HyperGraph<Table, Node> toAcyclicHyperGraph(const Graph<Node, Compare> graph) {
+        // TODO: add a function like this for hyper-graphs (taking them as an argument)
         size_t counter = 0;
         std::stack<Node> S, P;
         std::map<Node, int> preOrder;
@@ -547,7 +579,7 @@ class GraphTransform {
                         if (single == -1) {
                            single = vertex;
                         } else {
-                            // TODO: singles are not working
+                            // TODO: not working
                             // graph.joinVertices(single, vertex);
                         }
                         continue;
@@ -562,10 +594,12 @@ class GraphTransform {
                         continue;
                     flag = true;
                     if ((currentType & __FORWARD__) == __FORWARD__) {
-                        graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex);
+                        // TODO: not working
+                        // graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex);
                     } else
                     if ((currentType & __BACKWARD__) == __BACKWARD__) {
-                        graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex);
+                        // TODO: not working
+                        // graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex);
                     }
                 }
             }
