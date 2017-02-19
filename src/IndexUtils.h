@@ -148,10 +148,12 @@ class CollectionIndexTable : public ObjectToIndex<Object>, public IndexToObjects
 public:
     /** Set the index for the given object. */
     void setIndex(const Object& object, const size_t index) {
+        assert(index <= this->indexToObject.size());
         if (this->hasIndex(index))
             for (const Object& object : this->get(index))
                 ObjectToIndex<Object>::removeIndex(object);
-        this->indexToObject[index] = Container<Object>();
+        else
+            this->indexToObject.push_back(Container<Object>());
         this->append(index, object);
     }
 

@@ -472,18 +472,15 @@ public:
     }
 
 
-    template <template<typename> class Table, typename Node, template <typename> class OtherTable, typename OtherNode>
-    static HyperGraph<Table, Node> toHyperGraph(HyperGraph<OtherTable, OtherNode> oldGraph) {
-        return oldGraph;
-        /*
-        HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
+    template <template<typename> class Table, template <typename> class OtherTable, typename OtherNode>
+    static HyperGraph<Table, size_t> toHyperGraph(HyperGraph<OtherTable, OtherNode> oldGraph) {
+        HyperGraph<Table, size_t> newGraph = HyperGraph<Table, size_t>();
         for (size_t index = 0; index < oldGraph.vertexCount(); ++index)
             newGraph.insertVertex(index, index);
         for (const size_t vertex : oldGraph.allVertices())
             for (const size_t successor : oldGraph.getSuccessors(vertex))
                 newGraph.insertEdge(vertex, successor);
         return newGraph;
-        */
     }
 };
 
