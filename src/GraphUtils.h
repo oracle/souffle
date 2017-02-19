@@ -475,6 +475,7 @@ public:
     template <template<typename> class Table, typename Node, template <typename> class OtherTable, typename OtherNode>
     static HyperGraph<Table, Node> toHyperGraph(HyperGraph<OtherTable, OtherNode> oldGraph) {
         return oldGraph;
+        /*
         HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
         for (size_t index = 0; index < oldGraph.vertexCount(); ++index)
             newGraph.insertVertex(index, index);
@@ -482,6 +483,7 @@ public:
             for (const size_t successor : oldGraph.getSuccessors(vertex))
                 newGraph.insertEdge(vertex, successor);
         return newGraph;
+        */
     }
 };
 

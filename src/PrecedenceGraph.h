@@ -143,8 +143,8 @@ public:
 
     virtual void run(const AstTranslationUnit& translationUnit) {
         sccGraph = translationUnit.getAnalysis<SCCGraph>();
-         auto graph = sccGraph->getGraph();
-        // auto graph = GraphConvert::toHyperGraph<index::SetTable>(sccGraph->getGraph());
+         // auto graph = sccGraph->getGraph();
+         auto graph = GraphConvert::toHyperGraph<index::SetTable>(sccGraph->getGraph());
         // GraphTransform::joinSingletons(graph);
         // GraphTransform::joinRecursive(graph, GraphTransform::ROOTS | GraphTransform::LEAVES | GraphTransform::SMOOTH | GraphTransform::BACKWARD);
         // TODO: find a better topological ordering algorithm
