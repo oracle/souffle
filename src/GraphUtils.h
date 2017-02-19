@@ -348,7 +348,7 @@ public:
     static const std::vector<Node> innerOrder(const HyperGraph<Table, Node>& graph,
             void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
         std::vector<Node> order;
-        for (const size_t vertex : outerOrder(graph, &algorithm)) {
+        for (const size_t vertex : outerOrder(graph, algorithm)) {
             const auto& objects = graph.vertexTable().get(vertex);
             order.insert(order.end(), objects.begin(), objects.end());
         }
@@ -474,16 +474,13 @@ public:
 
     template <template<typename> class Table, typename Node, template <typename> class OtherTable, typename OtherNode>
     static HyperGraph<Table, Node> toHyperGraph(HyperGraph<OtherTable, OtherNode> oldGraph) {
+        return oldGraph;
         HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
-        size_t index = 0;
-        for (; index < oldGraph.vertexCount(); ++index) {
+        for (size_t index = 0; index < oldGraph.vertexCount(); ++index)
             newGraph.insertVertex(index, index);
-        }
-        for (const size_t vertex : oldGraph.allVertices()) {
-            for (const size_t successor : oldGraph.getSuccessors(vertex)) {
-                newGraph.insertEdge(vertex, newGraph.vertexTable().getIndex(successor));
-            }
-        }
+        for (const size_t vertex : oldGraph.allVertices())
+            for (const size_t successor : oldGraph.getSuccessors(vertex))
+                newGraph.insertEdge(vertex, successor);
         return newGraph;
     }
 };
@@ -508,11 +505,13 @@ class GraphTransform {
             for (const size_t vertex : graph.allVertices()) {
                 in = graph.getPredecessors(vertex).size();
                 out = graph.getSuccessors(vertex).size();
-                if (in == 0 && out == 0)
-                    if (first = -1)
+                if (in == 0 && out == 0) {
+                    if (first == -1) {
                         first = (int) vertex;
-                    else
+                    } else {
                         graph.joinVertices(first, vertex);
+                    }
+                }
             }
         }
 
@@ -527,18 +526,20 @@ class GraphTransform {
                 for (const size_t vertex : graph.allVertices()) {
                     in = graph.getPredecessors(vertex).size();
                     out = graph.getSuccessors(vertex).size();
-                    if (in != 1 && out != 1) continue;
                     flag = true;
                     int currentType;
-                    if (in == 0 && out == 1) if (type & ROOTS == ROOTS) currentType = FORWARD; else continue;
+                    if (in == 0 && out == 1 && (type & ROOTS) == ROOTS)
+                        currentType = FORWARD;
+                    else if (in == 1 && out == 0 && (type & LEAVES) == LEAVES)
+                        currentType = BACKWARD;
+                    else if (in == 1 && out == 1 && (type & SMOOTH) == SMOOTH)
+                        currentType = type;
                     else
-                    if (in == 1 && out == 0) if (type & LEAVES == LEAVES) currentType = BACKWARD; else continue;
-                    else
-                    if (in == 1 && out == 1) if (type & SMOOTH == SMOOTH) currentType = type; else continue;
-                    if (type & FORWARD == FORWARD) {
+                        continue;
+                    if ((currentType & FORWARD) == FORWARD) {
                         graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex);
                     }
-                    if (type & BACKWARD == BACKWARD) {
+                    if ((currentType & BACKWARD) == BACKWARD) {
                         graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex);
                     }
                 }
