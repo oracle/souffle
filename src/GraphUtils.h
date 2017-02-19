@@ -395,7 +395,7 @@ class GraphOrder {
 public:
     /** Appends the collection of objects in the table for each vertex to an order as the vertex is
      * encountered by the given search function, then returns that order. */
-    template <template <typename> typename Table, typename Node>
+    template <template <typename> class Table, typename Node>
     static const std::vector<Node> innerOrder(const HyperGraph<Table, Node>& graph,
             void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
         std::vector<Node> order;
@@ -408,7 +408,7 @@ public:
 
     /** Appends each vertex to an order as the vertex is encountered by the given search function, then
      * returns that order. */
-    template <template <typename> typename Table, typename Node>
+    template <template <typename> class Table, typename Node>
     static const std::vector<size_t> outerOrder(const HyperGraph<Table, Node>& graph,
             void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
         std::vector<size_t> order;
@@ -542,6 +542,71 @@ public:
             for (const size_t successor : oldGraph.getSuccessors(vertex))
                 newGraph.insertEdge(vertex, successor);
         return newGraph;
+    }
+};
+
+/** A class for executing transformations on graphs. Every public member function is static and takes a
+ * reference to a hyper-graph, and transforms the graph it in a manner specific to that function. Every
+ * private member function forms the recursive component of its corresponding public member function, if any.
+ */
+class GraphTransform {
+public:
+    /** Enum to define transforms, more efficient than having a single member function for each one. */
+    enum {
+        SINGLES = 0x000001,  // join all vertices without predecessors or successors into a single vertex
+        ROOTS = 0x000010,  // join all roots with only one successor into their successors
+        LEAVES = 0x000100,  // join all leaves into their predecessors
+        SMOOTH_FORWARD = 0x011000,  // smooth edges backward
+        SMOOTH_BACKWARD = 0x101000,  // smooth edges forward
+        __SMOOTH__ = 0x001000,  // smooth edges, hidden
+        __FORWARD__ = 0x010000,  // join into successor, hidden
+        __BACKWARD__ = 0x100000,  // join into predecessor, hidden
+        __UNDEFINED__ = 0x110000  // undefined behaviour, hidden
+    };
+
+    /** Repeatedly join vertices using transforms, with those used given by a bitwise disjunction of any
+    compatible transformations in the enum at the start of this class.
+    Repeated until fixed point is reached (i.e. the graph makes no changes between the current and next round
+    of iteration). */
+    template <template <typename> class Table, typename Node>
+    static void joinRecursive(HyperGraph<Table, Node>& graph, int type) {
+        assert(type != __SMOOTH__ && type != __FORWARD__ && type != __BACKWARD__ &&
+                (type & __UNDEFINED__) != __UNDEFINED__);
+        bool flag = true;
+        int single = -1;
+        size_t in, out;
+        while (flag) {
+            flag = false;
+            for (const size_t vertex : graph.allVertices()) {
+                in = graph.getPredecessors(vertex).size();
+                out = graph.getSuccessors(vertex).size();
+                int currentType;
+                if (in == 0 && out == 0 && (type & SINGLES) == SINGLES) {
+                    if (single == -1) {
+                        single = vertex;
+                    } else {
+                        // TODO: not working
+                        graph.joinVertices(single, vertex);
+                    }
+                    continue;
+                } else if (in == 0 && out == 1 && (type & ROOTS) == ROOTS)
+                    currentType = __FORWARD__;
+                else if (in == 1 && out == 0 && (type & LEAVES) == LEAVES)
+                    currentType = __BACKWARD__;
+                else if (in == 1 && out == 1 && (type & __SMOOTH__) == __SMOOTH__)
+                    currentType = type;
+                else
+                    continue;
+                flag = true;
+                if ((currentType & __FORWARD__) == __FORWARD__) {
+                    // TODO: not working
+                    graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex);
+                } else if ((currentType & __BACKWARD__) == __BACKWARD__) {
+                    // TODO: not working
+                    graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex);
+                }
+            }
+        }
     }
 };
 
