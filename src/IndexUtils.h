@@ -36,7 +36,7 @@ public:
 
     /** Remove the index for the given object. */
     virtual void removeIndex(const Object& object) {
-        assert(this->has(object));
+        if (!this->has(object)) return;
         objectToIndex.erase(object);
     }
 };
@@ -44,6 +44,7 @@ public:
 /** A class mapping an index to an object. */
 template <typename Object>
 class IndexToObject {
+
 protected:
     /** The table mapping from an index to an object. */
     std::vector<Object> indexToObject;
@@ -61,7 +62,7 @@ public:
     }
 
     /* Set the object for the given index. */
-    virtual void set(const size_t index, const Object& object) {
+    virtual void set(const size_t index, const Object& object ) {
         assert(index <= indexToObject.size());
         if (index == indexToObject.size())
             indexToObject.push_back(object);
@@ -71,8 +72,11 @@ public:
 
     /* Remove the object for the given index. */
     virtual void remove(const size_t index) {
-        assert(this->hasIndex(index));
-        indexToObject.erase(indexToObject.begin() + index);
+        if (!this->hasIndex(index)) return;
+        if (index == indexToObject.size())
+            indexToObject.erase(indexToObject.begin() + index);
+        else
+            indexToObject[index] = nullptr;
     }
 };
 
@@ -106,8 +110,11 @@ public:
 
     /* Remove the collection of objects for the given index. */
     virtual void remove(const size_t index) {
-        this->hasIndex(index);
-        indexToObject.erase(indexToObject.begin() + index);
+        if (!this->hasIndex(index)) return;
+        if (index == indexToObject.size())
+            indexToObject.erase(indexToObject.begin() + index);
+        else
+            indexToObject.at(index).clear();
     }
 };
 
@@ -189,7 +196,8 @@ public:
     /** Move the collection of objects at the 'from' index, appending them to the collection at the 'to'
      * index. */
     void moveAppend(const size_t fromIndex, const size_t toIndex) {
-        assert(this->hasIndex(fromIndex) && this->hasIndex(toIndex));
+        if (!this->hasIndex(fromIndex)) return;
+        assert(this->hasIndex(toIndex));
         for (auto object : this->indexToObject.at(fromIndex)) this->append(toIndex, object);
         this->remove(fromIndex);
     }
@@ -207,7 +215,8 @@ public:
     /** Move the collection of objects at the 'from' index, prepending them to the collection at the 'to'
      * index. */
     void movePrepend(const size_t fromIndex, const size_t toIndex) {
-        assert(this->hasIndex(fromIndex) && this->hasIndex(toIndex));
+        if (!this->hasIndex(fromIndex)) return;
+        assert(this->hasIndex(toIndex));
         for (auto object : this->indexToObject.at(fromIndex)) this->prepend(toIndex, object);
         this->remove(fromIndex);
     }
