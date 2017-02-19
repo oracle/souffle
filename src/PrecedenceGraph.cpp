@@ -29,7 +29,6 @@
 namespace souffle {
 
 void PrecedenceGraph::run(const AstTranslationUnit& translationUnit) {
-    /* Get relations */
     std::vector<AstRelation*> relations = translationUnit.getProgram()->getRelations();
 
     for (AstRelation* r : relations) {

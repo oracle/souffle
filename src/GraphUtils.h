@@ -403,7 +403,7 @@ private:
      * runtime.
      */
     template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
-    static void toSCCGraph(const Graph<Node, Compare>& graph, HyperGraph<Table, Node>& sccGraph,
+    static void toAcyclicHyperGraph(const Graph<Node, Compare>& graph, HyperGraph<Table, Node>& sccGraph,
             const Node& w, std::map<Node, int>& preOrder, size_t& counter, std::stack<Node>& S,
             std::stack<Node>& P) {
         preOrder[w] = counter++;
@@ -413,7 +413,7 @@ private:
 
         for (const Node& t : graph.getPredecessors(w))
             if (preOrder[t] == -1)
-                toSCCGraph(graph, sccGraph, t, preOrder, counter, S, P);
+                toAcyclicHyperGraph(graph, sccGraph, t, preOrder, counter, S, P);
             else if (!sccGraph.vertexTable().has(t))
                 while (preOrder[P.top()] > preOrder[t]) P.pop();
 
@@ -451,6 +451,27 @@ public:
         return newGraph;
     }
 
+
+    template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
+    static HyperGraph<Table, Node> toAcyclicHyperGraph(const Graph<Node, Compare> graph) {
+        size_t counter = 0;
+        std::stack<Node> S, P;
+        std::map<Node, int> preOrder;
+        HyperGraph<Table, Node> sccGraph = HyperGraph<Table, Node>();
+        for (const Node& vertex : graph.allVertices()) preOrder[vertex] = -1;
+        for (const Node& vertex : graph.allVertices())
+            if (preOrder[vertex] == -1) toAcyclicHyperGraph(graph, sccGraph, vertex, preOrder, counter, S, P);
+        for (const Node& vertex : graph.allVertices())
+            for (const Node& predecessor : graph.getPredecessors(vertex))
+                if (vertex != predecessor &&
+                        sccGraph.vertexTable().getIndex(vertex) !=
+                                sccGraph.vertexTable().getIndex(predecessor))
+                    sccGraph.insertEdge(sccGraph.vertexTable().getIndex(vertex),
+                            sccGraph.vertexTable().getIndex(predecessor));
+        return sccGraph;
+    }
+
+
     template <template<typename> class Table, typename Node, template <typename> class OtherTable, typename OtherNode>
     static HyperGraph<Table, Node> toHyperGraph(HyperGraph<OtherTable, OtherNode> oldGraph) {
         HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
@@ -465,74 +486,66 @@ public:
         }
         return newGraph;
     }
-
-    template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
-    static HyperGraph<Table, Node> toSCCGraph(const Graph<Node, Compare> graph) {
-        size_t counter = 0;
-        std::stack<Node> S, P;
-        std::map<Node, int> preOrder;
-        HyperGraph<Table, Node> sccGraph = HyperGraph<Table, Node>();
-        for (const Node& vertex : graph.allVertices()) preOrder[vertex] = -1;
-        for (const Node& vertex : graph.allVertices())
-            if (preOrder[vertex] == -1) toSCCGraph(graph, sccGraph, vertex, preOrder, counter, S, P);
-        for (const Node& vertex : graph.allVertices())
-            for (const Node& predecessor : graph.getPredecessors(vertex))
-                if (vertex != predecessor &&
-                        sccGraph.vertexTable().getIndex(vertex) !=
-                                sccGraph.vertexTable().getIndex(predecessor))
-                    sccGraph.insertEdge(sccGraph.vertexTable().getIndex(vertex),
-                            sccGraph.vertexTable().getIndex(predecessor));
-        return sccGraph;
-    }
 };
 
 class GraphTransform {
-    // TODO
-    /** Pre-process the SCC graph; recursively contract roots, contract leaves, and smooth vertices of out
 
-//     * degree 1.  */
-    //    HyperGraph<index::SeqTable, size_t> preProcessGraph(HyperGraph<index::SetTable, const AstRelation*>
-    //    originalGraph) const {
-    //        HyperGraph<index::SeqTable, size_t> indexGraph = HyperGraph<index::SeqTable,
-    //        size_t>::toHyperGraph(originalGraph);
-    //        return indexGraph;
-    //        bool flag = true;
-    //        int in, out, non = -1;
-    //        while (flag) {
-    //            flag = false;
-    //            for (size_t vertex : indexGraph.allVertices()) {
-    //                if (!indexGraph.hasVertex(vertex)) continue;
-    //                in = indexGraph.getPredecessors(vertex).size();
-    //                out = indexGraph.getSuccessors(vertex).size();
-    //                if (in == 0 && out == 0 && (non < 0 || vertex != (size_t) non)) {
-    //                    if (non < 0)
-    //                        non = vertex;
-    //                    else
-    //                        indexGraph.joinVertices(non, vertex);
-    //                    flag = true;
-    //                    continue;
-    //                } else
-    //                if (in == 1 && out == 0) {
-    //                    indexGraph.joinVertices(*indexGraph.getPredecessors(vertex).begin(), vertex);
-    //                    flag = true;
-    //                    continue;
-    //                } else
-    //                if (out == 1) {
-    //                    indexGraph.joinVertices(*indexGraph.getSuccessors(vertex).begin(), vertex);
-    //                    flag = true;
-    //                    continue;
-    //                }
-    //            }
-    //        }
-    //
-    //        return indexGraph;
-    //        */
-    //
-    //    }
+    public:
 
-    //
+        enum {
+            ROOTS       = 0x00001,
+            LEAVES      = 0x00010,
+            SMOOTH      = 0x00100,
+            FORWARD     = 0x01000,
+            BACKWARD    = 0x10000
 
-    //
+        };
+
+        template <template <typename> class Table, typename Node>
+        static void joinSingletons(HyperGraph<Table, Node>& graph) {
+            int first = -1;
+            size_t in, out;
+            for (const size_t vertex : graph.allVertices()) {
+                in = graph.getPredecessors(vertex).size();
+                out = graph.getSuccessors(vertex).size();
+                if (in == 0 && out == 0)
+                    if (first = -1)
+                        first = (int) vertex;
+                    else
+                        graph.joinVertices(first, vertex);
+            }
+        }
+
+
+        template <template <typename> class Table, typename Node>
+        static void joinRecursive(HyperGraph<Table, Node>& graph, int type) {
+            assert((type << 3) != 0x11);
+             bool flag = true;
+            size_t in, out;
+            while (flag) {
+                flag = false;
+                for (const size_t vertex : graph.allVertices()) {
+                    in = graph.getPredecessors(vertex).size();
+                    out = graph.getSuccessors(vertex).size();
+                    if (in != 1 && out != 1) continue;
+                    flag = true;
+                    int currentType;
+                    if (in == 0 && out == 1) if (type & ROOTS == ROOTS) currentType = FORWARD; else continue;
+                    else
+                    if (in == 1 && out == 0) if (type & LEAVES == LEAVES) currentType = BACKWARD; else continue;
+                    else
+                    if (in == 1 && out == 1) if (type & SMOOTH == SMOOTH) currentType = type; else continue;
+                    if (type & FORWARD == FORWARD) {
+                        graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex);
+                    }
+                    if (type & BACKWARD == BACKWARD) {
+                        graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex);
+                    }
+                }
+            }
+        }
+
+
 };
 
 }  // end of namespace souffle

@@ -115,7 +115,7 @@ public:
 
     virtual void run(const AstTranslationUnit& translationUnit) {
         precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>();
-        sccGraph = GraphConvert::toSCCGraph<index::SetTable>(precedenceGraph->getGraph());
+        sccGraph = GraphConvert::toAcyclicHyperGraph<index::SetTable>(precedenceGraph->getGraph());
     }
 
     const bool isRecursive(size_t scc) const {
@@ -143,7 +143,11 @@ public:
 
     virtual void run(const AstTranslationUnit& translationUnit) {
         sccGraph = translationUnit.getAnalysis<SCCGraph>();
-        orderedSCCs = GraphOrder::outerOrder(sccGraph->getGraph(), &GraphSearch::khansAlgorithm);
+        const auto graph = GraphConvert::toHyperGraph<index::SetTable>(sccGraph->getGraph());
+        GraphTransform::joinSingletons(graph);
+        GraphTransform::joinRecursive(graph, GraphTransform::ROOTS | GraphTransform::LEAVES | GraphTransform::SMOOTH | GraphTransform::BACKWARD);
+        // TODO: find a better topological ordering algorithm
+        orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::khansAlgorithm);
     }
 
     SCCGraph* getSCCGraph() const {
