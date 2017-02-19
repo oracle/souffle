@@ -177,37 +177,7 @@ private:
     Table<Node> table;
 
 public:
-    template <typename Compare = std::less<Node>>
-    static HyperGraph<Table, Node> toHyperGraph(Graph<Node, Compare> oldGraph) {
-        HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
-        size_t index = 0;
-        for (const size_t vertex : oldGraph.allVertices()) {
-            newGraph.insertVertex(index, vertex);
-            index++;
-        }
-        for (const size_t vertex : oldGraph.allVertices()) {
-            index = newGraph.vertexTable().getIndex(vertex);
-            for (const size_t successor : oldGraph.getSuccessors(vertex)) {
-                newGraph.insertEdge(index, newGraph.vertexTable().getIndex(successor));
-            }
-        }
-        return newGraph;
-    }
 
-    template <template <typename> class OtherTable, typename OtherNode>
-    static HyperGraph<Table, Node> toHyperGraph(HyperGraph<OtherTable, OtherNode> oldGraph) {
-        HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
-        size_t index = 0;
-        for (; index < oldGraph.vertexCount(); ++index) {
-            newGraph.insertVertex(index, index);
-        }
-        for (const size_t vertex : oldGraph.allVertices()) {
-            for (const size_t successor : oldGraph.getSuccessors(vertex)) {
-                newGraph.insertEdge(vertex, newGraph.vertexTable().getIndex(successor));
-            }
-        }
-        return newGraph;
-    }
 
     template <typename Compare = std::less<Node>>
     const bool isRecursive(const Graph<Node, Compare>& graph, size_t vertex) const {
@@ -463,6 +433,39 @@ private:
     }
 
 public:
+
+   template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
+    static HyperGraph<Table, Node> toHyperGraph(Graph<Node, Compare> oldGraph) {
+        HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
+        size_t index = 0;
+        for (const size_t vertex : oldGraph.allVertices()) {
+            newGraph.insertVertex(index, vertex);
+            index++;
+        }
+        for (const size_t vertex : oldGraph.allVertices()) {
+            index = newGraph.vertexTable().getIndex(vertex);
+            for (const size_t successor : oldGraph.getSuccessors(vertex)) {
+                newGraph.insertEdge(index, newGraph.vertexTable().getIndex(successor));
+            }
+        }
+        return newGraph;
+    }
+
+    template <template<typename> class Table, typename Node, template <typename> class OtherTable, typename OtherNode>
+    static HyperGraph<Table, Node> toHyperGraph(HyperGraph<OtherTable, OtherNode> oldGraph) {
+        HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
+        size_t index = 0;
+        for (; index < oldGraph.vertexCount(); ++index) {
+            newGraph.insertVertex(index, index);
+        }
+        for (const size_t vertex : oldGraph.allVertices()) {
+            for (const size_t successor : oldGraph.getSuccessors(vertex)) {
+                newGraph.insertEdge(vertex, newGraph.vertexTable().getIndex(successor));
+            }
+        }
+        return newGraph;
+    }
+
     template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
     static HyperGraph<Table, Node> toSCCGraph(const Graph<Node, Compare> graph) {
         size_t counter = 0;
