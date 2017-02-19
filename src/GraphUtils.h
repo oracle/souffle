@@ -202,24 +202,24 @@ private:
 template <template <typename> class Table, typename Node>
 class HyperGraph : public Graph<size_t> {
 private:
-    Table<Node> table;
+    Table<Node> indexTable;
 
 public:
     /** Get a constant reference to the table backing this hypergraph. */
-    const Table<Node>& vertexTable() const {
-        return this->table;
+    const Table<Node>& table() const {
+        return this->indexTable;
     }
 
     /** Insert a new vertex into the graph and create an entry in the table for it. */
     void insertVertex(const size_t& vertex) {
         Graph<size_t>::insertVertex(vertex);
-        this->table.set(vertex);
+        this->indexTable.set(vertex);
     }
 
     /** Insert a new vertex into the graph and create an entry in the table for it with the given object. */
     void insertVertex(const size_t& vertex, const Node& object) {
         Graph<size_t>::insertVertex(vertex);
-        this->table.setIndex(object, vertex);
+        this->indexTable.setIndex(object, vertex);
     }
 
     /** Insert a new vertex into the graph and create an entry in the table for it with the given collection
@@ -227,47 +227,47 @@ public:
     template <template <typename...> class T>
     void insertVertex(const size_t& vertex, const T<Node>& objects) {
         Graph<size_t>::insertVertex(vertex);
-        this->table.set(vertex, objects);
+        this->indexTable.set(vertex, objects);
     }
 
     /** Remove a vertex from the graph and its entry from the table. */
     void removeVertex(const size_t& vertex) {
         Graph<size_t>::removeVertex(vertex);
-        this->table.remove(vertex);
+        this->indexTable.remove(vertex);
     }
 
     /** Append the object to the collection for the vertex in the table. */
     void appendToVertex(const size_t vertex, const Node& object) {
         if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
-        this->table.append(vertex, object);
+        this->indexTable.append(vertex, object);
     }
 
     /** Append the objects to the collection for the vertex in the table. */
     template <template <typename...> class T>
     void appendToVertex(const size_t vertex, const T<Node>& objects) {
         if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
-        this->table.append(vertex, objects);
+        this->indexTable.append(vertex, objects);
     }
 
     /** Prepend the object to the collection for the vertex in the table. */
     void prependToVertex(const size_t vertex, const Node& object) {
         if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
-        this->table.prepend(vertex, object);
+        this->indexTable.prepend(vertex, object);
     }
 
     /** Prepend the objects to the collection for the vertex in the table. */
     template <template <typename...> class T>
     void prependToVertex(const size_t vertex, const T<Node>& objects) {
         if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
-        this->table.prepend(vertex, objects);
+        this->indexTable.prepend(vertex, objects);
     }
 
     /** Join the vertices, merging their edges and their entries in the table. */
     void joinVertices(const size_t& retainedVertex, const size_t& removedVertex) {
         if (hasEdge(removedVertex, retainedVertex))
-            this->table.movePrepend(removedVertex, retainedVertex);
+            this->indexTable.movePrepend(removedVertex, retainedVertex);
         else
-            this->table.moveAppend(removedVertex, retainedVertex);
+            this->indexTable.moveAppend(removedVertex, retainedVertex);
         Graph<size_t>::joinVertices(retainedVertex, removedVertex);
     }
 
@@ -281,7 +281,7 @@ public:
             os << "\"" << iter.first << "\""
                << " [label=\"";
             first = true;
-            for (const auto& inner : this->table.get(iter.first)) {
+            for (const auto& inner : this->indexTable.get(iter.first)) {
                 if (!first) os << ",";
                 os << inner;
                 first = false;
@@ -400,7 +400,7 @@ public:
             void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
         std::vector<Node> order;
         for (const size_t vertex : outerOrder(graph, algorithm)) {
-            const auto& objects = graph.vertexTable().get(vertex);
+            const auto& objects = graph.table().get(vertex);
             order.insert(order.end(), objects.begin(), objects.end());
         }
         return order;
@@ -475,7 +475,7 @@ private:
         for (const Node& t : graph.getPredecessors(w))
             if (preOrder[t] == -1)
                 toAcyclicHyperGraph(graph, sccGraph, t, preOrder, counter, S, P);
-            else if (!sccGraph.vertexTable().has(t))
+            else if (!sccGraph.table().has(t))
                 while (preOrder[P.top()] > preOrder[t]) P.pop();
 
         if (P.top() == w)
@@ -504,9 +504,9 @@ public:
             index++;
         }
         for (const size_t vertex : oldGraph.allVertices()) {
-            index = newGraph.vertexTable().getIndex(vertex);
+            index = newGraph.table().getIndex(vertex);
             for (const size_t successor : oldGraph.getSuccessors(vertex)) {
-                newGraph.insertEdge(index, newGraph.vertexTable().getIndex(successor));
+                newGraph.insertEdge(index, newGraph.table().getIndex(successor));
             }
         }
         return newGraph;
@@ -526,10 +526,10 @@ public:
         for (const Node& vertex : graph.allVertices())
             for (const Node& predecessor : graph.getPredecessors(vertex))
                 if (vertex != predecessor &&
-                        sccGraph.vertexTable().getIndex(vertex) !=
-                                sccGraph.vertexTable().getIndex(predecessor))
-                    sccGraph.insertEdge(sccGraph.vertexTable().getIndex(vertex),
-                            sccGraph.vertexTable().getIndex(predecessor));
+                        sccGraph.table().getIndex(vertex) !=
+                                sccGraph.table().getIndex(predecessor))
+                    sccGraph.insertEdge(sccGraph.table().getIndex(vertex),
+                            sccGraph.table().getIndex(predecessor));
         return sccGraph;
     }
 

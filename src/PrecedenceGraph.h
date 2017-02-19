@@ -119,13 +119,13 @@ public:
     }
 
     const bool isRecursive(size_t vertex) const {
-        const auto& objects = sccGraph.vertexTable().get(vertex);
+        const auto& objects = sccGraph.table().get(vertex);
         if (objects.size() == 1 && !precedenceGraph->getGraph().isRecursive(*objects.begin())) return false;
         return true;
     }
 
     const bool isRecursive(const AstRelation* relation) const {
-        return isRecursive(sccGraph.vertexTable().getIndex(relation));
+        return isRecursive(sccGraph.table().getIndex(relation));
     }
 };
 
@@ -161,7 +161,7 @@ public:
 
     void outputTopologicallySortedSCCGraph(std::ostream& os) const {
         for (size_t i = 0; i < orderedSCCs.size(); i++)
-            os << "[" << join(sccGraph->getGraph().vertexTable().get(orderedSCCs[i])) << "]\n";
+            os << "[" << join(sccGraph->getGraph().table().get(orderedSCCs[i])) << "]\n";
         os << "\n";
         os << "cost: " << GraphQuery::topologicalOrderingCost(sccGraph->getGraph(), orderedSCCs) << "\n";
     }
