@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Util.h"
-#include <map>
 #include <deque>
+#include <map>
 #include <set>
 #include <vector>
 
@@ -146,21 +146,19 @@ public:
 template <typename Object, template <typename...> class Container>
 class CollectionIndexTable : public ObjectToIndex<Object>, public IndexToObjects<Object, Container> {
 public:
-
     /** Set the index for the given object. */
     void setIndex(const Object& object, const size_t index) {
-         if (this->hasIndex(index)) {
+        if (this->hasIndex(index)) {
             const Container<Object> objects = this->get(index);
             for (const Object& object : objects) ObjectToIndex<Object>::removeIndex(object);
-         }
-         this->indexToObject.at(index).clear();
-         this->append(index, object);
+        }
+        this->indexToObject.at(index).clear();
+        this->append(index, object);
     }
 
     /** Set the collection of objects for the given index. */
     void set(const size_t index, const Container<Object>& objects = Container<Object>()) {
-        for (const Object& object : objects)
-            ObjectToIndex<Object>::setIndex(object, index);
+        for (const Object& object : objects) ObjectToIndex<Object>::setIndex(object, index);
         IndexToObjects<Object, Container>::set(index, objects);
     }
 
@@ -219,12 +217,10 @@ public:
 template <typename Object>
 class SetTable : public CollectionIndexTable<Object, std::set> {
 public:
-
     /** Insert the object into the set at the given index. */
     void append(const size_t index, const Object& object) {
         assert(index <= this->indexToObject.size());
-        if (index == this->indexToObject.size())
-            this->indexToObject.push_back(std::set<Object>());
+        if (index == this->indexToObject.size()) this->indexToObject.push_back(std::set<Object>());
         this->indexToObject[index].insert(object);
         this->objectToIndex[object] = index;
     }
@@ -239,12 +235,10 @@ public:
 template <typename Object>
 class SeqTable : public CollectionIndexTable<Object, std::deque> {
 public:
-
     /** Append the object to the sequence at the given index. */
     void append(const size_t index, const Object& object) {
         assert(index <= this->indexToObject.size());
-        if (index == this->indexToObject.size())
-            this->indexToObject.push_back(std::deque<Object>());
+        if (index == this->indexToObject.size()) this->indexToObject.push_back(std::deque<Object>());
         this->indexToObject[index].push_back(object);
         this->objectToIndex[object] = index;
     }
@@ -252,8 +246,7 @@ public:
     /** Prepend the object to the sequence at the given index. */
     void prepend(const size_t index, const Object& object) {
         assert(index <= this->indexToObject.size());
-        if (index == this->indexToObject.size())
-            this->indexToObject.push_back(std::deque<Object>());
+        if (index == this->indexToObject.size()) this->indexToObject.push_back(std::deque<Object>());
         this->indexToObject[index].push_front(object);
         this->objectToIndex[object] = index;
     }

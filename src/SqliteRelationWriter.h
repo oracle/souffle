@@ -220,5 +220,4 @@ inline void writeRelationsToSqlite(std::string dbFilename, souffle::SouffleProgr
     ;
 }
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

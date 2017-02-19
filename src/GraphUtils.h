@@ -27,9 +27,7 @@ namespace souffle {
 
 template <typename Node, typename Compare = std::less<Node>>
 class Graph {
-
 protected:
-
     std::set<Node, Compare> nodes;
 
     std::map<Node, std::set<Node, Compare>> predecessors;
@@ -37,7 +35,6 @@ protected:
     std::map<Node, std::set<Node, Compare>> successors;
 
 public:
-
     const bool isRecursive(const Node& vertex) const {
         return successors.at(vertex).find(vertex) != successors.at(vertex).end();
     }
@@ -60,10 +57,8 @@ public:
 
     virtual void removeVertex(const Node& vertex) {
         if (!hasVertex(vertex)) return;
-        for (const Node& in : predecessors.at(vertex))
-            removeEdge(in, vertex);
-        for (const Node& out : successors.at(vertex))
-            removeEdge(vertex, out);
+        for (const Node& in : predecessors.at(vertex)) removeEdge(in, vertex);
+        for (const Node& out : successors.at(vertex)) removeEdge(vertex, out);
         nodes.erase(vertex);
         successors.erase(vertex);
         predecessors.erase(vertex);
@@ -79,10 +74,8 @@ public:
 
     virtual void insertEdge(const Node& vertex1, const Node& vertex2) {
         if (hasEdge(vertex1, vertex2)) return;
-        if (!hasVertex(vertex1))
-            insertVertex(vertex1);
-        if (!hasVertex(vertex2))
-            insertVertex(vertex2);
+        if (!hasVertex(vertex1)) insertVertex(vertex1);
+        if (!hasVertex(vertex2)) insertVertex(vertex2);
         successors.at(vertex1).insert(vertex2);
         predecessors.at(vertex2).insert(vertex1);
     }
@@ -116,8 +109,7 @@ public:
     }
 
     const void insertSuccessors(const Node& vertex, const std::set<Node, Compare>& vertices) {
-        for (const auto& successor : vertices)
-            insertEdge(vertex, successor);
+        for (const auto& successor : vertices) insertEdge(vertex, successor);
     }
 
     const std::set<Node, Compare>& getPredecessors(const Node& vertex) const {
@@ -126,8 +118,7 @@ public:
     }
 
     const void insertPredecessors(const Node& vertex, const std::set<Node, Compare>& vertices) {
-        for (const auto& predecessor : vertices)
-            insertEdge(predecessor, vertex);
+        for (const auto& predecessor : vertices) insertEdge(predecessor, vertex);
     }
 
     std::set<Node, Compare> getClique(const Node& fromVertex) const {
@@ -135,8 +126,7 @@ public:
         std::set<Node, Compare> clique;
         clique.insert(fromVertex);
         for (const auto& toVertex : allVertices())
-            if (hasPath(fromVertex, toVertex) && hasPath(toVertex, fromVertex))
-                clique.insert(toVertex);
+            if (hasPath(fromVertex, toVertex) && hasPath(toVertex, fromVertex)) clique.insert(toVertex);
         return clique;
     }
 
@@ -163,8 +153,8 @@ public:
         for (const auto& vertex : successors) {
             for (const auto& successor : vertex.second) {
                 if (!first) os << ";" << std::endl;
-                os << "\"" << ((!invert) ? vertex.first : successor) << "\" -> \"" <<
-                    ((invert) ? vertex.first : successor) << "\"";
+                os << "\"" << ((!invert) ? vertex.first : successor) << "\" -> \""
+                   << ((invert) ? vertex.first : successor) << "\"";
                 first = false;
             }
         }
@@ -172,7 +162,6 @@ public:
     }
 
 private:
-
     template <typename Lambda>
     void visitDepthFirst(const Node& vertex, const Lambda lambda, std::set<Node, Compare>& visited) const {
         lambda(vertex);
@@ -184,215 +173,210 @@ private:
 
 template <template <typename> class Table, typename Node>
 class HyperGraph : public Graph<size_t> {
+private:
+    Table<Node> table;
 
-    private:
-
-        Table<Node> table;
-
-    public:
-
-        template <typename Compare = std::less<Node>>
-        static HyperGraph<Table, Node> toHyperGraph(Graph<Node, Compare> oldGraph) {
-            HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
-            size_t index = 0;
-            for (const size_t vertex : oldGraph.allVertices()) {
-                newGraph.insertVertex(index, vertex);
-                index++;
+public:
+    template <typename Compare = std::less<Node>>
+    static HyperGraph<Table, Node> toHyperGraph(Graph<Node, Compare> oldGraph) {
+        HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
+        size_t index = 0;
+        for (const size_t vertex : oldGraph.allVertices()) {
+            newGraph.insertVertex(index, vertex);
+            index++;
+        }
+        for (const size_t vertex : oldGraph.allVertices()) {
+            index = newGraph.vertexTable().getIndex(vertex);
+            for (const size_t successor : oldGraph.getSuccessors(vertex)) {
+                newGraph.insertEdge(index, newGraph.vertexTable().getIndex(successor));
             }
-            for (const size_t vertex : oldGraph.allVertices()) {
-                index = newGraph.vertexTable().getIndex(vertex);
-                for (const size_t successor : oldGraph.getSuccessors(vertex)) {
-                    newGraph.insertEdge(index, newGraph.vertexTable().getIndex(successor));
-                }
+        }
+        return newGraph;
+    }
+
+    template <template <typename> class OtherTable, typename OtherNode>
+    static HyperGraph<Table, Node> toHyperGraph(HyperGraph<OtherTable, OtherNode> oldGraph) {
+        HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
+        size_t index = 0;
+        for (; index < oldGraph.vertexCount(); ++index) {
+            newGraph.insertVertex(index, index);
+        }
+        for (const size_t vertex : oldGraph.allVertices()) {
+            for (const size_t successor : oldGraph.getSuccessors(vertex)) {
+                newGraph.insertEdge(vertex, newGraph.vertexTable().getIndex(successor));
             }
-            return newGraph;
         }
+        return newGraph;
+    }
 
-        template<template <typename> class OtherTable, typename OtherNode>
-        static HyperGraph<Table, Node> toHyperGraph(HyperGraph<OtherTable, OtherNode> oldGraph) {
-            HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
-            size_t index = 0;
-            for (; index < oldGraph.vertexCount(); ++index) {
-                newGraph.insertVertex(index, index);
+    template <typename Compare = std::less<Node>>
+    const bool isRecursive(const Graph<Node, Compare>& graph, size_t vertex) const {
+        const std::set<Node>& objects = vertexTable().get(vertex);
+        if (objects.size() == 1 && !graph.isRecursive(*objects.begin())) return false;
+        return true;
+    }
+
+    template <typename Compare = std::less<Node>>
+    const bool isRecursive(const Graph<Node, Compare>& graph, const Node& object) const {
+        return isRecursive(graph, vertexTable().getIndex(object));
+    }
+
+    const Table<Node>& vertexTable() const {
+        return this->table;
+    }
+
+    void insertVertex(const size_t vertex) {
+        Graph<size_t>::insertVertex(vertex);
+        this->table.set(vertex);
+    }
+
+    void insertVertex(const size_t vertex, const Node& object) {
+        Graph<size_t>::insertVertex(vertex);
+        this->table.setIndex(object, vertex);
+    }
+
+    template <template <typename...> class T>
+    void insertVertex(const size_t vertex, const T<Node>& objects) {
+        Graph<size_t>::insertVertex(vertex);
+        this->table.set(vertex, objects);
+    }
+
+    void removeVertex(const size_t vertex) {
+        Graph<size_t>::removeVertex(vertex);
+        this->table.remove(vertex);
+    }
+
+    void appendToVertex(const size_t vertex, const Node& object) {
+        if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
+        this->table.append(vertex, object);
+    }
+
+    template <template <typename...> class T>
+    void appendToVertex(const size_t vertex, const T<Node>& objects) {
+        if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
+        this->table.append(vertex, objects);
+    }
+
+    void prependToVertex(const size_t vertex, const Node& object) {
+        if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
+        this->table.prepend(vertex, object);
+    }
+
+    template <template <typename...> class T>
+    void prependToVertex(const size_t vertex, const T<Node>& objects) {
+        if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
+        this->table.prepend(vertex, objects);
+    }
+
+    void joinVertices(const size_t subjectVertex, const size_t deletedVertex) {
+        if (hasEdge(deletedVertex, subjectVertex))
+            this->table.moveAppend(deletedVertex, subjectVertex);
+        else
+            this->table.movePrepend(deletedVertex, subjectVertex);
+        Graph<size_t>::joinVertices(subjectVertex, deletedVertex);
+    }
+
+    virtual void print(std::ostream& os) const {
+        bool first = true;
+        os << "digraph {";
+        for (const auto& iter : this->successors) {
+            if (!first) os << ";\n";
+            os << "\"" << iter.first << "\""
+               << " [label=\"";
+            first = true;
+            for (const auto& inner : this->table.get(iter.first)) {
+                if (!first) os << ",";
+                os << inner;
+                first = false;
             }
-            for (const size_t vertex : oldGraph.allVertices()) {
-                for (const size_t successor : oldGraph.getSuccessors(vertex)) {
-                    newGraph.insertEdge(vertex, newGraph.vertexTable().getIndex(successor));
-                }
+            os << "\"]";
+            for (const auto& successor : iter.second) {
+                os << ";\n"
+                   << "\"" << iter.first << "\""
+                   << " -> "
+                   << "\"" << successor << "\"";
             }
-            return newGraph;
         }
-
-        template<typename Compare = std::less<Node>>
-       const bool isRecursive(const Graph<Node, Compare>& graph, size_t vertex) const {
-            const std::set<Node>& objects = vertexTable().get(vertex);
-            if (objects.size() == 1 && !graph.isRecursive(*objects.begin()))
-                    return false;
-            return true;
-        }
-
-        template<typename Compare = std::less<Node>>
-        const bool isRecursive(const Graph<Node, Compare>& graph, const Node& object) const {
-            return isRecursive(graph, vertexTable().getIndex(object));
-        }
-
-        const Table<Node>& vertexTable() const {
-            return this->table;
-        }
-
-        void insertVertex(const size_t vertex) {
-            Graph<size_t>::insertVertex(vertex);
-            this->table.set(vertex);
-        }
-
-        void insertVertex(const size_t vertex, const Node& object) {
-            Graph<size_t>::insertVertex(vertex);
-            this->table.setIndex(object, vertex);
-        }
-
-        template <template <typename...> class T>
-        void insertVertex(const size_t vertex, const T<Node>& objects) {
-            Graph<size_t>::insertVertex(vertex);
-            this->table.set(vertex, objects);
-        }
-
-        void removeVertex(const size_t vertex) {
-            Graph<size_t>::removeVertex(vertex);
-            this->table.remove(vertex);
-        }
-
-        void appendToVertex(const size_t vertex, const Node& object) {
-            if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
-            this->table.append(vertex, object);
-        }
-
-        template <template <typename...> class T>
-        void appendToVertex(const size_t vertex, const T<Node>& objects) {
-            if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
-            this->table.append(vertex, objects);
-        }
-
-        void prependToVertex(const size_t vertex, const Node& object) {
-            if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
-            this->table.prepend(vertex, object);
-        }
-
-        template <template <typename...> class T>
-        void prependToVertex(const size_t vertex, const T<Node>& objects) {
-            if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
-            this->table.prepend(vertex, objects);
-        }
-
-        void joinVertices(const size_t subjectVertex, const size_t deletedVertex) {
-            if (hasEdge(deletedVertex, subjectVertex))
-                this->table.moveAppend(deletedVertex, subjectVertex);
-            else
-                this->table.movePrepend(deletedVertex, subjectVertex);
-            Graph<size_t>::joinVertices(subjectVertex, deletedVertex);
-        }
-
-        virtual void print(std::ostream& os) const {
-            bool first = true;
-            os << "digraph {";
-            for (const auto& iter : this->successors) {
-                if (!first) os << ";\n";
-                os << "\"" << iter.first << "\"" << " [label=\"";
-                first = true;
-                for (const auto& inner : this->table.get(iter.first)) {
-                    if (!first) os << ",";
-                    os << inner;
-                    first = false;
-                }
-                os << "\"]";
-                for (const auto& successor : iter.second) {
-                    os << ";\n" << "\"" << iter.first << "\"" << " -> " << "\"" << successor << "\"";
-                }
-            }
-            os << "}\n" << std::endl;
-        }
-
+        os << "}\n" << std::endl;
+    }
 };
 
 class GraphSearch {
-
 private:
-
-template<typename Lambda, template <typename> class Table, typename Node>
-static void khansAlgorithm(const HyperGraph<Table, Node>& graph, const size_t vertex, std::vector<bool>& visited, Lambda lambda) {
-   // create a flag to indicate that a successor was visited (by default it hasn't been)
-    bool foundValidVertex = false, foundVisitedPredecessor = false, foundVisitedSuccessor = false;
-    // for each successor of the input vertex
-    for (const size_t successor : graph.getSuccessors(vertex)) {
-        // if it is white, but has no white predecessors
-        if (visited[successor] == false) {
-            for (auto successorsPredecessor : graph.getPredecessors(successor)) {
-                if (visited[successorsPredecessor] == false) {
-                    foundVisitedPredecessor = true;
-                    break;
+    template <typename Lambda, template <typename> class Table, typename Node>
+    static void khansAlgorithm(const HyperGraph<Table, Node>& graph, const size_t vertex,
+            std::vector<bool>& visited, Lambda lambda) {
+        // create a flag to indicate that a successor was visited (by default it hasn't been)
+        bool foundValidVertex = false, foundVisitedPredecessor = false, foundVisitedSuccessor = false;
+        // for each successor of the input vertex
+        for (const size_t successor : graph.getSuccessors(vertex)) {
+            // if it is white, but has no white predecessors
+            if (visited[successor] == false) {
+                for (auto successorsPredecessor : graph.getPredecessors(successor)) {
+                    if (visited[successorsPredecessor] == false) {
+                        foundVisitedPredecessor = true;
+                        break;
+                    }
                 }
+                if (!foundVisitedPredecessor) {
+                    // give it a temporary marking
+                    visited[successor] = true;
+                    // add it to the permanent ordering
+                    lambda(successor);
+                    // and use it as a root node in a recursive call to this function
+                    khansAlgorithm(graph, successor, visited, lambda);
+                    // finally, indicate that a successor has been foundValidSuccessor for this node
+                    foundValidVertex = true;
+                }
+                foundVisitedPredecessor = false;
             }
-            if (!foundVisitedPredecessor) {
-                // give it a temporary marking
-                visited[successor] = true;
-                // add it to the permanent ordering
-                lambda(successor);
-                // and use it as a root node in a recursive call to this function
-                khansAlgorithm(graph, successor, visited, lambda);
-                // finally, indicate that a successor has been foundValidSuccessor for this node
-                foundValidVertex = true;
-            }
-            foundVisitedPredecessor = false;
         }
-    }
-    // return at once if no valid successors have been foundValidSuccessor; as either it has none or they all have a
-    // better predecessor
-    if (!foundValidVertex) {
-        return;
-    }
+        // return at once if no valid successors have been foundValidSuccessor; as either it has none or they
+        // all have a
+        // better predecessor
+        if (!foundValidVertex) {
+            return;
+        }
 
-    for (auto predecessor : graph.getPredecessors(vertex)) {
-       if (visited[predecessor] == false) {
-            foundVisitedPredecessor = true;
-            break;
-       }
+        for (auto predecessor : graph.getPredecessors(vertex)) {
+            if (visited[predecessor] == false) {
+                foundVisitedPredecessor = true;
+                break;
+            }
+        }
+        for (auto successor : graph.getSuccessors(vertex)) {
+            if (visited[successor] == false) {
+                foundVisitedSuccessor = true;
+                break;
+            }
+        }
+        // otherwise, if more white successors remain for the current vertex, use it again as the root node in
+        // a
+        // recursive call to this function
+        if (!foundVisitedPredecessor && foundVisitedSuccessor) khansAlgorithm(graph, vertex, visited, lambda);
     }
-    for (auto successor : graph.getSuccessors(vertex)) {
-       if (visited[successor] == false) {
-            foundVisitedSuccessor = true;
-            break;
-       }
-    }
-    // otherwise, if more white successors remain for the current vertex, use it again as the root node in a
-    // recursive call to this function
-    if (!foundVisitedPredecessor && foundVisitedSuccessor)
-        khansAlgorithm(graph, vertex, visited, lambda);
-}
 
 public:
-
-template<typename Lambda, template <typename> class Table, typename Node>
-static void khansAlgorithm(const HyperGraph<Table, Node>& graph, Lambda lambda) {
-    std::vector<bool> visited;
-    visited.resize(graph.vertexCount());
-    std::fill(visited.begin(), visited.end(), false);
-    for (size_t vertex : graph.allVertices()) {
-        if (graph.getPredecessors(vertex).empty()) {
-            visited[vertex] = true;
-            lambda(vertex);
-            if (!graph.getSuccessors(vertex).empty())
-                khansAlgorithm(graph, vertex, visited, lambda);
+    template <typename Lambda, template <typename> class Table, typename Node>
+    static void khansAlgorithm(const HyperGraph<Table, Node>& graph, Lambda lambda) {
+        std::vector<bool> visited;
+        visited.resize(graph.vertexCount());
+        std::fill(visited.begin(), visited.end(), false);
+        for (size_t vertex : graph.allVertices()) {
+            if (graph.getPredecessors(vertex).empty()) {
+                visited[vertex] = true;
+                lambda(vertex);
+                if (!graph.getSuccessors(vertex).empty()) khansAlgorithm(graph, vertex, visited, lambda);
+            }
         }
     }
-}
-
 };
 
 class GraphOrder {
 public:
-
     template <template <typename> typename Table, typename Node>
     static const std::vector<Node> innerOrder(const HyperGraph<Table, Node>& graph,
-     void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
+            void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
         std::vector<Node> order;
         for (const size_t vertex : outerOrder(graph, &algorithm)) {
             const auto& objects = graph.vertexTable().get(vertex);
@@ -403,71 +387,65 @@ public:
 
     template <template <typename> typename Table, typename Node>
     static const std::vector<size_t> outerOrder(const HyperGraph<Table, Node>& graph,
-     void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
+            void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
         std::vector<size_t> order;
-        algorithm(graph, [&order](const size_t vertex){ order.push_back(vertex); });
+        algorithm(graph, [&order](const size_t vertex) { order.push_back(vertex); });
         return order;
     }
-
 };
 
 class GraphQuery {
-
 public:
-
-template<template <typename> class Table, typename Node>
-static const int topologicalOrderingCost(const HyperGraph<Table, Node>& graph,
-        const std::vector<size_t>& order) {
-    // create variables to hold the cost of the current SCC and the permutation as a whole
-    int costOfSCC = 0;
-    int costOfPermutation = -1;
-    // for each of the scc's in the ordering, resetting the cost of the scc to zero on each loop
-    for (auto it_i = order.begin(); it_i != order.end(); ++it_i, costOfSCC = 0) {
-        // check that the index of all predecessor sccs of are before the index of the current scc
-        for (auto scc : graph.getPredecessors(*it_i))
-            if (std::find(order.begin(), it_i, scc) == it_i)
-                // if not, the sort is not a valid topological sort
-                return -1;
-        // otherwise, calculate the cost of the current scc
-        // as the number of sccs with an index before the current scc
-        for (auto it_j = order.begin(); it_j != it_i; ++it_j)
-            // having some successor scc with an index after the current scc
-            for (auto scc : graph.getSuccessors(*it_j))
-                if (std::find(order.begin(), it_i, scc) == it_i) costOfSCC++;
-        // and if this cost is greater than the maximum recorded cost for the whole permutation so far,
-        // set the cost of the permutation to it
-        if (costOfSCC > costOfPermutation) {
-            costOfPermutation = costOfSCC;
+    template <template <typename> class Table, typename Node>
+    static const int topologicalOrderingCost(
+            const HyperGraph<Table, Node>& graph, const std::vector<size_t>& order) {
+        // create variables to hold the cost of the current SCC and the permutation as a whole
+        int costOfSCC = 0;
+        int costOfPermutation = -1;
+        // for each of the scc's in the ordering, resetting the cost of the scc to zero on each loop
+        for (auto it_i = order.begin(); it_i != order.end(); ++it_i, costOfSCC = 0) {
+            // check that the index of all predecessor sccs of are before the index of the current scc
+            for (auto scc : graph.getPredecessors(*it_i))
+                if (std::find(order.begin(), it_i, scc) == it_i)
+                    // if not, the sort is not a valid topological sort
+                    return -1;
+            // otherwise, calculate the cost of the current scc
+            // as the number of sccs with an index before the current scc
+            for (auto it_j = order.begin(); it_j != it_i; ++it_j)
+                // having some successor scc with an index after the current scc
+                for (auto scc : graph.getSuccessors(*it_j))
+                    if (std::find(order.begin(), it_i, scc) == it_i) costOfSCC++;
+            // and if this cost is greater than the maximum recorded cost for the whole permutation so far,
+            // set the cost of the permutation to it
+            if (costOfSCC > costOfPermutation) {
+                costOfPermutation = costOfSCC;
+            }
         }
+        return costOfPermutation;
     }
-    return costOfPermutation;
-}
-
 };
 
 class GraphConvert {
-
-
 private:
-   /*
-    * Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
-    * Java by Robert Sedgewick / Part 5 / Graph *  algorithms). The algorithm has linear
-    * runtime.
-    */
+    /*
+     * Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
+     * Java by Robert Sedgewick / Part 5 / Graph *  algorithms). The algorithm has linear
+     * runtime.
+     */
     template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
-    static void toSCCGraph(const Graph<Node, Compare>& graph, HyperGraph<Table, Node>& sccGraph, const Node& w, std::map<Node, int>& preOrder, size_t& counter, std::stack<Node>& S, std::stack<Node>& P) {
-
+    static void toSCCGraph(const Graph<Node, Compare>& graph, HyperGraph<Table, Node>& sccGraph,
+            const Node& w, std::map<Node, int>& preOrder, size_t& counter, std::stack<Node>& S,
+            std::stack<Node>& P) {
         preOrder[w] = counter++;
 
         S.push(w);
         P.push(w);
 
-        for(const Node& t : graph.getPredecessors(w))
+        for (const Node& t : graph.getPredecessors(w))
             if (preOrder[t] == -1)
                 toSCCGraph(graph, sccGraph, t, preOrder, counter, S, P);
             else if (!sccGraph.vertexTable().has(t))
-                while (preOrder[P.top()] > preOrder[t])
-                    P.pop();
+                while (preOrder[P.top()] > preOrder[t]) P.pop();
 
         if (P.top() == w)
             P.pop();
@@ -481,84 +459,77 @@ private:
             v = S.top();
             S.pop();
             sccGraph.appendToVertex(s, v);
-        } while(v != w);
+        } while (v != w);
     }
 
 public:
-
     template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
     static HyperGraph<Table, Node> toSCCGraph(const Graph<Node, Compare> graph) {
-            size_t counter = 0;
-            std::stack<Node> S, P;
-            std::map<Node, int> preOrder;
-            HyperGraph<Table, Node> sccGraph = HyperGraph<Table, Node>();
-            for (const Node& vertex : graph.allVertices())
-                   preOrder[vertex] = -1;
-            for (const Node& vertex : graph.allVertices())
-                if (preOrder[vertex]  == -1)
-                    toSCCGraph(graph, sccGraph, vertex, preOrder, counter, S, P);
-            for (const Node& vertex : graph.allVertices())
-                for (const Node& predecessor : graph.getPredecessors(vertex))
-                    if (vertex != predecessor && sccGraph.vertexTable().getIndex(vertex) != sccGraph.vertexTable().getIndex(predecessor))
-                        sccGraph.insertEdge(sccGraph.vertexTable().getIndex(vertex), sccGraph.vertexTable().getIndex(predecessor));
-            return sccGraph;
+        size_t counter = 0;
+        std::stack<Node> S, P;
+        std::map<Node, int> preOrder;
+        HyperGraph<Table, Node> sccGraph = HyperGraph<Table, Node>();
+        for (const Node& vertex : graph.allVertices()) preOrder[vertex] = -1;
+        for (const Node& vertex : graph.allVertices())
+            if (preOrder[vertex] == -1) toSCCGraph(graph, sccGraph, vertex, preOrder, counter, S, P);
+        for (const Node& vertex : graph.allVertices())
+            for (const Node& predecessor : graph.getPredecessors(vertex))
+                if (vertex != predecessor &&
+                        sccGraph.vertexTable().getIndex(vertex) !=
+                                sccGraph.vertexTable().getIndex(predecessor))
+                    sccGraph.insertEdge(sccGraph.vertexTable().getIndex(vertex),
+                            sccGraph.vertexTable().getIndex(predecessor));
+        return sccGraph;
     }
-
-
-
 };
 
-
-
 class GraphTransform {
-
-// TODO
+    // TODO
     /** Pre-process the SCC graph; recursively contract roots, contract leaves, and smooth vertices of out
 
 //     * degree 1.  */
-//    HyperGraph<index::SeqTable, size_t> preProcessGraph(HyperGraph<index::SetTable, const AstRelation*> originalGraph) const {
-//        HyperGraph<index::SeqTable, size_t> indexGraph = HyperGraph<index::SeqTable, size_t>::toHyperGraph(originalGraph);
-//        return indexGraph;
-//        bool flag = true;
-//        int in, out, non = -1;
-//        while (flag) {
-//            flag = false;
-//            for (size_t vertex : indexGraph.allVertices()) {
-//                if (!indexGraph.hasVertex(vertex)) continue;
-//                in = indexGraph.getPredecessors(vertex).size();
-//                out = indexGraph.getSuccessors(vertex).size();
-//                if (in == 0 && out == 0 && (non < 0 || vertex != (size_t) non)) {
-//                    if (non < 0)
-//                        non = vertex;
-//                    else
-//                        indexGraph.joinVertices(non, vertex);
-//                    flag = true;
-//                    continue;
-//                } else
-//                if (in == 1 && out == 0) {
-//                    indexGraph.joinVertices(*indexGraph.getPredecessors(vertex).begin(), vertex);
-//                    flag = true;
-//                    continue;
-//                } else
-//                if (out == 1) {
-//                    indexGraph.joinVertices(*indexGraph.getSuccessors(vertex).begin(), vertex);
-//                    flag = true;
-//                    continue;
-//                }
-//            }
-//        }
-//
-//        return indexGraph;
-//        */
-//
-//    }
+    //    HyperGraph<index::SeqTable, size_t> preProcessGraph(HyperGraph<index::SetTable, const AstRelation*>
+    //    originalGraph) const {
+    //        HyperGraph<index::SeqTable, size_t> indexGraph = HyperGraph<index::SeqTable,
+    //        size_t>::toHyperGraph(originalGraph);
+    //        return indexGraph;
+    //        bool flag = true;
+    //        int in, out, non = -1;
+    //        while (flag) {
+    //            flag = false;
+    //            for (size_t vertex : indexGraph.allVertices()) {
+    //                if (!indexGraph.hasVertex(vertex)) continue;
+    //                in = indexGraph.getPredecessors(vertex).size();
+    //                out = indexGraph.getSuccessors(vertex).size();
+    //                if (in == 0 && out == 0 && (non < 0 || vertex != (size_t) non)) {
+    //                    if (non < 0)
+    //                        non = vertex;
+    //                    else
+    //                        indexGraph.joinVertices(non, vertex);
+    //                    flag = true;
+    //                    continue;
+    //                } else
+    //                if (in == 1 && out == 0) {
+    //                    indexGraph.joinVertices(*indexGraph.getPredecessors(vertex).begin(), vertex);
+    //                    flag = true;
+    //                    continue;
+    //                } else
+    //                if (out == 1) {
+    //                    indexGraph.joinVertices(*indexGraph.getSuccessors(vertex).begin(), vertex);
+    //                    flag = true;
+    //                    continue;
+    //                }
+    //            }
+    //        }
+    //
+    //        return indexGraph;
+    //        */
+    //
+    //    }
 
-//
+    //
 
-//
-
+    //
 };
-
-
 
 }  // end of namespace souffle

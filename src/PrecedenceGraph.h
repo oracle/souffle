@@ -101,18 +101,15 @@ public:
  * Analysis pass computing the strongly connected component (SCC) graph for the datalog program.
  */
 class SCCGraph : public AstAnalysis {
-
 private:
     PrecedenceGraph* precedenceGraph;
 
     HyperGraph<index::SetTable, const AstRelation*> sccGraph;
 
-
 public:
-
-     const HyperGraph<index::SetTable, const AstRelation*>& getGraph() {
+    const HyperGraph<index::SetTable, const AstRelation*>& getGraph() {
         return sccGraph;
-     }
+    }
 
     static constexpr const char* name = "scc-graph";
 
@@ -121,7 +118,6 @@ public:
         sccGraph = GraphConvert::toSCCGraph<index::SetTable>(precedenceGraph->getGraph());
     }
 
-
     const bool isRecursive(size_t scc) const {
         return sccGraph.isRecursive(precedenceGraph->getGraph(), scc);
     }
@@ -129,9 +125,7 @@ public:
     const bool isRecursive(const AstRelation* relation) const {
         return sccGraph.isRecursive(precedenceGraph->getGraph(), relation);
     }
-
 };
-
 
 /**
  * Analysis pass computing a topologically sorted strongly connected component (SCC) graph.
@@ -145,14 +139,12 @@ private:
     std::vector<size_t> orderedSCCs;
 
 public:
-
     static constexpr const char* name = "topological-scc-graph";
 
-
-virtual void run(const AstTranslationUnit& translationUnit) {
-    sccGraph = translationUnit.getAnalysis<SCCGraph>();
-    orderedSCCs = GraphOrder::outerOrder(sccGraph->getGraph(), &GraphSearch::khansAlgorithm);
-}
+    virtual void run(const AstTranslationUnit& translationUnit) {
+        sccGraph = translationUnit.getAnalysis<SCCGraph>();
+        orderedSCCs = GraphOrder::outerOrder(sccGraph->getGraph(), &GraphSearch::khansAlgorithm);
+    }
 
     SCCGraph* getSCCGraph() const {
         return sccGraph;
@@ -162,14 +154,12 @@ virtual void run(const AstTranslationUnit& translationUnit) {
         return orderedSCCs;
     }
 
-
-void outputTopologicallySortedSCCGraph(std::ostream& os) const {
+    void outputTopologicallySortedSCCGraph(std::ostream& os) const {
         for (size_t i = 0; i < orderedSCCs.size(); i++)
             os << "[" << join(sccGraph->getGraph().vertexTable().get(orderedSCCs[i])) << "]\n";
         os << "\n";
         os << "cost: " << GraphQuery::topologicalOrderingCost(sccGraph->getGraph(), orderedSCCs) << "\n";
-}
-
+    }
 };
 
 /**

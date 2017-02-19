@@ -26,7 +26,6 @@
 #include <iostream>
 #include <set>
 
-
 namespace souffle {
 
 void PrecedenceGraph::run(const AstTranslationUnit& translationUnit) {
