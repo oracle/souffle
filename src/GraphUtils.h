@@ -212,9 +212,8 @@ class HyperGraph : public Graph<size_t> {
                 newGraph.insertVertex(index, index);
             }
             for (const size_t vertex : oldGraph.allVertices()) {
-                index = newGraph.vertexTable().getIndex(vertex);
                 for (const size_t successor : oldGraph.getSuccessors(vertex)) {
-                    newGraph.insertEdge(index, newGraph.vertexTable().getIndex(successor));
+                    newGraph.insertEdge(vertex, newGraph.vertexTable().getIndex(successor));
                 }
             }
             return newGraph;

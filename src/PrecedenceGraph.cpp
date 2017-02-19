@@ -242,9 +242,9 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
     // and mark all sccs as unvisited
     sccGraph->fillColors(WHITE);
     // generate topological ordering using forwards algorithm (like Khan's algorithm)
-    forwardAlgorithm();
+    // forwardAlgorithm();
 
-    // orderedSCCs = GraphOrder::innerOrder(preProcessGraph(sccGraph->getGraph()), &GraphSearch::khansAlgorithm);
+    orderedSCCs = GraphOrder::innerOrder(preProcessGraph(sccGraph->getGraph()), &GraphSearch::khansAlgorithm);
 }
 
 void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream& os) {
