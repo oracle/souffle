@@ -261,74 +261,6 @@ public:
 
 };
 
-///**
-// * Analysis pass computing a topologically sorted strongly connected component (SCC) graph.
-// */
-//class TopologicallySortedSCCGraph : public AstAnalysis {
-//private:
-//    /** The strongly connected component (SCC) graph. */
-//    SCCGraph* sccGraph;
-
-//    /** The topological ordering of the SCCs. */
-//    std::vector<size_t> orderedSCCs;
-
-//    /** The cost of the topological ordering. */
-//    template <template <typename> class Table, typename Node>
-//    const int orderCost(HyperGraph<Table, Node> graph,
-//            const std::vector<size_t>& permutationOfSCCs) const {
-//        // create variables to hold the cost of the current SCC and the permutation as a whole
-//        int costOfSCC = 0;
-//        int costOfPermutation = -1;
-//        // obtain an iterator to the end of the already ordered partition of sccs
-//        auto it_k = permutationOfSCCs.begin() + orderedSCCs.size();
-//        // for each of the scc's in the ordering, resetting the cost of the scc to zero on each loop
-//        for (auto it_i = permutationOfSCCs.begin(); it_i != permutationOfSCCs.end(); ++it_i, costOfSCC = 0) {
-//            // if the index of the current scc is after the end of the ordered partition
-//            if (it_i >= it_k)
-//                // check that the index of all predecessor sccs of are before the index of the current scc
-//                for (auto scc : sccGraph->getGraph().getPredecessors(*it_i))
-//                    if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i)
-//                        // if not, the sort is not a valid topological sort
-//                        return -1;
-//            // otherwise, calculate the cost of the current scc
-//            // as the number of sccs with an index before the current scc
-//            for (auto it_j = permutationOfSCCs.begin(); it_j != it_i; ++it_j)
-//                // having some successor scc with an index after the current scc
-//                for (auto scc : sccGraph->getGraph().getSuccessors(*it_j))
-//                    if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i) costOfSCC++;
-//            // and if this cost is greater than the maximum recorded cost for the whole permutation so far,
-//            // set the cost of the permutation to it
-//            if (costOfSCC > costOfPermutation) costOfPermutation = costOfSCC;
-//        }
-//        return costOfPermutation;
-//    }
-
-
-//public:
-//    static constexpr const char* name = "topological-scc-graph";
-
-//    virtual void run(const AstTranslationUnit& translationUnit) {
-//        sccGraph = translationUnit.getAnalysis<SCCGraph>();
-//        orderedSCCs = GraphOrder::innerOrder(preProcessGraph(sccGraph->getGraph()), &GraphSearch::khansAlgorithm);
-//    }
-
-//    SCCGraph* getSCCGraph() const {
-//        return sccGraph;
-//    }
-
-//    const std::vector<size_t>& getSCCOrder() const {
-//        return orderedSCCs;
-//    }
-
-//    /** Output topologically sorted strongly connected component graph in text format */
-//    void outputTopologicallySortedSCCGraph(std::ostream& os) const {
-//        for (size_t i = 0; i < orderedSCCs.size(); i++)
-//            os << "[" << join(sccGraph->getGraph().vertexTable().get(orderedSCCs[i])) << "]\n";
-//        os << "\n";
-//        os << "cost: " << orderCost(sccGraph->getGraph(), orderedSCCs) << "\n";
-//    }
-//};
-
 
 /**
  * Analysis pass computing a topologically sorted strongly connected component (SCC) graph.
@@ -343,16 +275,6 @@ private:
 
     /** Marker type to compute topological ordering. */
     enum Colour { WHITE = 0xFFFFFF, GRAY = 0x7f7f7f, BLACK = 0x000000 };
-
-    /** Calculate the topological ordering cost of a permutation of as of yet unordered SCCs
-    using the ordered SCCs. Returns -1 if the given vector is not a valid topological ordering. */
-    const int topologicalOrderingCost(const std::vector<size_t>& permutationOfSCCs) const;
-
-    /** Recursive component for the forwards algorithm computing the topological ordering of the SCCs. */
-    void forwardAlgorithmRecursive(int scc);
-
-    /* Forwardss algorithm for computing the topological order of SCCs, based on Khan's algorithm. */
-    void forwardAlgorithm();
 
 
     /** Pre-process the SCC graph; recursively contract roots, contract leaves, and smooth vertices of out
@@ -395,12 +317,216 @@ private:
 
     }
 
+
+//    /** The cost of the topological ordering. */
+//    template <template <typename> class Table, typename Node>
+//    const int orderCost(HyperGraph<Table, Node> graph,
+//            const std::vector<size_t>& permutationOfSCCs) const {
+//        // create variables to hold the cost of the current SCC and the permutation as a whole
+//        int costOfSCC = 0;
+//        int costOfPermutation = -1;
+//        // obtain an iterator to the end of the already ordered partition of sccs
+//        auto it_k = permutationOfSCCs.begin() + orderedSCCs.size();
+//        // for each of the scc's in the ordering, resetting the cost of the scc to zero on each loop
+//        for (auto it_i = permutationOfSCCs.begin(); it_i != permutationOfSCCs.end(); ++it_i, costOfSCC = 0) {
+//            // if the index of the current scc is after the end of the ordered partition
+//            if (it_i >= it_k)
+//                // check that the index of all predecessor sccs of are before the index of the current scc
+//                for (auto scc : sccGraph->getGraph().getPredecessors(*it_i))
+//                    if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i)
+//                        // if not, the sort is not a valid topological sort
+//                        return -1;
+//            // otherwise, calculate the cost of the current scc
+//            // as the number of sccs with an index before the current scc
+//            for (auto it_j = permutationOfSCCs.begin(); it_j != it_i; ++it_j)
+//                // having some successor scc with an index after the current scc
+//                for (auto scc : sccGraph->getGraph().getSuccessors(*it_j))
+//                    if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i) costOfSCC++;
+//            // and if this cost is greater than the maximum recorded cost for the whole permutation so far,
+//            // set the cost of the permutation to it
+//            if (costOfSCC > costOfPermutation) costOfPermutation = costOfSCC;
+//        }
+//        return costOfPermutation;
+//    }
+
+const int topologicalOrderingCost(
+        const std::vector<size_t>& permutationOfSCCs) const {
+    // create variables to hold the cost of the current SCC and the permutation as a whole
+    int costOfSCC = 0;
+    int costOfPermutation = -1;
+    // obtain an iterator to the end of the already ordered partition of sccs
+    auto it_k = permutationOfSCCs.begin() + orderedSCCs.size();
+    // for each of the scc's in the ordering, resetting the cost of the scc to zero on each loop
+    for (auto it_i = permutationOfSCCs.begin(); it_i != permutationOfSCCs.end(); ++it_i, costOfSCC = 0) {
+        // if the index of the current scc is after the end of the ordered partition
+        if (it_i >= it_k)
+            // check that the index of all predecessor sccs of are before the index of the current scc
+            for (int scc : sccGraph->getPredecessorSCCs(*it_i))
+                if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i)
+                    // if not, the sort is not a valid topological sort
+                    return -1;
+        // otherwise, calculate the cost of the current scc
+        // as the number of sccs with an index before the current scc
+        for (auto it_j = permutationOfSCCs.begin(); it_j != it_i; ++it_j)
+            // having some successor scc with an index after the current scc
+            for (int scc : sccGraph->getSuccessorSCCs(*it_j))
+                if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i) costOfSCC++;
+        // and if this cost is greater than the maximum recorded cost for the whole permutation so far,
+        // set the cost of the permutation to it
+        if (costOfSCC > costOfPermutation) {
+            costOfPermutation = costOfSCC;
+        }
+    }
+    return costOfPermutation;
+}
+
+
+void forwardAlgorithmRecursive(const HyperGraph<index::SetTable, const AstRelation*>& graph, const size_t vertex, std::vector<size_t>& color, std::vector<size_t>& order) {
+   // create a flag to indicate that a successor was visited (by default it hasn't been)
+    bool foundValidVertex = false, foundWhitePredecessor = false, foundWhiteSuccessor = false;
+    // for each successor of the input vertex
+    for (const size_t successor : graph.getSuccessors(vertex)) {
+        // if it is white, but has no white predecessors
+        if (color[successor] == WHITE) {
+            for (auto successorsPredecessor : graph.getPredecessors(successor)) {
+                if (color[successorsPredecessor] == WHITE) {
+                    foundWhitePredecessor = true;
+                    break;
+                }
+            }
+            if (!foundWhitePredecessor) {
+                // give it a temporary marking
+                color[successor] = BLACK;
+                // add it to the permanent ordering
+                order.push_back(successor);
+                // and use it as a root node in a recursive call to this function
+                forwardAlgorithmRecursive(graph, successor, color, order);
+                // finally, indicate that a successor has been foundValidSuccessor for this node
+                foundValidVertex = true;
+            }
+            foundWhitePredecessor = false;
+        }
+    }
+    // return at once if no valid successors have been foundValidSuccessor; as either it has none or they all have a
+    // better predecessor
+    if (!foundValidVertex) {
+        return;
+    }
+
+    for (auto predecessor : graph.getPredecessors(vertex)) {
+       if (color[predecessor] == WHITE) {
+            foundWhitePredecessor = true;
+            break;
+       }
+    }
+    for (auto successor : graph.getSuccessors(vertex)) {
+       if (color[successor] == WHITE) {
+            foundWhiteSuccessor = true;
+            break;
+       }
+    }
+    // otherwise, if more white successors remain for the current vertex, use it again as the root node in a
+    // recursive call to this function
+    if (!foundWhitePredecessor && foundWhiteSuccessor)
+        forwardAlgorithmRecursive(graph, vertex, color, order);
+}
+
+const std::vector<size_t> forwardAlgorithm(const HyperGraph<index::SetTable, const AstRelation*>& graph) {
+    std::vector<size_t> order =  std::vector<size_t>();
+    std::vector<size_t> color = std::vector<size_t>();
+    color.resize(graph.vertexCount());
+    std::fill(color.begin(), color.end(), WHITE);
+    // for each of the vertexs in the graph
+    for (size_t vertex : graph.allVertices()) {
+        // if that vertex has no predecessors
+        if (graph.getPredecessors(vertex).empty()) {
+            // put it in the ordering
+            order.push_back(vertex);
+            color[vertex] = BLACK;
+            // and if the vertex has no successors either
+            if (!graph.getSuccessors(vertex).empty())
+                forwardAlgorithmRecursive(graph, vertex, color, order);
+        }
+    }
+    return order;
+}
+//
+//void forwardAlgorithmRecursive(int scc) {
+//   // create a flag to indicate that a successor was visited (by default it hasn't been)
+//    bool found = false;
+//    // for each successor of the input scc
+//    auto scc_i = sccGraph->getSuccessorSCCs(scc).begin();
+//    for (; scc_i != sccGraph->getSuccessorSCCs(scc).end(); ++scc_i) {
+//        // if it is white, but has no white predecessors
+//        if (sccGraph->getColor(*scc_i) == WHITE && !sccGraph->hasPredecessorOfColor(*scc_i, WHITE)) {
+//            // give it a temporary marking
+//            sccGraph->setColor(*scc_i, GRAY);
+//            // add it to the permanent ordering
+//            orderedSCCs.push_back(*scc_i);
+//            // and use it as a root node in a recursive call to this function
+//            forwardAlgorithmRecursive(*scc_i);
+//            // finally, indicate that a successor has been found for this node
+//            found = true;
+//        }
+//    }
+//    // return at once if no valid successors have been found; as either it has none or they all have a
+//    // better predecessor
+//    if (!found) {
+//        return;
+//    }
+//    // otherwise, if more white successors remain for the current scc, use it again as the root node in a
+//    // recursive call to this function
+//    if (sccGraph->hasSuccessorOfColor(scc, WHITE) && !sccGraph->hasPredecessorOfColor(scc, WHITE))
+//        forwardAlgorithmRecursive(scc);
+//}
+//
+//void forwardAlgorithm() {
+//    // for each of the sccs in the graph
+//    for (size_t scc = 0; scc < sccGraph->getNumSCCs(); ++scc) {
+//        // if that scc has no predecessors
+//        if (sccGraph->getPredecessorSCCs(scc).empty()) {
+//            // put it in the ordering
+//            orderedSCCs.push_back(scc);
+//            // and if the scc has no successors either
+//            if (sccGraph->getSuccessorSCCs(scc).empty()) {
+//                sccGraph->setColor(scc, BLACK);
+//                // otherwise, if the scc only has no predecessors
+//            } else {
+//                // give it a temporary marking
+//                sccGraph->setColor(scc, GRAY);
+//                // and obtain a topological ordering from it
+//                forwardAlgorithmRecursive(scc);
+//            }
+//        }
+//    }
+//}
+//
+//
+
 public:
 
 
     static constexpr const char* name = "topological-scc-graph";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+
+virtual void run(const AstTranslationUnit& translationUnit) {
+    // obtain the scc graph
+    sccGraph = translationUnit.getAnalysis<SCCGraph>();
+    // generate topological ordering using forwards algorithm (like Khan's algorithm)
+    orderedSCCs = forwardAlgorithm(sccGraph->getGraph());
+
+//    // obtain the scc graph
+//    sccGraph = translationUnit.getAnalysis<SCCGraph>();
+//    // clear the list of ordered sccs
+//    orderedSCCs.clear();
+//    // and mark all sccs as unvisited
+//    sccGraph->fillColors(WHITE);
+//    // generate topological ordering using forwards algorithm (like Khan's algorithm)
+//    forwardAlgorithm();
+
+    // orderedSCCs = GraphOrder::innerOrder(preProcessGraph(sccGraph->getGraph()), &GraphSearch::khansAlgorithm);
+
+}
 
     SCCGraph* getSCCGraph() {
         return sccGraph;
@@ -410,8 +536,26 @@ public:
         return orderedSCCs;
     }
 
-    /** Output topologically sorted strongly connected component graph in text format */
-    void outputTopologicallySortedSCCGraph(std::ostream& os);
+//    /** Output topologically sorted strongly connected component graph in text format */
+//    void outputTopologicallySortedSCCGraph(std::ostream& os) const {
+//        for (size_t i = 0; i < orderedSCCs.size(); i++)
+//            os << "[" << join(sccGraph->getGraph().vertexTable().get(orderedSCCs[i])) << "]\n";
+//        os << "\n";
+//        os << "cost: " << orderCost(sccGraph->getGraph(), orderedSCCs) << "\n";
+//    }
+//};
+void outputTopologicallySortedSCCGraph(std::ostream& os) {
+    int numSCCs = orderedSCCs.size();
+    for (int i = 0; i < numSCCs; i++) {
+        os << "[";
+        os << join(sccGraph->getRelationsForSCC(orderedSCCs[i]), ", ",
+                [](std::ostream& out, const AstRelation* rel) { out << rel->getName(); });
+        os << "]\n";
+    }
+    os << "\n";
+    os << "cost: " << topologicalOrderingCost(orderedSCCs) << "\n";
+}
+
 };
 
 /**
