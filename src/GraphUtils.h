@@ -313,7 +313,111 @@ class HyperGraph : public Graph<size_t> {
 
 };
 
+class GraphSearch {
+
+private:
+
+template<typename Lambda, template <typename> class Table, typename Node>
+static void khansAlgorithm(const HyperGraph<Table, Node>& graph, const size_t vertex, std::vector<bool>& visited, Lambda lambda) {
+   // create a flag to indicate that a successor was visited (by default it hasn't been)
+    bool foundValidVertex = false, foundVisitedPredecessor = false, foundVisitedSuccessor = false;
+    // for each successor of the input vertex
+    for (const size_t successor : graph.getSuccessors(vertex)) {
+        // if it is white, but has no white predecessors
+        if (visited[successor] == false) {
+            for (auto successorsPredecessor : graph.getPredecessors(successor)) {
+                if (visited[successorsPredecessor] == false) {
+                    foundVisitedPredecessor = true;
+                    break;
+                }
+            }
+            if (!foundVisitedPredecessor) {
+                // give it a temporary marking
+                visited[successor] = true;
+                // add it to the permanent ordering
+                lambda(successor);
+                // and use it as a root node in a recursive call to this function
+                khansAlgorithm(graph, successor, visited, lambda);
+                // finally, indicate that a successor has been foundValidSuccessor for this node
+                foundValidVertex = true;
+            }
+            foundVisitedPredecessor = false;
+        }
+    }
+    // return at once if no valid successors have been foundValidSuccessor; as either it has none or they all have a
+    // better predecessor
+    if (!foundValidVertex) {
+        return;
+    }
+
+    for (auto predecessor : graph.getPredecessors(vertex)) {
+       if (visited[predecessor] == false) {
+            foundVisitedPredecessor = true;
+            break;
+       }
+    }
+    for (auto successor : graph.getSuccessors(vertex)) {
+       if (visited[successor] == false) {
+            foundVisitedSuccessor = true;
+            break;
+       }
+    }
+    // otherwise, if more white successors remain for the current vertex, use it again as the root node in a
+    // recursive call to this function
+    if (!foundVisitedPredecessor && foundVisitedSuccessor)
+        khansAlgorithm(graph, vertex, visited, lambda);
+}
+
+public:
+
+template<typename Lambda, template <typename> class Table, typename Node>
+static void khansAlgorithm(const HyperGraph<Table, Node>& graph, Lambda lambda) {
+    std::vector<bool> visited;
+    visited.resize(graph.vertexCount());
+    std::fill(visited.begin(), visited.end(), false);
+    for (size_t vertex : graph.allVertices()) {
+        if (graph.getPredecessors(vertex).empty()) {
+            visited[vertex] = true;
+            lambda(vertex);
+            if (!graph.getSuccessors(vertex).empty())
+                khansAlgorithm(graph, vertex, visited, lambda);
+        }
+    }
+}
+
+};
+
+class GraphOrder {
+public:
+//
+//    template <template <typename> typename Table, typename Node>
+//    static const std::vector<Node> innerOrder(const HyperGraph<Table, Node>& graph,
+//     void (const HyperGraph<Table, Node>&, std::function<void(const Node&)>)>* algorithm) {
+//        std::vector<size_t> outerOrder;
+//        algorithm(graph, [&outerOrder](const size_t& vertex){ outerOrder.push_back(vertex); });
+//        std::vector<Node> innerOrder;
+//        for (const size_t index : outerOrder) {
+//            const auto& objectsForVertex = graph.vertexTable().get(index);
+//            innerOrder.insert(innerOrder.end(), objectsForVertex.begin(), objectsForVertex.end());
+//        }
+//        return innerOrder;
+//    }
+
+    template <template <typename> typename Table, typename Node>
+    static const std::vector<size_t> outerOrder(const HyperGraph<Table, Node>& graph,
+     void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
+        std::vector<size_t> order;
+        algorithm(graph, [&order](const size_t vertex){ order.push_back(vertex); });
+        return order;
+    }
+
+};
+
 class GraphUtils {
+
+public:
+
+
 
 private:
 
@@ -369,6 +473,26 @@ static void khansAlgorithm(const HyperGraph<Table, Node>& graph, const size_t ve
         khansAlgorithm(graph, vertex, visited, order);
 }
 
+public:
+
+template<template <typename> class Table, typename Node>
+static const std::vector<size_t> khansAlgorithm(const HyperGraph<Table, Node>& graph) {
+    std::vector<size_t> order;
+    std::vector<bool> visited;
+    visited.resize(graph.vertexCount());
+    std::fill(visited.begin(), visited.end(), false);
+    for (size_t vertex : graph.allVertices()) {
+        if (graph.getPredecessors(vertex).empty()) {
+            order.push_back(vertex);
+            visited[vertex] = true;
+            if (!graph.getSuccessors(vertex).empty())
+                khansAlgorithm(graph, vertex, visited, order);
+        }
+    }
+    return order;
+}
+
+private:
    /*
     * Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
     * Java by Robert Sedgewick / Part 5 / Graph *  algorithms). The algorithm has linear
@@ -424,29 +548,6 @@ public:
             return sccGraph;
     }
 
-
-template<template <typename> class Table, typename Node>
-static const std::vector<size_t> khansAlgorithm(const HyperGraph<Table, Node>& graph) {
-    std::vector<size_t> order;
-    std::vector<bool> visited;
-    visited.resize(graph.vertexCount());
-    std::fill(visited.begin(), visited.end(), false);
-    for (size_t vertex : graph.allVertices()) {
-        if (graph.getPredecessors(vertex).empty()) {
-            order.push_back(vertex);
-            visited[vertex] = true;
-            if (!graph.getSuccessors(vertex).empty())
-                khansAlgorithm(graph, vertex, visited, order);
-        }
-    }
-    return order;
-}
-
-template<template <typename> class Table, typename Node, template <typename> class OtherTable, typename OtherNode>
-static const HyperGraph<Table, Node> preProcessGraph(const HyperGraph<OtherTable, OtherNode>& graph) {
-    // TODO
-    return graph;
-}
 
 template<template <typename> class Table, typename Node>
 static const int topologicalOrderingCost(const HyperGraph<Table, Node>& graph,
@@ -520,37 +621,7 @@ static const int topologicalOrderingCost(const HyperGraph<Table, Node>& graph,
 //    }
 
 //
-//class GraphOrder {
-//public:
-//
-//    template <typename Node, typename Compare = std::less<Node>>
-//    static const std::vector<Node> order(const Graph<Node, Compare>& graph, void(*algorithm)(const Graph<Node, Compare>&, std::function<void(const Node&)>)) {
-//        std::vector<Node> order;
-//        algorithm(graph, [&order](const Node& vertex){ order.push_back(vertex); });
-//        return order;
-//    }
-//
-//    template <template <typename> typename Table, typename Node, typename Compare = std::less<Node>>
-//    static const std::vector<Node> innerOrder(const HyperGraph<Table, Node>& graph, void(*algorithm)(const Graph<Node, Compare>&, std::function<void(const Node&)>)) {
-//        std::vector<size_t> outerOrder;
-//        algorithm(graph, [&outerOrder](const size_t& vertex){ outerOrder.push_back(vertex); });
-//        std::vector<Node> innerOrder;
-//        for (const size_t index : outerOrder) {
-//            const auto& objectsForVertex = graph.vertexTable().get(index);
-//            innerOrder.insert(innerOrder.end(), objectsForVertex.begin(), objectsForVertex.end());
-//        }
-//        return innerOrder;
-//    }
-//
-//    template <template <typename> typename Table, typename Node, typename Compare = std::less<Node>>
-//    static const std::vector<size_t> outerOrder(
-//            HyperGraph<Table, Node>& graph, void(*algorithm)(const Graph<Node, Compare>&, std::function<void(const Node&)>)) {
-//        std::vector<size_t> order;
-//        algorithm(graph, [&order](const size_t& vertex){ order.push_back(vertex); });
-//        return order;
-//    }
-//
-//};
+
 //
 
 

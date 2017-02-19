@@ -151,7 +151,8 @@ public:
 
 virtual void run(const AstTranslationUnit& translationUnit) {
     sccGraph = translationUnit.getAnalysis<SCCGraph>();
-    orderedSCCs = GraphUtils::khansAlgorithm(GraphUtils::preProcessGraph<index::SetTable, const AstRelation*>(sccGraph->getGraph()));
+    orderedSCCs = GraphOrder::outerOrder(sccGraph->getGraph(), &GraphSearch::khansAlgorithm);
+    // orderedSCCs = GraphUtils::khansAlgorithm(GraphUtils::preProcessGraph<index::SetTable, const AstRelation*>(sccGraph->getGraph()));
 
 }
 
