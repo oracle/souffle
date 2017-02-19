@@ -159,7 +159,8 @@ public:
         for (const auto& vertex : successors) {
             for (const auto& successor : vertex.second) {
                 if (!first) os << ";";
-                os << "\"" << vertex.first << "\"" << ((invert) ? "<-" : "->") << "\"" << successor << "\"";
+                os << "\"" << ((!invert) ? vertex.first : successor) << "\" -> \"" <<
+                    ((invert) ? vertex.first : successor) << "\"";
                 first = false;
             }
         }
