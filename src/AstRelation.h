@@ -212,9 +212,12 @@ public:
         auto res = new AstRelation();
         res->name = name;
         res->setSrcLoc(getSrcLoc());
-        for (const auto& cur : attributes)
+        for (const auto& cur : attributes) {
             res->attributes.push_back(std::unique_ptr<AstAttribute>(cur->clone()));
-        for (const auto& cur : clauses) res->clauses.push_back(std::unique_ptr<AstClause>(cur->clone()));
+        }
+        for (const auto& cur : clauses) {
+            res->clauses.push_back(std::unique_ptr<AstClause>(cur->clone()));
+        }
         for (const auto& cur : ioDirectives) {
             res->ioDirectives.push_back(std::unique_ptr<AstIODirective>(cur->clone()));
         }
@@ -295,7 +298,10 @@ public:
         } else if (directive->isPrintSize()) {
             qualifier |= PRINTSIZE_RELATION;
         }
-        ioDirectives.push_back(std::move(directive));
+        // Fall back on default behaviour for empty directives.
+        if (!directive->getIODirectiveMap().empty()) {
+            ioDirectives.push_back(std::move(directive));
+        }
     }
 
     std::vector<AstIODirective*> getIODirectives() const {

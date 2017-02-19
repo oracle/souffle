@@ -2156,13 +2156,10 @@ std::string RamCompiler::generateCode(
             for (IODirectives ioDirectives : store->getRelation().getOutputDirectives()) {
                 os << "try {";
                 os << "std::map<std::string, std::string> directiveMap(" << ioDirectives << ");\n";
-                // If a directory has been specified then don't try to change it
-                if (!Global::config().has("output-dir")) {
-                    os << "if (!dirname.empty() && directiveMap[\"IO\"] == \"file\" && ";
-                    os << "directiveMap[\"filename\"].front() != '/') {";
-                    os << "directiveMap[\"filename\"] = dirname + \"/\" + directiveMap[\"filename\"];";
-                    os << "}";
-                }
+                os << "if (!dirname.empty() && directiveMap[\"IO\"] == \"file\" && ";
+                os << "directiveMap[\"filename\"].front() != '/') {";
+                os << "directiveMap[\"filename\"] = dirname + \"/\" + directiveMap[\"filename\"];";
+                os << "}";
                 os << "IODirectives ioDirectives(directiveMap);\n";
                 os << "IOSystem::getInstance().getWriter(";
                 os << "SymbolMask({" << store->getRelation().getSymbolMask() << "})";
@@ -2191,13 +2188,10 @@ std::string RamCompiler::generateCode(
         os << "try {";
         os << "std::map<std::string, std::string> directiveMap(";
         os << load.getRelation().getInputDirectives() << ");\n";
-        // If a directory has been specified then don't try to change it
-        if (!Global::config().has("fact-dir")) {
-            os << "if (!dirname.empty() && directiveMap[\"IO\"] == \"file\" && ";
-            os << "directiveMap[\"filename\"].front() != '/') {";
-            os << "directiveMap[\"filename\"] = dirname + \"/\" + directiveMap[\"filename\"];";
-            os << "}";
-        }
+        os << "if (!dirname.empty() && directiveMap[\"IO\"] == \"file\" && ";
+        os << "directiveMap[\"filename\"].front() != '/') {";
+        os << "directiveMap[\"filename\"] = dirname + \"/\" + directiveMap[\"filename\"];";
+        os << "}";
         os << "IODirectives ioDirectives(directiveMap);\n";
         os << "IOSystem::getInstance().getReader(";
         os << "SymbolMask({" << load.getRelation().getSymbolMask() << "})";
@@ -2274,8 +2268,8 @@ std::string RamCompiler::generateCode(
     // parse arguments
     os << "souffle::CmdOptions opt(";
     os << "R\"(" << Global::config().get("") << ")\",\n";
-    os << "R\"(" << Global::config().get("fact-dir") << ")\",\n";
-    os << "R\"(" << Global::config().get("output-dir") << ")\",\n";
+    os << "R\"(.)\",\n";
+    os << "R\"(.)\",\n";
     if (Global::config().has("profile")) {
         os << "true,\n";
         os << "R\"(" << Global::config().get("profile") << ")\",\n";
