@@ -32,6 +32,7 @@ cat << EOF
     souffle_push        Push the current branch to the git remote.
     souffle_test        Run make and then the testsuite on the given tests.
     souffle_debug       Run make and then the test in directory \$SOUFFLE/\$1/\$2.
+    souffle_format       Format the code with clang-format.
 
 EOF
 }
