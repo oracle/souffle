@@ -183,30 +183,25 @@ public:
 
     size_t getSCCForRelation(const AstRelation* relation) {
         return sccGraph.vertexTable().getIndex(relation);
-        // return nodeToSCC[relation];
     }
 
     /** Get all successor SCCs of a specified scc. */
     const std::set<size_t>& getSuccessorSCCs(size_t scc) {
         return sccGraph.getSuccessors(scc);
-        // return succSCC[scc];
     }
 
     /** Get all predecessor SCCs of a specified scc. */
     const std::set<size_t>& getPredecessorSCCs(size_t scc) {
         return sccGraph.getPredecessors(scc);
-        // return predSCC[scc];
     }
 
     const std::set<const AstRelation*> getRelationsForSCC(size_t scc) {
         return sccGraph.vertexTable().get(scc);
-        // return SCC[scc];
     }
 
     /** Return the number of strongly connected components in the SCC graph */
     size_t getNumSCCs() {
         return sccGraph.vertexCount();
-        // return succSCC.size();
     }
 
     bool isRecursive(size_t scc) {
@@ -223,36 +218,6 @@ public:
     bool isRecursive(const AstRelation* relation) {
         return isRecursive(getSCCForRelation(relation));
     }
-
-    /** Get the color of an SCC. */
-    const size_t getColor(const size_t scc) {
-        return sccColor[scc];
-    }
-
-    /** Set the color of an SCC. */
-    void setColor(const size_t scc, const size_t color) {
-        sccColor[scc] = color;
-    }
-
-    /** Fill all SCCs to the given color. */
-    void fillColors(const size_t color) {
-        std::fill(sccColor.begin(), sccColor.end(), color);
-    }
-
-    /** Check if a given SCC has a predecessor of the specified color. */
-    const bool hasPredecessorOfColor(size_t scc, const size_t color) {
-        for (auto pred : getPredecessorSCCs(scc))
-            if (getColor(pred) == color) return true;
-        return false;
-    }
-
-    /** Check if a given SCC has a successor of the specified color. */
-    const bool hasSuccessorOfColor(size_t scc, const size_t color) {
-        for (auto succ : getSuccessorSCCs(scc))
-            if (getColor(succ) == color) return true;
-        return false;
-    }
-
 
     /** Output strongly connected component graph in graphviz format */
     void outputSCCGraph(std::ostream& os) {
@@ -450,58 +415,7 @@ const std::vector<size_t> forwardAlgorithm(const HyperGraph<index::SetTable, con
     }
     return order;
 }
-//
-//void forwardAlgorithmRecursive(int scc) {
-//   // create a flag to indicate that a successor was visited (by default it hasn't been)
-//    bool found = false;
-//    // for each successor of the input scc
-//    auto scc_i = sccGraph->getSuccessorSCCs(scc).begin();
-//    for (; scc_i != sccGraph->getSuccessorSCCs(scc).end(); ++scc_i) {
-//        // if it is white, but has no white predecessors
-//        if (sccGraph->getColor(*scc_i) == WHITE && !sccGraph->hasPredecessorOfColor(*scc_i, WHITE)) {
-//            // give it a temporary marking
-//            sccGraph->setColor(*scc_i, GRAY);
-//            // add it to the permanent ordering
-//            orderedSCCs.push_back(*scc_i);
-//            // and use it as a root node in a recursive call to this function
-//            forwardAlgorithmRecursive(*scc_i);
-//            // finally, indicate that a successor has been found for this node
-//            found = true;
-//        }
-//    }
-//    // return at once if no valid successors have been found; as either it has none or they all have a
-//    // better predecessor
-//    if (!found) {
-//        return;
-//    }
-//    // otherwise, if more white successors remain for the current scc, use it again as the root node in a
-//    // recursive call to this function
-//    if (sccGraph->hasSuccessorOfColor(scc, WHITE) && !sccGraph->hasPredecessorOfColor(scc, WHITE))
-//        forwardAlgorithmRecursive(scc);
-//}
-//
-//void forwardAlgorithm() {
-//    // for each of the sccs in the graph
-//    for (size_t scc = 0; scc < sccGraph->getNumSCCs(); ++scc) {
-//        // if that scc has no predecessors
-//        if (sccGraph->getPredecessorSCCs(scc).empty()) {
-//            // put it in the ordering
-//            orderedSCCs.push_back(scc);
-//            // and if the scc has no successors either
-//            if (sccGraph->getSuccessorSCCs(scc).empty()) {
-//                sccGraph->setColor(scc, BLACK);
-//                // otherwise, if the scc only has no predecessors
-//            } else {
-//                // give it a temporary marking
-//                sccGraph->setColor(scc, GRAY);
-//                // and obtain a topological ordering from it
-//                forwardAlgorithmRecursive(scc);
-//            }
-//        }
-//    }
-//}
-//
-//
+
 
 public:
 
@@ -514,15 +428,7 @@ virtual void run(const AstTranslationUnit& translationUnit) {
     sccGraph = translationUnit.getAnalysis<SCCGraph>();
     // generate topological ordering using forwards algorithm (like Khan's algorithm)
     orderedSCCs = forwardAlgorithm(sccGraph->getGraph());
-
-//    // obtain the scc graph
-//    sccGraph = translationUnit.getAnalysis<SCCGraph>();
-//    // clear the list of ordered sccs
-//    orderedSCCs.clear();
-//    // and mark all sccs as unvisited
-//    sccGraph->fillColors(WHITE);
-//    // generate topological ordering using forwards algorithm (like Khan's algorithm)
-//    forwardAlgorithm();
+    // TODO
 
     // orderedSCCs = GraphOrder::innerOrder(preProcessGraph(sccGraph->getGraph()), &GraphSearch::khansAlgorithm);
 
@@ -536,15 +442,12 @@ virtual void run(const AstTranslationUnit& translationUnit) {
         return orderedSCCs;
     }
 
-//    /** Output topologically sorted strongly connected component graph in text format */
-//    void outputTopologicallySortedSCCGraph(std::ostream& os) const {
+
+void outputTopologicallySortedSCCGraph(std::ostream& os) {
 //        for (size_t i = 0; i < orderedSCCs.size(); i++)
 //            os << "[" << join(sccGraph->getGraph().vertexTable().get(orderedSCCs[i])) << "]\n";
 //        os << "\n";
 //        os << "cost: " << orderCost(sccGraph->getGraph(), orderedSCCs) << "\n";
-//    }
-//};
-void outputTopologicallySortedSCCGraph(std::ostream& os) {
     int numSCCs = orderedSCCs.size();
     for (int i = 0; i < numSCCs; i++) {
         os << "[";
