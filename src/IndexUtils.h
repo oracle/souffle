@@ -115,7 +115,7 @@ public:
         if (!this->hasIndex(index)) return;
         indexToObject.at(index).clear();
         pending.insert(index);
-        for (const size_t current: pending) {
+        for (const size_t current : pending) {
             if (current != indexToObject.size() - 1) return;
             indexToObject.erase(indexToObject.begin() + current);
         }
