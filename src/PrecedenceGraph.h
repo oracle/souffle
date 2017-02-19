@@ -346,7 +346,8 @@ const int topologicalOrderingCost(
 }
 
 
-void forwardAlgorithmRecursive(const HyperGraph<index::SetTable, const AstRelation*>& graph, const size_t vertex, std::vector<size_t>& color, std::vector<size_t>& order) {
+template<template <typename> class Table, typename Node>
+void forwardAlgorithmRecursive(const HyperGraph<Table, Node>& graph, const size_t vertex, std::vector<size_t>& color, std::vector<size_t>& order) {
    // create a flag to indicate that a successor was visited (by default it hasn't been)
     bool foundValidVertex = false, foundWhitePredecessor = false, foundWhiteSuccessor = false;
     // for each successor of the input vertex
@@ -396,7 +397,8 @@ void forwardAlgorithmRecursive(const HyperGraph<index::SetTable, const AstRelati
         forwardAlgorithmRecursive(graph, vertex, color, order);
 }
 
-const std::vector<size_t> forwardAlgorithm(const HyperGraph<index::SetTable, const AstRelation*>& graph) {
+template<template <typename> class Table, typename Node>
+const std::vector<size_t> forwardAlgorithm(const HyperGraph<Table, Node>& graph) {
     std::vector<size_t> order =  std::vector<size_t>();
     std::vector<size_t> color = std::vector<size_t>();
     color.resize(graph.vertexCount());
@@ -427,7 +429,10 @@ virtual void run(const AstTranslationUnit& translationUnit) {
     // obtain the scc graph
     sccGraph = translationUnit.getAnalysis<SCCGraph>();
     // generate topological ordering using forwards algorithm (like Khan's algorithm)
+
     orderedSCCs = forwardAlgorithm(sccGraph->getGraph());
+    // orderedSCCs = forwardAlgorithm(HyperGraph<index::SeqTable, size_t>::toHyperGraph(sccGraph->getGraph()));
+    // orderedSCCs = forwardAlgorithm(preProcessGraph(sccGraph->getGraph()));
     // TODO
 
     // orderedSCCs = GraphOrder::innerOrder(preProcessGraph(sccGraph->getGraph()), &GraphSearch::khansAlgorithm);

@@ -295,131 +295,131 @@ class HyperGraph : public Graph<size_t> {
         }
 
 };
-
-class GraphOrder {
-public:
-
-    template <typename Node, typename Compare = std::less<Node>>
-    static const std::vector<Node> order(const Graph<Node, Compare>& graph, void(*algorithm)(const Graph<Node, Compare>&, std::function<void(const Node&)>)) {
-        std::vector<Node> order;
-        algorithm(graph, [&order](const Node& vertex){ order.push_back(vertex); });
-        return order;
-    }
-
-    template <template <typename> typename Table, typename Node, typename Compare = std::less<Node>>
-    static const std::vector<Node> innerOrder(const HyperGraph<Table, Node>& graph, void(*algorithm)(const Graph<Node, Compare>&, std::function<void(const Node&)>)) {
-        std::vector<size_t> outerOrder;
-        algorithm(graph, [&outerOrder](const size_t& vertex){ outerOrder.push_back(vertex); });
-        std::vector<Node> innerOrder;
-        for (const size_t index : outerOrder) {
-            const auto& objectsForVertex = graph.vertexTable().get(index);
-            innerOrder.insert(innerOrder.end(), objectsForVertex.begin(), objectsForVertex.end());
-        }
-        return innerOrder;
-    }
-
-    template <template <typename> typename Table, typename Node, typename Compare = std::less<Node>>
-    static const std::vector<size_t> outerOrder(
-            HyperGraph<Table, Node>& graph, void(*algorithm)(const Graph<Node, Compare>&, std::function<void(const Node&)>)) {
-        std::vector<size_t> order;
-        algorithm(graph, [&order](const size_t& vertex){ order.push_back(vertex); });
-        return order;
-    }
-
-};
-
-
-class GraphSearch {
-
-private:
-
-    template <typename Lambda, typename Node, typename Compare>
-    static void depthFirst(const Graph<Node, Compare>& graph, const Node& vertex, const Lambda lambda, std::set<Node, Compare>& visited) {
-        lambda(vertex);
-        for (const auto& it : graph.getSuccessors(vertex))
-            if (visited.insert(it).second)
-                depthFirst(graph, it, lambda, visited);
-    }
-
-
-    template <typename Lambda, typename Node, typename Compare>
-    static void khansAlgorithm(const Graph<Node, Compare>& graph, const Node& vertex, const Lambda lambda, std::set<Node, Compare>& visited) {
-        auto it = graph.getSuccessors(vertex).begin();
-        for (; it != graph.getSuccessors(vertex).end(); ++it) {
-            if (visited.find(*it) == visited.end()) {
-                bool hasUnvisitedPredecessor = false;
-                for (const Node& predecessor : graph.getPredecessors(*it)) {
-                    if (visited.find(predecessor) == visited.end()) {
-                        hasUnvisitedPredecessor = true;
-                        break;
-                    }
-                }
-                if (!hasUnvisitedPredecessor) {
-                    lambda(*it);
-                    visited.insert(*it);
-                    khansAlgorithm(graph, vertex, lambda, visited);
-                }
-            }
-        }
-
-        if (visited.find(*it) == visited.end()) return;
-
-        bool hasUnvisitedPredecessor = false;
-        for (const Node& predecessor : graph.getPredecessors(*it)) {
-            if (visited.find(predecessor) == visited.end()) {
-                hasUnvisitedPredecessor = true;
-                break;
-            }
-        }
-
-        bool hasUnvisitedSuccessor = false;
-        for (const Node& successor : graph.getSuccessors(*it)) {
-            if (visited.find(successor) == visited.end()) {
-                hasUnvisitedSuccessor = true;
-                break;
-            }
-        }
-
-        if (!hasUnvisitedPredecessor && hasUnvisitedSuccessor) {
-            khansAlgorithm(graph, *it, lambda, visited);
-        }
-
-    }
-
-public:
-
-    template <typename Lambda, typename Node, typename Compare>
-    static void depthFirst(const Graph<Node, Compare>& graph, const Lambda lambda) {
-        std::set<Node, Compare> visited = std::set<Node, Compare>();
-        for (const Node& vertex : graph.allVertices()) {
-            if (graph.getPredecessors(vertex).empty()) {
-                lambda(vertex);
-                visited.insert(vertex);
-                if (!graph.getSuccessors(vertex).empty()) {
-                    depthFirst(graph, vertex, lambda, visited);
-                }
-            }
-        }
-    }
-
-    template <typename Lambda, typename Node, typename Compare = std::less<Node>>
-    static void khansAlgorithm(const Graph<Node, Compare>& graph, Lambda lambda) {
-        std::set<Node, Compare> visited = std::set<Node, Compare>();
-        for (const Node& vertex : graph.allVertices()) {
-            if (graph.getPredecessors(vertex).empty()) {
-                lambda(vertex);
-                visited.insert(vertex);
-                if (!graph.getSuccessors(vertex).empty()) {
-                    khansAlgorithm(graph, vertex, lambda, visited);
-                }
-            }
-        }
-    }
-
-    // TODO
-    template <typename Lambda, typename Node, typename Compare = std::less<Node>>
-    static void reverseDepthFirst(const Graph<Node, Compare>& graph, Lambda lambda) {}
-};
+//
+//class GraphOrder {
+//public:
+//
+//    template <typename Node, typename Compare = std::less<Node>>
+//    static const std::vector<Node> order(const Graph<Node, Compare>& graph, void(*algorithm)(const Graph<Node, Compare>&, std::function<void(const Node&)>)) {
+//        std::vector<Node> order;
+//        algorithm(graph, [&order](const Node& vertex){ order.push_back(vertex); });
+//        return order;
+//    }
+//
+//    template <template <typename> typename Table, typename Node, typename Compare = std::less<Node>>
+//    static const std::vector<Node> innerOrder(const HyperGraph<Table, Node>& graph, void(*algorithm)(const Graph<Node, Compare>&, std::function<void(const Node&)>)) {
+//        std::vector<size_t> outerOrder;
+//        algorithm(graph, [&outerOrder](const size_t& vertex){ outerOrder.push_back(vertex); });
+//        std::vector<Node> innerOrder;
+//        for (const size_t index : outerOrder) {
+//            const auto& objectsForVertex = graph.vertexTable().get(index);
+//            innerOrder.insert(innerOrder.end(), objectsForVertex.begin(), objectsForVertex.end());
+//        }
+//        return innerOrder;
+//    }
+//
+//    template <template <typename> typename Table, typename Node, typename Compare = std::less<Node>>
+//    static const std::vector<size_t> outerOrder(
+//            HyperGraph<Table, Node>& graph, void(*algorithm)(const Graph<Node, Compare>&, std::function<void(const Node&)>)) {
+//        std::vector<size_t> order;
+//        algorithm(graph, [&order](const size_t& vertex){ order.push_back(vertex); });
+//        return order;
+//    }
+//
+//};
+//
+//
+//class GraphSearch {
+//
+//private:
+//
+//    template <typename Lambda, typename Node, typename Compare>
+//    static void depthFirst(const Graph<Node, Compare>& graph, const Node& vertex, const Lambda lambda, std::set<Node, Compare>& visited) {
+//        lambda(vertex);
+//        for (const auto& it : graph.getSuccessors(vertex))
+//            if (visited.insert(it).second)
+//                depthFirst(graph, it, lambda, visited);
+//    }
+//
+//
+//    template <typename Lambda, typename Node, typename Compare>
+//    static void khansAlgorithm(const Graph<Node, Compare>& graph, const Node& vertex, const Lambda lambda, std::set<Node, Compare>& visited) {
+//        auto it = graph.getSuccessors(vertex).begin();
+//        for (; it != graph.getSuccessors(vertex).end(); ++it) {
+//            if (visited.find(*it) == visited.end()) {
+//                bool hasUnvisitedPredecessor = false;
+//                for (const Node& predecessor : graph.getPredecessors(*it)) {
+//                    if (visited.find(predecessor) == visited.end()) {
+//                        hasUnvisitedPredecessor = true;
+//                        break;
+//                    }
+//                }
+//                if (!hasUnvisitedPredecessor) {
+//                    lambda(*it);
+//                    visited.insert(*it);
+//                    khansAlgorithm(graph, vertex, lambda, visited);
+//                }
+//            }
+//        }
+//
+//        if (visited.find(*it) == visited.end()) return;
+//
+//        bool hasUnvisitedPredecessor = false;
+//        for (const Node& predecessor : graph.getPredecessors(*it)) {
+//            if (visited.find(predecessor) == visited.end()) {
+//                hasUnvisitedPredecessor = true;
+//                break;
+//            }
+//        }
+//
+//        bool hasUnvisitedSuccessor = false;
+//        for (const Node& successor : graph.getSuccessors(*it)) {
+//            if (visited.find(successor) == visited.end()) {
+//                hasUnvisitedSuccessor = true;
+//                break;
+//            }
+//        }
+//
+//        if (!hasUnvisitedPredecessor && hasUnvisitedSuccessor) {
+//            khansAlgorithm(graph, *it, lambda, visited);
+//        }
+//
+//    }
+//
+//public:
+//
+//    template <typename Lambda, typename Node, typename Compare>
+//    static void depthFirst(const Graph<Node, Compare>& graph, const Lambda lambda) {
+//        std::set<Node, Compare> visited = std::set<Node, Compare>();
+//        for (const Node& vertex : graph.allVertices()) {
+//            if (graph.getPredecessors(vertex).empty()) {
+//                lambda(vertex);
+//                visited.insert(vertex);
+//                if (!graph.getSuccessors(vertex).empty()) {
+//                    depthFirst(graph, vertex, lambda, visited);
+//                }
+//            }
+//        }
+//    }
+//
+//    template <typename Lambda, typename Node, typename Compare = std::less<Node>>
+//    static void khansAlgorithm(const Graph<Node, Compare>& graph, Lambda lambda) {
+//        std::set<Node, Compare> visited = std::set<Node, Compare>();
+//        for (const Node& vertex : graph.allVertices()) {
+//            if (graph.getPredecessors(vertex).empty()) {
+//                lambda(vertex);
+//                visited.insert(vertex);
+//                if (!graph.getSuccessors(vertex).empty()) {
+//                    khansAlgorithm(graph, vertex, lambda, visited);
+//                }
+//            }
+//        }
+//    }
+//
+//    // TODO
+//    template <typename Lambda, typename Node, typename Compare = std::less<Node>>
+//    static void reverseDepthFirst(const Graph<Node, Compare>& graph, Lambda lambda) {}
+//};
 
 
 }  // end of namespace souffle
