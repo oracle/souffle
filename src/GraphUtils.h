@@ -389,19 +389,17 @@ static void khansAlgorithm(const HyperGraph<Table, Node>& graph, Lambda lambda) 
 
 class GraphOrder {
 public:
-//
-//    template <template <typename> typename Table, typename Node>
-//    static const std::vector<Node> innerOrder(const HyperGraph<Table, Node>& graph,
-//     void (const HyperGraph<Table, Node>&, std::function<void(const Node&)>)>* algorithm) {
-//        std::vector<size_t> outerOrder;
-//        algorithm(graph, [&outerOrder](const size_t& vertex){ outerOrder.push_back(vertex); });
-//        std::vector<Node> innerOrder;
-//        for (const size_t index : outerOrder) {
-//            const auto& objectsForVertex = graph.vertexTable().get(index);
-//            innerOrder.insert(innerOrder.end(), objectsForVertex.begin(), objectsForVertex.end());
-//        }
-//        return innerOrder;
-//    }
+
+    template <template <typename> typename Table, typename Node>
+    static const std::vector<Node> innerOrder(const HyperGraph<Table, Node>& graph,
+     void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
+        std::vector<Node> order;
+        for (const size_t vertex : outerOrder(graph, &algorithm)) {
+            const auto& objects = graph.vertexTable().get(vertex);
+            order.insert(order.end(), objects.begin(), objects.end());
+        }
+        return order;
+    }
 
     template <template <typename> typename Table, typename Node>
     static const std::vector<size_t> outerOrder(const HyperGraph<Table, Node>& graph,
@@ -413,84 +411,42 @@ public:
 
 };
 
-class GraphUtils {
-
-public:
-
-
-
-private:
-
-
-template<template <typename> class Table, typename Node>
-static void khansAlgorithm(const HyperGraph<Table, Node>& graph, const size_t vertex, std::vector<bool>& visited, std::vector<size_t>& order) {
-   // create a flag to indicate that a successor was visited (by default it hasn't been)
-    bool foundValidVertex = false, foundVisitedPredecessor = false, foundVisitedSuccessor = false;
-    // for each successor of the input vertex
-    for (const size_t successor : graph.getSuccessors(vertex)) {
-        // if it is white, but has no white predecessors
-        if (visited[successor] == false) {
-            for (auto successorsPredecessor : graph.getPredecessors(successor)) {
-                if (visited[successorsPredecessor] == false) {
-                    foundVisitedPredecessor = true;
-                    break;
-                }
-            }
-            if (!foundVisitedPredecessor) {
-                // give it a temporary marking
-                visited[successor] = true;
-                // add it to the permanent ordering
-                order.push_back(successor);
-                // and use it as a root node in a recursive call to this function
-                khansAlgorithm(graph, successor, visited, order);
-                // finally, indicate that a successor has been foundValidSuccessor for this node
-                foundValidVertex = true;
-            }
-            foundVisitedPredecessor = false;
-        }
-    }
-    // return at once if no valid successors have been foundValidSuccessor; as either it has none or they all have a
-    // better predecessor
-    if (!foundValidVertex) {
-        return;
-    }
-
-    for (auto predecessor : graph.getPredecessors(vertex)) {
-       if (visited[predecessor] == false) {
-            foundVisitedPredecessor = true;
-            break;
-       }
-    }
-    for (auto successor : graph.getSuccessors(vertex)) {
-       if (visited[successor] == false) {
-            foundVisitedSuccessor = true;
-            break;
-       }
-    }
-    // otherwise, if more white successors remain for the current vertex, use it again as the root node in a
-    // recursive call to this function
-    if (!foundVisitedPredecessor && foundVisitedSuccessor)
-        khansAlgorithm(graph, vertex, visited, order);
-}
+class GraphQuery {
 
 public:
 
 template<template <typename> class Table, typename Node>
-static const std::vector<size_t> khansAlgorithm(const HyperGraph<Table, Node>& graph) {
-    std::vector<size_t> order;
-    std::vector<bool> visited;
-    visited.resize(graph.vertexCount());
-    std::fill(visited.begin(), visited.end(), false);
-    for (size_t vertex : graph.allVertices()) {
-        if (graph.getPredecessors(vertex).empty()) {
-            order.push_back(vertex);
-            visited[vertex] = true;
-            if (!graph.getSuccessors(vertex).empty())
-                khansAlgorithm(graph, vertex, visited, order);
+static const int topologicalOrderingCost(const HyperGraph<Table, Node>& graph,
+        const std::vector<size_t>& order) {
+    // create variables to hold the cost of the current SCC and the permutation as a whole
+    int costOfSCC = 0;
+    int costOfPermutation = -1;
+    // for each of the scc's in the ordering, resetting the cost of the scc to zero on each loop
+    for (auto it_i = order.begin(); it_i != order.end(); ++it_i, costOfSCC = 0) {
+        // check that the index of all predecessor sccs of are before the index of the current scc
+        for (auto scc : graph.getPredecessors(*it_i))
+            if (std::find(order.begin(), it_i, scc) == it_i)
+                // if not, the sort is not a valid topological sort
+                return -1;
+        // otherwise, calculate the cost of the current scc
+        // as the number of sccs with an index before the current scc
+        for (auto it_j = order.begin(); it_j != it_i; ++it_j)
+            // having some successor scc with an index after the current scc
+            for (auto scc : graph.getSuccessors(*it_j))
+                if (std::find(order.begin(), it_i, scc) == it_i) costOfSCC++;
+        // and if this cost is greater than the maximum recorded cost for the whole permutation so far,
+        // set the cost of the permutation to it
+        if (costOfSCC > costOfPermutation) {
+            costOfPermutation = costOfSCC;
         }
     }
-    return order;
+    return costOfPermutation;
 }
+
+};
+
+class GraphConvert {
+
 
 private:
    /*
@@ -549,37 +505,14 @@ public:
     }
 
 
-template<template <typename> class Table, typename Node>
-static const int topologicalOrderingCost(const HyperGraph<Table, Node>& graph,
-        const std::vector<size_t>& order) {
-    // create variables to hold the cost of the current SCC and the permutation as a whole
-    int costOfSCC = 0;
-    int costOfPermutation = -1;
-    // for each of the scc's in the ordering, resetting the cost of the scc to zero on each loop
-    for (auto it_i = order.begin(); it_i != order.end(); ++it_i, costOfSCC = 0) {
-        // check that the index of all predecessor sccs of are before the index of the current scc
-        for (auto scc : graph.getPredecessors(*it_i))
-            if (std::find(order.begin(), it_i, scc) == it_i)
-                // if not, the sort is not a valid topological sort
-                return -1;
-        // otherwise, calculate the cost of the current scc
-        // as the number of sccs with an index before the current scc
-        for (auto it_j = order.begin(); it_j != it_i; ++it_j)
-            // having some successor scc with an index after the current scc
-            for (auto scc : graph.getSuccessors(*it_j))
-                if (std::find(order.begin(), it_i, scc) == it_i) costOfSCC++;
-        // and if this cost is greater than the maximum recorded cost for the whole permutation so far,
-        // set the cost of the permutation to it
-        if (costOfSCC > costOfPermutation) {
-            costOfPermutation = costOfSCC;
-        }
-    }
-    return costOfPermutation;
-}
-
 
 };
 
+
+
+class GraphTransform {
+
+// TODO
     /** Pre-process the SCC graph; recursively contract roots, contract leaves, and smooth vertices of out
 
 //     * degree 1.  */
@@ -623,6 +556,8 @@ static const int topologicalOrderingCost(const HyperGraph<Table, Node>& graph,
 //
 
 //
+
+};
 
 
 

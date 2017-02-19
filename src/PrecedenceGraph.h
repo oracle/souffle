@@ -118,7 +118,7 @@ public:
 
     virtual void run(const AstTranslationUnit& translationUnit) {
         precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>();
-        sccGraph = GraphUtils::toSCCGraph<index::SetTable>(precedenceGraph->getGraph());
+        sccGraph = GraphConvert::toSCCGraph<index::SetTable>(precedenceGraph->getGraph());
     }
 
 
@@ -152,24 +152,22 @@ public:
 virtual void run(const AstTranslationUnit& translationUnit) {
     sccGraph = translationUnit.getAnalysis<SCCGraph>();
     orderedSCCs = GraphOrder::outerOrder(sccGraph->getGraph(), &GraphSearch::khansAlgorithm);
-    // orderedSCCs = GraphUtils::khansAlgorithm(GraphUtils::preProcessGraph<index::SetTable, const AstRelation*>(sccGraph->getGraph()));
-
 }
 
-    SCCGraph* getSCCGraph() {
+    SCCGraph* getSCCGraph() const {
         return sccGraph;
     }
 
-    const std::vector<size_t>& getSCCOrder() {
+    const std::vector<size_t>& getSCCOrder() const {
         return orderedSCCs;
     }
 
 
-void outputTopologicallySortedSCCGraph(std::ostream& os) {
+void outputTopologicallySortedSCCGraph(std::ostream& os) const {
         for (size_t i = 0; i < orderedSCCs.size(); i++)
             os << "[" << join(sccGraph->getGraph().vertexTable().get(orderedSCCs[i])) << "]\n";
         os << "\n";
-        os << "cost: " << GraphUtils::topologicalOrderingCost(sccGraph->getGraph(), orderedSCCs) << "\n";
+        os << "cost: " << GraphQuery::topologicalOrderingCost(sccGraph->getGraph(), orderedSCCs) << "\n";
 }
 
 };
