@@ -153,13 +153,13 @@ public:
         return os;
     }
 
-    virtual void print(std::ostream& os) const {
+    virtual void print(std::ostream& os, const bool invert = false) const {
         bool first = true;
         os << "digraph {";
         for (const auto& vertex : successors) {
             for (const auto& successor : vertex.second) {
                 if (!first) os << ";";
-                os << "\"" << vertex.first << "\"" << "->" << "\"" << successor << "\"";
+                os << "\"" << vertex.first << "\"" << ((invert) ? "<-" : "->") << "\"" << successor << "\"";
                 first = false;
             }
         }

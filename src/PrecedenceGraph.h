@@ -162,7 +162,7 @@ private:
             for (const Node& vertex : graph.allVertices())
                 for (const Node& predecessor : graph.getPredecessors(vertex))
                     if (vertex != predecessor && sccGraph.vertexTable().getIndex(vertex) != sccGraph.vertexTable().getIndex(predecessor))
-                        sccGraph.insertEdge(sccGraph.vertexTable().getIndex(vertex), sccGraph.vertexTable().getIndex(predecessor));
+                        sccGraph.insertEdge(sccGraph.vertexTable().getIndex(predecessor), sccGraph.vertexTable().getIndex(vertex));
             return sccGraph;
     }
 

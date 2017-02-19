@@ -49,7 +49,7 @@ void PrecedenceGraph::run(const AstTranslationUnit& translationUnit) {
 }
 
 void PrecedenceGraph::outputPrecedenceGraph(std::ostream& os) {
-    precedenceGraph.print(os);
+    precedenceGraph.print(os, true);
 }
 
 void RedundantRelations::run(const AstTranslationUnit& translationUnit) {
