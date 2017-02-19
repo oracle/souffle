@@ -44,7 +44,6 @@ public:
 /** A class mapping an index to an object. */
 template <typename Object>
 class IndexToObject {
-
 protected:
     /** The table mapping from an index to an object. */
     std::vector<Object> indexToObject;
@@ -62,7 +61,7 @@ public:
     }
 
     /* Set the object for the given index. */
-    virtual void set(const size_t index, const Object& object ) {
+    virtual void set(const size_t index, const Object& object) {
         assert(index <= indexToObject.size());
         if (index == indexToObject.size())
             indexToObject.push_back(object);
