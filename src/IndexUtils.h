@@ -150,8 +150,7 @@ public:
     void setIndex(const Object& object, const size_t index) {
         assert(index <= this->indexToObject.size());
         if (this->hasIndex(index))
-            for (const Object& object : this->get(index))
-                ObjectToIndex<Object>::removeIndex(object);
+            for (const Object& object : this->get(index)) ObjectToIndex<Object>::removeIndex(object);
         else
             this->indexToObject.push_back(Container<Object>());
         this->append(index, object);

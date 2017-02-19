@@ -120,8 +120,7 @@ public:
 
     const bool isRecursive(size_t vertex) const {
         const auto& objects = sccGraph.vertexTable().get(vertex);
-        if (objects.size() == 1 && !precedenceGraph->getGraph().isRecursive(*objects.begin()))
-            return false;
+        if (objects.size() == 1 && !precedenceGraph->getGraph().isRecursive(*objects.begin())) return false;
         return true;
     }
 
@@ -146,9 +145,11 @@ public:
 
     virtual void run(const AstTranslationUnit& translationUnit) {
         sccGraph = translationUnit.getAnalysis<SCCGraph>();
-        HyperGraph<index::SeqTable, size_t> graph = GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
+        HyperGraph<index::SeqTable, size_t> graph =
+                GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
         // TODO: perform some transforms, for example
-        // GraphTransform::joinRecursive(graph, GraphTransform::SINGLES | GraphTransform::ROOTS | GraphTransform::LEAVES | GraphTransform::SMOOTH_BACKWARD);
+        // GraphTransform::joinRecursive(graph, GraphTransform::SINGLES | GraphTransform::ROOTS |
+        // GraphTransform::LEAVES | GraphTransform::SMOOTH_BACKWARD);
         // TODO: find a better topological ordering algorithm
         orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::khansAlgorithm);
     }

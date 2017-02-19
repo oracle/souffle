@@ -166,7 +166,8 @@ void RelationSchedule::run(const AstTranslationUnit& translationUnit) {
 std::vector<std::set<const AstRelation*>> RelationSchedule::computeRelationExpirySchedule(
         const AstTranslationUnit& translationUnit) {
     std::vector<std::set<const AstRelation*>> relationExpirySchedule;
-    // Compute for each step in the reverse topological order of evaluating the SCC the set of alive relations.
+    // Compute for each step in the reverse topological order of evaluating the SCC the set of alive
+    // relations.
 
     int numSCCs = topsortSCCGraph->getSCCOrder().size();
 
@@ -195,7 +196,8 @@ std::vector<std::set<const AstRelation*>> RelationSchedule::computeRelationExpir
             }
         }
 
-        // Compute expired relations in reverse topological order using the set difference of the alive sets between steps.
+        // Compute expired relations in reverse topological order using the set difference of the alive sets
+        // between steps.
         std::set_difference(alive[orderedSCC].begin(), alive[orderedSCC].end(), alive[orderedSCC - 1].begin(),
                 alive[orderedSCC - 1].end(), std::inserter(relationExpirySchedule[numSCCs - orderedSCC],
                                                      relationExpirySchedule[numSCCs - orderedSCC].end()));

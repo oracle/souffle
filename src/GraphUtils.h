@@ -29,7 +29,6 @@ namespace souffle {
 template <typename Node, typename Compare = std::less<Node>>
 class Graph {
 protected:
-
     /** The set of vertices. */
     std::set<Node, Compare> nodes;
 
@@ -40,7 +39,6 @@ protected:
     std::map<Node, std::set<Node, Compare>> successors;
 
 public:
-
     /** Check if a vertex is recursive, i.e. has an edge to itself. */
     const bool isRecursive(const Node& vertex) const {
         return successors.at(vertex).find(vertex) != successors.at(vertex).end();
@@ -159,7 +157,8 @@ public:
         removeVertex(removedVertex);
     }
 
-    /** Visit this graph starting at the given vertex in a depth first traversal, executing the given lambda function for each newly encountered node. */
+    /** Visit this graph starting at the given vertex in a depth first traversal, executing the given lambda
+     * function for each newly encountered node. */
     template <typename Lambda>
     void visitDepthFirst(const Node& vertex, const Lambda lambda) const {
         std::set<Node, Compare> visited;
@@ -172,14 +171,16 @@ public:
         return os;
     }
 
-    /** Prints the graph to the given output stream in Graphviz dot format. If the 'invert' argument is true, edges will be drawn backward. */
+    /** Prints the graph to the given output stream in Graphviz dot format. If the 'invert' argument is true,
+     * edges will be drawn backward. */
     virtual void print(std::ostream& os, const bool invert = false) const {
         bool first = true;
         os << "digraph {\n";
         for (const auto& vertex : successors) {
             for (const auto& successor : vertex.second) {
                 if (!first) os << ";" << std::endl;
-                os << "\"" << ((!invert) ? vertex.first : successor) << "\" -> \"" << ((invert) ? vertex.first : successor) << "\"";
+                os << "\"" << ((!invert) ? vertex.first : successor) << "\" -> \""
+                   << ((invert) ? vertex.first : successor) << "\"";
                 first = false;
             }
         }
@@ -187,7 +188,6 @@ public:
     }
 
 private:
-
     /** Recursive component of visitDepthFirst. */
     template <typename Lambda>
     void visitDepthFirst(const Node& vertex, const Lambda lambda, std::set<Node, Compare>& visited) const {
@@ -205,7 +205,6 @@ private:
     Table<Node> table;
 
 public:
-
     /** Get a constant reference to the table backing this hypergraph. */
     const Table<Node>& vertexTable() const {
         return this->table;
@@ -223,7 +222,8 @@ public:
         this->table.setIndex(object, vertex);
     }
 
-    /** Insert a new vertex into the graph and create an entry in the table for it with the given collection of objects. */
+    /** Insert a new vertex into the graph and create an entry in the table for it with the given collection
+     * of objects. */
     template <template <typename...> class T>
     void insertVertex(const size_t& vertex, const T<Node>& objects) {
         Graph<size_t>::insertVertex(vertex);
@@ -271,8 +271,8 @@ public:
         Graph<size_t>::joinVertices(retainedVertex, removedVertex);
     }
 
-
-    /** Prints the graph to the given output stream in Graphviz dot format. If the 'invert' argument is true, edges will be drawn backward. */
+    /** Prints the graph to the given output stream in Graphviz dot format. If the 'invert' argument is true,
+     * edges will be drawn backward. */
     virtual void print(std::ostream& os, const bool invert = false) const {
         bool first = true;
         os << "digraph {";
@@ -288,17 +288,19 @@ public:
             }
             os << "\"]";
             for (const auto& successor : iter.second)
-                os << ";\n\"" << ((!invert) ? iter.first : successor) << "\" -> \"" << ((invert) ? iter.first : successor) << "\"";
+                os << ";\n\"" << ((!invert) ? iter.first : successor) << "\" -> \""
+                   << ((invert) ? iter.first : successor) << "\"";
         }
         os << "}\n" << std::endl;
     }
 };
 
-
-/** A class for graph search algorithms. Every public member function is static and takes a constant reference to a hyper-graph and a lambda only, which is executed for each newly encountered node in the search. Every private member function forms the recursive component of its corresponding public member function, if any. */
+/** A class for graph search algorithms. Every public member function is static and takes a constant reference
+ * to a hyper-graph and a lambda only, which is executed for each newly encountered node in the search. Every
+ * private member function forms the recursive component of its corresponding public member function, if any.
+ */
 class GraphSearch {
 private:
-
     /** Recursive component of Khan's algorithm. */
     template <typename Lambda, template <typename> class Table, typename Node>
     static void khansAlgorithm(const HyperGraph<Table, Node>& graph, const size_t vertex,
@@ -339,7 +341,7 @@ private:
         if (!foundVisitedPredecessor && foundVisitedSuccessor) khansAlgorithm(graph, vertex, visited, lambda);
     }
 
-     /** Recursive component of reverse DFS algorithm. */
+    /** Recursive component of reverse DFS algorithm. */
     template <typename Lambda, template <typename> class Table, typename Node>
     static void reverseDFS(const HyperGraph<Table, Node>& graph, const size_t vertex,
             std::vector<bool>& visited, Lambda lambda) {
@@ -353,9 +355,8 @@ private:
     }
 
 public:
-
-
-    /** Search the graph in the order of Khan's algorithm, executing the given lambda function for each visited node. Note that this only works for acyclic graphs, otherwise behaviour is undefined. */
+    /** Search the graph in the order of Khan's algorithm, executing the given lambda function for each
+     * visited node. Note that this only works for acyclic graphs, otherwise behaviour is undefined. */
     template <typename Lambda, template <typename> class Table, typename Node>
     static void khansAlgorithm(const HyperGraph<Table, Node>& graph, Lambda lambda) {
         // TODO: is this actually Khan's algorithm?
@@ -371,7 +372,8 @@ public:
         }
     }
 
-    /** Search the graph in the order of the reverse DFS algorithm, executing the given lambda function for each visited node. Note that this only works for acyclic graphs, otherwise behaviour is undefined. */
+    /** Search the graph in the order of the reverse DFS algorithm, executing the given lambda function for
+     * each visited node. Note that this only works for acyclic graphs, otherwise behaviour is undefined. */
     template <typename Lambda, template <typename> class Table, typename Node>
     static void reverseDFS(const HyperGraph<Table, Node>& graph, Lambda lambda) {
         std::vector<bool> visited;
@@ -386,14 +388,13 @@ public:
             }
         }
     }
-
 };
 
 /** A class to obtain node orderings for graph searches. */
 class GraphOrder {
 public:
-
-    /** Appends the collection of objects in the table for each vertex to an order as the vertex is encountered by the given search function, then returns that order. */
+    /** Appends the collection of objects in the table for each vertex to an order as the vertex is
+     * encountered by the given search function, then returns that order. */
     template <template <typename> typename Table, typename Node>
     static const std::vector<Node> innerOrder(const HyperGraph<Table, Node>& graph,
             void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
@@ -405,7 +406,8 @@ public:
         return order;
     }
 
-    /** Appends each vertex to an order as the vertex is encountered by the given search function, then returns that order. */
+    /** Appends each vertex to an order as the vertex is encountered by the given search function, then
+     * returns that order. */
     template <template <typename> typename Table, typename Node>
     static const std::vector<size_t> outerOrder(const HyperGraph<Table, Node>& graph,
             void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
@@ -415,7 +417,10 @@ public:
     }
 };
 
-/** A class to execute queries over a graph. Every public member function is static and takes a constant reference to a hyper-graph, as well as some form of collection of vertices and/or edges and performs a 'query' with respect to that collection. Every private member function forms the recursive component of its corresponding public member function, if any. */
+/** A class to execute queries over a graph. Every public member function is static and takes a constant
+ * reference to a hyper-graph, as well as some form of collection of vertices and/or edges and performs a
+ * 'query' with respect to that collection. Every private member function forms the recursive component of its
+ * corresponding public member function, if any. */
 class GraphQuery {
 public:
     template <template <typename> class Table, typename Node>
@@ -447,19 +452,20 @@ public:
     }
 };
 
-/** A class for converting graphs (and other hyper-graphs) to hyper-graphs having certain properties. Every public member function is static and takes a constant copy of either a graph or hyper-graph, and returns a new hyper-graph bearing the properties specific to that function. Every private member function forms the recursive component of its corresponding public member function, if any. */
+/** A class for converting graphs (and other hyper-graphs) to hyper-graphs having certain properties. Every
+ * public member function is static and takes a constant copy of either a graph or hyper-graph, and returns a
+ * new hyper-graph bearing the properties specific to that function. Every private member function forms the
+ * recursive component of its corresponding public member function, if any. */
 class GraphConvert {
 private:
-
     /** Recursive component of conversion to acyclic hyper-graph. */
     template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
     static void toAcyclicHyperGraph(const Graph<Node, Compare>& graph, HyperGraph<Table, Node>& sccGraph,
             const Node& w, std::map<Node, int>& preOrder, size_t& counter, std::stack<Node>& S,
             std::stack<Node>& P) {
-
-// Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
-// Java by Robert Sedgewick / Part 5 / Graph *  algorithms). The algorithm has linear
-// runtime.
+        // Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
+        // Java by Robert Sedgewick / Part 5 / Graph *  algorithms). The algorithm has linear
+        // runtime.
 
         preOrder[w] = counter++;
 
@@ -488,9 +494,8 @@ private:
     }
 
 public:
-
-   /** Convert the given graph to a hyper-graph of the specified table type. */
-   template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
+    /** Convert the given graph to a hyper-graph of the specified table type. */
+    template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
     static HyperGraph<Table, Node> toHyperGraph(Graph<Node, Compare> oldGraph) {
         HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
         size_t index = 0;
@@ -507,8 +512,7 @@ public:
         return newGraph;
     }
 
-
-   /** Convert the given graph to an acyclic hyper-graph of the specified table type. */
+    /** Convert the given graph to an acyclic hyper-graph of the specified table type. */
     template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
     static HyperGraph<Table, Node> toAcyclicHyperGraph(const Graph<Node, Compare> graph) {
         // TODO: add a function like this for hyper-graphs (taking them as an argument)
@@ -529,13 +533,11 @@ public:
         return sccGraph;
     }
 
-
-   /** Convert the given hyper-graph to another hyper-graph of the specified table type. */
-    template <template<typename> class Table, template <typename> class OtherTable, typename OtherNode>
+    /** Convert the given hyper-graph to another hyper-graph of the specified table type. */
+    template <template <typename> class Table, template <typename> class OtherTable, typename OtherNode>
     static HyperGraph<Table, size_t> toHyperGraph(HyperGraph<OtherTable, OtherNode> oldGraph) {
         HyperGraph<Table, size_t> newGraph = HyperGraph<Table, size_t>();
-        for (size_t index = 0; index < oldGraph.vertexCount(); ++index)
-            newGraph.insertVertex(index, index);
+        for (size_t index = 0; index < oldGraph.vertexCount(); ++index) newGraph.insertVertex(index, index);
         for (const size_t vertex : oldGraph.allVertices())
             for (const size_t successor : oldGraph.getSuccessors(vertex))
                 newGraph.insertEdge(vertex, successor);
@@ -543,69 +545,69 @@ public:
     }
 };
 
-/** A class for executing transformations on graphs. Every public member function is static and takes a reference to a hyper-graph, and transforms the graph it in a manner specific to that function. Every private member function forms the recursive component of its corresponding public member function, if any. */
+/** A class for executing transformations on graphs. Every public member function is static and takes a
+ * reference to a hyper-graph, and transforms the graph it in a manner specific to that function. Every
+ * private member function forms the recursive component of its corresponding public member function, if any.
+ */
 class GraphTransform {
+public:
+    /** Enum to define transforms, more efficient than having a single member function for each one. */
+    enum {
+        SINGLES = 0x000001,  // join all vertices without predecessors or successors into a single vertex
+        ROOTS = 0x000010,  // join all roots with only one successor into their successors
+        LEAVES = 0x000100,  // join all leaves into their predecessors
+        SMOOTH_FORWARD = 0x011000,  // smooth edges backward
+        SMOOTH_BACKWARD = 0x101000,  // smooth edges forward
+        __SMOOTH__ = 0x001000,  // smooth edges, hidden
+        __FORWARD__ = 0x010000,  // join into successor, hidden
+        __BACKWARD__ = 0x100000,  // join into predecessor, hidden
+        __UNDEFINED__ = 0x110000  // undefined behaviour, hidden
+    };
 
-    public:
-
-        /** Enum to define transforms, more efficient than having a single member function for each one. */
-        enum {
-            SINGLES       = 0x000001, // join all vertices without predecessors or successors into a single vertex
-            ROOTS         = 0x000010, // join all roots with only one successor into their successors
-            LEAVES        = 0x000100, // join all leaves into their predecessors
-            SMOOTH_FORWARD = 0x011000, // smooth edges backward
-            SMOOTH_BACKWARD = 0x101000, // smooth edges forward
-            __SMOOTH__   = 0x001000, // smooth edges, hidden
-            __FORWARD__  = 0x010000, // join into successor, hidden
-            __BACKWARD__ = 0x100000, // join into predecessor, hidden
-            __UNDEFINED__ = 0x110000 // undefined behaviour, hidden
-        };
-
-        /** Repeatedly join vertices using transforms, with those used given by a bitwise disjunction of any compatible transformations in the enum at the start of this class.
-        Repeated until fixed point is reached (i.e. the graph makes no changes between the current and next round of iteration). */
-        template <template <typename> class Table, typename Node>
-        static void joinRecursive(HyperGraph<Table, Node>& graph, int type) {
-            assert(type != __SMOOTH__ && type != __FORWARD__ && type != __BACKWARD__ && (type & __UNDEFINED__) != __UNDEFINED__);
-             bool flag = true;
-             int single = -1;
-            size_t in, out;
-            while (flag) {
-                flag = false;
-                for (const size_t vertex : graph.allVertices()) {
-                    in = graph.getPredecessors(vertex).size();
-                    out = graph.getSuccessors(vertex).size();
-                    int currentType;
-                    if (in == 0 && out == 0 && (type & SINGLES) == SINGLES) {
-                        if (single == -1) {
-                           single = vertex;
-                        } else {
-                            // TODO: not working
-                            // graph.joinVertices(single, vertex);
-                        }
-                        continue;
-                    } else
-                    if (in == 0 && out == 1 && (type & ROOTS) == ROOTS)
-                        currentType = __FORWARD__;
-                    else if (in == 1 && out == 0 && (type & LEAVES) == LEAVES)
-                        currentType = __BACKWARD__;
-                    else if (in == 1 && out == 1 && (type & __SMOOTH__) == __SMOOTH__)
-                        currentType = type;
-                    else
-                        continue;
-                    flag = true;
-                    if ((currentType & __FORWARD__) == __FORWARD__) {
+    /** Repeatedly join vertices using transforms, with those used given by a bitwise disjunction of any
+    compatible transformations in the enum at the start of this class.
+    Repeated until fixed point is reached (i.e. the graph makes no changes between the current and next round
+    of iteration). */
+    template <template <typename> class Table, typename Node>
+    static void joinRecursive(HyperGraph<Table, Node>& graph, int type) {
+        assert(type != __SMOOTH__ && type != __FORWARD__ && type != __BACKWARD__ &&
+                (type & __UNDEFINED__) != __UNDEFINED__);
+        bool flag = true;
+        int single = -1;
+        size_t in, out;
+        while (flag) {
+            flag = false;
+            for (const size_t vertex : graph.allVertices()) {
+                in = graph.getPredecessors(vertex).size();
+                out = graph.getSuccessors(vertex).size();
+                int currentType;
+                if (in == 0 && out == 0 && (type & SINGLES) == SINGLES) {
+                    if (single == -1) {
+                        single = vertex;
+                    } else {
                         // TODO: not working
-                        // graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex);
-                    } else
-                    if ((currentType & __BACKWARD__) == __BACKWARD__) {
-                        // TODO: not working
-                        // graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex);
+                        // graph.joinVertices(single, vertex);
                     }
+                    continue;
+                } else if (in == 0 && out == 1 && (type & ROOTS) == ROOTS)
+                    currentType = __FORWARD__;
+                else if (in == 1 && out == 0 && (type & LEAVES) == LEAVES)
+                    currentType = __BACKWARD__;
+                else if (in == 1 && out == 1 && (type & __SMOOTH__) == __SMOOTH__)
+                    currentType = type;
+                else
+                    continue;
+                flag = true;
+                if ((currentType & __FORWARD__) == __FORWARD__) {
+                    // TODO: not working
+                    // graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex);
+                } else if ((currentType & __BACKWARD__) == __BACKWARD__) {
+                    // TODO: not working
+                    // graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex);
                 }
             }
         }
-
-
+    }
 };
 
 }  // end of namespace souffle
