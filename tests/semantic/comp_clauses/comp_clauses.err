@@ -1,10 +1,19 @@
-Error: Non-symbol use for string function in file comp_clauses.dl at line 10
+Error: Non-symbolic use for symbolic functor in file comp_clauses.dl at line 12
 q(cat(x,x)) :- q(x).                // this one should
 --^----------------------------------------------------
-Error: Non-symbol operand for string function in file comp_clauses.dl at line 10
+Error: Non-symbolic first argument for functor in file comp_clauses.dl at line 12
 q(cat(x,x)) :- q(x).                // this one should
 ------^------------------------------------------------
-Error: Non-symbol operand for string function in file comp_clauses.dl at line 10
+Error: Unable to deduce type for variable x in file comp_clauses.dl at line 12
+q(cat(x,x)) :- q(x).                // this one should
+------^------------------------------------------------
+Error: Non-symbolic second argument for functor in file comp_clauses.dl at line 12
 q(cat(x,x)) :- q(x).                // this one should
 --------^----------------------------------------------
-3 errors generated, evaluation aborted
+Error: Unable to deduce type for variable x in file comp_clauses.dl at line 12
+q(cat(x,x)) :- q(x).                // this one should
+--------^----------------------------------------------
+Error: Unable to deduce type for variable x in file comp_clauses.dl at line 12
+q(cat(x,x)) :- q(x).                // this one should
+-----------------^-------------------------------------
+6 errors generated, evaluation aborted

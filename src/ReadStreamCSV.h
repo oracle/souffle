@@ -18,7 +18,9 @@
 #include "ReadStream.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
+#ifdef USE_LIBZ
 #include "gzfstream.h"
+#endif
 
 #include <map>
 #include <memory>
@@ -169,7 +171,11 @@ private:
     }
 
     std::string baseName;
+#ifdef USE_LIBZ
     gzfstream::igzfstream fileHandle;
+#else
+    std::ifstream fileHandle;
+#endif
     ReadStreamCSV readStream;
 };
 
@@ -236,8 +242,10 @@ public:
             const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) {
         std::map<int, int> inputMap = getInputColumnMap(ioDirectives, symbolMask.getArity());
         char delimiter = getDelimiter(ioDirectives);
+        std::string filename = ioDirectives.has("filename") ? ioDirectives.get("filename")
+                                                            : (ioDirectives.getRelationName() + ".facts");
         return std::unique_ptr<ReadFileCSV>(
-                new ReadFileCSV(ioDirectives.get("filename"), symbolMask, symbolTable, inputMap, delimiter));
+                new ReadFileCSV(filename, symbolMask, symbolTable, inputMap, delimiter));
     }
     virtual const std::string& getName() const {
         return name;

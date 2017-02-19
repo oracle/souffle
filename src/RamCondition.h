@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "BinaryOperator.h"
+#include "BinaryConstraintOps.h"
 #include "RamIndex.h"
 #include "RamNode.h"
 #include "RamRelation.h"

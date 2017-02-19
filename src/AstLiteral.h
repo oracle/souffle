@@ -20,7 +20,7 @@
 #include "AstArgument.h"
 #include "AstNode.h"
 #include "AstRelationIdentifier.h"
-#include "BinaryOperator.h"
+#include "BinaryConstraintOps.h"
 #include "Util.h"
 
 #include <iostream>

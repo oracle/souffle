@@ -54,6 +54,14 @@ mcpp-system.H    : mcpp-configed.H
 # ... which should no go to distribution
 nodist_souffle_SOURCES = $(BUILT_SOURCES)
 
+if LIBZ
+libz_sources = gzfstream.h
+endif
+
+if SQLITE
+sqlite_sources = ReadStreamSQLite.h WriteStreamSQLite.h
+endif
+
 souffle_sources = \
               parser.cc             parser.hh           \
               scanner.cc            stack.hh            \
@@ -84,8 +92,10 @@ souffle_sources = \
               AstSemanticChecker.cpp                    \
               AstSemanticChecker.h                      \
               AstTransforms.cpp     AstTransforms.h     \
-              BinaryOperator.h                          \
-              UnaryOperator.h                           \
+              UnaryFunctorOps.h                         \
+              BinaryFunctorOps.h                        \
+              TernaryFunctorOps.h                       \
+              BinaryConstraintOps.h                     \
               Constraints.h                             \
               GraphUtils.h                              \
               RamValue.h                                \
@@ -107,15 +117,15 @@ souffle_sources = \
               StringPool.h                              \
               TypeSystem.cpp        TypeSystem.h        \
               PrecedenceGraph.cpp   PrecedenceGraph.h   \
+              $(sqlite_sources)     $(libz_sources)     \
               ReadStream.h                              \
               ReadStreamCSV.h                           \
               WriteStream.h                             \
               IODirectives.h                            \
-              WriteStreamCSV.h      WriteStreamSQLite.h \
+              WriteStreamCSV.h                          \
               IOSystem.h                                \
               Global.cpp            Global.h            \
               IndexUtils.h
-
 
 # -- build souffle as a library so it can be reused in testing
 noinst_LTLIBRARIES = libsouffle.la
@@ -150,16 +160,15 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
                         IterUtils.h             \
                         SymbolTable.h           \
                         RamLogger.h             \
-                        SqliteRelationWriter.h  \
+                        $(sqlite_sources)       \
+                        $(libz_sources)         \
                         IODirectives.h          \
                         IOSystem.h              \
                         ReadStream.h            \
                         ReadStreamCSV.h         \
                         SymbolMask.h            \
-                        ReadStreamSQLite.h      \
                         WriteStream.h           \
-                        WriteStreamCSV.h        \
-                        WriteStreamSQLite.h
+                        WriteStreamCSV.h
 
 souffle_CPPFLAGS = -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\""
 

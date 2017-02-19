@@ -17,7 +17,8 @@
 #include "RamExecutor.h"
 #include "AstRelation.h"
 #include "AstVisitor.h"
-#include "BinaryOperator.h"
+#include "BinaryConstraintOps.h"
+#include "BinaryFunctorOps.h"
 #include "IOSystem.h"
 #include "RamAutoIndex.h"
 #include "RamData.h"
@@ -26,7 +27,7 @@
 #include "RamVisitor.h"
 #include "RuleScheduler.h"
 #include "TypeSystem.h"
-#include "UnaryOperator.h"
+#include "UnaryFunctorOps.h"
 
 #include <algorithm>
 #include <chrono>
@@ -104,6 +105,56 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
             return env.incCounter();
         }
 
+        // unary functions
+
+        RamDomain visitUnaryOperator(const RamUnaryOperator& op) {
+            switch (op.getOperator()) {
+                case UnaryOp::NEG:
+                    return -visit(op.getValue());
+                case UnaryOp::BNOT:
+                    return ~visit(op.getValue());
+                case UnaryOp::LNOT:
+                    return !visit(op.getValue());
+                case UnaryOp::ORD:
+                    return visit(op.getValue());
+                case UnaryOp::STRLEN:
+                    return strlen(env.getSymbolTable().resolve(visit(op.getValue())));
+                case UnaryOp::SIN:
+                    return sin(visit(op.getValue()));
+                case UnaryOp::COS:
+                    return cos(visit(op.getValue()));
+                case UnaryOp::TAN:
+                    return tan(visit(op.getValue()));
+                case UnaryOp::ASIN:
+                    return asin(visit(op.getValue()));
+                case UnaryOp::ACOS:
+                    return acos(visit(op.getValue()));
+                case UnaryOp::ATAN:
+                    return atan(visit(op.getValue()));
+                case UnaryOp::SINH:
+                    return sinh(visit(op.getValue()));
+                case UnaryOp::COSH:
+                    return cosh(visit(op.getValue()));
+                case UnaryOp::TANH:
+                    return tanh(visit(op.getValue()));
+                case UnaryOp::ASINH:
+                    return asinh(visit(op.getValue()));
+                case UnaryOp::ACOSH:
+                    return acosh(visit(op.getValue()));
+                case UnaryOp::ATANH:
+                    return atanh(visit(op.getValue()));
+                case UnaryOp::LOG:
+                    return log(visit(op.getValue()));
+                case UnaryOp::EXP:
+                    return exp(visit(op.getValue()));
+                default:
+                    assert(0 && "unsupported operator");
+                    return 0;
+            }
+        }
+
+        // binary functions
+
         RamDomain visitBinaryOperator(const RamBinaryOperator& op) {
             switch (op.getOperator()) {
                 // arithmetic
@@ -157,44 +208,25 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
                     return 0;
             }
         }
-        RamDomain visitUnaryOperator(const RamUnaryOperator& op) {
+
+        // ternary functions
+
+        RamDomain visitTernaryOperator(const RamTernaryOperator& op) {
             switch (op.getOperator()) {
-                case UnaryOp::NEG:
-                    return -visit(op.getValue());
-                case UnaryOp::BNOT:
-                    return ~visit(op.getValue());
-                case UnaryOp::LNOT:
-                    return !visit(op.getValue());
-                case UnaryOp::ORD:
-                    return visit(op.getValue());
-                case UnaryOp::SIN:
-                    return sin(visit(op.getValue()));
-                case UnaryOp::COS:
-                    return cos(visit(op.getValue()));
-                case UnaryOp::TAN:
-                    return tan(visit(op.getValue()));
-                case UnaryOp::ASIN:
-                    return asin(visit(op.getValue()));
-                case UnaryOp::ACOS:
-                    return acos(visit(op.getValue()));
-                case UnaryOp::ATAN:
-                    return atan(visit(op.getValue()));
-                case UnaryOp::SINH:
-                    return sinh(visit(op.getValue()));
-                case UnaryOp::COSH:
-                    return cosh(visit(op.getValue()));
-                case UnaryOp::TANH:
-                    return tanh(visit(op.getValue()));
-                case UnaryOp::ASINH:
-                    return asinh(visit(op.getValue()));
-                case UnaryOp::ACOSH:
-                    return acosh(visit(op.getValue()));
-                case UnaryOp::ATANH:
-                    return atanh(visit(op.getValue()));
-                case UnaryOp::LOG:
-                    return log(visit(op.getValue()));
-                case UnaryOp::EXP:
-                    return exp(visit(op.getValue()));
+                case TernaryOp::SUBSTR: {
+                    auto symbol = visit(op.getArg(0));
+                    std::string str = env.getSymbolTable().resolve(symbol);
+                    auto idx = visit(op.getArg(1));
+                    auto len = visit(op.getArg(2));
+                    std::string sub_str;
+                    try {
+                        sub_str = str.substr(idx, len);
+                    } catch (...) {
+                        std::cerr << "warning: wrong index position provided by substr(\"";
+                        std::cerr << str << "\"," << idx << "," << len << ") functor.\n";
+                    }
+                    return env.getSymbolTable().lookup(sub_str.c_str());
+                }
                 default:
                     assert(0 && "unsupported operator");
                     return 0;
@@ -701,16 +733,11 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
                 return !err;
             }
 
-            std::string filename = Global::config().get("fact-dir") + "/" + load.getFileName();
             try {
-                IODirectives ioDirectives = load.getRelation().getInputDirectives();
-                if (ioDirectives.isEmpty()) {
-                    ioDirectives.setIOType("file");
-                    ioDirectives.setFileName(filename);
-                }
                 RamRelation& relation = env.getRelation(load.getRelation());
-                std::unique_ptr<ReadStream> reader = IOSystem::getInstance().getReader(
-                        load.getRelation().getSymbolMask(), env.getSymbolTable(), ioDirectives);
+                std::unique_ptr<ReadStream> reader =
+                        IOSystem::getInstance().getReader(load.getRelation().getSymbolMask(),
+                                env.getSymbolTable(), load.getRelation().getInputDirectives());
                 reader->readAll(relation);
             } catch (std::exception& e) {
                 std::cerr << e.what();
@@ -720,25 +747,12 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
         }
 
         bool visitStore(const RamStore& store) {
-            bool toConsole = (Global::config().get("output-dir") == "-");
             if (store.getRelation().isData()) {
                 return true;
             }
 
             auto& rel = env.getRelation(store.getRelation());
             for (IODirectives ioDirectives : store.getRelation().getOutputDirectives()) {
-                // Support old style input directives.
-                if (ioDirectives.isEmpty()) {
-                    if (toConsole) {
-                        ioDirectives.setIOType("stdout");
-                        ioDirectives.setRelationName(store.getRelation().getName());
-                    } else {
-                        ioDirectives.setIOType("file");
-                        ioDirectives.setFileName(
-                                Global::config().get("output-dir") + "/" + store.getFileName());
-                    }
-                }
-
                 try {
                     IOSystem::getInstance()
                             .getWriter(
@@ -1202,7 +1216,7 @@ public:
     }
 
     void visitDrop(const RamDrop& drop, std::ostream& out) {
-        if (!Global::config().has("debug") || drop.getRelation().isTemp()) {
+        if (drop.getRelation().isTemp()) {
             out << getRelationName(drop.getRelation()) << "->"
                 << "purge();\n";
         }
@@ -1702,6 +1716,71 @@ public:
         out << "(ctr++)";
     }
 
+    void visitUnaryOperator(const RamUnaryOperator& op, std::ostream& out) {
+        switch (op.getOperator()) {
+            case UnaryOp::ORD:
+                out << print(op.getValue());
+                break;
+            case UnaryOp::STRLEN:
+                out << "strlen(symTable.resolve((size_t)" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::NEG:
+                out << "(-(" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::BNOT:
+                out << "(~(" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::LNOT:
+                out << "(!(" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::SIN:
+                out << "sin((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::COS:
+                out << "cos((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::TAN:
+                out << "tan((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ASIN:
+                out << "asin((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ACOS:
+                out << "acos((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ATAN:
+                out << "atan((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::SINH:
+                out << "sinh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::COSH:
+                out << "cosh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::TANH:
+                out << "tanh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ASINH:
+                out << "asinh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ACOSH:
+                out << "acosh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::ATANH:
+                out << "atanh((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::LOG:
+                out << "log((" << print(op.getValue()) << "))";
+                break;
+            case UnaryOp::EXP:
+                out << "exp((" << print(op.getValue()) << "))";
+                break;
+            default:
+                assert(0 && "Unsupported Operation!");
+                break;
+        }
+    }
+
     void visitBinaryOperator(const RamBinaryOperator& op, std::ostream& out) {
         switch (op.getOperator()) {
             // arithmetic
@@ -1766,6 +1845,23 @@ public:
         }
     }
 
+    void visitTernaryOperator(const RamTernaryOperator& op, std::ostream& out) {
+        switch (op.getOperator()) {
+            case TernaryOp::SUBSTR:
+                out << "(RamDomain)symTable.lookup(";
+                out << "(substr_wrapper(symTable.resolve((size_t)";
+                out << print(op.getArg(0));
+                out << "),(";
+                out << print(op.getArg(1));
+                out << "),(";
+                out << print(op.getArg(2));
+                out << ")).c_str()))";
+                break;
+            default:
+                assert(0 && "Unsupported Operation!");
+        }
+    }
+
     // -- records --
 
     void visitPack(const RamPack& pack, std::ostream& out) {
@@ -1773,68 +1869,6 @@ public:
             << "ram::Tuple<RamDomain," << pack.getValues().size() << ">({" << join(pack.getValues(), ",", rec)
             << "})"
             << ")";
-    }
-
-    void visitUnaryOperator(const RamUnaryOperator& op, std::ostream& out) {
-        switch (op.getOperator()) {
-            case UnaryOp::ORD:
-                out << print(op.getValue());
-                break;
-            case UnaryOp::NEG:
-                out << "(-(" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::BNOT:
-                out << "(~(" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::LNOT:
-                out << "(!(" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::SIN:
-                out << "sin((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::COS:
-                out << "cos((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::TAN:
-                out << "tan((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::ASIN:
-                out << "asin((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::ACOS:
-                out << "acos((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::ATAN:
-                out << "atan((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::SINH:
-                out << "sinh((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::COSH:
-                out << "cosh((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::TANH:
-                out << "tanh((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::ASINH:
-                out << "asinh((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::ACOSH:
-                out << "acosh((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::ATANH:
-                out << "atanh((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::LOG:
-                out << "log((" << print(op.getValue()) << "))";
-                break;
-            case UnaryOp::EXP:
-                out << "exp((" << print(op.getValue()) << "))";
-                break;
-            default:
-                assert(0 && "Unsupported Operation!");
-                break;
-        }
     }
 
     // -- safety net --
@@ -1965,12 +1999,19 @@ std::string RamCompiler::generateCode(
     // print wrapper for regex
     os << "class " << classname << " : public SouffleProgram {\n";
     os << "private:\n";
-    os << "static bool regex_wrapper(const char *pattern, const char *text) {\n";
+    os << "static inline bool regex_wrapper(const char *pattern, const char *text) {\n";
     os << "   bool result = false; \n";
     os << "   try { result = std::regex_match(text, std::regex(pattern)); } catch(...) { \n";
     os << "     std::cerr << \"warning: wrong pattern provided for match(\\\"\" << pattern << \"\\\",\\\"\" "
           "<< text << \"\\\")\\n\";\n}\n";
     os << "   return result;\n";
+    os << "}\n";
+    os << "static inline std::string substr_wrapper(const char *str, size_t idx, size_t len) {\n";
+    os << "   std::string sub_str, result; \n";
+    os << "   try { result = std::string(str).substr(idx,len); } catch(...) { \n";
+    os << "     std::cerr << \"warning: wrong index position provided by substr(\\\"\";\n";
+    os << "     std::cerr << str << \"\\\",\" << idx << \",\" << len << \") functor.\\n\";\n";
+    os << "   } return result;\n";
     os << "}\n";
 
     if (Global::config().has("profile")) {
@@ -1982,9 +2023,9 @@ std::string RamCompiler::generateCode(
     os << "SymbolTable symTable;\n";
 
     // print relation definitions
-    std::string initCons;  // initialization of constructor
+    std::string initCons;      // initialization of constructor
     std::string deleteForNew;  // matching deletes for each new, used in the destructor
-    std::string registerRel;  // registration of relations
+    std::string registerRel;   // registration of relations
     int relCtr = 0;
     std::string tempType;  // string to hold the type of the temporary relations
     visitDepthFirst(stmt, [&](const RamCreate& create) {
@@ -2010,7 +2051,7 @@ std::string RamCompiler::generateCode(
         }
         initCons += name + "(new " + type + "())";
         deleteForNew += "delete " + name + ";\n";
-        if ((rel.isInput() || rel.isComputed() || Global::config().has("debug")) && !rel.isTemp()) {
+        if ((rel.isInput() || rel.isComputed()) && !rel.isTemp()) {
             os << "souffle::RelationWrapper<";
             os << relCtr++ << ",";
             os << type << ",";
@@ -2109,23 +2150,20 @@ std::string RamCompiler::generateCode(
 
     // issue printAll method
     os << "public:\n";
-    os << "void printAll(std::string dirname=\"" << Global::config().get("output-dir") << "\") {\n";
-    bool toConsole = (Global::config().get("output-dir") == "-");
+    os << "void printAll(std::string dirname) {\n";
     visitDepthFirst(stmt, [&](const RamStatement& node) {
         if (auto store = dynamic_cast<const RamStore*>(&node)) {
             for (IODirectives ioDirectives : store->getRelation().getOutputDirectives()) {
-                if (ioDirectives.isEmpty()) {
-                    if (toConsole) {
-                        ioDirectives.setIOType("stdout");
-                        ioDirectives.setRelationName(store->getRelation().getName());
-                    } else {
-                        ioDirectives.setIOType("file");
-                        ioDirectives.setFileName(
-                                Global::config().get("output-dir") + "/" + store->getFileName());
-                    }
-                }
                 os << "try {";
-                os << "IODirectives ioDirectives(" << ioDirectives << ");";
+                os << "std::map<std::string, std::string> directiveMap(" << ioDirectives << ");\n";
+                // If a directory has been specified then don't try to change it
+                if (!Global::config().has("output-dir")) {
+                    os << "if (!dirname.empty() && directiveMap[\"IO\"] == \"file\" && ";
+                    os << "directiveMap[\"filename\"].front() != '/') {";
+                    os << "directiveMap[\"filename\"] = dirname + \"/\" + directiveMap[\"filename\"];";
+                    os << "}";
+                }
+                os << "IODirectives ioDirectives(directiveMap);\n";
                 os << "IOSystem::getInstance().getWriter(";
                 os << "SymbolMask({" << store->getRelation().getSymbolMask() << "})";
                 os << ", symTable, ioDirectives";
@@ -2145,17 +2183,22 @@ std::string RamCompiler::generateCode(
 
     // issue loadAll method
     os << "public:\n";
-    os << "void loadAll(std::string dirname=\"" << Global::config().get("fact-dir") << "\") {\n";
+    os << "void loadAll(std::string dirname) {\n";
     visitDepthFirst(stmt, [&](const RamLoad& load) {
         IODirectives ioDirectives = load.getRelation().getInputDirectives();
-        if (ioDirectives.isEmpty()) {
-            ioDirectives.setIOType("file");
-            ioDirectives.setFileName(Global::config().get("fact-dir") + "/" + load.getFileName());
-        }
 
         // get some table details
         os << "try {";
-        os << "IODirectives ioDirectives(" << ioDirectives << ");\n";
+        os << "std::map<std::string, std::string> directiveMap(";
+        os << load.getRelation().getInputDirectives() << ");\n";
+        // If a directory has been specified then don't try to change it
+        if (!Global::config().has("fact-dir")) {
+            os << "if (!dirname.empty() && directiveMap[\"IO\"] == \"file\" && ";
+            os << "directiveMap[\"filename\"].front() != '/') {";
+            os << "directiveMap[\"filename\"] = dirname + \"/\" + directiveMap[\"filename\"];";
+            os << "}";
+        }
+        os << "IODirectives ioDirectives(directiveMap);\n";
         os << "IOSystem::getInstance().getReader(";
         os << "SymbolMask({" << load.getRelation().getSymbolMask() << "})";
         os << ", symTable, ioDirectives)->readAll(*" << getRelationName(load.getRelation());
@@ -2202,12 +2245,6 @@ std::string RamCompiler::generateCode(
     });
     os << "}\n";  // end of dumpOutputs() method
 
-    // issue dumpDB() method
-    os << "public:\n";
-    os << "void dumpDB(std::string filename, bool outputRelationsOnly) {\n";
-    os << "writeRelationsToSqlite(filename, this, outputRelationsOnly);\n";
-    os << "}\n";  // end of dumpDB() method
-
     os << "public:\n";
     os << "const SymbolTable &getSymbolTable() const {\n";
     os << "return symTable;\n";
@@ -2246,9 +2283,7 @@ std::string RamCompiler::generateCode(
         os << "false,\n";
         os << "R\"()\",\n";
     }
-    os << "R\"(" << Global::config().get("database") << ")\",\n";
-    os << std::stoi(Global::config().get("jobs")) << ",\n";
-    os << ((Global::config().has("debug")) ? "R\"(true)\"" : "R\"(false)\"");
+    os << std::stoi(Global::config().get("jobs")) << "\n";
     os << ");\n";
 
     os << "if (!opt.parse(argc,argv)) return 1;\n";
@@ -2266,10 +2301,7 @@ std::string RamCompiler::generateCode(
 
     os << "obj.loadAll(opt.getInputFileDir());\n";
     os << "obj.run();\n";
-    os << "if (!opt.getOutputFileDir().empty()) obj.printAll(opt.getOutputFileDir());\n";
-    os << "if (!opt.getOutputDatabaseName().empty()) obj.dumpDB(opt.getOutputDatabaseName(), "
-       << !Global::config().has("debug") << ");\n";
-
+    os << "obj.printAll(opt.getOutputFileDir());\n";
     os << "return 0;\n";
     os << "}\n";
     os << "#endif\n";

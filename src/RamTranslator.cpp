@@ -22,7 +22,7 @@
 #include "AstTypeAnalysis.h"
 #include "AstUtils.h"
 #include "AstVisitor.h"
-#include "BinaryOperator.h"
+#include "BinaryConstraintOps.h"
 #include "Global.h"
 #include "PrecedenceGraph.h"
 #include "RamStatement.h"
@@ -71,8 +71,10 @@ RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity,
 
     IODirectives inputDirectives;
     std::vector<IODirectives> outputDirectives;
+    // If IO directives have been specified then set them up
     for (const auto& current : rel->getIODirectives()) {
-        if (!current->isInput() && !current->isOutput()) {
+        // Skip empty directives and rely on the defaults below.
+        if (current->getIODirectiveMap().empty()) {
             continue;
         }
         if (current->isInput()) {
@@ -91,7 +93,22 @@ RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity,
                     }
                 }
             }
+            // Set a default IO type of file and a default filename if not supplied.
+            if (!inputDirectives.has("IO")) {
+                inputDirectives.setIOType("file");
+            }
+            if (inputDirectives.getIOType() == "file" && !inputDirectives.has("filename")) {
+                inputDirectives.set("filename", inputDirectives.getRelationName() + ".facts");
+            }
+
+            // If filename is not an absolute path, concat with cmd line facts directory
+            if (!Global::config().get("fact-dir").empty() && inputDirectives.getIOType() == "file" &&
+                    inputDirectives.get("filename").front() != '/') {
+                inputDirectives.set(
+                        "filename", Global::config().get("fact-dir") + "/" + inputDirectives.get("filename"));
+            }
         } else if (current->isOutput()) {
+            // Handle non-empty output directives
             IODirectives ioDirectives;
             ioDirectives.setRelationName(getRelationName(rel->getName()));
             for (const auto& currentPair : current->getIODirectiveMap()) {
@@ -111,12 +128,46 @@ RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity,
             outputDirectives.push_back(ioDirectives);
         }
     }
+    // handle defaults
+    if (rel->isInput()) {
+        inputDirectives.setRelationName(getRelationName(rel->getName()));
+        // Set a default IO type of file and a default filename if not supplied.
+        if (!inputDirectives.has("IO")) {
+            inputDirectives.setIOType("file");
+        }
+        if (inputDirectives.getIOType() == "file" && !inputDirectives.has("filename")) {
+            inputDirectives.setFileName(inputDirectives.getRelationName() + ".facts");
+        }
 
-    if (outputDirectives.empty()) {
-        IODirectives stubDirectives;
-        outputDirectives.push_back(stubDirectives);
+        // If filename is not an absolute path, concat with cmd line facts directory
+        if (!Global::config().get("fact-dir").empty() && inputDirectives.getIOType() == "file" &&
+                inputDirectives.get("filename").front() != '/') {
+            inputDirectives.setFileName(
+                    Global::config().get("fact-dir") + "/" + inputDirectives.getFileName());
+        }
     }
+    if (outputDirectives.empty() && rel->isOutput()) {
+        IODirectives ioDirectives;
+        ioDirectives.setRelationName(getRelationName(rel->getName()));
+        ioDirectives.setIOType("file");
+        ioDirectives.setFileName(getRelationName(rel->getName()) + ".csv");
 
+        outputDirectives.push_back(ioDirectives);
+    }
+    // Handle command line overrides of paths, or use of stdout
+    if (!Global::config().get("output-dir").empty()) {
+        if (Global::config().get("output-dir") == "-" && !outputDirectives.empty()) {
+            outputDirectives.front().setIOType("stdout");
+            // If we are using stdout then we only need one output directive.
+            outputDirectives.resize(1);
+        }
+        for (auto& ioDirectives : outputDirectives) {
+            if (ioDirectives.getIOType() == "file" && ioDirectives.getFileName().front() != '/') {
+                ioDirectives.setFileName(
+                        Global::config().get("output-dir") + "/" + ioDirectives.get("filename"));
+            }
+        }
+    }
     return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers,
             getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), rel->isOutput(), rel->isBTree(),
             rel->isBrie(), rel->isEqRel(), rel->isData(), inputDirectives, outputDirectives, istemp);
@@ -133,8 +184,8 @@ namespace {
  * The location of some value in a loop nest.
  */
 struct Location {
-    int level;  // < the loop level
-    int component;  // < the component within the tuple created in the given level
+    int level;         // < the loop level
+    int component;     // < the component within the tuple created in the given level
     std::string name;  // < name of the variable
 
     bool operator==(const Location& loc) const {
@@ -337,6 +388,10 @@ std::unique_ptr<RamValue> translateValue(const AstArgument* arg, const ValueInde
     } else if (const AstBinaryFunctor* bf = dynamic_cast<const AstBinaryFunctor*>(arg)) {
         val = std::unique_ptr<RamValue>(new RamBinaryOperator(
                 bf->getFunction(), translateValue(bf->getLHS(), index), translateValue(bf->getRHS(), index)));
+    } else if (const AstTernaryFunctor* tf = dynamic_cast<const AstTernaryFunctor*>(arg)) {
+        val = std::unique_ptr<RamValue>(
+                new RamTernaryOperator(tf->getFunction(), translateValue(tf->getArg(0), index),
+                        translateValue(tf->getArg(1), index), translateValue(tf->getArg(2), index)));
     } else if (dynamic_cast<const AstCounter*>(arg)) {
         val = std::unique_ptr<RamValue>(new RamAutoIncrement());
     } else if (const AstRecordInit* init = dynamic_cast<const AstRecordInit*>(arg)) {
