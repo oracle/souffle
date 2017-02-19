@@ -29,6 +29,7 @@
 namespace souffle {
 
 void PrecedenceGraph::run(const AstTranslationUnit& translationUnit) {
+    // Get relations
     std::vector<AstRelation*> relations = translationUnit.getProgram()->getRelations();
 
     for (AstRelation* r : relations) {
@@ -54,23 +55,21 @@ void RedundantRelations::run(const AstTranslationUnit& translationUnit) {
 
     const std::vector<AstRelation*>& relations = translationUnit.getProgram()->getRelations();
 
-    /* Add all output relations to the work set */
+    // Add all output relations to the work set
     for (const AstRelation* r : relations) {
         if (r->isComputed()) {
             work.insert(r);
         }
     }
 
-    /* Find all relations which are not redundant for the computations of the
-       output relations. */
+    // Find all relations which are not redundant for the computations of the output relations.
     while (!work.empty()) {
-        /* Chose one element in the work set and add it to notRedundant */
+        // Chose one element in the work set and add it to notRedundant
         const AstRelation* u = *(work.begin());
         work.erase(work.begin());
         notRedundant.insert(u);
 
-        /* Find all predecessors of u and add them to the worklist
-            if they are not in the set notRedundant */
+        // Find all predecessors of u and add them to the worklist if they are not in the set notRedundant
         for (const AstRelation* predecessor : precedenceGraph->getPredecessors(u)) {
             if (!notRedundant.count(predecessor)) {
                 work.insert(predecessor);
@@ -78,7 +77,7 @@ void RedundantRelations::run(const AstTranslationUnit& translationUnit) {
         }
     }
 
-    /* All remaining relations are redundant. */
+    // All remaining relations are redundant.
     redundantRelations.clear();
     for (const AstRelation* r : relations) {
         if (!notRedundant.count(r)) {
@@ -167,30 +166,28 @@ void RelationSchedule::run(const AstTranslationUnit& translationUnit) {
 std::vector<std::set<const AstRelation*>> RelationSchedule::computeRelationExpirySchedule(
         const AstTranslationUnit& translationUnit) {
     std::vector<std::set<const AstRelation*>> relationExpirySchedule;
-    /* Compute for each step in the reverse topological order
-       of evaluating the SCC the set of alive relations. */
+    // Compute for each step in the reverse topological order of evaluating the SCC the set of alive relations.
 
     int numSCCs = topsortSCCGraph->getSCCOrder().size();
 
-    /* Alive set for each step */
+    // Alive set for each step
     std::vector<std::set<const AstRelation*>> alive(numSCCs);
-    /* Resize expired relations sets */
+    // Resize expired relations sets
     relationExpirySchedule.resize(numSCCs);
 
-    /* Mark the output relations as alive in the first step */
+    // Mark the output relations as alive in the first step
     for (const AstRelation* relation : translationUnit.getProgram()->getRelations()) {
         if (relation->isComputed()) {
             alive[0].insert(relation);
         }
     }
 
-    /* Compute all alive relations by iterating over all steps in reverse order
-       determine the dependencies */
+    // Compute all alive relations by iterating over all steps in reverse order determine the dependencies
     for (int orderedSCC = 1; orderedSCC < numSCCs; orderedSCC++) {
-        /* Add alive set of previous step */
+        // Add alive set of previous step
         alive[orderedSCC].insert(alive[orderedSCC - 1].begin(), alive[orderedSCC - 1].end());
 
-        /* Add predecessors of relations computed in this step */
+        // Add predecessors of relations computed in this step
         int scc = topsortSCCGraph->getSCCOrder()[numSCCs - orderedSCC];
         for (const AstRelation* r : topsortSCCGraph->getSCCGraph()->getGraph().vertexTable().get(scc)) {
             for (const AstRelation* predecessor : precedenceGraph->getPredecessors(r)) {
@@ -198,8 +195,7 @@ std::vector<std::set<const AstRelation*>> RelationSchedule::computeRelationExpir
             }
         }
 
-        /* Compute expired relations in reverse topological order using the set difference of the alive sets
-           between steps. */
+        // Compute expired relations in reverse topological order using the set difference of the alive sets between steps.
         std::set_difference(alive[orderedSCC].begin(), alive[orderedSCC].end(), alive[orderedSCC - 1].begin(),
                 alive[orderedSCC - 1].end(), std::inserter(relationExpirySchedule[numSCCs - orderedSCC],
                                                      relationExpirySchedule[numSCCs - orderedSCC].end()));

@@ -25,28 +25,38 @@
 
 namespace souffle {
 
+/** A generic graph class. */
 template <typename Node, typename Compare = std::less<Node>>
 class Graph {
 protected:
+
+    /** The set of vertices. */
     std::set<Node, Compare> nodes;
 
+    /** The predecessor set of each vertex. */
     std::map<Node, std::set<Node, Compare>> predecessors;
 
+    /** The successor set of each vertex. */
     std::map<Node, std::set<Node, Compare>> successors;
 
 public:
+
+    /** Check if a vertex is recursive, i.e. has an edge to itself. */
     const bool isRecursive(const Node& vertex) const {
         return successors.at(vertex).find(vertex) != successors.at(vertex).end();
     }
 
+    /** Get the set of all vertices. */
     const std::set<Node, Compare>& allVertices() const {
         return nodes;
     }
 
+    /** Get the total number of vertices. */
     const size_t vertexCount() const {
         return nodes.size();
     }
 
+    /** Insert a new vertex into the graph. */
     virtual void insertVertex(const Node& vertex) {
         if (hasVertex(vertex)) return;
         if (nodes.insert(vertex).second) {
@@ -55,6 +65,7 @@ public:
         }
     }
 
+    /** Remove a vertex from the graph. */
     virtual void removeVertex(const Node& vertex) {
         if (!hasVertex(vertex)) return;
         for (const Node& in : predecessors.at(vertex)) removeEdge(in, vertex);
@@ -64,14 +75,17 @@ public:
         predecessors.erase(vertex);
     }
 
+    /** Check if the graph has the given vertex. */
     const bool hasVertex(const Node& vertex) const {
         return nodes.find(vertex) != nodes.end();
     }
 
+    /** Get the set of all edges. */
     const std::map<Node, std::set<Node, Compare>>& allEdges() const {
         return successors;
     }
 
+    /** Insert a new edge into the graph (as well as new vertices if they do not already exist). */
     virtual void insertEdge(const Node& vertex1, const Node& vertex2) {
         if (hasEdge(vertex1, vertex2)) return;
         if (!hasVertex(vertex1)) insertVertex(vertex1);
@@ -80,18 +94,21 @@ public:
         predecessors.at(vertex2).insert(vertex1);
     }
 
+    /** Remove an edge from the graph. */
     virtual void removeEdge(const Node& vertex1, const Node& vertex2) {
         if (!hasEdge(vertex1, vertex2)) return;
         successors.at(vertex1).erase(vertex2);
         predecessors.at(vertex2).erase(vertex1);
     }
 
+    /** Check if the graph has the given edge. */
     const bool hasEdge(const Node& vertex1, const Node& vertex2) const {
         return (hasVertex(vertex1) && hasVertex(vertex2))
                        ? successors.at(vertex1).find(vertex2) != successors.at(vertex1).end()
                        : false;
     }
 
+    /** Check if there is a path from the first vertex to the second vertex. */
     const bool hasPath(const Node& fromVertex, const Node& toVertex) const {
         if (!hasVertex(fromVertex) || !hasVertex(toVertex)) return false;
         bool found = false;
@@ -103,24 +120,29 @@ public:
         return found;
     }
 
+    /** Get the successor set (the outbound neighbours) of a vertex. */
     const std::set<Node, Compare>& getSuccessors(const Node& vertex) const {
         assert(hasVertex(vertex));
         return successors.at(vertex);
     }
 
+    /** Insert edges from the given vertex to each in the set of vertices. */
     const void insertSuccessors(const Node& vertex, const std::set<Node, Compare>& vertices) {
         for (const auto& successor : vertices) insertEdge(vertex, successor);
     }
 
+    /** Get the successor set (the inbound neighbours) of a vertex. */
     const std::set<Node, Compare>& getPredecessors(const Node& vertex) const {
         assert(hasVertex(vertex));
         return predecessors.at(vertex);
     }
 
+    /** Insert edges to the given vertex from each in the set of vertices. */
     const void insertPredecessors(const Node& vertex, const std::set<Node, Compare>& vertices) {
         for (const auto& predecessor : vertices) insertEdge(predecessor, vertex);
     }
 
+    /** Get the clique of the given vertex. */
     std::set<Node, Compare> getClique(const Node& fromVertex) const {
         assert(hasVertex(fromVertex));
         std::set<Node, Compare> clique;
@@ -130,31 +152,34 @@ public:
         return clique;
     }
 
-    virtual void joinVertices(const Node& subjectVertex, const Node& deletedVertex) {
-        insertSuccessors(subjectVertex, getSuccessors(deletedVertex));
-        insertPredecessors(subjectVertex, getPredecessors(deletedVertex));
-        removeVertex(deletedVertex);
+    /** Join two vertices into one, merging their edges. */
+    virtual void joinVertices(const Node& retainedVertex, const Node& removedVertex) {
+        insertSuccessors(retainedVertex, getSuccessors(removedVertex));
+        insertPredecessors(retainedVertex, getPredecessors(removedVertex));
+        removeVertex(removedVertex);
     }
 
+    /** Visit this graph starting at the given vertex in a depth first traversal, executing the given lambda function for each newly encountered node. */
     template <typename Lambda>
     void visitDepthFirst(const Node& vertex, const Lambda lambda) const {
         std::set<Node, Compare> visited;
         visitDepthFirst(vertex, lambda, visited);
     }
 
+    /** Calls 'print' on the given input stream. */
     friend std::ostream& operator<<(std::ostream& os, const Graph& graph) {
         graph.print(os);
         return os;
     }
 
+    /** Prints the graph to the given output stream in Graphviz dot format. If the 'invert' argument is true, edges will be drawn backward. */
     virtual void print(std::ostream& os, const bool invert = false) const {
         bool first = true;
         os << "digraph {\n";
         for (const auto& vertex : successors) {
             for (const auto& successor : vertex.second) {
                 if (!first) os << ";" << std::endl;
-                os << "\"" << ((!invert) ? vertex.first : successor) << "\" -> \""
-                   << ((invert) ? vertex.first : successor) << "\"";
+                os << "\"" << ((!invert) ? vertex.first : successor) << "\" -> \"" << ((invert) ? vertex.first : successor) << "\"";
                 first = false;
             }
         }
@@ -162,6 +187,8 @@ public:
     }
 
 private:
+
+    /** Recursive component of visitDepthFirst. */
     template <typename Lambda>
     void visitDepthFirst(const Node& vertex, const Lambda lambda, std::set<Node, Compare>& visited) const {
         lambda(vertex);
@@ -171,6 +198,7 @@ private:
     }
 };
 
+/** A generic hyper-graph class. */
 template <template <typename> class Table, typename Node>
 class HyperGraph : public Graph<size_t> {
 private:
@@ -178,75 +206,74 @@ private:
 
 public:
 
-
-    template <typename Compare = std::less<Node>>
-    const bool isRecursive(const Graph<Node, Compare>& graph, size_t vertex) const {
-        const std::set<Node>& objects = vertexTable().get(vertex);
-        if (objects.size() == 1 && !graph.isRecursive(*objects.begin())) return false;
-        return true;
-    }
-
-    template <typename Compare = std::less<Node>>
-    const bool isRecursive(const Graph<Node, Compare>& graph, const Node& object) const {
-        return isRecursive(graph, vertexTable().getIndex(object));
-    }
-
+    /** Get a constant reference to the table backing this hypergraph. */
     const Table<Node>& vertexTable() const {
         return this->table;
     }
 
-    void insertVertex(const size_t vertex) {
+    /** Insert a new vertex into the graph and create an entry in the table for it. */
+    void insertVertex(const size_t& vertex) {
         Graph<size_t>::insertVertex(vertex);
         this->table.set(vertex);
     }
 
-    void insertVertex(const size_t vertex, const Node& object) {
+    /** Insert a new vertex into the graph and create an entry in the table for it with the given object. */
+    void insertVertex(const size_t& vertex, const Node& object) {
         Graph<size_t>::insertVertex(vertex);
         this->table.setIndex(object, vertex);
     }
 
+    /** Insert a new vertex into the graph and create an entry in the table for it with the given collection of objects. */
     template <template <typename...> class T>
-    void insertVertex(const size_t vertex, const T<Node>& objects) {
+    void insertVertex(const size_t& vertex, const T<Node>& objects) {
         Graph<size_t>::insertVertex(vertex);
         this->table.set(vertex, objects);
     }
 
-    void removeVertex(const size_t vertex) {
+    /** Remove a vertex from the graph and its entry from the table. */
+    void removeVertex(const size_t& vertex) {
         Graph<size_t>::removeVertex(vertex);
         this->table.remove(vertex);
     }
 
+    /** Append the object to the collection for the vertex in the table. */
     void appendToVertex(const size_t vertex, const Node& object) {
         if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
         this->table.append(vertex, object);
     }
 
+    /** Append the objects to the collection for the vertex in the table. */
     template <template <typename...> class T>
     void appendToVertex(const size_t vertex, const T<Node>& objects) {
         if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
         this->table.append(vertex, objects);
     }
 
+    /** Prepend the object to the collection for the vertex in the table. */
     void prependToVertex(const size_t vertex, const Node& object) {
         if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
         this->table.prepend(vertex, object);
     }
 
+    /** Prepend the objects to the collection for the vertex in the table. */
     template <template <typename...> class T>
     void prependToVertex(const size_t vertex, const T<Node>& objects) {
         if (!hasVertex(vertex)) Graph<size_t>::insertVertex(vertex);
         this->table.prepend(vertex, objects);
     }
 
-    void joinVertices(const size_t subjectVertex, const size_t deletedVertex) {
-        if (hasEdge(deletedVertex, subjectVertex))
-            this->table.moveAppend(deletedVertex, subjectVertex);
+    /** Join the vertices, merging their edges and their entries in the table. */
+    void joinVertices(const size_t& retainedVertex, const size_t& removedVertex) {
+        if (hasEdge(removedVertex, retainedVertex))
+            this->table.movePrepend(removedVertex, retainedVertex);
         else
-            this->table.movePrepend(deletedVertex, subjectVertex);
-        Graph<size_t>::joinVertices(subjectVertex, deletedVertex);
+            this->table.moveAppend(removedVertex, retainedVertex);
+        Graph<size_t>::joinVertices(retainedVertex, removedVertex);
     }
 
-    virtual void print(std::ostream& os) const {
+
+    /** Prints the graph to the given output stream in Graphviz dot format. If the 'invert' argument is true, edges will be drawn backward. */
+    virtual void print(std::ostream& os, const bool invert = false) const {
         bool first = true;
         os << "digraph {";
         for (const auto& iter : this->successors) {
@@ -260,27 +287,24 @@ public:
                 first = false;
             }
             os << "\"]";
-            for (const auto& successor : iter.second) {
-                os << ";\n"
-                   << "\"" << iter.first << "\""
-                   << " -> "
-                   << "\"" << successor << "\"";
-            }
+            for (const auto& successor : iter.second)
+                os << ";\n\"" << ((!invert) ? iter.first : successor) << "\" -> \"" << ((invert) ? iter.first : successor) << "\"";
         }
         os << "}\n" << std::endl;
     }
 };
 
+
+/** A class for graph search algorithms. Every public member function is static and takes a constant reference to a hyper-graph and a lambda only, which is executed for each newly encountered node in the search. Every private member function forms the recursive component of its corresponding public member function, if any. */
 class GraphSearch {
 private:
+
+    /** Recursive component of Khan's Algorithm. */
     template <typename Lambda, template <typename> class Table, typename Node>
     static void khansAlgorithm(const HyperGraph<Table, Node>& graph, const size_t vertex,
             std::vector<bool>& visited, Lambda lambda) {
-        // create a flag to indicate that a successor was visited (by default it hasn't been)
         bool foundValidVertex = false, foundVisitedPredecessor = false, foundVisitedSuccessor = false;
-        // for each successor of the input vertex
         for (const size_t successor : graph.getSuccessors(vertex)) {
-            // if it is white, but has no white predecessors
             if (visited[successor] == false) {
                 for (auto successorsPredecessor : graph.getPredecessors(successor)) {
                     if (visited[successorsPredecessor] == false) {
@@ -289,25 +313,17 @@ private:
                     }
                 }
                 if (!foundVisitedPredecessor) {
-                    // give it a temporary marking
                     visited[successor] = true;
-                    // add it to the permanent ordering
                     lambda(successor);
-                    // and use it as a root node in a recursive call to this function
                     khansAlgorithm(graph, successor, visited, lambda);
-                    // finally, indicate that a successor has been foundValidSuccessor for this node
                     foundValidVertex = true;
                 }
                 foundVisitedPredecessor = false;
             }
         }
-        // return at once if no valid successors have been foundValidSuccessor; as either it has none or they
-        // all have a
-        // better predecessor
         if (!foundValidVertex) {
             return;
         }
-
         for (auto predecessor : graph.getPredecessors(vertex)) {
             if (visited[predecessor] == false) {
                 foundVisitedPredecessor = true;
@@ -320,13 +336,13 @@ private:
                 break;
             }
         }
-        // otherwise, if more white successors remain for the current vertex, use it again as the root node in
-        // a
-        // recursive call to this function
         if (!foundVisitedPredecessor && foundVisitedSuccessor) khansAlgorithm(graph, vertex, visited, lambda);
     }
 
 public:
+
+
+    /** Search the graph in the order of Khan's algorithm, executing the given lambda function for each visited node. */
     template <typename Lambda, template <typename> class Table, typename Node>
     static void khansAlgorithm(const HyperGraph<Table, Node>& graph, Lambda lambda) {
         std::vector<bool> visited;
@@ -342,8 +358,11 @@ public:
     }
 };
 
+/** A class to obtain node orderings for graph searches. */
 class GraphOrder {
 public:
+
+    /** Appends the collection of objects in the table for each vertex to an order as the vertex is encountered by the given search function, then returns that order. */
     template <template <typename> typename Table, typename Node>
     static const std::vector<Node> innerOrder(const HyperGraph<Table, Node>& graph,
             void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
@@ -355,6 +374,7 @@ public:
         return order;
     }
 
+    /** Appends each vertex to an order as the vertex is encountered by the given search function, then returns that order. */
     template <template <typename> typename Table, typename Node>
     static const std::vector<size_t> outerOrder(const HyperGraph<Table, Node>& graph,
             void (*algorithm)(const HyperGraph<Table, Node>&, std::function<void(const size_t)>)) {
@@ -364,6 +384,7 @@ public:
     }
 };
 
+/** A class to execute queries over a graph. Every public member function is static and takes a constant reference to a hyper-graph, as well as some form of collection of vertices and/or edges and performs a 'query' with respect to that collection. Every private member function forms the recursive component of its corresponding public member function, if any. */
 class GraphQuery {
 public:
     template <template <typename> class Table, typename Node>
@@ -395,17 +416,20 @@ public:
     }
 };
 
+/** A class for converting graphs (and other hyper-graphs) to hyper-graphs having certain properties. Every public member function is static and takes a constant copy of either a graph or hyper-graph, and returns a new hyper-graph bearing the properties specific to that function. Every private member function forms the recursive component of its corresponding public member function, if any. */
 class GraphConvert {
 private:
-    /*
-     * Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
-     * Java by Robert Sedgewick / Part 5 / Graph *  algorithms). The algorithm has linear
-     * runtime.
-     */
+
+    /** Recursive component of conversion to acyclic hyper-graph. */
     template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
     static void toAcyclicHyperGraph(const Graph<Node, Compare>& graph, HyperGraph<Table, Node>& sccGraph,
             const Node& w, std::map<Node, int>& preOrder, size_t& counter, std::stack<Node>& S,
             std::stack<Node>& P) {
+
+// Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
+// Java by Robert Sedgewick / Part 5 / Graph *  algorithms). The algorithm has linear
+// runtime.
+
         preOrder[w] = counter++;
 
         S.push(w);
@@ -434,6 +458,7 @@ private:
 
 public:
 
+   /** Convert the given graph to a hyper-graph of the specified table type. */
    template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
     static HyperGraph<Table, Node> toHyperGraph(Graph<Node, Compare> oldGraph) {
         HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
@@ -452,6 +477,7 @@ public:
     }
 
 
+   /** Convert the given graph to an acyclic hyper-graph of the specified table type. */
     template <template <typename> class Table, typename Node, typename Compare = std::less<Node>>
     static HyperGraph<Table, Node> toAcyclicHyperGraph(const Graph<Node, Compare> graph) {
         size_t counter = 0;
@@ -472,6 +498,7 @@ public:
     }
 
 
+   /** Convert the given hyper-graph to another hyper-graph of the specified table type. */
     template <template<typename> class Table, template <typename> class OtherTable, typename OtherNode>
     static HyperGraph<Table, size_t> toHyperGraph(HyperGraph<OtherTable, OtherNode> oldGraph) {
         HyperGraph<Table, size_t> newGraph = HyperGraph<Table, size_t>();
@@ -484,62 +511,61 @@ public:
     }
 };
 
+/** A class for executing transformations on graphs. Every public member function is static and takes a reference to a hyper-graph, and transforms the graph it in a manner specific to that function. Every private member function forms the recursive component of its corresponding public member function, if any. */
 class GraphTransform {
 
     public:
 
+        /** Enum to define transforms, more efficient than having a single member function for each one. */
         enum {
-            ROOTS       = 0x00001,
-            LEAVES      = 0x00010,
-            SMOOTH      = 0x00100,
-            FORWARD     = 0x01000,
-            BACKWARD    = 0x10000
-
+            SINGLES       = 0x000001, // join all vertices without predecessors or successors into a single vertex
+            ROOTS         = 0x000010, // join all roots with only one successor into their successors
+            LEAVES        = 0x000100, // join all leaves into their predecessors
+            SMOOTH_FORWARD = 0x011000, // smooth edges backward
+            SMOOTH_BACKWARD = 0x101000, // smooth edges forward
+            __SMOOTH__   = 0x001000, // smooth edges, hidden
+            __FORWARD__  = 0x010000, // join into successor, hidden
+            __BACKWARD__ = 0x100000, // join into predecessor, hidden
+            __UNDEFINED__ = 0x110000 // undefined behaviour, hidden
         };
 
-        template <template <typename> class Table, typename Node>
-        static void joinSingletons(HyperGraph<Table, Node>& graph) {
-            int first = -1;
-            size_t in, out;
-            for (const size_t vertex : graph.allVertices()) {
-                in = graph.getPredecessors(vertex).size();
-                out = graph.getSuccessors(vertex).size();
-                if (in == 0 && out == 0) {
-                    if (first == -1) {
-                        first = (int) vertex;
-                    } else {
-                        graph.joinVertices(first, vertex);
-                    }
-                }
-            }
-        }
-
-
+        /** Repeatedly join vertices using transforms, with those used given by a bitwise disjunction of any compatible transformations in the enum at the start of this class.
+        Repeated until fixed point is reached (i.e. the graph makes no changes between the current and next round of iteration). */
         template <template <typename> class Table, typename Node>
         static void joinRecursive(HyperGraph<Table, Node>& graph, int type) {
-            assert((type << 3) != 0x11);
+            assert(type != __SMOOTH__ && type != __FORWARD__ && type != __BACKWARD__ && (type & __UNDEFINED__) != __UNDEFINED__);
              bool flag = true;
+             int single = -1;
             size_t in, out;
             while (flag) {
                 flag = false;
                 for (const size_t vertex : graph.allVertices()) {
                     in = graph.getPredecessors(vertex).size();
                     out = graph.getSuccessors(vertex).size();
-                    flag = true;
                     int currentType;
+                    if (in == 0 && out == 0 && (type & SINGLES) == SINGLES) {
+                        if (single == -1) {
+                           single = vertex;
+                        } else {
+                            // TODO: singles are not working
+                            // graph.joinVertices(single, vertex);
+                        }
+                        continue;
+                    } else
                     if (in == 0 && out == 1 && (type & ROOTS) == ROOTS)
-                        currentType = FORWARD;
+                        currentType = __FORWARD__;
                     else if (in == 1 && out == 0 && (type & LEAVES) == LEAVES)
-                        currentType = BACKWARD;
-                    else if (in == 1 && out == 1 && (type & SMOOTH) == SMOOTH)
+                        currentType = __BACKWARD__;
+                    else if (in == 1 && out == 1 && (type & __SMOOTH__) == __SMOOTH__)
                         currentType = type;
                     else
                         continue;
-                    if ((currentType & FORWARD) == FORWARD) {
-                        graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex);
-                    }
-                    if ((currentType & BACKWARD) == BACKWARD) {
+                    flag = true;
+                    if ((currentType & __FORWARD__) == __FORWARD__) {
                         graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex);
+                    } else
+                    if ((currentType & __BACKWARD__) == __BACKWARD__) {
+                        graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex);
                     }
                 }
             }
