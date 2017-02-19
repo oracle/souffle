@@ -153,7 +153,7 @@ bool RecursiveClauses::computeIsRecursive(
 }
 
 const int TopologicallySortedSCCGraph::topologicalOrderingCost(
-        const std::vector<int>& permutationOfSCCs) const {
+        const std::vector<size_t>& permutationOfSCCs) const {
     // create variables to hold the cost of the current SCC and the permutation as a whole
     int costOfSCC = 0;
     int costOfPermutation = -1;
@@ -243,6 +243,8 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
     sccGraph->fillColors(WHITE);
     // generate topological ordering using forwards algorithm (like Khan's algorithm)
     forwardAlgorithm();
+
+    // orderedSCCs = GraphOrder::innerOrder(preProcessGraph(sccGraph->getGraph()), &GraphSearch::khansAlgorithm);
 }
 
 void TopologicallySortedSCCGraph::outputTopologicallySortedSCCGraph(std::ostream& os) {

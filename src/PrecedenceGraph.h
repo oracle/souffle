@@ -303,43 +303,6 @@ public:
 //        return costOfPermutation;
 //    }
 
-//    /** Pre-process the SCC graph; recursively contract roots, contract leaves, and smooth vertices of out
-//     * degree 1.  */
-//    HyperGraph<index::SeqTable, size_t> preProcessGraph(HyperGraph<index::SetTable, const AstRelation*> originalGraph) const {
-//        HyperGraph<index::SeqTable, size_t> indexGraph = HyperGraph<index::SeqTable, size_t>::toHyperGraph(originalGraph);
-
-//        bool flag = true;
-//        int in, out, non = -1;
-//        while (flag) {
-//            flag = false;
-//            for (size_t vertex : indexGraph.allVertices()) {
-//                if (!indexGraph.hasVertex(vertex)) continue;
-//                in = indexGraph.getPredecessors(vertex).size();
-//                out = indexGraph.getSuccessors(vertex).size();
-//                if (in == 0 && out == 0 && (non < 0 || vertex != (size_t) non)) {
-//                    if (non < 0)
-//                        non = vertex;
-//                    else
-//                        indexGraph.joinVertices(non, vertex);
-//                    flag = true;
-//                    continue;
-//                } else
-//                if (in == 1 && out == 0) {
-//                    indexGraph.joinVertices(*indexGraph.getPredecessors(vertex).begin(), vertex);
-//                    flag = true;
-//                    continue;
-//                } else
-//                if (out == 1) {
-//                    indexGraph.joinVertices(*indexGraph.getSuccessors(vertex).begin(), vertex);
-//                    flag = true;
-//                    continue;
-//                }
-//            }
-//        }
-
-//        return indexGraph;
-
-//    }
 
 //public:
 //    static constexpr const char* name = "topological-scc-graph";
@@ -376,20 +339,61 @@ private:
     SCCGraph* sccGraph;
 
     /** The final topological ordering of the SCCs. */
-    std::vector<int> orderedSCCs;
+    std::vector<size_t> orderedSCCs;
 
     /** Marker type to compute topological ordering. */
     enum Colour { WHITE = 0xFFFFFF, GRAY = 0x7f7f7f, BLACK = 0x000000 };
 
     /** Calculate the topological ordering cost of a permutation of as of yet unordered SCCs
     using the ordered SCCs. Returns -1 if the given vector is not a valid topological ordering. */
-    const int topologicalOrderingCost(const std::vector<int>& permutationOfSCCs) const;
+    const int topologicalOrderingCost(const std::vector<size_t>& permutationOfSCCs) const;
 
     /** Recursive component for the forwards algorithm computing the topological ordering of the SCCs. */
     void forwardAlgorithmRecursive(int scc);
 
     /* Forwardss algorithm for computing the topological order of SCCs, based on Khan's algorithm. */
     void forwardAlgorithm();
+
+
+    /** Pre-process the SCC graph; recursively contract roots, contract leaves, and smooth vertices of out
+     * degree 1.  */
+    HyperGraph<index::SeqTable, size_t> preProcessGraph(HyperGraph<index::SetTable, const AstRelation*> originalGraph) const {
+        HyperGraph<index::SeqTable, size_t> indexGraph = HyperGraph<index::SeqTable, size_t>::toHyperGraph(originalGraph);
+        return indexGraph;
+        /*
+        bool flag = true;
+        int in, out, non = -1;
+        while (flag) {
+            flag = false;
+            for (size_t vertex : indexGraph.allVertices()) {
+                if (!indexGraph.hasVertex(vertex)) continue;
+                in = indexGraph.getPredecessors(vertex).size();
+                out = indexGraph.getSuccessors(vertex).size();
+                if (in == 0 && out == 0 && (non < 0 || vertex != (size_t) non)) {
+                    if (non < 0)
+                        non = vertex;
+                    else
+                        indexGraph.joinVertices(non, vertex);
+                    flag = true;
+                    continue;
+                } else
+                if (in == 1 && out == 0) {
+                    indexGraph.joinVertices(*indexGraph.getPredecessors(vertex).begin(), vertex);
+                    flag = true;
+                    continue;
+                } else
+                if (out == 1) {
+                    indexGraph.joinVertices(*indexGraph.getSuccessors(vertex).begin(), vertex);
+                    flag = true;
+                    continue;
+                }
+            }
+        }
+
+        return indexGraph;
+        */
+
+    }
 
 public:
 
@@ -402,7 +406,7 @@ public:
         return sccGraph;
     }
 
-    const std::vector<int>& getSCCOrder() {
+    const std::vector<size_t>& getSCCOrder() {
         return orderedSCCs;
     }
 

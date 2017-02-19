@@ -155,16 +155,16 @@ public:
 
     virtual void print(std::ostream& os, const bool invert = false) const {
         bool first = true;
-        os << "digraph {";
+        os << "digraph {\n";
         for (const auto& vertex : successors) {
             for (const auto& successor : vertex.second) {
-                if (!first) os << ";";
+                if (!first) os << ";" << std::endl;
                 os << "\"" << ((!invert) ? vertex.first : successor) << "\" -> \"" <<
                     ((invert) ? vertex.first : successor) << "\"";
                 first = false;
             }
         }
-        os << "}" << std::endl;
+        os << std::endl << "}" << std::endl;
     }
 
 private:
