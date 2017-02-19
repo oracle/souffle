@@ -51,7 +51,7 @@ protected:
 public:
     /** Check if there is an object for the given index. */
     const bool hasIndex(const size_t index) const {
-        return index >= 0 && index < indexToObject.size();
+        return index >= 0 && index < indexToObject.size() && indexToObject.at(index) != nullptr;
     }
 
     /** Get the object for the given index. */
@@ -72,16 +72,19 @@ public:
     /* Remove the object for the given index. */
     virtual void remove(const size_t index) {
         if (!this->hasIndex(index)) return;
-        if (index == indexToObject.size())
-            indexToObject.erase(indexToObject.begin() + index);
-        else
-            indexToObject[index] = nullptr;
+        indexToObject[index] = nullptr;
+        while (indexToObject[indexToObject.size() - 1] == nullptr)
+            indexToObject.erase(indexToObject.end() - 1);
     }
 };
 
 /** A class mapping an index to a collection of objects. */
 template <typename Object, template <typename...> class Container>
 class IndexToObjects {
+private:
+    /** A set of indices pending erasure. */
+    std::set<size_t, std::greater<size_t>> pending;
+
 protected:
     /** The table mapping from an index to a collection of objects. */
     std::vector<Container<Object>> indexToObject;
@@ -110,10 +113,12 @@ public:
     /* Remove the collection of objects for the given index. */
     virtual void remove(const size_t index) {
         if (!this->hasIndex(index)) return;
-        if (index == indexToObject.size())
-            indexToObject.erase(indexToObject.begin() + index);
-        else
-            indexToObject.at(index).clear();
+        indexToObject.at(index).clear();
+        pending.insert(index);
+        for (const size_t current: pending) {
+            if (current != indexToObject.size() - 1) return;
+            indexToObject.erase(indexToObject.begin() + current);
+        }
     }
 };
 
