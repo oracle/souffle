@@ -183,11 +183,8 @@ public:
     /* Remove the collection of objects for the given index. */
     void remove(const size_t index) {
         if (!this->hasIndex(index)) return;
-
         const Container<Object> objects = this->get(index);
-
         IndexToObjects<Object, Container>::remove(index);
-
         for (const Object& object : objects) ObjectToIndex<Object>::removeIndex(object);
     }
 
@@ -197,7 +194,7 @@ public:
     /** Append the collection of objects to the collection at the given index. */
     template <template <typename...> class T>
     void append(const size_t index, const T<Object>& objects = T<Object>()) {
-        if (objects.empty) this->append(index, T<Object>());
+        if (objects.empty()) this->append(index, T<Object>());
         for (const auto& object : objects) this->append(index, object);
     }
 
@@ -205,35 +202,29 @@ public:
      * index. */
     void moveAppend(const size_t fromIndex, const size_t toIndex) {
         if (!this->hasIndex(fromIndex)) return;
-
         assert(this->hasIndex(toIndex));
-
         for (auto object : this->indexToObject.at(fromIndex)) this->append(toIndex, object);
-
         this->remove(fromIndex);
     }
 
     /** Prepend an object to the collection at the given index. */
-    virtual void prepend(const size_t index, const Object& object) = 0;
+    virtual void prepend(const size_t index, const Object& object) {
+        this->append(index, object);
+    }
 
     /** Prepend the collection of objects to the collection at the given index. */
     template <template <typename...> class T>
     void prepend(const size_t index, const T<Object>& objects = T<Object>()) {
-        if (objects.empty) this->prepend(index, T<Object>());
-        for (const auto& object : objects) this->prepend(index, object);
+        // TODO: templated methods cannot be virtual, however this one should be
+        this->append(index, objects);
     }
 
     /** Move the collection of objects at the 'from' index, prepending them to the collection at the 'to'
      * index. */
-    void movePrepend(const size_t fromIndex, const size_t toIndex) {
-        if (!this->hasIndex(fromIndex)) return;
-
-        assert(this->hasIndex(toIndex));
-
-        for (auto object : this->indexToObject.at(fromIndex)) this->prepend(toIndex, object);
-
-        this->remove(fromIndex);
+    virtual void movePrepend(const size_t fromIndex, const size_t toIndex) {
+        this->moveAppend(fromIndex, toIndex);
     }
+
 };
 
 /** A class mapping between index and a set of objects. */
@@ -243,18 +234,11 @@ public:
     /** Insert the object into the set at the given index. */
     void append(const size_t index, const Object& object) {
         assert(index <= this->indexToObject.size());
-
         if (index == this->indexToObject.size()) this->indexToObject.push_back(std::set<Object>());
-
         this->indexToObject[index].insert(object);
-
         this->objectToIndex[object] = index;
     }
 
-    /** Insert the object into the set at the given index. */
-    void prepend(const size_t index, const Object& object) {
-        this->append(index, object);
-    }
 };
 
 /** A class mapping between index and a sequence of objects. */
@@ -264,23 +248,43 @@ public:
     /** Append the object to the sequence at the given index. */
     void append(const size_t index, const Object& object) {
         assert(index <= this->indexToObject.size());
-
         if (index == this->indexToObject.size()) this->indexToObject.push_back(std::deque<Object>());
-
         this->indexToObject[index].push_back(object);
-
         this->objectToIndex[object] = index;
     }
 
     /** Prepend the object to the sequence at the given index. */
     void prepend(const size_t index, const Object& object) {
         assert(index <= this->indexToObject.size());
-
         if (index == this->indexToObject.size()) this->indexToObject.push_back(std::deque<Object>());
-
         this->indexToObject[index].push_front(object);
-
         this->objectToIndex[object] = index;
+    }
+
+    /** Prepend the sequence of objects to the sequence at the given index. */
+    template <template <typename...> class T>
+    void prepend(const size_t index, const T<Object>& objects = T<Object>()) {
+        if (objects.empty()) {
+            this->prepend(index, T<Object>());
+            return;
+        }
+        for (auto object = objects.end() - 1; object != objects.begin(); --object)
+             this->prepend(index, *object);
+        this->prepend(index, *objects.begin());
+    }
+
+    /** Move the sequence of objects at the 'from' index, prepending them to the sequence at the 'to'
+     * index. */
+    void movePrepend(const size_t fromIndex, const size_t toIndex) {
+        if (!this->hasIndex(fromIndex)) return;
+        assert(this->hasIndex(toIndex));
+        const auto& objects = this->indexToObject.at(fromIndex);
+        if (!objects.empty()) {
+            for (auto object = objects.end() - 1; object != objects.begin(); --object)
+                 this->prepend(toIndex, *object);
+            this->prepend(toIndex, *objects.begin());
+        }
+        this->remove(fromIndex);
     }
 };
 }

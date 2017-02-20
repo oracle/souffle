@@ -157,11 +157,8 @@ public:
     virtual void joinVertices(
             const Node& retainedVertex, const Node& removedVertex, const bool loops = true) {
         if (!loops && retainedVertex == removedVertex) return;
-
         insertSuccessors(retainedVertex, getSuccessors(removedVertex), loops);
-
         insertPredecessors(retainedVertex, getPredecessors(removedVertex), loops);
-
         removeVertex(removedVertex);
     }
 
@@ -273,14 +270,11 @@ public:
     /** Join the vertices, merging their edges and their entries in the table. */
     void joinVertices(const size_t& retainedVertex, const size_t& removedVertex, const bool loops = true) {
         if (!loops && retainedVertex == removedVertex) return;
-
         if (hasEdge(removedVertex, retainedVertex)) {
             this->indexTable.movePrepend(removedVertex, retainedVertex);
-
         } else {
             this->indexTable.moveAppend(removedVertex, retainedVertex);
         }
-
         Graph<size_t>::joinVertices(retainedVertex, removedVertex, loops);
     }
 
@@ -594,11 +588,13 @@ public:
                 in = graph.getPredecessors(vertex).size();
                 out = graph.getSuccessors(vertex).size();
                 int currentType;
-                if (in == 0 && out == 0 && (type & SINGLES) == SINGLES && (int)vertex != single) {
+                if (in == 0 && out == 0 && (type & SINGLES) == SINGLES) {
                     if (single == -1) {
                         single = vertex;
-                    } else {
+                    } else if (vertex != (size_t) single) {
                         graph.joinVertices(single, vertex, (type & LOOPS) != LOOPS);
+                    } else {
+                        continue;
                     }
                     flag = true;
                     continue;
