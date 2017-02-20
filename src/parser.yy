@@ -357,6 +357,20 @@ iodirective: INPUT_DECL rel_id LPAREN key_value_pairs RPAREN {
                   $4->setSrcLoc(@$);
                   $4->setAsOutput();
              }
+            | INPUT_DECL rel_id {
+                  AstIODirective *psd = new AstIODirective();
+                  psd->setName(*$2);
+                  psd->setSrcLoc(@$);
+                  psd->setAsInput();
+                  $$ = psd;
+              }
+            | OUTPUT_DECL rel_id {
+                  AstIODirective *psd = new AstIODirective();
+                  psd->setName(*$2);
+                  psd->setSrcLoc(@$);
+                  psd->setAsOutput();
+                  $$ = psd;
+              }
             | PRINTSIZE_DECL rel_id {
                   AstIODirective *psd = new AstIODirective();
                   psd->setName(*$2);
