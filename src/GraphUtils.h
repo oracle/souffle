@@ -526,10 +526,9 @@ public:
         for (const Node& vertex : graph.allVertices())
             for (const Node& predecessor : graph.getPredecessors(vertex))
                 if (vertex != predecessor &&
-                        sccGraph.table().getIndex(vertex) !=
-                                sccGraph.table().getIndex(predecessor))
-                    sccGraph.insertEdge(sccGraph.table().getIndex(vertex),
-                            sccGraph.table().getIndex(predecessor));
+                        sccGraph.table().getIndex(vertex) != sccGraph.table().getIndex(predecessor))
+                    sccGraph.insertEdge(
+                            sccGraph.table().getIndex(vertex), sccGraph.table().getIndex(predecessor));
         return sccGraph;
     }
 
