@@ -586,7 +586,7 @@ public:
                         single = vertex;
                     } else {
                         // TODO: not working
-                        graph.joinVertices(single, vertex);
+                        // graph.joinVertices(single, vertex);
                     }
                     continue;
                 } else if (in == 0 && out == 1 && (type & ROOTS) == ROOTS)
@@ -600,10 +600,10 @@ public:
                 flag = true;
                 if ((currentType & __FORWARD__) == __FORWARD__) {
                     // TODO: not working
-                    graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex);
+                    // graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex);
                 } else if ((currentType & __BACKWARD__) == __BACKWARD__) {
                     // TODO: not working
-                    graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex);
+                    // graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex);
                 }
             }
         }
