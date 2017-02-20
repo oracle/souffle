@@ -182,13 +182,15 @@ public:
 
     /* Remove the collection of objects for the given index. */
     void remove(const size_t index) {
-        BREAKPOINT;
+
+        if (!this->hasIndex(index)) return;
+
         const Container<Object> objects = this->get(index);
-        BREAKPOINT;
+
         IndexToObjects<Object, Container>::remove(index);
-        BREAKPOINT;
+
         for (const Object& object : objects) ObjectToIndex<Object>::removeIndex(object);
-        BREAKPOINT;
+
     }
 
     /** Append an object to the collection at the given index. */
@@ -204,15 +206,15 @@ public:
     /** Move the collection of objects at the 'from' index, appending them to the collection at the 'to'
      * index. */
     void moveAppend(const size_t fromIndex, const size_t toIndex) {
-        BREAKPOINT;
+
         if (!this->hasIndex(fromIndex)) return;
-        BREAKPOINT;
+
         assert(this->hasIndex(toIndex));
-        BREAKPOINT;
+
         for (auto object : this->indexToObject.at(fromIndex)) this->append(toIndex, object);
-        BREAKPOINT;
+
         this->remove(fromIndex);
-        BREAKPOINT;
+
     }
 
     /** Prepend an object to the collection at the given index. */
@@ -228,15 +230,15 @@ public:
     /** Move the collection of objects at the 'from' index, prepending them to the collection at the 'to'
      * index. */
     void movePrepend(const size_t fromIndex, const size_t toIndex) {
-        BREAKPOINT;
+
         if (!this->hasIndex(fromIndex)) return;
-        BREAKPOINT;
+
         assert(this->hasIndex(toIndex));
-        BREAKPOINT;
+
         for (auto object : this->indexToObject.at(fromIndex)) this->prepend(toIndex, object);
-        BREAKPOINT;
+
         this->remove(fromIndex);
-        BREAKPOINT;
+
     }
 };
 
@@ -246,22 +248,22 @@ class SetTable : public CollectionIndexTable<Object, std::set> {
 public:
     /** Insert the object into the set at the given index. */
     void append(const size_t index, const Object& object) {
-        BREAKPOINT;
+
         assert(index <= this->indexToObject.size());
-        BREAKPOINT;
+
         if (index == this->indexToObject.size()) this->indexToObject.push_back(std::set<Object>());
-        BREAKPOINT;
+
         this->indexToObject[index].insert(object);
-        BREAKPOINT;
+
         this->objectToIndex[object] = index;
-        BREAKPOINT;
+
     }
 
     /** Insert the object into the set at the given index. */
     void prepend(const size_t index, const Object& object) {
-        BREAKPOINT;
+
         this->append(index, object);
-        BREAKPOINT;
+
     }
 };
 
@@ -271,28 +273,28 @@ class SeqTable : public CollectionIndexTable<Object, std::deque> {
 public:
     /** Append the object to the sequence at the given index. */
     void append(const size_t index, const Object& object) {
-        BREAKPOINT;
+
         assert(index <= this->indexToObject.size());
-        BREAKPOINT;
+
         if (index == this->indexToObject.size()) this->indexToObject.push_back(std::deque<Object>());
-        BREAKPOINT;
+
         this->indexToObject[index].push_back(object);
-        BREAKPOINT;
+
         this->objectToIndex[object] = index;
-        BREAKPOINT;
+
     }
 
     /** Prepend the object to the sequence at the given index. */
     void prepend(const size_t index, const Object& object) {
-        BREAKPOINT;
+
         assert(index <= this->indexToObject.size());
-        BREAKPOINT;
+
         if (index == this->indexToObject.size()) this->indexToObject.push_back(std::deque<Object>());
-        BREAKPOINT;
+
         this->indexToObject[index].push_front(object);
-        BREAKPOINT;
+
         this->objectToIndex[object] = index;
-        BREAKPOINT;
+
     }
 };
 }

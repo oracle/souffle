@@ -84,10 +84,11 @@ public:
     }
 
     /** Insert a new edge into the graph (as well as new vertices if they do not already exist). */
-    virtual void insertEdge(const Node& vertex1, const Node& vertex2) {
+    virtual void insertEdge(const Node& vertex1, const Node& vertex2, const bool loops = true) {
         if (hasEdge(vertex1, vertex2)) return;
         if (!hasVertex(vertex1)) insertVertex(vertex1);
         if (!hasVertex(vertex2)) insertVertex(vertex2);
+        if (!loops && vertex1 == vertex2) return;
         successors.at(vertex1).insert(vertex2);
         predecessors.at(vertex2).insert(vertex1);
     }
@@ -125,8 +126,8 @@ public:
     }
 
     /** Insert edges from the given vertex to each in the set of vertices. */
-    const void insertSuccessors(const Node& vertex, const std::set<Node, Compare>& vertices) {
-        for (const auto& successor : vertices) insertEdge(vertex, successor);
+    const void insertSuccessors(const Node& vertex, const std::set<Node, Compare>& vertices, const bool loops = true) {
+        for (const auto& successor : vertices) insertEdge(vertex, successor, loops);
     }
 
     /** Get the successor set (the inbound neighbours) of a vertex. */
@@ -136,8 +137,8 @@ public:
     }
 
     /** Insert edges to the given vertex from each in the set of vertices. */
-    const void insertPredecessors(const Node& vertex, const std::set<Node, Compare>& vertices) {
-        for (const auto& predecessor : vertices) insertEdge(predecessor, vertex);
+    const void insertPredecessors(const Node& vertex, const std::set<Node, Compare>& vertices, const bool loops = true) {
+        for (const auto& predecessor : vertices) insertEdge(predecessor, vertex, loops);
     }
 
     /** Get the clique of the given vertex. */
@@ -151,14 +152,15 @@ public:
     }
 
     /** Join two vertices into one, merging their edges. */
-    virtual void joinVertices(const Node& retainedVertex, const Node& removedVertex) {
-        BREAKPOINT;
-        insertSuccessors(retainedVertex, getSuccessors(removedVertex));
-        BREAKPOINT;
-        insertPredecessors(retainedVertex, getPredecessors(removedVertex));
-        BREAKPOINT;
+    virtual void joinVertices(const Node& retainedVertex, const Node& removedVertex, const bool loops = true) {
+        if (!loops && retainedVertex == removedVertex) return;
+
+        insertSuccessors(retainedVertex, getSuccessors(removedVertex), loops);
+
+        insertPredecessors(retainedVertex, getPredecessors(removedVertex), loops);
+
         removeVertex(removedVertex);
-        BREAKPOINT;
+
     }
 
     /** Visit this graph starting at the given vertex in a depth first traversal, executing the given lambda
@@ -267,20 +269,21 @@ public:
     }
 
     /** Join the vertices, merging their edges and their entries in the table. */
-    void joinVertices(const size_t& retainedVertex, const size_t& removedVertex) {
-        BREAKPOINT;
+    void joinVertices(const size_t& retainedVertex, const size_t& removedVertex, const bool loops = true) {
+        if (!loops && retainedVertex == removedVertex) return;
+
         if (hasEdge(removedVertex, retainedVertex)) {
-            BREAKPOINT;
+
             this->indexTable.movePrepend(removedVertex, retainedVertex);
-            BREAKPOINT;
+
         } else {
-            BREAKPOINT;
+
             this->indexTable.moveAppend(removedVertex, retainedVertex);
-            BREAKPOINT;
+
         }
-        BREAKPOINT;
-        Graph<size_t>::joinVertices(retainedVertex, removedVertex);
-        BREAKPOINT;
+
+        Graph<size_t>::joinVertices(retainedVertex, removedVertex, loops);
+
     }
 
     /** Prints the graph to the given output stream in Graphviz dot format. If the 'invert' argument is true,
@@ -565,15 +568,16 @@ class GraphTransform {
 public:
     /** Enum to define transforms, more efficient than having a single member function for each one. */
     enum {
-        SINGLES = 0x000001,  // join all vertices without predecessors or successors into a single vertex
-        ROOTS = 0x000010,  // join all roots with only one successor into their successors
-        LEAVES = 0x000100,  // join all leaves into their predecessors
-        SMOOTH_FORWARD = 0x011000,  // smooth edges backward
-        SMOOTH_BACKWARD = 0x101000,  // smooth edges forward
-        __SMOOTH__ = 0x001000,  // smooth edges, hidden
-        __FORWARD__ = 0x010000,  // join into successor, hidden
-        __BACKWARD__ = 0x100000,  // join into predecessor, hidden
-        __UNDEFINED__ = 0x110000  // undefined behaviour, hidden
+        LOOPS = 0x0000001, // don't allow self loops
+        SINGLES = 0x0000010,  // join all vertices without predecessors or successors into a single vertex
+        ROOTS = 0x0000100,  // join all roots with only one successor into their successors
+        LEAVES = 0x0001000,  // join all leaves into their predecessors
+        SMOOTH_FORWARD = 0x0110000,  // smooth edges backward
+        SMOOTH_BACKWARD = 0x1010000,  // smooth edges forward
+        __SMOOTH__ = 0x0010000,  // smooth edges, hidden
+        __FORWARD__ = 0x0100000,  // join into successor, hidden
+        __BACKWARD__ = 0x1000000,  // join into predecessor, hidden
+        __UNDEFINED__ = 0x1100000  // undefined behaviour, hidden
     };
 
     /** Repeatedly join vertices using transforms, with those used given by a bitwise disjunction of any
@@ -593,35 +597,27 @@ public:
                 in = graph.getPredecessors(vertex).size();
                 out = graph.getSuccessors(vertex).size();
                 int currentType;
-                if (in == 0 && out == 0 && (type & SINGLES) == SINGLES) {
+                if (in == 0 && out == 0 && (type & SINGLES) == SINGLES && (int) vertex != single) {
                     if (single == -1) {
                         single = vertex;
                     } else {
-                        // TODO: not working
-                        BREAKPOINT;
-                        graph.joinVertices(single, vertex);
-                        BREAKPOINT;
+                        graph.joinVertices(single, vertex, (type & LOOPS) != LOOPS);
                     }
+                    flag = true;
                     continue;
                 } else if (in == 0 && out == 1 && (type & ROOTS) == ROOTS)
-                    currentType = __FORWARD__;
+                    currentType = __FORWARD__ | (type & LOOPS);
                 else if (in == 1 && out == 0 && (type & LEAVES) == LEAVES)
-                    currentType = __BACKWARD__;
+                    currentType = __BACKWARD__ | (type & LOOPS);
                 else if (in == 1 && out == 1 && (type & __SMOOTH__) == __SMOOTH__)
                     currentType = type;
                 else
                     continue;
                 flag = true;
                 if ((currentType & __FORWARD__) == __FORWARD__) {
-                    // TODO: not working
-                    BREAKPOINT;
-                    graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex);
-                    BREAKPOINT;
+                    graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex, (type & LOOPS) != LOOPS);
                 } else if ((currentType & __BACKWARD__) == __BACKWARD__) {
-                    // TODO: not working
-                    BREAKPOINT;
-                    graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex);
-                    BREAKPOINT;
+                    graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex, (type & LOOPS) != LOOPS);
                 }
             }
         }

@@ -152,8 +152,9 @@ public:
             | GraphTransform::ROOTS
             | GraphTransform::LEAVES
             | GraphTransform::SMOOTH_BACKWARD
+            | GraphTransform::LOOPS
         );
-        // TODO: find a better topological ordering algorithm
+        // TODO: find a better topological ordering algorithm?
         orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::khansAlgorithm);
     }
 
