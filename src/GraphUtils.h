@@ -152,9 +152,13 @@ public:
 
     /** Join two vertices into one, merging their edges. */
     virtual void joinVertices(const Node& retainedVertex, const Node& removedVertex) {
+        BREAKPOINT;
         insertSuccessors(retainedVertex, getSuccessors(removedVertex));
+        BREAKPOINT;
         insertPredecessors(retainedVertex, getPredecessors(removedVertex));
+        BREAKPOINT;
         removeVertex(removedVertex);
+        BREAKPOINT;
     }
 
     /** Visit this graph starting at the given vertex in a depth first traversal, executing the given lambda
@@ -264,11 +268,19 @@ public:
 
     /** Join the vertices, merging their edges and their entries in the table. */
     void joinVertices(const size_t& retainedVertex, const size_t& removedVertex) {
-        if (hasEdge(removedVertex, retainedVertex))
+        BREAKPOINT;
+        if (hasEdge(removedVertex, retainedVertex)) {
+            BREAKPOINT;
             this->indexTable.movePrepend(removedVertex, retainedVertex);
-        else
+            BREAKPOINT;
+        } else {
+            BREAKPOINT;
             this->indexTable.moveAppend(removedVertex, retainedVertex);
+            BREAKPOINT;
+        }
+        BREAKPOINT;
         Graph<size_t>::joinVertices(retainedVertex, removedVertex);
+        BREAKPOINT;
     }
 
     /** Prints the graph to the given output stream in Graphviz dot format. If the 'invert' argument is true,
@@ -586,7 +598,9 @@ public:
                         single = vertex;
                     } else {
                         // TODO: not working
-                        // graph.joinVertices(single, vertex);
+                        BREAKPOINT;
+                        graph.joinVertices(single, vertex);
+                        BREAKPOINT;
                     }
                     continue;
                 } else if (in == 0 && out == 1 && (type & ROOTS) == ROOTS)
@@ -600,10 +614,14 @@ public:
                 flag = true;
                 if ((currentType & __FORWARD__) == __FORWARD__) {
                     // TODO: not working
-                    // graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex);
+                    BREAKPOINT;
+                    graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex);
+                    BREAKPOINT;
                 } else if ((currentType & __BACKWARD__) == __BACKWARD__) {
                     // TODO: not working
-                    // graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex);
+                    BREAKPOINT;
+                    graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex);
+                    BREAKPOINT;
                 }
             }
         }
