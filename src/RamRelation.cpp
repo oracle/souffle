@@ -19,7 +19,6 @@
 
 #include "RamRelation.h"
 #include "RamIndex.h"
-#include "StringPool.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
 
