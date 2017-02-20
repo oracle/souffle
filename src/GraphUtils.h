@@ -589,7 +589,6 @@ public:
         size_t single, in, out;
         while (foundAny) {
             foundAny = false;
-            foundSingle = false;
             for (const size_t vertex : graph.allVertices()) {
                 in = graph.getPredecessors(vertex).size();
                 out = graph.getSuccessors(vertex).size();
