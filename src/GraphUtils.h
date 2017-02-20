@@ -57,10 +57,9 @@ public:
     /** Insert a new vertex into the graph. */
     virtual void insertVertex(const Node& vertex) {
         if (hasVertex(vertex)) return;
-        if (nodes.insert(vertex).second) {
-            successors.insert(std::make_pair(vertex, std::set<Node, Compare>()));
-            predecessors.insert(std::make_pair(vertex, std::set<Node, Compare>()));
-        }
+        nodes.insert(vertex);
+        successors.insert(std::make_pair(vertex, std::set<Node, Compare>()));
+        predecessors.insert(std::make_pair(vertex, std::set<Node, Compare>()));
     }
 
     /** Remove a vertex from the graph. */
@@ -159,7 +158,7 @@ public:
         if (!loops && retainedVertex == removedVertex) return;
         insertSuccessors(retainedVertex, getSuccessors(removedVertex), loops);
         insertPredecessors(retainedVertex, getPredecessors(removedVertex), loops);
-        removeVertex(removedVertex);
+        if (removedVertex != retainedVertex) removeVertex(removedVertex);
     }
 
     /** Visit this graph starting at the given vertex in a depth first traversal, executing the given lambda
@@ -312,18 +311,18 @@ private:
     /** Recursive component of Khan's algorithm. */
     template <typename Lambda, template <typename> class Table, typename Node>
     static void khansAlgorithm(const HyperGraph<Table, Node>& graph, const size_t vertex,
-            std::vector<bool>& visited, Lambda lambda) {
+            std::set<size_t>& visited, Lambda lambda) {
         bool foundValidVertex = false, foundVisitedPredecessor = false, foundVisitedSuccessor = false;
         for (const size_t successor : graph.getSuccessors(vertex)) {
-            if (visited[successor] == false) {
+            if (visited.find(successor) == visited.end()) {
                 for (auto successorsPredecessor : graph.getPredecessors(successor)) {
-                    if (visited[successorsPredecessor] == false) {
+                    if (visited.find(successorsPredecessor) == visited.end()) {
                         foundVisitedPredecessor = true;
                         break;
                     }
                 }
                 if (!foundVisitedPredecessor) {
-                    visited[successor] = true;
+                    visited.insert(successor);
                     lambda(successor);
                     khansAlgorithm(graph, successor, visited, lambda);
                     foundValidVertex = true;
@@ -335,13 +334,13 @@ private:
             return;
         }
         for (auto predecessor : graph.getPredecessors(vertex)) {
-            if (visited[predecessor] == false) {
+            if (visited.find(predecessor) == visited.end()) {
                 foundVisitedPredecessor = true;
                 break;
             }
         }
         for (auto successor : graph.getSuccessors(vertex)) {
-            if (visited[successor] == false) {
+            if (visited.find(successor) == visited.end()) {
                 foundVisitedSuccessor = true;
                 break;
             }
@@ -352,9 +351,9 @@ private:
     /** Recursive component of reverse DFS algorithm. */
     template <typename Lambda, template <typename> class Table, typename Node>
     static void reverseDFS(const HyperGraph<Table, Node>& graph, const size_t vertex,
-            std::vector<bool>& visited, Lambda lambda) {
-        if (visited[vertex] == false) {
-            visited[vertex] = true;
+            std::set<size_t>& visited, Lambda lambda) {
+        if (visited.find(vertex) == visited.end()) {
+            visited.insert(vertex);
             for (size_t predecessor : graph.getPredecessors(vertex)) {
                 reverseDFS(graph, predecessor, visited, lambda);
             }
@@ -368,12 +367,10 @@ public:
     template <typename Lambda, template <typename> class Table, typename Node>
     static void khansAlgorithm(const HyperGraph<Table, Node>& graph, Lambda lambda) {
         // TODO: is this actually Khan's algorithm?
-        std::vector<bool> visited;
-        visited.resize(graph.vertexCount());
-        std::fill(visited.begin(), visited.end(), false);
+        std::set<size_t> visited;
         for (size_t vertex : graph.allVertices()) {
             if (graph.getPredecessors(vertex).empty()) {
-                visited[vertex] = true;
+                visited.insert(vertex);
                 lambda(vertex);
                 if (!graph.getSuccessors(vertex).empty()) khansAlgorithm(graph, vertex, visited, lambda);
             }
@@ -384,12 +381,10 @@ public:
      * each visited node. Note that this only works for acyclic graphs, otherwise behaviour is undefined. */
     template <typename Lambda, template <typename> class Table, typename Node>
     static void reverseDFS(const HyperGraph<Table, Node>& graph, Lambda lambda) {
-        std::vector<bool> visited;
-        visited.resize(graph.vertexCount());
-        std::fill(visited.begin(), visited.end(), false);
+        std::set<size_t> visited;
         for (size_t vertex : graph.allVertices()) {
             if (graph.getPredecessors(vertex).empty() && graph.getSuccessors(vertex).empty()) {
-                visited[vertex] = true;
+                visited.insert(vertex);
                 lambda(vertex);
             } else {
                 reverseDFS(graph, vertex, visited, lambda);
@@ -507,13 +502,13 @@ public:
     static HyperGraph<Table, Node> toHyperGraph(Graph<Node, Compare> oldGraph) {
         HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
         size_t index = 0;
-        for (const size_t vertex : oldGraph.allVertices()) {
+        for (const Node& vertex : oldGraph.allVertices()) {
             newGraph.insertVertex(index, vertex);
             index++;
         }
-        for (const size_t vertex : oldGraph.allVertices()) {
+        for (const Node& vertex : oldGraph.allVertices()) {
             index = newGraph.table().getIndex(vertex);
-            for (const size_t successor : oldGraph.getSuccessors(vertex)) {
+            for (const Node& successor : oldGraph.getSuccessors(vertex)) {
                 newGraph.insertEdge(index, newGraph.table().getIndex(successor));
             }
         }
@@ -535,6 +530,9 @@ public:
             for (const Node& predecessor : graph.getPredecessors(vertex))
                 if (vertex != predecessor &&
                         sccGraph.table().getIndex(vertex) != sccGraph.table().getIndex(predecessor))
+                    // TODO: currently this works in an inverse manner (i.e. edges are created going the wrong
+                    // way); while this is needed for the processing of the precedence graph it would be
+                    // better to have an 'invert' flag like in the print method
                     sccGraph.insertEdge(
                             sccGraph.table().getIndex(vertex), sccGraph.table().getIndex(predecessor));
         return sccGraph;
@@ -544,10 +542,17 @@ public:
     template <template <typename> class Table, template <typename> class OtherTable, typename OtherNode>
     static HyperGraph<Table, size_t> toHyperGraph(HyperGraph<OtherTable, OtherNode> oldGraph) {
         HyperGraph<Table, size_t> newGraph = HyperGraph<Table, size_t>();
-        for (size_t index = 0; index < oldGraph.vertexCount(); ++index) newGraph.insertVertex(index, index);
-        for (const size_t vertex : oldGraph.allVertices())
-            for (const size_t successor : oldGraph.getSuccessors(vertex))
-                newGraph.insertEdge(vertex, successor);
+        size_t index = 0;
+        for (const size_t& vertex : oldGraph.allVertices()) {
+            newGraph.insertVertex(index, vertex);
+            index++;
+        }
+        for (const size_t& vertex : oldGraph.allVertices()) {
+            index = newGraph.table().getIndex(vertex);
+            for (const size_t& successor : oldGraph.getSuccessors(vertex)) {
+                newGraph.insertEdge(index, newGraph.table().getIndex(successor));
+            }
+        }
         return newGraph;
     }
 };
@@ -577,13 +582,14 @@ public:
     Repeated until fixed point is reached (i.e. the graph makes no changes between the current and next round
     of iteration). */
     template <template <typename> class Table, typename Node>
-    static void joinRecursive(HyperGraph<Table, Node>& graph, int type) {
+    static void joinUntilFixedPoint(HyperGraph<Table, Node>& graph, int type) {
         assert(type != __SMOOTH__ && type != __FORWARD__ && type != __BACKWARD__ &&
                 (type & __UNDEFINED__) != __UNDEFINED__);
         bool foundAny = true, foundSingle = false;
         size_t single, in, out;
         while (foundAny) {
             foundAny = false;
+            foundSingle = false;
             for (const size_t vertex : graph.allVertices()) {
                 in = graph.getPredecessors(vertex).size();
                 out = graph.getSuccessors(vertex).size();
