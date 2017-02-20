@@ -27,6 +27,7 @@ inline void call(const std::string& name, const std::string& text, const int cod
 #else
 #define BREAKPOINT
 #endif
+#endif
 
 /* Macro for ASSERT */
 #ifndef ASSERT
