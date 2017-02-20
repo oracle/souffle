@@ -73,57 +73,14 @@ RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity,
     std::vector<IODirectives> outputDirectives;
     // If IO directives have been specified then set them up
     for (const auto& current : rel->getIODirectives()) {
-        // Skip empty directives and rely on the defaults below.
-        if (current->getIODirectiveMap().empty()) {
-            continue;
-        }
         if (current->isInput()) {
-            inputDirectives.setRelationName(getRelationName(rel->getName()));
             for (const auto& currentPair : current->getIODirectiveMap()) {
-                if (currentPair.first != "filename")
-                    inputDirectives.set(currentPair.first, currentPair.second);
-                else {
-                    // If filename is not an absolute path, concat with cmd line facts directory
-                    if (Global::config().get("fact-dir").empty() == false &&
-                            currentPair.second.front() != '/') {
-                        inputDirectives.set(currentPair.first,
-                                Global::config().get("fact-dir") + "/" + currentPair.second);
-                    } else {
-                        inputDirectives.set(currentPair.first, currentPair.second);
-                    }
-                }
-            }
-            // Set a default IO type of file and a default filename if not supplied.
-            if (!inputDirectives.has("IO")) {
-                inputDirectives.setIOType("file");
-            }
-            if (inputDirectives.getIOType() == "file" && !inputDirectives.has("filename")) {
-                inputDirectives.set("filename", inputDirectives.getRelationName() + ".facts");
-            }
-
-            // If filename is not an absolute path, concat with cmd line facts directory
-            if (!Global::config().get("fact-dir").empty() && inputDirectives.getIOType() == "file" &&
-                    inputDirectives.get("filename").front() != '/') {
-                inputDirectives.set(
-                        "filename", Global::config().get("fact-dir") + "/" + inputDirectives.get("filename"));
+                inputDirectives.set(currentPair.first, currentPair.second);
             }
         } else if (current->isOutput()) {
-            // Handle non-empty output directives
             IODirectives ioDirectives;
-            ioDirectives.setRelationName(getRelationName(rel->getName()));
             for (const auto& currentPair : current->getIODirectiveMap()) {
-                if (currentPair.first != "filename")
-                    ioDirectives.set(currentPair.first, currentPair.second);
-                else {
-                    // If filename is not an absolute path, concat with cmd line output directory
-                    if (Global::config().get("out-dir").empty() == false &&
-                            currentPair.second.front() != '/') {
-                        ioDirectives.set(currentPair.first,
-                                Global::config().get("output-dir") + "/" + currentPair.second);
-                    } else {
-                        ioDirectives.set(currentPair.first, currentPair.second);
-                    }
-                }
+                ioDirectives.set(currentPair.first, currentPair.second);
             }
             outputDirectives.push_back(ioDirectives);
         }
@@ -140,28 +97,32 @@ RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity,
         }
 
         // If filename is not an absolute path, concat with cmd line facts directory
-        if (!Global::config().get("fact-dir").empty() && inputDirectives.getIOType() == "file" &&
-                inputDirectives.get("filename").front() != '/') {
+        if (inputDirectives.getIOType() == "file" && inputDirectives.getFileName().front() != '/') {
             inputDirectives.setFileName(
                     Global::config().get("fact-dir") + "/" + inputDirectives.getFileName());
         }
     }
-    if (outputDirectives.empty() && rel->isOutput()) {
-        IODirectives ioDirectives;
-        ioDirectives.setRelationName(getRelationName(rel->getName()));
-        ioDirectives.setIOType("file");
-        ioDirectives.setFileName(getRelationName(rel->getName()) + ".csv");
-
-        outputDirectives.push_back(ioDirectives);
-    }
-    // Handle command line overrides of paths, or use of stdout
-    if (!Global::config().get("output-dir").empty()) {
-        if (Global::config().get("output-dir") == "-" && !outputDirectives.empty()) {
-            outputDirectives.front().setIOType("stdout");
-            // If we are using stdout then we only need one output directive.
-            outputDirectives.resize(1);
+    if (rel->isOutput()) {
+        if (Global::config().get("output-dir") == "-") {
+            outputDirectives.clear();
+            IODirectives ioDirectives;
+            ioDirectives.setIOType("stdout");
+            outputDirectives.push_back(ioDirectives);
+        } else if (outputDirectives.empty()) {
+            IODirectives ioDirectives;
+            ioDirectives.setIOType("file");
+            ioDirectives.setFileName(getRelationName(rel->getName()) + ".csv");
+            outputDirectives.push_back(ioDirectives);
         }
+        // If stdout is requested then remove all directives from the datalog file.
         for (auto& ioDirectives : outputDirectives) {
+            ioDirectives.setRelationName(getRelationName(rel->getName()));
+            if (!ioDirectives.has("IO")) {
+                ioDirectives.setIOType("file");
+            }
+            if (ioDirectives.getIOType() == "file" && !ioDirectives.has("filename")) {
+                ioDirectives.setFileName(ioDirectives.getRelationName() + ".csv");
+            }
             if (ioDirectives.getIOType() == "file" && ioDirectives.getFileName().front() != '/') {
                 ioDirectives.setFileName(
                         Global::config().get("output-dir") + "/" + ioDirectives.get("filename"));
