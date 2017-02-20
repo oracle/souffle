@@ -182,7 +182,6 @@ public:
 
     /* Remove the collection of objects for the given index. */
     void remove(const size_t index) {
-
         if (!this->hasIndex(index)) return;
 
         const Container<Object> objects = this->get(index);
@@ -190,7 +189,6 @@ public:
         IndexToObjects<Object, Container>::remove(index);
 
         for (const Object& object : objects) ObjectToIndex<Object>::removeIndex(object);
-
     }
 
     /** Append an object to the collection at the given index. */
@@ -206,7 +204,6 @@ public:
     /** Move the collection of objects at the 'from' index, appending them to the collection at the 'to'
      * index. */
     void moveAppend(const size_t fromIndex, const size_t toIndex) {
-
         if (!this->hasIndex(fromIndex)) return;
 
         assert(this->hasIndex(toIndex));
@@ -214,7 +211,6 @@ public:
         for (auto object : this->indexToObject.at(fromIndex)) this->append(toIndex, object);
 
         this->remove(fromIndex);
-
     }
 
     /** Prepend an object to the collection at the given index. */
@@ -230,7 +226,6 @@ public:
     /** Move the collection of objects at the 'from' index, prepending them to the collection at the 'to'
      * index. */
     void movePrepend(const size_t fromIndex, const size_t toIndex) {
-
         if (!this->hasIndex(fromIndex)) return;
 
         assert(this->hasIndex(toIndex));
@@ -238,7 +233,6 @@ public:
         for (auto object : this->indexToObject.at(fromIndex)) this->prepend(toIndex, object);
 
         this->remove(fromIndex);
-
     }
 };
 
@@ -248,7 +242,6 @@ class SetTable : public CollectionIndexTable<Object, std::set> {
 public:
     /** Insert the object into the set at the given index. */
     void append(const size_t index, const Object& object) {
-
         assert(index <= this->indexToObject.size());
 
         if (index == this->indexToObject.size()) this->indexToObject.push_back(std::set<Object>());
@@ -256,14 +249,11 @@ public:
         this->indexToObject[index].insert(object);
 
         this->objectToIndex[object] = index;
-
     }
 
     /** Insert the object into the set at the given index. */
     void prepend(const size_t index, const Object& object) {
-
         this->append(index, object);
-
     }
 };
 
@@ -273,7 +263,6 @@ class SeqTable : public CollectionIndexTable<Object, std::deque> {
 public:
     /** Append the object to the sequence at the given index. */
     void append(const size_t index, const Object& object) {
-
         assert(index <= this->indexToObject.size());
 
         if (index == this->indexToObject.size()) this->indexToObject.push_back(std::deque<Object>());
@@ -281,12 +270,10 @@ public:
         this->indexToObject[index].push_back(object);
 
         this->objectToIndex[object] = index;
-
     }
 
     /** Prepend the object to the sequence at the given index. */
     void prepend(const size_t index, const Object& object) {
-
         assert(index <= this->indexToObject.size());
 
         if (index == this->indexToObject.size()) this->indexToObject.push_back(std::deque<Object>());
@@ -294,7 +281,6 @@ public:
         this->indexToObject[index].push_front(object);
 
         this->objectToIndex[object] = index;
-
     }
 };
 }

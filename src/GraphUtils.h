@@ -126,7 +126,8 @@ public:
     }
 
     /** Insert edges from the given vertex to each in the set of vertices. */
-    const void insertSuccessors(const Node& vertex, const std::set<Node, Compare>& vertices, const bool loops = true) {
+    const void insertSuccessors(
+            const Node& vertex, const std::set<Node, Compare>& vertices, const bool loops = true) {
         for (const auto& successor : vertices) insertEdge(vertex, successor, loops);
     }
 
@@ -137,7 +138,8 @@ public:
     }
 
     /** Insert edges to the given vertex from each in the set of vertices. */
-    const void insertPredecessors(const Node& vertex, const std::set<Node, Compare>& vertices, const bool loops = true) {
+    const void insertPredecessors(
+            const Node& vertex, const std::set<Node, Compare>& vertices, const bool loops = true) {
         for (const auto& predecessor : vertices) insertEdge(predecessor, vertex, loops);
     }
 
@@ -152,7 +154,8 @@ public:
     }
 
     /** Join two vertices into one, merging their edges. */
-    virtual void joinVertices(const Node& retainedVertex, const Node& removedVertex, const bool loops = true) {
+    virtual void joinVertices(
+            const Node& retainedVertex, const Node& removedVertex, const bool loops = true) {
         if (!loops && retainedVertex == removedVertex) return;
 
         insertSuccessors(retainedVertex, getSuccessors(removedVertex), loops);
@@ -160,7 +163,6 @@ public:
         insertPredecessors(retainedVertex, getPredecessors(removedVertex), loops);
 
         removeVertex(removedVertex);
-
     }
 
     /** Visit this graph starting at the given vertex in a depth first traversal, executing the given lambda
@@ -273,17 +275,13 @@ public:
         if (!loops && retainedVertex == removedVertex) return;
 
         if (hasEdge(removedVertex, retainedVertex)) {
-
             this->indexTable.movePrepend(removedVertex, retainedVertex);
 
         } else {
-
             this->indexTable.moveAppend(removedVertex, retainedVertex);
-
         }
 
         Graph<size_t>::joinVertices(retainedVertex, removedVertex, loops);
-
     }
 
     /** Prints the graph to the given output stream in Graphviz dot format. If the 'invert' argument is true,
@@ -541,10 +539,9 @@ public:
         for (const Node& vertex : graph.allVertices())
             for (const Node& predecessor : graph.getPredecessors(vertex))
                 if (vertex != predecessor &&
-                        sccGraph.table().getIndex(vertex) !=
-                                sccGraph.table().getIndex(predecessor))
-                    sccGraph.insertEdge(sccGraph.table().getIndex(vertex),
-                            sccGraph.table().getIndex(predecessor));
+                        sccGraph.table().getIndex(vertex) != sccGraph.table().getIndex(predecessor))
+                    sccGraph.insertEdge(
+                            sccGraph.table().getIndex(vertex), sccGraph.table().getIndex(predecessor));
         return sccGraph;
     }
 
@@ -568,16 +565,16 @@ class GraphTransform {
 public:
     /** Enum to define transforms, more efficient than having a single member function for each one. */
     enum {
-        LOOPS = 0x0000001, // don't allow self loops
+        LOOPS = 0x0000001,    // don't allow self loops
         SINGLES = 0x0000010,  // join all vertices without predecessors or successors into a single vertex
-        ROOTS = 0x0000100,  // join all roots with only one successor into their successors
-        LEAVES = 0x0001000,  // join all leaves into their predecessors
-        SMOOTH_FORWARD = 0x0110000,  // smooth edges backward
+        ROOTS = 0x0000100,    // join all roots with only one successor into their successors
+        LEAVES = 0x0001000,   // join all leaves into their predecessors
+        SMOOTH_FORWARD = 0x0110000,   // smooth edges backward
         SMOOTH_BACKWARD = 0x1010000,  // smooth edges forward
-        __SMOOTH__ = 0x0010000,  // smooth edges, hidden
-        __FORWARD__ = 0x0100000,  // join into successor, hidden
-        __BACKWARD__ = 0x1000000,  // join into predecessor, hidden
-        __UNDEFINED__ = 0x1100000  // undefined behaviour, hidden
+        __SMOOTH__ = 0x0010000,       // smooth edges, hidden
+        __FORWARD__ = 0x0100000,      // join into successor, hidden
+        __BACKWARD__ = 0x1000000,     // join into predecessor, hidden
+        __UNDEFINED__ = 0x1100000     // undefined behaviour, hidden
     };
 
     /** Repeatedly join vertices using transforms, with those used given by a bitwise disjunction of any
@@ -597,7 +594,7 @@ public:
                 in = graph.getPredecessors(vertex).size();
                 out = graph.getSuccessors(vertex).size();
                 int currentType;
-                if (in == 0 && out == 0 && (type & SINGLES) == SINGLES && (int) vertex != single) {
+                if (in == 0 && out == 0 && (type & SINGLES) == SINGLES && (int)vertex != single) {
                     if (single == -1) {
                         single = vertex;
                     } else {
@@ -617,7 +614,8 @@ public:
                 if ((currentType & __FORWARD__) == __FORWARD__) {
                     graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex, (type & LOOPS) != LOOPS);
                 } else if ((currentType & __BACKWARD__) == __BACKWARD__) {
-                    graph.joinVertices(*graph.getPredecessors(vertex).begin(), vertex, (type & LOOPS) != LOOPS);
+                    graph.joinVertices(
+                            *graph.getPredecessors(vertex).begin(), vertex, (type & LOOPS) != LOOPS);
                 }
             }
         }
