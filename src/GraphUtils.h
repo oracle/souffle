@@ -559,16 +559,16 @@ class GraphTransform {
 public:
     /** Enum to define transforms, more efficient than having a single member function for each one. */
     enum {
-        LOOPS           = 0x0000001, // don't allow self loops
-        SINGLES         = 0x0000010, // join all vertices without predecessors or successors into a single vertex
-        ROOTS           = 0x0000100, // join all roots with only one successor into their successors
-        LEAVES          = 0x0001000, // join all leaves into their predecessors
-        SMOOTH_FORWARD  = 0x0110000, // smooth edges backward
-        SMOOTH_BACKWARD = 0x1010000, // smooth edges forward
-        __SMOOTH__      = 0x0010000, // smooth edges, hidden
-        __FORWARD__     = 0x0100000, // join into successor, hidden
-        __BACKWARD__    = 0x1000000, // join into predecessor, hidden
-        __UNDEFINED__   = 0x1100000  // undefined behaviour, hidden
+        LOOPS = 0x0000001,    // don't allow self loops
+        SINGLES = 0x0000010,  // join all vertices without predecessors or successors into a single vertex
+        ROOTS = 0x0000100,    // join all roots with only one successor into their successors
+        LEAVES = 0x0001000,   // join all leaves into their predecessors
+        SMOOTH_FORWARD = 0x0110000,   // smooth edges backward
+        SMOOTH_BACKWARD = 0x1010000,  // smooth edges forward
+        __SMOOTH__ = 0x0010000,       // smooth edges, hidden
+        __FORWARD__ = 0x0100000,      // join into successor, hidden
+        __BACKWARD__ = 0x1000000,     // join into predecessor, hidden
+        __UNDEFINED__ = 0x1100000     // undefined behaviour, hidden
     };
 
     /** Repeatedly join vertices using transforms, with those used given by a bitwise disjunction of any
