@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #
-# .souffle_sh
+# > .souffle_sh
 #
-# A quick and dirty bash script for developing souffle.
+#   A quick and dirty bash script for developing souffle.
 #
 
 
