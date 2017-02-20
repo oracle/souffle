@@ -33,7 +33,6 @@ cat << EOF
     souffle_test        Run make and then the testsuite on the given tests.
     souffle_debug       Run make and then the test in directory \$SOUFFLE/\$1/\$2.
     souffle_format      Format the code with clang-format.
-    souffle_repair      Fix to repair various problems.
 
 EOF
 }
@@ -91,6 +90,7 @@ souffle_reset() {
 
 souffle_commit() {
     cd $SOUFFLE && \
+    chmod 775 .travis/* debian/rules osx/preinstall && \
     git add . && \
     git commit -m "$(date)" && \
     cd -
@@ -105,6 +105,7 @@ souffle_push() {
 
 souffle_test() {
     souffle_make &&
+
     cd $SOUFFLE/tests && \
     ./testsuite -j$JOBS $@ && \
     cd -
@@ -125,10 +126,7 @@ souffle_debug() {
 }
 
 souffle_format() {
-    clang-format -i -style=file src/*.c src/*.h src/*.cc src/*.hh src/*.cpp src/*.hpp
+    clang-format -i -style=file $SOUFFLE/src/*.cpp $SOUFFLE/src/*.h $SOUFFLE/src/test/*.cpp $SOUFFLE/src/test/*.h && \
+    git checkout upstream/master -- src/mcpp*.[chCH]
 }
 
-souffle_repair() {
-    git checkout upstream/master -- src/mcpp*.[chCH] && \
-    chmod 775 .travis/* debian/rules osx/preinstall
-}
