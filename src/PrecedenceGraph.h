@@ -153,8 +153,10 @@ public:
         // orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::khansAlgorithm);
 
         // === KHAN+ ===
-        // HyperGraph<index::SeqTable, size_t> graph = GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
-        // GraphTransform::joinRecursive(graph, GraphTransform::SINGLES | GraphTransform::ROOTS | GraphTransform::LEAVES | GraphTransform::SMOOTH_BACKWARD | GraphTransform::LOOPS);
+        // HyperGraph<index::SeqTable, size_t> graph =
+        // GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
+        // GraphTransform::joinRecursive(graph, GraphTransform::SINGLES | GraphTransform::ROOTS |
+        // GraphTransform::LEAVES | GraphTransform::SMOOTH_BACKWARD | GraphTransform::LOOPS);
         // orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::khansAlgorithm);
 
         // === RDFS ===
@@ -162,10 +164,11 @@ public:
         // orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::reverseDFS);
 
         // === RDFS+ ===
-        // HyperGraph<index::SeqTable, size_t> graph = GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
-        // GraphTransform::joinRecursive(graph, GraphTransform::SINGLES | GraphTransform::ROOTS | GraphTransform::LEAVES | GraphTransform::SMOOTH_BACKWARD | GraphTransform::LOOPS);
+        // HyperGraph<index::SeqTable, size_t> graph =
+        // GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
+        // GraphTransform::joinRecursive(graph, GraphTransform::SINGLES | GraphTransform::ROOTS |
+        // GraphTransform::LEAVES | GraphTransform::SMOOTH_BACKWARD | GraphTransform::LOOPS);
         // orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::reverseDFS);
-
     }
 
     SCCGraph* getSCCGraph() const {
