@@ -41,11 +41,12 @@ public:
     /** Creates a clone if this AST sub-structure */
     virtual AstIODirective* clone() const {
         auto res = new AstIODirective();
-        res->name = name;
+        res->names = names;
         res->kvps = kvps;
         res->input = input;
         res->output = output;
         res->printSize = printSize;
+        res->setSrcLoc(getSrcLoc());
         return res;
     }
 
@@ -63,7 +64,7 @@ public:
         if (printSize) {
             os << ".printsize ";
         }
-        os << getName() << "(";
+        os << getNames() << "(";
         bool first = true;
         for (auto& pair : kvps) {
             if (first) {
@@ -78,12 +79,22 @@ public:
 
     /** Return the name of this kvp map */
     const AstRelationIdentifier& getName() const {
-        return name;
+        return *names.begin();
+    }
+
+    /** Return the names of this kvp map */
+    const std::set<AstRelationIdentifier>& getNames() const {
+        return names;
     }
 
     /** Set kvp map name */
+    void addName(const AstRelationIdentifier& n) {
+        names.insert(n);
+    }
+    /** Set kvp map name */
     void setName(const AstRelationIdentifier& n) {
-        name = n;
+        names.clear();
+        names.insert(n);
     }
 
     void addKVP(const std::string& key, const std::string& value) {
@@ -92,15 +103,6 @@ public:
 
     const std::map<std::string, std::string>& getIODirectiveMap() {
         return kvps;
-    }
-
-    void addAstIODirectives(const AstIODirective& ioDirectives) {
-        for (auto& current : ioDirectives.kvps) {
-            kvps[current.first] = current.second;
-        }
-        input |= ioDirectives.input;
-        output |= ioDirectives.output;
-        printSize |= ioDirectives.printSize;
     }
 
     void setAsInput() {
@@ -128,7 +130,7 @@ protected:
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstIODirective*>(&node));
         const AstIODirective& other = static_cast<const AstIODirective&>(node);
-        return other.name == name && other.input == input && other.kvps == kvps;
+        return other.names == names && other.input == input && other.kvps == kvps;
     }
 
     std::string unescape(const std::string& inputString) const {
@@ -150,7 +152,7 @@ protected:
         return result;
     }
     /** Name of the kvp */
-    AstRelationIdentifier name;
+    std::set<AstRelationIdentifier> names;
 
     /** kvp map */
     std::map<std::string, std::string> kvps;

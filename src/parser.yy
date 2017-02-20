@@ -189,7 +189,7 @@
 %type <AstUnionType *>                   uniontype
 %type <std::vector<AstTypeIdentifier>>   type_params type_param_list
 %type <std::string>                      comp_override
-%type <AstIODirective *>                 key_value_pairs non_empty_key_value_pairs iodirective
+%type <AstIODirective *>                 key_value_pairs non_empty_key_value_pairs iodirective iodirective_body
 %printer { yyoutput << $$; } <*>;
 
 %precedence AS
@@ -213,7 +213,7 @@ program: unit
 /* Top-level statement */
 unit: unit type { driver.addType($2); }
     | unit relation { driver.addRelation($2); }
-    | unit iodirective { driver.addIODirective($2); }
+    | unit iodirective { driver.addIODirectiveChain($2); }
     | unit fact { driver.addClause($2); }
     | unit rule { for(const auto& cur : $2) driver.addClause(cur); }
     | unit component { driver.addComponent($2); }
@@ -342,41 +342,41 @@ non_empty_key_value_pairs : IDENT EQUALS STRING {
 key_value_pairs: non_empty_key_value_pairs { $$ = $1; }
 	     | %empty {
                 $$ = new AstIODirective();
+                $$->setSrcLoc(@$);
                }
              ;
 
-iodirective: INPUT_DECL rel_id LPAREN key_value_pairs RPAREN {
-                  $$ = $4;
-                  $4->setName(*$2);
-                  $4->setSrcLoc(@$);
-                  $4->setAsInput();
+iodirective_body : rel_id LPAREN key_value_pairs RPAREN {
+	   $$ = $3;
+           $3->addName(*$1);
+           $3->setSrcLoc(@1);
+	  }
+        | rel_id {
+           $$ = new AstIODirective();
+           $$->setName(*$1);
+           $$->setSrcLoc(@1);
+          }
+        | rel_id COMMA iodirective_body {
+           $$ = $3;
+           $3->addName(*$1);
+           $3->setSrcLoc(@1);
+          }
+        ;
+
+iodirective: INPUT_DECL iodirective_body {
+	          $$ = $2;
+                  $$->setAsInput();
+                  $$->setSrcLoc(@2);
              }
-            | OUTPUT_DECL rel_id LPAREN key_value_pairs RPAREN {
-                  $$ = $4;
-                  $4->setName(*$2);
-                  $4->setSrcLoc(@$);
-                  $4->setAsOutput();
+            | OUTPUT_DECL iodirective_body {
+                  $$ = $2;
+                  $$->setAsOutput();
+                  $$->setSrcLoc(@2);
              }
-            | INPUT_DECL rel_id {
-                  AstIODirective *psd = new AstIODirective();
-                  psd->setName(*$2);
-                  psd->setSrcLoc(@$);
-                  psd->setAsInput();
-                  $$ = psd;
-              }
-            | OUTPUT_DECL rel_id {
-                  AstIODirective *psd = new AstIODirective();
-                  psd->setName(*$2);
-                  psd->setSrcLoc(@$);
-                  psd->setAsOutput();
-                  $$ = psd;
-              }
-            | PRINTSIZE_DECL rel_id {
-                  AstIODirective *psd = new AstIODirective();
-                  psd->setName(*$2);
-                  psd->setSrcLoc(@$);
-                  psd->setAsPrintSize();
-                  $$ = psd;
+            | PRINTSIZE_DECL iodirective_body {
+                  $$ = $2;
+                  $$->setAsPrintSize();
+                  $$->setSrcLoc(@2);
               }
             ;
 
