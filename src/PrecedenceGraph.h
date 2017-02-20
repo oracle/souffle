@@ -149,8 +149,8 @@ public:
         // TODO
 
         // === KHAN ===
-        HyperGraph<index::SetTable, const AstRelation*> graph = sccGraph->getGraph();
-        orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::khansAlgorithm);
+        // HyperGraph<index::SetTable, const AstRelation*> graph = sccGraph->getGraph();
+        // orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::khansAlgorithm);
 
         // === KHAN+ ===
         // HyperGraph<index::SeqTable, size_t> graph =
