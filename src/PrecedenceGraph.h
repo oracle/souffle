@@ -149,28 +149,28 @@ public:
         // TODO: determine which of the following is better
 
         // === KHAN ===
-//        HyperGraph<index::SetTable, const AstRelation*> graph = sccGraph->getGraph();
-//        orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::khansAlgorithm);
+        //        HyperGraph<index::SetTable, const AstRelation*> graph = sccGraph->getGraph();
+        //        orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::khansAlgorithm);
 
         // === KHAN WITH PRE-PROCESSING ===
-//        HyperGraph<index::SeqTable, size_t> graph =
-//                GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
-//        GraphTransform::joinUntilFixedPoint(
-//                graph, GraphTransform::SINGLES | GraphTransform::ROOTS | GraphTransform::LEAVES |
-//                               GraphTransform::SMOOTH_BACKWARD | GraphTransform::LOOPS);
-//        orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::khansAlgorithm);
-
-        // === RDFS ===
-//        HyperGraph<index::SetTable, const AstRelation*> graph = sccGraph->getGraph();
-//        orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::reverseDFS);
-
-        // === RDFS WITH PRE-PROCESSING ===
         HyperGraph<index::SeqTable, size_t> graph =
                 GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
         GraphTransform::joinUntilFixedPoint(
                 graph, GraphTransform::SINGLES | GraphTransform::ROOTS | GraphTransform::LEAVES |
                                GraphTransform::SMOOTH_BACKWARD | GraphTransform::LOOPS);
-        orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::reverseDFS);
+        orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::khansAlgorithm);
+
+        // === RDFS ===
+        //        HyperGraph<index::SetTable, const AstRelation*> graph = sccGraph->getGraph();
+        //        orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::reverseDFS);
+
+        // === RDFS WITH PRE-PROCESSING ===
+        //        HyperGraph<index::SeqTable, size_t> graph =
+        //                GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
+        //        GraphTransform::joinUntilFixedPoint(
+        //                graph, GraphTransform::SINGLES | GraphTransform::ROOTS | GraphTransform::LEAVES |
+        //                               GraphTransform::SMOOTH_BACKWARD | GraphTransform::LOOPS);
+        //        orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::reverseDFS);
     }
 
     SCCGraph* getSCCGraph() const {
