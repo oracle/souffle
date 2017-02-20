@@ -153,15 +153,15 @@ public:
         // orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::khansAlgorithm);
 
         // === KHAN+ ===
-        HyperGraph<index::SeqTable, size_t> graph =
-        GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
-        GraphTransform::joinRecursive(graph, GraphTransform::SINGLES | GraphTransform::ROOTS |
-        GraphTransform::LEAVES | GraphTransform::SMOOTH_BACKWARD | GraphTransform::LOOPS);
-        orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::khansAlgorithm);
+        // HyperGraph<index::SeqTable, size_t> graph =
+        // GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
+        // GraphTransform::joinRecursive(graph, GraphTransform::SINGLES | GraphTransform::ROOTS |
+        // GraphTransform::LEAVES | GraphTransform::SMOOTH_BACKWARD | GraphTransform::LOOPS);
+        // orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::khansAlgorithm);
 
         // === RDFS ===
-        // HyperGraph<index::SetTable, const AstRelation*> graph = sccGraph->getGraph();
-        // orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::reverseDFS);
+        HyperGraph<index::SetTable, const AstRelation*> graph = sccGraph->getGraph();
+        orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::reverseDFS);
 
         // === RDFS+ ===
         // HyperGraph<index::SeqTable, size_t> graph =
