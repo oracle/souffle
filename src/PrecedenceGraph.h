@@ -147,12 +147,9 @@ public:
         sccGraph = translationUnit.getAnalysis<SCCGraph>();
         HyperGraph<index::SeqTable, size_t> graph =
                 GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
-        GraphTransform::joinRecursive(graph,
-            GraphTransform::SINGLES
-            | GraphTransform::ROOTS
-            | GraphTransform::LEAVES
-            | GraphTransform::LOOPS
-            | GraphTransform::SMOOTH_BACKWARD);
+        GraphTransform::joinRecursive(graph, GraphTransform::SINGLES | GraphTransform::ROOTS |
+                                                     GraphTransform::LEAVES | GraphTransform::LOOPS |
+                                                     GraphTransform::SMOOTH_BACKWARD);
         // TODO: find a better topological ordering algorithm?
         orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::khansAlgorithm);
     }

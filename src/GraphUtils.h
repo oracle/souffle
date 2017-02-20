@@ -591,7 +591,7 @@ public:
                 if (in == 0 && out == 0 && (type & SINGLES) == SINGLES) {
                     if (single == -1) {
                         single = vertex;
-                    } else if (vertex != (size_t) single) {
+                    } else if (vertex != (size_t)single) {
                         graph.joinVertices(single, vertex, (type & LOOPS) != LOOPS);
                     } else {
                         continue;

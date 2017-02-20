@@ -32,7 +32,8 @@ cat << EOF
     souffle_push        Push the current branch to the git remote.
     souffle_test        Run make and then the testsuite on the given tests.
     souffle_debug       Run make and then the test in directory \$SOUFFLE/\$1/\$2.
-    souffle_format       Format the code with clang-format.
+    souffle_format      Format the code with clang-format.
+    souffle_repair      Fix to repair various problems.
 
 EOF
 }
@@ -125,4 +126,9 @@ souffle_debug() {
 
 souffle_format() {
     clang-format -i -style=file src/*.c src/*.h src/*.cc src/*.hh src/*.cpp src/*.hpp
+}
+
+souffle_repair() {
+    git checkout upstream/master -- src/mcpp*.[chCH] && \
+    chmod 775 .travis/* debian/rules osx/preinstall
 }

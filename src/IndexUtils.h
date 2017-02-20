@@ -224,7 +224,6 @@ public:
     virtual void movePrepend(const size_t fromIndex, const size_t toIndex) {
         this->moveAppend(fromIndex, toIndex);
     }
-
 };
 
 /** A class mapping between index and a set of objects. */
@@ -238,7 +237,6 @@ public:
         this->indexToObject[index].insert(object);
         this->objectToIndex[object] = index;
     }
-
 };
 
 /** A class mapping between index and a sequence of objects. */
@@ -269,7 +267,7 @@ public:
             return;
         }
         for (auto object = objects.end() - 1; object != objects.begin(); --object)
-             this->prepend(index, *object);
+            this->prepend(index, *object);
         this->prepend(index, *objects.begin());
     }
 
@@ -281,7 +279,7 @@ public:
         const auto& objects = this->indexToObject.at(fromIndex);
         if (!objects.empty()) {
             for (auto object = objects.end() - 1; object != objects.begin(); --object)
-                 this->prepend(toIndex, *object);
+                this->prepend(toIndex, *object);
             this->prepend(toIndex, *objects.begin());
         }
         this->remove(fromIndex);
