@@ -145,13 +145,27 @@ public:
 
     virtual void run(const AstTranslationUnit& translationUnit) {
         sccGraph = translationUnit.getAnalysis<SCCGraph>();
-        HyperGraph<index::SeqTable, size_t> graph =
-                GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
-        GraphTransform::joinRecursive(graph, GraphTransform::SINGLES | GraphTransform::ROOTS |
-                                                     GraphTransform::LEAVES | GraphTransform::LOOPS |
-                                                     GraphTransform::SMOOTH_BACKWARD);
-        // TODO: find a better topological ordering algorithm?
-        orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::khansAlgorithm);
+
+        // TODO
+
+        // === KHAN ===
+        // HyperGraph<index::SetTable, const AstRelation*> graph = sccGraph->getGraph();
+        // orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::khansAlgorithm);
+
+        // === KHAN+ ===
+        // HyperGraph<index::SeqTable, size_t> graph = GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
+        // GraphTransform::joinRecursive(graph, GraphTransform::SINGLES | GraphTransform::ROOTS | GraphTransform::LEAVES | GraphTransform::SMOOTH_BACKWARD | GraphTransform::LOOPS);
+        // orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::khansAlgorithm);
+
+        // === RDFS ===
+        // HyperGraph<index::SetTable, const AstRelation*> graph = sccGraph->getGraph();
+        // orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::reverseDFS);
+
+        // === RDFS+ ===
+        // HyperGraph<index::SeqTable, size_t> graph = GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
+        // GraphTransform::joinRecursive(graph, GraphTransform::SINGLES | GraphTransform::ROOTS | GraphTransform::LEAVES | GraphTransform::SMOOTH_BACKWARD | GraphTransform::LOOPS);
+        // orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::reverseDFS);
+
     }
 
     SCCGraph* getSCCGraph() const {
