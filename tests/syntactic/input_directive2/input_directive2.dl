@@ -1,0 +1,4 @@
+.decl A(x:number)
+.decl B(x:number)
+.input B(IO=stdout)
+.input A,B(IO=stdout)
