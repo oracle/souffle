@@ -103,8 +103,9 @@ TEST(Graph, Basic) {
     EXPECT_TRUE(g.hasPath(3, 2));
     EXPECT_TRUE(g.hasPath(3, 3));
 
-    EXPECT_EQ("digraph {\n\"1\" -> \"2\";\n\"2\" -> \"3\";\n\"3\" -> \"1\"\n}\n", toString(g));
-}
+    EXPECT_EQ("digraph {\n\"1\" [label=\"1\"];\n\"1\" -> \"2\";\n\"2\" [label=\"2\"];\n\"2\" -> \"3\";\n\"3\" [label=\"3\"];\n\"3\" -> \"1\"\n}\n", toString(g));
+
+};
 
 }  // end namespace test
 }  // end namespace souffle

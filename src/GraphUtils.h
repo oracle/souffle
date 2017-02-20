@@ -181,15 +181,16 @@ public:
     virtual void print(std::ostream& os, const bool invert = false) const {
         bool first = true;
         os << "digraph {\n";
-        for (const auto& vertex : successors) {
-            for (const auto& successor : vertex.second) {
-                if (!first) os << ";" << std::endl;
-                os << "\"" << ((!invert) ? vertex.first : successor) << "\" -> \""
-                   << ((invert) ? vertex.first : successor) << "\"";
-                first = false;
-            }
+        for (const auto& iter : this->successors) {
+            if (!first) os << ";\n";
+            os << "\"" << iter.first << "\""
+               << " [label=\"" << iter.first << "\"]";
+            first = false;
+            for (const auto& successor : iter.second)
+                os << ";\n\"" << ((!invert) ? iter.first : successor) << "\" -> \""
+                   << ((invert) ? iter.first : successor) << "\"";
         }
-        os << std::endl << "}" << std::endl;
+        os << "\n}\n";
     }
 
 private:
@@ -282,7 +283,7 @@ public:
      * edges will be drawn backward. */
     virtual void print(std::ostream& os, const bool invert = false) const {
         bool first = true;
-        os << "digraph {";
+        os << "digraph {\n";
         for (const auto& iter : this->successors) {
             if (!first) os << ";\n";
             os << "\"" << iter.first << "\""
@@ -298,7 +299,7 @@ public:
                 os << ";\n\"" << ((!invert) ? iter.first : successor) << "\" -> \""
                    << ((invert) ? iter.first : successor) << "\"";
         }
-        os << "}\n" << std::endl;
+        os << "\n}\n";
     }
 };
 
@@ -579,12 +580,10 @@ public:
     static void joinRecursive(HyperGraph<Table, Node>& graph, int type) {
         assert(type != __SMOOTH__ && type != __FORWARD__ && type != __BACKWARD__ &&
                 (type & __UNDEFINED__) != __UNDEFINED__);
-        bool flag = true;
-        bool foundSingle = false;
-        size_t single;
-        size_t in, out;
-        while (flag) {
-            flag = false;
+        bool foundAny = true, foundSingle = false;
+        size_t single, in, out;
+        while (foundAny) {
+            foundAny = false;
             for (const size_t vertex : graph.allVertices()) {
                 in = graph.getPredecessors(vertex).size();
                 out = graph.getSuccessors(vertex).size();
@@ -598,7 +597,7 @@ public:
                     } else {
                         continue;
                     }
-                    flag = true;
+                    foundAny = true;
                     continue;
                 } else if (in == 0 && out == 1 && (type & ROOTS) == ROOTS)
                     currentType = __FORWARD__ | (type & LOOPS);
@@ -608,7 +607,7 @@ public:
                     currentType = type;
                 else
                     continue;
-                flag = true;
+                foundAny = true;
                 if ((currentType & __FORWARD__) == __FORWARD__) {
                     graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex, (type & LOOPS) != LOOPS);
                 } else if ((currentType & __BACKWARD__) == __BACKWARD__) {
