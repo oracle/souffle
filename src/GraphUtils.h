@@ -57,10 +57,9 @@ public:
     /** Insert a new vertex into the graph. */
     virtual void insertVertex(const Node& vertex) {
         if (hasVertex(vertex)) return;
-        if (nodes.insert(vertex).second) {
-            successors.insert(std::make_pair(vertex, std::set<Node, Compare>()));
-            predecessors.insert(std::make_pair(vertex, std::set<Node, Compare>()));
-        }
+        nodes.insert(vertex);
+        successors.insert(std::make_pair(vertex, std::set<Node, Compare>()));
+        predecessors.insert(std::make_pair(vertex, std::set<Node, Compare>()));
     }
 
     /** Remove a vertex from the graph. */
@@ -84,10 +83,11 @@ public:
     }
 
     /** Insert a new edge into the graph (as well as new vertices if they do not already exist). */
-    virtual void insertEdge(const Node& vertex1, const Node& vertex2) {
+    virtual void insertEdge(const Node& vertex1, const Node& vertex2, const bool loops = true) {
         if (hasEdge(vertex1, vertex2)) return;
         if (!hasVertex(vertex1)) insertVertex(vertex1);
         if (!hasVertex(vertex2)) insertVertex(vertex2);
+        if (!loops && vertex1 == vertex2) return;
         successors.at(vertex1).insert(vertex2);
         predecessors.at(vertex2).insert(vertex1);
     }
@@ -125,8 +125,9 @@ public:
     }
 
     /** Insert edges from the given vertex to each in the set of vertices. */
-    const void insertSuccessors(const Node& vertex, const std::set<Node, Compare>& vertices) {
-        for (const auto& successor : vertices) insertEdge(vertex, successor);
+    const void insertSuccessors(
+            const Node& vertex, const std::set<Node, Compare>& vertices, const bool loops = true) {
+        for (const auto& successor : vertices) insertEdge(vertex, successor, loops);
     }
 
     /** Get the successor set (the inbound neighbours) of a vertex. */
@@ -136,8 +137,9 @@ public:
     }
 
     /** Insert edges to the given vertex from each in the set of vertices. */
-    const void insertPredecessors(const Node& vertex, const std::set<Node, Compare>& vertices) {
-        for (const auto& predecessor : vertices) insertEdge(predecessor, vertex);
+    const void insertPredecessors(
+            const Node& vertex, const std::set<Node, Compare>& vertices, const bool loops = true) {
+        for (const auto& predecessor : vertices) insertEdge(predecessor, vertex, loops);
     }
 
     /** Get the clique of the given vertex. */
@@ -151,10 +153,12 @@ public:
     }
 
     /** Join two vertices into one, merging their edges. */
-    virtual void joinVertices(const Node& retainedVertex, const Node& removedVertex) {
-        insertSuccessors(retainedVertex, getSuccessors(removedVertex));
-        insertPredecessors(retainedVertex, getPredecessors(removedVertex));
-        removeVertex(removedVertex);
+    virtual void joinVertices(
+            const Node& retainedVertex, const Node& removedVertex, const bool loops = true) {
+        if (!loops && retainedVertex == removedVertex) return;
+        insertSuccessors(retainedVertex, getSuccessors(removedVertex), loops);
+        insertPredecessors(retainedVertex, getPredecessors(removedVertex), loops);
+        if (removedVertex != retainedVertex) removeVertex(removedVertex);
     }
 
     /** Visit this graph starting at the given vertex in a depth first traversal, executing the given lambda
@@ -176,15 +180,16 @@ public:
     virtual void print(std::ostream& os, const bool invert = false) const {
         bool first = true;
         os << "digraph {\n";
-        for (const auto& vertex : successors) {
-            for (const auto& successor : vertex.second) {
-                if (!first) os << ";" << std::endl;
-                os << "\"" << ((!invert) ? vertex.first : successor) << "\" -> \""
-                   << ((invert) ? vertex.first : successor) << "\"";
-                first = false;
-            }
+        for (const auto& iter : this->successors) {
+            if (!first) os << ";\n";
+            os << "\"" << iter.first << "\""
+               << " [label=\"" << iter.first << "\"]";
+            first = false;
+            for (const auto& successor : iter.second)
+                os << ";\n\"" << ((!invert) ? iter.first : successor) << "\" -> \""
+                   << ((invert) ? iter.first : successor) << "\"";
         }
-        os << std::endl << "}" << std::endl;
+        os << "\n}\n";
     }
 
 private:
@@ -263,19 +268,21 @@ public:
     }
 
     /** Join the vertices, merging their edges and their entries in the table. */
-    void joinVertices(const size_t& retainedVertex, const size_t& removedVertex) {
-        if (hasEdge(removedVertex, retainedVertex))
+    void joinVertices(const size_t& retainedVertex, const size_t& removedVertex, const bool loops = true) {
+        if (!loops && retainedVertex == removedVertex) return;
+        if (hasEdge(removedVertex, retainedVertex)) {
             this->indexTable.movePrepend(removedVertex, retainedVertex);
-        else
+        } else {
             this->indexTable.moveAppend(removedVertex, retainedVertex);
-        Graph<size_t>::joinVertices(retainedVertex, removedVertex);
+        }
+        Graph<size_t>::joinVertices(retainedVertex, removedVertex, loops);
     }
 
     /** Prints the graph to the given output stream in Graphviz dot format. If the 'invert' argument is true,
      * edges will be drawn backward. */
     virtual void print(std::ostream& os, const bool invert = false) const {
         bool first = true;
-        os << "digraph {";
+        os << "digraph {\n";
         for (const auto& iter : this->successors) {
             if (!first) os << ";\n";
             os << "\"" << iter.first << "\""
@@ -291,7 +298,7 @@ public:
                 os << ";\n\"" << ((!invert) ? iter.first : successor) << "\" -> \""
                    << ((invert) ? iter.first : successor) << "\"";
         }
-        os << "}\n" << std::endl;
+        os << "\n}\n";
     }
 };
 
@@ -304,18 +311,18 @@ private:
     /** Recursive component of Khan's algorithm. */
     template <typename Lambda, template <typename> class Table, typename Node>
     static void khansAlgorithm(const HyperGraph<Table, Node>& graph, const size_t vertex,
-            std::vector<bool>& visited, Lambda lambda) {
+            std::set<size_t>& visited, Lambda lambda) {
         bool foundValidVertex = false, foundVisitedPredecessor = false, foundVisitedSuccessor = false;
         for (const size_t successor : graph.getSuccessors(vertex)) {
-            if (visited[successor] == false) {
+            if (visited.find(successor) == visited.end()) {
                 for (auto successorsPredecessor : graph.getPredecessors(successor)) {
-                    if (visited[successorsPredecessor] == false) {
+                    if (visited.find(successorsPredecessor) == visited.end()) {
                         foundVisitedPredecessor = true;
                         break;
                     }
                 }
                 if (!foundVisitedPredecessor) {
-                    visited[successor] = true;
+                    visited.insert(successor);
                     lambda(successor);
                     khansAlgorithm(graph, successor, visited, lambda);
                     foundValidVertex = true;
@@ -327,13 +334,13 @@ private:
             return;
         }
         for (auto predecessor : graph.getPredecessors(vertex)) {
-            if (visited[predecessor] == false) {
+            if (visited.find(predecessor) == visited.end()) {
                 foundVisitedPredecessor = true;
                 break;
             }
         }
         for (auto successor : graph.getSuccessors(vertex)) {
-            if (visited[successor] == false) {
+            if (visited.find(successor) == visited.end()) {
                 foundVisitedSuccessor = true;
                 break;
             }
@@ -344,9 +351,9 @@ private:
     /** Recursive component of reverse DFS algorithm. */
     template <typename Lambda, template <typename> class Table, typename Node>
     static void reverseDFS(const HyperGraph<Table, Node>& graph, const size_t vertex,
-            std::vector<bool>& visited, Lambda lambda) {
-        if (visited[vertex] == false) {
-            visited[vertex] = true;
+            std::set<size_t>& visited, Lambda lambda) {
+        if (visited.find(vertex) == visited.end()) {
+            visited.insert(vertex);
             for (size_t predecessor : graph.getPredecessors(vertex)) {
                 reverseDFS(graph, predecessor, visited, lambda);
             }
@@ -360,12 +367,10 @@ public:
     template <typename Lambda, template <typename> class Table, typename Node>
     static void khansAlgorithm(const HyperGraph<Table, Node>& graph, Lambda lambda) {
         // TODO: is this actually Khan's algorithm?
-        std::vector<bool> visited;
-        visited.resize(graph.vertexCount());
-        std::fill(visited.begin(), visited.end(), false);
+        std::set<size_t> visited;
         for (size_t vertex : graph.allVertices()) {
             if (graph.getPredecessors(vertex).empty()) {
-                visited[vertex] = true;
+                visited.insert(vertex);
                 lambda(vertex);
                 if (!graph.getSuccessors(vertex).empty()) khansAlgorithm(graph, vertex, visited, lambda);
             }
@@ -376,12 +381,10 @@ public:
      * each visited node. Note that this only works for acyclic graphs, otherwise behaviour is undefined. */
     template <typename Lambda, template <typename> class Table, typename Node>
     static void reverseDFS(const HyperGraph<Table, Node>& graph, Lambda lambda) {
-        std::vector<bool> visited;
-        visited.resize(graph.vertexCount());
-        std::fill(visited.begin(), visited.end(), false);
+        std::set<size_t> visited;
         for (size_t vertex : graph.allVertices()) {
             if (graph.getPredecessors(vertex).empty() && graph.getSuccessors(vertex).empty()) {
-                visited[vertex] = true;
+                visited.insert(vertex);
                 lambda(vertex);
             } else {
                 reverseDFS(graph, vertex, visited, lambda);
@@ -499,13 +502,13 @@ public:
     static HyperGraph<Table, Node> toHyperGraph(Graph<Node, Compare> oldGraph) {
         HyperGraph<Table, Node> newGraph = HyperGraph<Table, Node>();
         size_t index = 0;
-        for (const size_t vertex : oldGraph.allVertices()) {
+        for (const Node& vertex : oldGraph.allVertices()) {
             newGraph.insertVertex(index, vertex);
             index++;
         }
-        for (const size_t vertex : oldGraph.allVertices()) {
+        for (const Node& vertex : oldGraph.allVertices()) {
             index = newGraph.table().getIndex(vertex);
-            for (const size_t successor : oldGraph.getSuccessors(vertex)) {
+            for (const Node& successor : oldGraph.getSuccessors(vertex)) {
                 newGraph.insertEdge(index, newGraph.table().getIndex(successor));
             }
         }
@@ -527,6 +530,9 @@ public:
             for (const Node& predecessor : graph.getPredecessors(vertex))
                 if (vertex != predecessor &&
                         sccGraph.table().getIndex(vertex) != sccGraph.table().getIndex(predecessor))
+                    // TODO: currently this works in an inverse manner (i.e. edges are created going the wrong
+                    // way); while this is needed for the processing of the precedence graph it would be
+                    // better to have an 'invert' flag like in the print method
                     sccGraph.insertEdge(
                             sccGraph.table().getIndex(vertex), sccGraph.table().getIndex(predecessor));
         return sccGraph;
@@ -536,11 +542,85 @@ public:
     template <template <typename> class Table, template <typename> class OtherTable, typename OtherNode>
     static HyperGraph<Table, size_t> toHyperGraph(HyperGraph<OtherTable, OtherNode> oldGraph) {
         HyperGraph<Table, size_t> newGraph = HyperGraph<Table, size_t>();
-        for (size_t index = 0; index < oldGraph.vertexCount(); ++index) newGraph.insertVertex(index, index);
-        for (const size_t vertex : oldGraph.allVertices())
-            for (const size_t successor : oldGraph.getSuccessors(vertex))
-                newGraph.insertEdge(vertex, successor);
+        size_t index = 0;
+        for (const size_t& vertex : oldGraph.allVertices()) {
+            newGraph.insertVertex(index, vertex);
+            index++;
+        }
+        for (const size_t& vertex : oldGraph.allVertices()) {
+            index = newGraph.table().getIndex(vertex);
+            for (const size_t& successor : oldGraph.getSuccessors(vertex)) {
+                newGraph.insertEdge(index, newGraph.table().getIndex(successor));
+            }
+        }
         return newGraph;
+    }
+};
+
+/** A class for executing transformations on graphs. Every public member function is static and takes a
+ * reference to a hyper-graph, and transforms the graph it in a manner specific to that function. Every
+ * private member function forms the recursive component of its corresponding public member function, if any.
+ */
+class GraphTransform {
+public:
+    /** Enum to define transforms, more efficient than having a single member function for each one. */
+    enum {
+        LOOPS = 0x0000001,    // don't allow self loops
+        SINGLES = 0x0000010,  // join all vertices without predecessors or successors into a single vertex
+        ROOTS = 0x0000100,    // join all roots with only one successor into their successors
+        LEAVES = 0x0001000,   // join all leaves into their predecessors
+        SMOOTH_FORWARD = 0x0110000,   // smooth edges backward
+        SMOOTH_BACKWARD = 0x1010000,  // smooth edges forward
+        __SMOOTH__ = 0x0010000,       // smooth edges, hidden
+        __FORWARD__ = 0x0100000,      // join into successor, hidden
+        __BACKWARD__ = 0x1000000,     // join into predecessor, hidden
+        __UNDEFINED__ = 0x1100000     // undefined behaviour, hidden
+    };
+
+    /** Repeatedly join vertices using transforms, with those used given by a bitwise disjunction of any
+    compatible transformations in the enum at the start of this class.
+    Repeated until fixed point is reached (i.e. the graph makes no changes between the current and next round
+    of iteration). */
+    template <template <typename> class Table, typename Node>
+    static void joinUntilFixedPoint(HyperGraph<Table, Node>& graph, int type) {
+        assert(type != __SMOOTH__ && type != __FORWARD__ && type != __BACKWARD__ &&
+                (type & __UNDEFINED__) != __UNDEFINED__);
+        bool foundAny = true, foundSingle = false;
+        size_t single, in, out;
+        while (foundAny) {
+            foundAny = false;
+            for (const size_t vertex : graph.allVertices()) {
+                in = graph.getPredecessors(vertex).size();
+                out = graph.getSuccessors(vertex).size();
+                int currentType;
+                if (in == 0 && out == 0 && (type & SINGLES) == SINGLES) {
+                    if (!foundSingle) {
+                        single = vertex;
+                        foundSingle = true;
+                    } else if (vertex != single) {
+                        graph.joinVertices(single, vertex, (type & LOOPS) != LOOPS);
+                    } else {
+                        continue;
+                    }
+                    foundAny = true;
+                    continue;
+                } else if (in == 0 && out == 1 && (type & ROOTS) == ROOTS)
+                    currentType = __FORWARD__ | (type & LOOPS);
+                else if (in == 1 && out == 0 && (type & LEAVES) == LEAVES)
+                    currentType = __BACKWARD__ | (type & LOOPS);
+                else if (in == 1 && out == 1 && (type & __SMOOTH__) == __SMOOTH__)
+                    currentType = type;
+                else
+                    continue;
+                foundAny = true;
+                if ((currentType & __FORWARD__) == __FORWARD__) {
+                    graph.joinVertices(*graph.getSuccessors(vertex).begin(), vertex, (type & LOOPS) != LOOPS);
+                } else if ((currentType & __BACKWARD__) == __BACKWARD__) {
+                    graph.joinVertices(
+                            *graph.getPredecessors(vertex).begin(), vertex, (type & LOOPS) != LOOPS);
+                }
+            }
+        }
     }
 };
 

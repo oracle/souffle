@@ -202,7 +202,6 @@ std::vector<std::set<const AstRelation*>> RelationSchedule::computeRelationExpir
                 alive[orderedSCC - 1].end(), std::inserter(relationExpirySchedule[numSCCs - orderedSCC],
                                                      relationExpirySchedule[numSCCs - orderedSCC].end()));
     }
-
     return relationExpirySchedule;
 }
 
