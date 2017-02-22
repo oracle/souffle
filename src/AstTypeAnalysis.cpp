@@ -530,7 +530,6 @@ TypeConstraint isSupertypeOf(const TypeVar& a, const Type& b) {
     return std::make_shared<C>(a, b);
 }
 
-
 /**
  * A constraint factory ensuring that all the types associated to the variable
  * a are subtypes of the least common super types of types associated to the variables {vars}.
@@ -743,7 +742,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
     struct Analysis : public AstConstraintAnalysis<TypeVar> {
         const TypeEnvironment& env;
         const AstProgram* program;
-        std::set<const AstAtom*> negated; 
+        std::set<const AstAtom*> negated;
 
         Analysis(const TypeEnvironment& env, const AstProgram* program) : env(env), program(program) {}
 
@@ -761,7 +760,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             for (unsigned i = 0; i < atts.size(); i++) {
                 const auto& typeName = atts[i]->getTypeName();
                 if (env.isType(typeName)) {
-                    // check whether atom is not negated 
+                    // check whether atom is not negated
                     if (negated.find(&atom) == negated.end()) {
                         addConstraint(isSubtypeOf(getVar(args[i]), env.getType(typeName)));
                     } else {
