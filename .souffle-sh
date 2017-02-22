@@ -30,6 +30,8 @@ cat << EOF
     souffle_reset       Reset hard to last commit, run teardown and setup.
     souffle_commit      Add everything to git and do a commit.
     souffle_push        Push the current branch to the git remote.
+    souffle_fetch       Fetch origin and upstream, pull origin master and upstream master.
+    souffle_pull        Pull the current branch from the git remote.
     souffle_test        Run make and then the testsuite on the given tests.
     souffle_debug       Run make and then the test in directory \$SOUFFLE/\$1/\$2.
     souffle_format      Format the code with clang-format.
@@ -100,6 +102,22 @@ souffle_push() {
     souffle_commit && \
     cd $SOUFFLE && \
     git push origin $(git branch | grep \* | sed 's/^\*\s//g') && \
+    cd -
+}
+
+souffle_fetch() {
+    cd $SOUFFLE && \
+    branch=$(git branch | grep \* | sed 's/^\*\s//g') && \
+    git checkout master && \
+    git fetch origin && \
+    git fetch upstream && \
+    git pull origin master && \
+    git pull upstream master
+}
+
+souffle_pull() {
+    cd $SOUFFLE && \
+    git pull origin $(git branch | grep \* | sed 's/^\*\s//g') && \
     cd -
 }
 
