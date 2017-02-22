@@ -55,14 +55,14 @@ number_union_relation_1(2).
 number_union_relation_2(2).
 number_union_relation_2(3).
 
-number_union_relation_1(X) :- number_union_relation_2(X). // TODO
+number_union_relation_1(X) :- number_union_relation_2(X).
 
-number_union_relation_1_2(X) :- number_union_relation_1(X). // TODO
-number_union_relation_1_2(X) :- number_union_relation_2(X). // TODO
-number_union_relation_1_2(X) :- number_union_relation_1(X), number_union_relation_2(X). // TODO
+number_union_relation_1_2(X) :- number_union_relation_1(X).
+number_union_relation_1_2(X) :- number_union_relation_2(X).
+number_union_relation_1_2(X) :- number_union_relation_1(X), number_union_relation_2(X).
 number_union_relation_1_2(X) :- !number_union_relation_1(X), !number_union_relation_2(X). // TODO
 
-number_union_relation_3(X) :- number_union_relation_1_2(X). // TODO
+number_union_relation_3(X) :- number_union_relation_1_2(X).
 
 // Symbols
 
@@ -113,14 +113,14 @@ symbol_union_relation_1(2).
 symbol_union_relation_2(2).
 symbol_union_relation_2(3).
 
-symbol_union_relation_1(X) :- symbol_union_relation_2(X). // TODO
+symbol_union_relation_1(X) :- symbol_union_relation_2(X).
 
-symbol_union_relation_1_2(X) :- symbol_union_relation_1(X). // TODO
-symbol_union_relation_1_2(X) :- symbol_union_relation_2(X). // TODO
-symbol_union_relation_1_2(X) :- symbol_union_relation_1(X), symbol_union_relation_2(X). // TODO
+symbol_union_relation_1_2(X) :- symbol_union_relation_1(X).
+symbol_union_relation_1_2(X) :- symbol_union_relation_2(X).
+symbol_union_relation_1_2(X) :- symbol_union_relation_1(X), symbol_union_relation_2(X).
 symbol_union_relation_1_2(X) :- !symbol_union_relation_1(X), !symbol_union_relation_2(X). // TODO
 
-symbol_union_relation_3(X) :- symbol_union_relation_1_2(X). // TODO
+symbol_union_relation_3(X) :- symbol_union_relation_1_2(X).
 
 // Numbers and Symbols
 

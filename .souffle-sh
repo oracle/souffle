@@ -85,9 +85,11 @@ souffle_make() {
 }
 
 souffle_reset() {
+    cd $SOUFFLE && \
+    git reset --hard HEAD && \
     souffle_teardown && \
     souffle_setup && \
-    souffle_make
+    cd -
 }
 
 souffle_commit() {
@@ -113,7 +115,7 @@ souffle_fetch() {
     git fetch upstream && \
     git pull origin master && \
     git pull upstream master && \
-    git checout $branch && \
+    git checkout $branch && \
     cd -
 }
 
@@ -124,8 +126,7 @@ souffle_pull() {
 }
 
 souffle_test() {
-    souffle_make &&
-
+    souffle_make && \
     cd $SOUFFLE/tests && \
     ./testsuite -j$JOBS $@ && \
     cd -
