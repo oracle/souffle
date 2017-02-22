@@ -79,8 +79,8 @@ number_union_relation_1(X) :- number_union_relation_2(X).
 number_union_relation_1_2_A(X) :- number_union_relation_1(X).
 number_union_relation_1_2_A(X) :- number_union_relation_2(X).
 number_union_relation_1_2_A(X) :- number_union_relation_1(X), number_union_relation_2(X).
-number_union_relation_1_2_A(X) :- number_relation(X), !number_union_relation_1(X), !number_union_relation_2(X). // TODO
-number_union_relation_1_2_A(X) :- number_union_relation_1_2_B(X), !number_union_relation_1(X), !number_union_relation_2(X). // TODO
+number_union_relation_1_2_A(X) :- number_relation(X), !number_union_relation_1(X), !number_union_relation_2(X).
+number_union_relation_1_2_A(X) :- number_union_relation_1_2_B(X), !number_union_relation_1(X), !number_union_relation_2(X).
 
 number_union_relation_3(X) :- number_union_relation_2_3(X).
 
@@ -157,17 +157,17 @@ symbol_union_relation_1(X) :- symbol_union_relation_2(X).
 symbol_union_relation_1_2_A(X) :- symbol_union_relation_1(X).
 symbol_union_relation_1_2_A(X) :- symbol_union_relation_2(X).
 symbol_union_relation_1_2_A(X) :- symbol_union_relation_1(X), symbol_union_relation_2(X).
-symbol_union_relation_1_2_A(X) :- symbol_relation(X), !symbol_union_relation_1(X), !symbol_union_relation_2(X). // TODO
-symbol_union_relation_1_2_A(X) :- symbol_union_relation_1_2_B(X), !symbol_union_relation_1(X), !symbol_union_relation_2(X). // TODO
+symbol_union_relation_1_2_A(X) :- symbol_relation(X), !symbol_union_relation_1(X), !symbol_union_relation_2(X).
+symbol_union_relation_1_2_A(X) :- symbol_union_relation_1_2_B(X), !symbol_union_relation_1(X), !symbol_union_relation_2(X).
 
 symbol_union_relation_3(X) :- symbol_union_relation_2_3(X).
 
 // Numbers and Symbols
 
-.type number_symbol = number | symbol // TODO
+.type number_symbol = number | symbol
 
-.type number_symbol_primi = number_primi_1 | symbol_primi_1 // TODO
-.type number_symbol_primi_1_2 = number_primi_1_2 | symbol_primi_1_2 // TODO
+.type number_symbol_primi = number_primi_1 | symbol_primi_1
+.type number_symbol_primi_1_2 = number_primi_1_2 | symbol_primi_1_2
 
-.type number_symbol_union = number_union_1 | symbol_union_1 // TODO
-.type number_symbol_union_1_2 = number_union_1_2 | symbol_union_1_2 // TODO
+.type number_symbol_union = number_union_1 | symbol_union_1
+.type number_symbol_union_1_2 = number_union_1_2 | symbol_union_1_2

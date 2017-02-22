@@ -1,0 +1,13 @@
+Error: Unable to deduce type for variable X in file negated_types.dl at line 24
+E(X) :- F(X), A(X), B(X). // error
+--^--------------------------------
+Error: Unable to deduce type for variable X in file negated_types.dl at line 24
+E(X) :- F(X), A(X), B(X). // error
+----------^------------------------
+Error: Unable to deduce type for variable X in file negated_types.dl at line 24
+E(X) :- F(X), A(X), B(X). // error
+----------------^------------------
+Error: Unable to deduce type for variable X in file negated_types.dl at line 24
+E(X) :- F(X), A(X), B(X). // error
+----------------------^------------
+4 errors generated, evaluation aborted
