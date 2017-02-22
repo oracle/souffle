@@ -523,7 +523,7 @@ TypeConstraint isSupertypeOf(const TypeVar& a, const Type& b) {
         }
 
         virtual void print(std::ostream& out) const {
-            out << b.getName() << " <: " a;
+            out << b.getName() << " <: " << a;
         }
     };
 
