@@ -475,7 +475,7 @@ TypeConstraint isSubtypeOf(const TypeVar& a, const Type& b) {
 
             TypeSet res;
             for (const Type& t : s) {
-                res.insert(getLeastCommonSupertypes(t, b));
+                res.insert(getGreatestCommonSubtypes(t, b));
             }
 
             // check whether there was a change
@@ -511,7 +511,7 @@ TypeConstraint isSupertypeOf(const TypeVar& a, const Type& b) {
 
             TypeSet res;
             for (const Type& t : s) {
-                res.insert(getGreatestCommonSubtypes(t, b));
+                res.insert(getLeastCommonSupertypes(t, b));
             }
 
             // check whether there was a change
