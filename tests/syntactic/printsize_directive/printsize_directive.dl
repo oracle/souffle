@@ -5,3 +5,4 @@ A(2).
 .decl B(x:number)
 B(x) :- A(x).
 .printsize B
+.printsize B

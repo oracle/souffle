@@ -271,6 +271,14 @@ public:
         ioDirectives.push_back(std::move(c));
     }
 
+    void addIODirectiveChain(std::unique_ptr<AstIODirective> c) {
+        for (auto& currentName : c->getNames()) {
+            std::unique_ptr<AstIODirective> clone(c->clone());
+            clone->setName(currentName);
+            ioDirectives.push_back(std::move(clone));
+        }
+    }
+
     std::vector<AstIODirective*> getIODirectives() const {
         return toPtrVector(ioDirectives);
     }

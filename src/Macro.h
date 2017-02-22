@@ -20,6 +20,15 @@ inline void call(const std::string& name, const std::string& text, const int cod
 }
 }
 
+/* Macro for BREAKPOINT */
+#ifndef BREAKPOINT
+#ifndef OPT
+#define BREAKPOINT (std::cerr << "@" << __FILE__ << ":" << __LINE__ << std::endl)
+#else
+#define BREAKPOINT
+#endif
+#endif
+
 /* Macro for ASSERT */
 #ifndef ASSERT
 #ifndef OPT
