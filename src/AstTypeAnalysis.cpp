@@ -475,6 +475,42 @@ TypeConstraint isSubtypeOf(const TypeVar& a, const Type& b) {
 
             TypeSet res;
             for (const Type& t : s) {
+                res.insert(getLeastCommonSupertypes(t, b));
+            }
+
+            // check whether there was a change
+            if (res == s) {
+                return false;
+            }
+            s = res;
+            return true;
+        }
+
+        virtual void print(std::ostream& out) const {
+            out << a << " <: " << b.getName();
+        }
+    };
+
+    return std::make_shared<C>(a, b);
+}
+
+/**
+ * A constraint factory ensuring that all the types associated to the variable
+ * a are subtypes of type b.
+ */
+TypeConstraint isSupertypeOf(const TypeVar& a, const Type& b) {
+    struct C : public Constraint<TypeVar> {
+        TypeVar a;
+        const Type& b;
+
+        C(const TypeVar& a, const Type& b) : a(a), b(b) {}
+
+        virtual bool update(Assignment<TypeVar>& ass) const {
+            // get current value of variable a
+            TypeSet& s = ass[a];
+
+            TypeSet res;
+            for (const Type& t : s) {
                 res.insert(getGreatestCommonSubtypes(t, b));
             }
 
@@ -493,6 +529,7 @@ TypeConstraint isSubtypeOf(const TypeVar& a, const Type& b) {
 
     return std::make_shared<C>(a, b);
 }
+
 
 /**
  * A constraint factory ensuring that all the types associated to the variable
