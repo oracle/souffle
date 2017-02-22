@@ -40,9 +40,9 @@ EOF
 }
 
 souffle_ubuntu() {
-sudo apt-get update && \
-sudo apt-get upgrade && \
-sudo apt-get install \
+    sudo apt-get update && \
+    sudo apt-get upgrade && \
+    sudo apt-get install \
     git \
     automake \
     autoconf \
@@ -112,7 +112,9 @@ souffle_fetch() {
     git fetch origin && \
     git fetch upstream && \
     git pull origin master && \
-    git pull upstream master
+    git pull upstream master && \
+    git checout $branch && \
+    cd -
 }
 
 souffle_pull() {
