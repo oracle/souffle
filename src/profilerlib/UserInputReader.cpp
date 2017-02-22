@@ -158,8 +158,9 @@ void InputReader::clearHistory() {
 }
 
 void InputReader::addHistory(std::string hist) {
-    for (auto& a : history) {
-        if (hist.compare(a) == 0) {
+    if (history.size() > 0) {
+        // only add to history if the last command wasn't the same
+        if (hist.compare(history.at(history.size()-1)) == 0) {
             return;
         }
     }

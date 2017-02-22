@@ -9,18 +9,18 @@
 #include "OutputProcessor.hpp"
 
 /*
-     * rel table :
-     * ROW[0] = TOT_T
-     * ROW[1] = NREC_T
-     * ROW[2] = REC_T
-     * ROW[3] = COPY_T
-     * ROW[4] = TUPLES
-     * ROW[5] = REL NAME
-     * ROW[6] = ID
-     * ROW[7] = SRC
-     * ROW[8] = PERFOR
-     *
-     */
+ * rel table :
+ * ROW[0] = TOT_T
+ * ROW[1] = NREC_T
+ * ROW[2] = REC_T
+ * ROW[3] = COPY_T
+ * ROW[4] = TUPLES
+ * ROW[5] = REL NAME
+ * ROW[6] = ID
+ * ROW[7] = SRC
+ * ROW[8] = PERFOR
+ *
+ */
 Table OutputProcessor::getRelTable() {
     std::unordered_map<std::string, std::shared_ptr<Relation>>& relation_map = programRun->getRelation_map();
     Table table;
@@ -46,7 +46,20 @@ Table OutputProcessor::getRelTable() {
     }
     return table;
 }
-
+/*
+ * rul table :
+ * ROW[0] = TOT_T
+ * ROW[1] = NREC_T
+ * ROW[2] = REC_T
+ * ROW[3] = COPY_T
+ * ROW[4] = TUPLES
+ * ROW[5] = RUL NAME
+ * ROW[6] = ID
+ * ROW[7] = SRC
+ * ROW[8] = PERFOR
+ * ROW[9] = VER
+ * ROW[10]= REL_NAME
+ */
 Table OutputProcessor::getRulTable() {
     std::unordered_map<std::string, std::shared_ptr<Relation>>& relation_map = programRun->getRelation_map();
     std::unordered_map<std::string, std::shared_ptr<Row>> rule_map;
@@ -127,19 +140,19 @@ Table OutputProcessor::getRulTable() {
 }
 
 /*
-     * ver table :
-     * ROW[0] = TOT_T
-     * ROW[1] = NREC_T
-     * ROW[2] = REC_T
-     * ROW[3] = COPY_T
-     * ROW[4] = TUPLES
-     * ROW[5] = RUL NAME
-     * ROW[6] = ID
-     * ROW[7] = SRC
-     * ROW[8] = PERFOR
-     * ROW[9] = VER
-     * ROW[10]= REL_NAME
-     */
+ * ver table :
+ * ROW[0] = TOT_T
+ * ROW[1] = NREC_T
+ * ROW[2] = REC_T
+ * ROW[3] = COPY_T
+ * ROW[4] = TUPLES
+ * ROW[5] = RUL NAME
+ * ROW[6] = ID
+ * ROW[7] = SRC
+ * ROW[8] = PERFOR
+ * ROW[9] = VER
+ * ROW[10]= REL_NAME
+ */
 Table OutputProcessor::getVersions(std::string strRel, std::string strRul) {
     std::unordered_map<std::string, std::shared_ptr<Relation>>& relation_map = programRun->getRelation_map();
     std::unordered_map<std::string, std::shared_ptr<Row>> rule_map;
