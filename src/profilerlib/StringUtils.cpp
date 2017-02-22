@@ -93,7 +93,6 @@ std::string Tools::formatNum(int precision, long amount) {
     return NULL;
 }
 
-
 /*
  * Convert a double value to a shorthand form for readability
  * TODO: refactor for readability/cleanliness
@@ -170,7 +169,8 @@ std::vector<std::string> Tools::split(std::string str, std::string split_str) {
     for (int i = 0; i < str.size(); i++) {
         if (repeat) {
             if (str.at(i) == split_str.at(0)) {
-                while (str.at(++i) == split_str.at(0)); // set i to be at the end of the search string
+                while (str.at(++i) == split_str.at(0))
+                    ;  // set i to be at the end of the search string
                 elems.push_back(temp);
                 temp = "";
             }

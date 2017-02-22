@@ -29,7 +29,8 @@
  * Input reader and processor for log files
  * Contains both offline and live reader
  * TODO: remove offline reader and use live reader
- *  - live reader has the same functionality as offline, but reads from last read position after it reaches EOF
+ *  - live reader has the same functionality as offline, but reads from last read position after it reaches
+ * EOF
  * TODO: add code to inform UserInputReader to deal with the warning message when live reader finishes
  */
 class Reader {

@@ -30,31 +30,31 @@
 class DataComparator {
 public:
     /* descending order comparator used to sort rows */
-    static bool TIME(std::shared_ptr<Row> a, std::shared_ptr<Row> b) { // TOT_T: total time
+    static bool TIME(std::shared_ptr<Row> a, std::shared_ptr<Row> b) {  // TOT_T: total time
         return compare_doubles(a->cells[0]->getDoubVal(), b->cells[0]->getDoubVal());
     }
 
-    static bool NR_T(std::shared_ptr<Row> a, std::shared_ptr<Row> b) { // NREC_T: non recursive time
+    static bool NR_T(std::shared_ptr<Row> a, std::shared_ptr<Row> b) {  // NREC_T: non recursive time
         return compare_doubles(a->cells[1]->getDoubVal(), b->cells[1]->getDoubVal());
     }
 
-    static bool R_T(std::shared_ptr<Row> a, std::shared_ptr<Row> b) { // REC_T: recursive time
+    static bool R_T(std::shared_ptr<Row> a, std::shared_ptr<Row> b) {  // REC_T: recursive time
         return compare_doubles(a->cells[2]->getDoubVal(), b->cells[2]->getDoubVal());
     }
 
-    static bool C_T(std::shared_ptr<Row> a, std::shared_ptr<Row> b) { // COPY_T: copy time
+    static bool C_T(std::shared_ptr<Row> a, std::shared_ptr<Row> b) {  // COPY_T: copy time
         return compare_doubles(a->cells[3]->getDoubVal(), b->cells[3]->getDoubVal());
     }
 
-    static bool TUP(std::shared_ptr<Row> a, std::shared_ptr<Row> b) { // Tuples
+    static bool TUP(std::shared_ptr<Row> a, std::shared_ptr<Row> b) {  // Tuples
         return b->cells[4]->getLongVal() < a->cells[4]->getLongVal();
     }
 
-    static bool NAME(std::shared_ptr<Row> a, std::shared_ptr<Row> b) { // Name
+    static bool NAME(std::shared_ptr<Row> a, std::shared_ptr<Row> b) {  // Name
         return b->cells[5]->getStringVal() > a->cells[5]->getStringVal();
     }
 
-    static bool ID(std::shared_ptr<Row> a, std::shared_ptr<Row> b) { // ID
+    static bool ID(std::shared_ptr<Row> a, std::shared_ptr<Row> b) {  // ID
         // TODO: compare the actual ID values
         return b->cells[6]->getStringVal() > a->cells[6]->getStringVal();
     }

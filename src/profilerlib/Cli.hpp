@@ -20,7 +20,6 @@
  * generate the GUI file or run the TUI
  */
 class Cli {
-
 public:
     std::vector<std::string> args;
 
