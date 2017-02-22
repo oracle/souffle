@@ -509,6 +509,12 @@ TypeConstraint isSupertypeOf(const TypeVar& a, const Type& b) {
             // get current value of variable a
             TypeSet& s = ass[a];
 
+           // remove all types that are not super-types of b
+           if (s.isAll()) {
+               s = TypeSet(b);
+               return true;
+           }
+
             TypeSet res;
             for (const Type& t : s) {
                 res.insert(getLeastCommonSupertypes(t, b));
