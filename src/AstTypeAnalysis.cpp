@@ -743,6 +743,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
     struct Analysis : public AstConstraintAnalysis<TypeVar> {
         const TypeEnvironment& env;
         const AstProgram* program;
+        std::set<const AstAtom*> negated; 
 
         Analysis(const TypeEnvironment& env, const AstProgram* program) : env(env), program(program) {}
 
@@ -760,9 +761,20 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             for (unsigned i = 0; i < atts.size(); i++) {
                 const auto& typeName = atts[i]->getTypeName();
                 if (env.isType(typeName)) {
-                    addConstraint(isSubtypeOf(getVar(args[i]), env.getType(typeName)));
+                    // check whether atom is not negated 
+                    if (negated.find(&atom) == negated.end()) {
+                        addConstraint(isSubtypeOf(getVar(args[i]), env.getType(typeName)));
+                    } else {
+                        addConstraint(isSupertypeOf(getVar(args[i]), env.getType(typeName)));
+                    }
                 }
             }
+        }
+
+        // #2 - negations need to be skipped
+        void visitNegation(const AstNegation& cur) {
+            // add nested atom to black-list
+            negated.insert(cur.getAtom());
         }
 
         // symbol
