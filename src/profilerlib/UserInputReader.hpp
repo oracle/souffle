@@ -16,6 +16,14 @@
 #include <termios.h>
 #include <unistd.h>
 
+/*
+ * A class that reads user input a char at a time allowing for tab completion and history to be implemented
+ * TODO: link live reader and this class for the warning message that the live reader has finished to be
+ * displayed properly
+ * TODO: consider: only display history based on current input
+ * - eg. history is ["rel R1", "rul N1.1", "graph R1 tot_t"] user types "rel" and presses up, will show "rel
+ * R1" only
+ */
 class InputReader {
 private:
     std::string prompt;

@@ -20,6 +20,14 @@
 #include "UserInputReader.hpp"
 #include "html_string.hpp"
 
+/*
+ * Text User interface for SouffleProf
+ * OutputProcessor creates a ProgramRun object
+ * ProgramRun -> Reader.hpp ProgramRun stores all the data
+ * OutputProcessor grabs the data and makes tables
+ * Tui displays the data
+ * TODO: move parts of the code into other classes, especially the outputJson function
+ */
 class Tui {
 private:
     OutputProcessor out;

@@ -16,6 +16,9 @@
 #include "Iteration.hpp"
 #include "Rule.hpp"
 
+/*
+ * Stores the iterations and rules of a given relation
+ */
 class Relation {
 private:
     std::string name;

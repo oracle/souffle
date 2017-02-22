@@ -15,6 +15,10 @@
 #include <string>
 #include <unordered_map>
 
+/*
+ * Stores the relations of the program
+ * ProgramRun -> Relations -> Iterations/Rules
+ */
 class ProgramRun {
 private:
     std::unordered_map<std::string, std::shared_ptr<Relation>> relation_map;
