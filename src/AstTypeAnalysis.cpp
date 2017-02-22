@@ -530,12 +530,11 @@ TypeConstraint isSupertypeOf(const TypeVar& a, const Type& b) {
     return std::make_shared<C>(a, b);
 }
 
-
 /**
  * A constraint factory ensuring that all the types associated to the variable
  * a are subtypes of the least common super types of types associated to the variables {vars}.
  */
-//TypeConstraint isSubtypeOfSuperType(const TypeVar& a, const std::vector<TypeVar>& vars) {
+// TypeConstraint isSubtypeOfSuperType(const TypeVar& a, const std::vector<TypeVar>& vars) {
 //    // TODO: this function is not used, maybe it should be deleted
 //    assert(!vars.empty() && "Unsupported for no variables!");
 //
