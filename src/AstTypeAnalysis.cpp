@@ -535,7 +535,7 @@ TypeConstraint isSupertypeOf(const TypeVar& a, const Type& b) {
  * a are subtypes of the least common super types of types associated to the variables {vars}.
  */
 // TypeConstraint isSubtypeOfSuperType(const TypeVar& a, const std::vector<TypeVar>& vars) {
-//    // TODO: this function is not used, maybe it should be deleted
+//    // TODO: this function is not used, so maybe it should be deleted
 //    assert(!vars.empty() && "Unsupported for no variables!");
 //
 //    // if there is only one variable => chose easy way
