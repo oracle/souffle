@@ -1,5 +1,5 @@
 //
-// Type System 2
+// Type System 3
 //
 // This test checks that types are handled correctly. It was
 // created for issue #201 "Type system: Fails when Union type
