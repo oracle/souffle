@@ -8,13 +8,16 @@
 
 .number_type one
 .number_type two
+.symbol_type three
 
 .type all = one | two
 
 .decl A (i:one)
 .decl B (i:two)
+.decl C (i:three)
+.decl D (i:three)
 
-.decl G(i:one)
+.decl G (i:one)
 .decl F (i:all)
 .decl E (i:all)
 
@@ -31,3 +34,4 @@ G(X) :- E(X). // no error
 E(X) :- F(X), !A(X), !B(X). // no error
 E(X) :- F(X), A(X), B(X). // error
 
+C(X) :- D(X), !A(X). // error
