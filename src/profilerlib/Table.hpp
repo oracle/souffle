@@ -15,6 +15,10 @@
 #include "DataComparator.hpp"
 #include "Row.hpp"
 
+/*
+ * Table class for holding a vector of rows
+ * And sorting the rows based on a datacomparator function
+ */
 class Table {
 public:
     std::vector<std::shared_ptr<Row>> rows;

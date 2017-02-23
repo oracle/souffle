@@ -95,24 +95,4 @@ std::string Relation::toString() {
     std::string retStr = output.str();
     // substring to remove the last comma
     return retStr.substr(0, retStr.size() - 2) + "]\n}";
-
-    //    std::ostringstream output;
-    //    output << "{\n" << name << ":" << runtime << ";" << num_tuples
-    //           << "\n\nonRecRules:\n";
-    //    for (auto &rul : ruleMap) {
-    //        output << rul.second->toString();
-    //    }
-    //    // TODO: ensure this is the same as java, as java just prints an array
-    //    output << "\n\niterations:\n";
-    //    output << "[";
-    //    if (iterations.empty()) {
-    //        output << ", ";
-    //    }
-    //    for (auto &iter : iterations) {
-    //        output << iter->toString();
-    //        output << ", ";
-    //    }
-    //    std::string retStr = output.str();
-    //    //substring to remove the last comma
-    //    return retStr.substr(0, retStr.size()-2) + "]\n}";
 }

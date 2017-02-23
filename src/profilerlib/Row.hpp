@@ -15,6 +15,9 @@
 #include <string>
 #include <vector>
 
+/*
+ * Row class for Tables, holds a vector of cells.
+ */
 class Row {
 public:
     std::vector<std::shared_ptr<CellInterface>> cells;

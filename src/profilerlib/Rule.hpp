@@ -13,6 +13,9 @@
 #include <sstream>
 #include <string>
 
+/*
+ * Class to hold information about souffle Rule profile information
+ */
 class Rule {
 protected:
     std::string name;
