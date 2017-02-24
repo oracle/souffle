@@ -8,12 +8,11 @@
 
 #pragma once
 
+#include <fstream>
 #include <iostream>
 #include <string>
-#include <fstream>
 
 #include "StringUtils.hpp"
-
 
 /*
  * Class containing a copy of the gui_src directory (apart from testtabledata) packaged into one html file
@@ -27,10 +26,11 @@ class html_string {
 private:
     std::string first_half;
     std::string second_half;
+
 public:
     html_string() {
         std::string current_dir = __FILE__;
-        std::string make_directory = MAKEDIR; // Variable set as flag in src/Makefile.am
+        std::string make_directory = MAKEDIR;  // Variable set as flag in src/Makefile.am
 
         std::vector<std::string> profiler_dir = Tools::split(current_dir, "/");
 
@@ -42,11 +42,11 @@ public:
 
         std::string gui_directory = make_directory;
 
-        for (int i=0;i<profiler_dir.size()-1;++i) {
+        for (int i = 0; i < profiler_dir.size() - 1; ++i) {
             gui_directory += "/" + profiler_dir.at(i);
         }
 
-        std::string GUI_DIR = "gui_src"; // TODO: change from hard coded string
+        std::string GUI_DIR = "gui_src";  // TODO: change from hard coded string
 
         gui_directory += "/" + GUI_DIR + "/";
 
@@ -60,10 +60,10 @@ public:
         while (std::getline(infile, line)) {
             output = "";
             if (line.find("<link") == 0) {
-                std::vector<std::string> src = Tools::split(line,"href=\"");
-                if (src.size()>1) {
+                std::vector<std::string> src = Tools::split(line, "href=\"");
+                if (src.size() > 1) {
                     output = "<style>\n";
-                    std::ifstream infile2(gui_directory + Tools::split(src.at(1),"\"").at(0));
+                    std::ifstream infile2(gui_directory + Tools::split(src.at(1), "\"").at(0));
                     while (std::getline(infile2, line)) {
                         output += line + "\n";
                     }
@@ -73,11 +73,11 @@ public:
                     output = line;
                 }
             } else if (line.find("<script") == 0) {
-                std::vector<std::string> src = Tools::split(line,"src=\"");
-                if (src.size()>1) {
+                std::vector<std::string> src = Tools::split(line, "src=\"");
+                if (src.size() > 1) {
                     output = "<script>\n";
-                    std::string filename = Tools::split(src.at(1),"\"").at(0);
-                    if (filename == "testtabledata.js") { // TODO: another hard coded string
+                    std::string filename = Tools::split(src.at(1), "\"").at(0);
+                    if (filename == "testtabledata.js") {  // TODO: another hard coded string
                         this->first_half += output;
                         adding_to_first = false;
                         output = "\n</script>\n";
@@ -95,19 +95,16 @@ public:
             } else {
                 output = line;
             }
-            if (output.empty())
-                continue;
+            if (output.empty()) continue;
 
             if (adding_to_first)
                 this->first_half += output;
             else
                 this->second_half += output;
         }
-
     }
 
     inline std::string get_first_half() {
-
         return this->first_half;
     }
 

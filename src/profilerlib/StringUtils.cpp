@@ -313,11 +313,9 @@ std::string Tools::cleanJsonOut(double val) {
     return ss.str();
 }
 
-
 std::string Tools::stripWhitespace(std::string val) {
     size_t first = val.find_first_not_of(' ');
-    if (first == std::string::npos)
-        return "";
+    if (first == std::string::npos) return "";
     size_t last = val.find_last_not_of(' ');
-    return val.substr(first, (last-first+1));
+    return val.substr(first, (last - first + 1));
 }
