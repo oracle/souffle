@@ -15,6 +15,14 @@
 #include "StringUtils.hpp"
 
 
+/*
+ * Class containing a copy of the gui_src directory (apart from testtabledata) packaged into one html file
+ * so that a data variable can be inserted in the middle of the two strings and written to a file.
+ *
+ * TODO: test reading directly from gui_src files
+ * TODO: after reading from gui_src a js/css minification process could be added to reduce file size
+ *  - not necessary at this point as the packaged file is ~100kb
+ */
 class html_string {
 private:
     std::string first_half;

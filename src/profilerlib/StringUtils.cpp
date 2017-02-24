@@ -8,6 +8,10 @@
 
 #include "StringUtils.hpp"
 
+/*
+ * Convert a number into a shorthand notation
+ * eg. 1230000 -> 1.23M
+ */
 std::string Tools::formatNum(int precision, long amount) {
     // assumes number is < 999*10^12
     if (amount == 0) {
@@ -89,6 +93,12 @@ std::string Tools::formatNum(int precision, long amount) {
     return NULL;
 }
 
+/*
+ * Convert a double value to a shorthand form for readability
+ * TODO: refactor for readability/cleanliness
+ * TODO: add a Year string? Not really necessary
+ * TODO: add microseconds?
+ */
 std::string Tools::formatTime(double number) {
     if (std::isnan(number) || std::isinf(number)) {
         return "-";
@@ -130,6 +140,7 @@ std::string Tools::formatTime(double number) {
     return ".000";
 }
 
+// convert a Table object into a 2D vector of strings
 std::vector<std::vector<std::string>> Tools::formatTable(Table table, int precision) {
     std::vector<std::vector<std::string>> result;
     for (auto& row : table.getRows()) {
@@ -146,11 +157,10 @@ std::vector<std::vector<std::string>> Tools::formatTable(Table table, int precis
     return result;
 }
 
+// split a string using another string
 std::vector<std::string> Tools::split(std::string str, std::string split_str) {
-    bool repeat = false;
-    if (split_str.compare(" ") == 0) {
-        repeat = true;
-    }
+    // repeat value when splitting so "a   b" -> ["a","b"] not ["a","","","","b"]
+    bool repeat = (split_str.compare(" ") == 0);
 
     std::vector<std::string> elems;
 
@@ -160,7 +170,7 @@ std::vector<std::string> Tools::split(std::string str, std::string split_str) {
         if (repeat) {
             if (str.at(i) == split_str.at(0)) {
                 while (str.at(++i) == split_str.at(0))
-                    ;
+                    ;  // set i to be at the end of the search string
                 elems.push_back(temp);
                 temp = "";
             }
@@ -293,6 +303,7 @@ std::string Tools::escapeQuotes(std::string val) {
     return val;
 }
 
+// TODO: is precision of 6 enough? Maybe check how large the precision value should be?
 std::string Tools::cleanJsonOut(double val) {
     if (std::isnan(val)) {
         return "NaN";

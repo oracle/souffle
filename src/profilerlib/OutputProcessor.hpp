@@ -18,6 +18,9 @@
 #include "StringUtils.hpp"
 #include "Table.hpp"
 
+/*
+ * Class to format profiler data structures into tables
+ */
 class OutputProcessor {
 private:
     std::shared_ptr<ProgramRun> programRun;

@@ -35,6 +35,11 @@
 
 #include "Table.hpp"
 
+/*
+ * A series of functions necessary throughout the code
+ * Mostly string manipulation
+ */
+
 namespace Tools {
 static const std::string arr[] = {"K", "M", "B", "t", "q", "Q", "s", "S", "o", "n", "d", "U"};
 static const std::vector<std::string> abbreviations(arr, arr + sizeof(arr) / sizeof(arr[0]));
