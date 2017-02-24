@@ -323,21 +323,21 @@ bool eval(const RamCondition& cond, RamEnvironment& env, const EvalContext& ctxt
         bool visitBinaryRelation(const RamBinaryRelation& relOp) {
             switch (relOp.getOperator()) {
                 // comparison operators
-                case BinaryRelOp::EQ:
+                case BinaryConstraintOp::EQ:
                     return eval(relOp.getLHS(), env, ctxt) == eval(relOp.getRHS(), env, ctxt);
-                case BinaryRelOp::NE:
+                case BinaryConstraintOp::NE:
                     return eval(relOp.getLHS(), env, ctxt) != eval(relOp.getRHS(), env, ctxt);
-                case BinaryRelOp::LT:
+                case BinaryConstraintOp::LT:
                     return eval(relOp.getLHS(), env, ctxt) < eval(relOp.getRHS(), env, ctxt);
-                case BinaryRelOp::LE:
+                case BinaryConstraintOp::LE:
                     return eval(relOp.getLHS(), env, ctxt) <= eval(relOp.getRHS(), env, ctxt);
-                case BinaryRelOp::GT:
+                case BinaryConstraintOp::GT:
                     return eval(relOp.getLHS(), env, ctxt) > eval(relOp.getRHS(), env, ctxt);
-                case BinaryRelOp::GE:
+                case BinaryConstraintOp::GE:
                     return eval(relOp.getLHS(), env, ctxt) >= eval(relOp.getRHS(), env, ctxt);
 
                 // strings
-                case BinaryRelOp::MATCH: {
+                case BinaryConstraintOp::MATCH: {
                     RamDomain l = eval(relOp.getLHS(), env, ctxt);
                     RamDomain r = eval(relOp.getRHS(), env, ctxt);
                     const std::string& pattern = env.getSymbolTable().resolve(l);
@@ -351,7 +351,7 @@ bool eval(const RamCondition& cond, RamEnvironment& env, const EvalContext& ctxt
                     }
                     return result;
                 }
-                case BinaryRelOp::CONTAINS: {
+                case BinaryConstraintOp::CONTAINS: {
                     RamDomain l = eval(relOp.getLHS(), env, ctxt);
                     RamDomain r = eval(relOp.getRHS(), env, ctxt);
                     const std::string& pattern = env.getSymbolTable().resolve(l);
@@ -1611,27 +1611,27 @@ public:
     void visitBinaryRelation(const RamBinaryRelation& rel, std::ostream& out) {
         switch (rel.getOperator()) {
             // comparison operators
-            case BinaryRelOp::EQ:
+            case BinaryConstraintOp::EQ:
                 out << "((" << print(rel.getLHS()) << ") == (" << print(rel.getRHS()) << "))";
                 break;
-            case BinaryRelOp::NE:
+            case BinaryConstraintOp::NE:
                 out << "((" << print(rel.getLHS()) << ") != (" << print(rel.getRHS()) << "))";
                 break;
-            case BinaryRelOp::LT:
+            case BinaryConstraintOp::LT:
                 out << "((" << print(rel.getLHS()) << ") < (" << print(rel.getRHS()) << "))";
                 break;
-            case BinaryRelOp::LE:
+            case BinaryConstraintOp::LE:
                 out << "((" << print(rel.getLHS()) << ") <= (" << print(rel.getRHS()) << "))";
                 break;
-            case BinaryRelOp::GT:
+            case BinaryConstraintOp::GT:
                 out << "((" << print(rel.getLHS()) << ") > (" << print(rel.getRHS()) << "))";
                 break;
-            case BinaryRelOp::GE:
+            case BinaryConstraintOp::GE:
                 out << "((" << print(rel.getLHS()) << ") >= (" << print(rel.getRHS()) << "))";
                 break;
 
             // strings
-            case BinaryRelOp::MATCH: {
+            case BinaryConstraintOp::MATCH: {
                 out << "regex_wrapper(symTable.resolve((size_t)";
                 out << print(rel.getLHS());
                 out << "),symTable.resolve((size_t)";
@@ -1639,7 +1639,7 @@ public:
                 out << "))";
                 break;
             }
-            case BinaryRelOp::NOT_MATCH: {
+            case BinaryConstraintOp::NOT_MATCH: {
                 out << "!regex_wrapper(symTable.resolve((size_t)";
                 out << print(rel.getLHS());
                 out << "),symTable.resolve((size_t)";
@@ -1647,7 +1647,7 @@ public:
                 out << "))";
                 break;
             }
-            case BinaryRelOp::CONTAINS: {
+            case BinaryConstraintOp::CONTAINS: {
                 out << "(std::string(symTable.resolve((size_t)";
                 out << print(rel.getRHS());
                 out << ")).find(symTable.resolve((size_t)";
@@ -1655,7 +1655,7 @@ public:
                 out << "))!=std::string::npos)";
                 break;
             }
-            case BinaryRelOp::NOT_CONTAINS: {
+            case BinaryConstraintOp::NOT_CONTAINS: {
                 out << "(std::string(symTable.resolve((size_t)";
                 out << print(rel.getRHS());
                 out << ")).find(symTable.resolve((size_t)";

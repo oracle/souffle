@@ -83,21 +83,21 @@ public:
 /** abstract class for binary operation/relations on values */
 class RamBinaryRelation : public RamCondition {
 private:
-    BinaryRelOp op;
+    BinaryConstraintOp op;
     /** left-hand side */
     std::unique_ptr<RamValue> lhs;
     /** right-hand side */
     std::unique_ptr<RamValue> rhs;
 
 public:
-    RamBinaryRelation(BinaryRelOp op, std::unique_ptr<RamValue> l, std::unique_ptr<RamValue> r)
+    RamBinaryRelation(BinaryConstraintOp op, std::unique_ptr<RamValue> l, std::unique_ptr<RamValue> r)
             : RamCondition(RN_BinaryRelation), op(op), lhs(std::move(l)), rhs(std::move(r)) {}
 
     virtual ~RamBinaryRelation() {}
 
     virtual void print(std::ostream& os) const {
         lhs->print(os);
-        os << " " << getSymbolForBinaryRelOp(op) << " ";
+        os << " " << toBinaryConstraintSymbol(op) << " ";
         rhs->print(os);
     }
     virtual size_t getLevel() {
@@ -129,7 +129,7 @@ public:
         rhs.swap(r);
     }
 
-    BinaryRelOp getOperator() const {
+    BinaryConstraintOp getOperator() const {
         return op;
     }
 

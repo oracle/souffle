@@ -222,19 +222,19 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
     });
 
     // - binary relation -
-    visitDepthFirst(nodes, [&](const AstConstraint& rel) {
+    visitDepthFirst(nodes, [&](const AstConstraint& constraint) {
 
-        // only interested in non-equal relations
-        auto op = rel.getOperator();
-        if (op == BinaryRelOp::EQ || op == BinaryRelOp::NE) {
+        // only interested in non-equal constraints
+        auto op = constraint.getOperator();
+        if (op == BinaryConstraintOp::EQ || op == BinaryConstraintOp::NE) {
             return;
         }
 
         // get left and right side
-        auto lhs = rel.getLHS();
-        auto rhs = rel.getRHS();
+        auto lhs = constraint.getLHS();
+        auto rhs = constraint.getRHS();
 
-        if (isNumericBinaryRelOp(rel.getOperator())) {
+        if (constraint.isNumerical()) {
             // check numeric type
             if (!isNumberType(typeAnalysis.getTypes(lhs))) {
                 report.addError("Non-numerical operand for comparison", lhs->getSrcLoc());
@@ -242,7 +242,7 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
             if (!isNumberType(typeAnalysis.getTypes(rhs))) {
                 report.addError("Non-numerical operand for comparison", rhs->getSrcLoc());
             }
-        } else {
+        } else if (constraint.isSymbolic()) { 
             // check symbolic type
             if (!isSymbolType(typeAnalysis.getTypes(lhs))) {
                 report.addError("Non-string operand for operation", lhs->getSrcLoc());

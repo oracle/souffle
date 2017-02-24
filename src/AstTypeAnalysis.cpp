@@ -256,7 +256,7 @@ std::map<const AstArgument*, bool> getConstTerms(const AstClause& clause) {
         // #2 - binary relations may propagate const
         void visitConstraint(const AstConstraint& cur) {
             // only target equality
-            if (cur.getOperator() != BinaryRelOp::EQ) {
+            if (cur.getOperator() != BinaryConstraintOp::EQ) {
                 return;
             }
 
@@ -351,7 +351,7 @@ std::map<const AstArgument*, bool> getGroundedTerms(const AstClause& clause) {
         // #4 - binary equality relations propagates groundness
         void visitConstraint(const AstConstraint& cur) {
             // only target equality
-            if (cur.getOperator() != BinaryRelOp::EQ) {
+            if (cur.getOperator() != BinaryConstraintOp::EQ) {
                 return;
             }
 

@@ -229,7 +229,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
     // I) extract equations
     std::vector<Equation> equations;
     visitDepthFirst(clause, [&](const AstConstraint& rel) {
-        if (rel.getOperator() == BinaryRelOp::EQ) {
+        if (rel.getOperator() == BinaryConstraintOp::EQ) {
             equations.push_back(Equation(rel.getLHS(), rel.getRHS()));
         }
     });
@@ -328,7 +328,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::removeTrivialEquality(cons
     for (AstLiteral* cur : clause.getBodyLiterals()) {
         // filter out t = t
         if (AstConstraint* rel = dynamic_cast<AstConstraint*>(cur)) {
-            if (rel->getOperator() == BinaryRelOp::EQ) {
+            if (rel->getOperator() == BinaryConstraintOp::EQ) {
                 if (*rel->getLHS() == *rel->getRHS()) {
                     continue;  // skip this one
                 }
@@ -405,7 +405,7 @@ void ResolveAliasesTransformer::removeComplexTermsInAtoms(AstClause& clause) {
     // add variable constraints to clause
     for (const auto& cur : map) {
         clause.addToBody(std::unique_ptr<AstLiteral>(
-                new AstConstraint(BinaryRelOp::EQ, std::unique_ptr<AstArgument>(cur.second->clone()),
+                new AstConstraint(BinaryConstraintOp::EQ, std::unique_ptr<AstArgument>(cur.second->clone()),
                         std::unique_ptr<AstArgument>(cur.first->clone()))));
     }
 }
