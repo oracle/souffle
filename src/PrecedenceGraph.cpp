@@ -205,10 +205,6 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
         SCC[nodeToSCC[relation]].insert(relation);
     }
 
-    /* Set the starting color for all SCCs. */
-    sccColor.resize(getNumSCCs());
-    // default color is black
-    std::fill(sccColor.begin(), sccColor.end(), 0);
 }
 
 /* Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
@@ -251,7 +247,7 @@ void SCCGraph::outputSCCGraph(std::ostream& os) {
         os << "\t snode" << scc << "[label = \"";
         os << join(getRelationsForSCC(scc), ",\\n",
                 [](std::ostream& out, const AstRelation* rel) { out << rel->getName(); });
-        os << "\", color=\"#" << std::hex << std::setw(6) << std::setfill('0') << sccColor[scc] << "\" ];\n";
+        os << "\" ];\n";
     }
 
     /* Print edges of SCC graph */
@@ -294,48 +290,56 @@ const int TopologicallySortedSCCGraph::topologicalOrderingCost(
     return costOfPermutation;
 }
 
-void TopologicallySortedSCCGraph::forwardAlgorithmRecursive(int scc) {
+void TopologicallySortedSCCGraph::computeTopologicalOrdering(int scc, std::vector<bool>& visited) {
         // create a flag to indicate that a successor was visited (by default it hasn't been)
-        bool found = false;
+        bool found = false, hasUnvisitedSuccessor = false, hasUnvisitedPredecessor = false;
         // for each successor of the input scc
-        auto scc_i = sccGraph->getSuccessorSCCs(scc).begin();
-        for (; scc_i != sccGraph->getSuccessorSCCs(scc).end(); ++scc_i) {
-            // if it is white, but has no white predecessors
-            if (sccGraph->getColor(*scc_i) == WHITE && !sccGraph->hasPredecessorOfColor(*scc_i, WHITE)) {
+        const auto& successorsToVisit = sccGraph->getSuccessorSCCs(scc);
+        for (auto scc_i = successorsToVisit.begin(); scc_i != successorsToVisit.end(); ++scc_i) {
+            if (visited[*scc_i]) continue;
+            hasUnvisitedPredecessor = false;
+            const auto& successorsPredecessors = sccGraph->getPredecessorSCCs(*scc_i);
+            for (auto scc_j = successorsPredecessors.begin(); scc_j != successorsPredecessors.end(); ++scc_j) {
+                if (!visited[*scc_j]) {
+                    hasUnvisitedPredecessor = true;
+                    break;
+                }
+            }
+            if (!hasUnvisitedPredecessor) {
                 // give it a temporary marking
-                sccGraph->setColor(*scc_i, GRAY);
+                visited[*scc_i] = true;
                 // add it to the permanent ordering
                 orderedSCCs.push_back(*scc_i);
                 // and use it as a root node in a recursive call to this function
-                forwardAlgorithmRecursive(*scc_i);
+                computeTopologicalOrdering(*scc_i, visited);
                 // finally, indicate that a successor has been found for this node
                 found = true;
             }
         }
         // return at once if no valid successors have been found; as either it has none or they all have a
         // better predecessor
-        if (!found) {
+        if (!found)
             return;
+        hasUnvisitedPredecessor = false;
+        const auto& predecessors = sccGraph->getPredecessorSCCs(scc);
+        for (auto scc_j = predecessors.begin(); scc_j != predecessors.end(); ++scc_j) {
+            if (!visited[*scc_j]) {
+                hasUnvisitedPredecessor = true;
+                break;
+            }
+        }
+        hasUnvisitedSuccessor = false;
+        const auto& successors = sccGraph->getSuccessorSCCs(scc);
+        for (auto scc_j = successors.begin(); scc_j != successors.end(); ++scc_j) {
+            if (!visited[*scc_j]) {
+                hasUnvisitedSuccessor = true;
+                break;
+            }
         }
         // otherwise, if more white successors remain for the current scc, use it again as the root node in a
         // recursive call to this function
-        if (sccGraph->hasSuccessorOfColor(scc, WHITE) && !sccGraph->hasPredecessorOfColor(scc, WHITE))
-            forwardAlgorithmRecursive(scc);
-}
-
-void TopologicallySortedSCCGraph::forwardAlgorithm() {
-    // for each of the sccs in the graph
-    for (int scc = 0; scc < sccGraph->getNumSCCs(); ++scc) {
-        // if that scc has no predecessors
-        if (sccGraph->getPredecessorSCCs(scc).empty()) {
-            // put it in the ordering
-            orderedSCCs.push_back(scc);
-            sccGraph->setColor(scc, BLACK);
-            // if the scc has successors
-            if (!sccGraph->getSuccessorSCCs(scc).empty())
-                forwardAlgorithmRecursive(scc);
-        }
-    }
+        if (hasUnvisitedSuccessor && !hasUnvisitedPredecessor)
+            computeTopologicalOrdering(scc, visited);
 }
 
 void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit) {
@@ -343,16 +347,21 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
     sccGraph = translationUnit.getAnalysis<SCCGraph>();
     // clear the list of ordered sccs
     orderedSCCs.clear();
-    // and mark all sccs as unvisited
-    sccGraph->fillColors(WHITE);
-    // if a lookahead has been given explicitly
-    if (LOOKAHEAD != 0) {
-        // generate topological ordering using backwards algorithm (like reverse DFS)
-        backwardAlgorithm();
-        // otherwise, by default
-    } else {
-        // generate topological ordering using forwards algorithm (like Khan's algorithm)
-        forwardAlgorithm();
+    std::vector<bool> visited;
+    visited.resize(sccGraph->getNumSCCs());
+    std::fill(visited.begin(), visited.end(), false);
+    // generate topological ordering using forwards algorithm (like Khan's algorithm)
+        // for each of the sccs in the graph
+    for (int scc = 0; scc < sccGraph->getNumSCCs(); ++scc) {
+        // if that scc has no predecessors
+        if (sccGraph->getPredecessorSCCs(scc).empty()) {
+            // put it in the ordering
+            orderedSCCs.push_back(scc);
+            visited[scc] = true;
+            // if the scc has successors
+            if (!sccGraph->getSuccessorSCCs(scc).empty())
+                computeTopologicalOrdering(scc, visited);
+        }
     }
 }
 

@@ -110,9 +110,6 @@ private:
     /** Map from node number to SCC number */
     std::map<const AstRelation*, int> nodeToSCC;
 
-    /** List of colors of SCC nodes, default is black. */
-    std::vector<unsigned int> sccColor;
-
     /** Adjacency lists for the SCC graph */
     std::vector<std::set<int>> succSCC;
 
@@ -155,35 +152,6 @@ public:
         return succSCC.size();
     }
 
-    /** Get the color of an SCC. */
-    const unsigned int getColor(const int scc) {
-        return sccColor[scc];
-    }
-
-    /** Set the color of an SCC. */
-    void setColor(const int scc, const unsigned int color) {
-        sccColor[scc] = color;
-    }
-
-    /** Fill all SCCs to the given color. */
-    void fillColors(const unsigned int color) {
-        std::fill(sccColor.begin(), sccColor.end(), color);
-    }
-
-    /** Check if a given SCC has a predecessor of the specified color. */
-    const bool hasPredecessorOfColor(int scc, const unsigned int color) {
-        for (auto pred : getPredecessorSCCs(scc))
-            if (getColor(pred) == color) return true;
-        return false;
-    }
-
-    /** Check if a given SCC has a successor of the specified color. */
-    const bool hasSuccessorOfColor(int scc, const unsigned int color) {
-        for (auto succ : getSuccessorSCCs(scc))
-            if (getColor(succ) == color) return true;
-        return false;
-    }
-
     /** Get all successor SCCs of a specified scc. */
     const std::set<int>& getSuccessorSCCs(int scc) {
         return succSCC[scc];
@@ -213,19 +181,12 @@ private:
     /** The final topological ordering of the SCCs. */
     std::vector<int> orderedSCCs;
 
-    /** Marker type to compute topological ordering. */
-    enum Colour { WHITE = 0xFFFFFF, BLACK = 0x000000 };
-
     /** Calculate the topological ordering cost of a permutation of as of yet unordered SCCs
     using the ordered SCCs. Returns -1 if the given vector is not a valid topological ordering. */
     const int topologicalOrderingCost(const std::vector<int>& permutationOfSCCs) const;
 
     /** Recursive component for the forwards algorithm computing the topological ordering of the SCCs. */
-    void forwardAlgorithmRecursive(int scc);
-
-    /* Forwardss algorithm for computing the topological order of SCCs, based on Khan's algorithm. */
-    void forwardAlgorithm();
-
+    void computeTopologicalOrdering(int scc, std::vector<bool>& visited);
 public:
 
     static constexpr const char* name = "topological-scc-graph";
