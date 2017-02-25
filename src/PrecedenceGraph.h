@@ -187,8 +187,8 @@ private:
 
     /** Recursive component for the forwards algorithm computing the topological ordering of the SCCs. */
     void computeTopologicalOrdering(int scc, std::vector<bool>& visited);
-public:
 
+public:
     static constexpr const char* name = "topological-scc-graph";
 
     virtual void run(const AstTranslationUnit& translationUnit);

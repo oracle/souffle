@@ -22,7 +22,6 @@ namespace souffle {
 
 namespace test {
 
-
 TEST(Graph, Basic) {
     Graph<int> g;
 

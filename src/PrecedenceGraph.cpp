@@ -204,7 +204,6 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
     for (const AstRelation* relation : relations) {
         SCC[nodeToSCC[relation]].insert(relation);
     }
-
 }
 
 /* Compute strongly connected components using Gabow's algorithm (cf. Algorithms in
@@ -291,55 +290,53 @@ const int TopologicallySortedSCCGraph::topologicalOrderingCost(
 }
 
 void TopologicallySortedSCCGraph::computeTopologicalOrdering(int scc, std::vector<bool>& visited) {
-        // create a flag to indicate that a successor was visited (by default it hasn't been)
-        bool found = false, hasUnvisitedSuccessor = false, hasUnvisitedPredecessor = false;
-        // for each successor of the input scc
-        const auto& successorsToVisit = sccGraph->getSuccessorSCCs(scc);
-        for (auto scc_i = successorsToVisit.begin(); scc_i != successorsToVisit.end(); ++scc_i) {
-            if (visited[*scc_i]) continue;
-            hasUnvisitedPredecessor = false;
-            const auto& successorsPredecessors = sccGraph->getPredecessorSCCs(*scc_i);
-            for (auto scc_j = successorsPredecessors.begin(); scc_j != successorsPredecessors.end(); ++scc_j) {
-                if (!visited[*scc_j]) {
-                    hasUnvisitedPredecessor = true;
-                    break;
-                }
-            }
-            if (!hasUnvisitedPredecessor) {
-                // give it a temporary marking
-                visited[*scc_i] = true;
-                // add it to the permanent ordering
-                orderedSCCs.push_back(*scc_i);
-                // and use it as a root node in a recursive call to this function
-                computeTopologicalOrdering(*scc_i, visited);
-                // finally, indicate that a successor has been found for this node
-                found = true;
-            }
-        }
-        // return at once if no valid successors have been found; as either it has none or they all have a
-        // better predecessor
-        if (!found)
-            return;
+    // create a flag to indicate that a successor was visited (by default it hasn't been)
+    bool found = false, hasUnvisitedSuccessor = false, hasUnvisitedPredecessor = false;
+    // for each successor of the input scc
+    const auto& successorsToVisit = sccGraph->getSuccessorSCCs(scc);
+    for (auto scc_i = successorsToVisit.begin(); scc_i != successorsToVisit.end(); ++scc_i) {
+        if (visited[*scc_i]) continue;
         hasUnvisitedPredecessor = false;
-        const auto& predecessors = sccGraph->getPredecessorSCCs(scc);
-        for (auto scc_j = predecessors.begin(); scc_j != predecessors.end(); ++scc_j) {
+        const auto& successorsPredecessors = sccGraph->getPredecessorSCCs(*scc_i);
+        for (auto scc_j = successorsPredecessors.begin(); scc_j != successorsPredecessors.end(); ++scc_j) {
             if (!visited[*scc_j]) {
                 hasUnvisitedPredecessor = true;
                 break;
             }
         }
-        hasUnvisitedSuccessor = false;
-        const auto& successors = sccGraph->getSuccessorSCCs(scc);
-        for (auto scc_j = successors.begin(); scc_j != successors.end(); ++scc_j) {
-            if (!visited[*scc_j]) {
-                hasUnvisitedSuccessor = true;
-                break;
-            }
+        if (!hasUnvisitedPredecessor) {
+            // give it a temporary marking
+            visited[*scc_i] = true;
+            // add it to the permanent ordering
+            orderedSCCs.push_back(*scc_i);
+            // and use it as a root node in a recursive call to this function
+            computeTopologicalOrdering(*scc_i, visited);
+            // finally, indicate that a successor has been found for this node
+            found = true;
         }
-        // otherwise, if more white successors remain for the current scc, use it again as the root node in a
-        // recursive call to this function
-        if (hasUnvisitedSuccessor && !hasUnvisitedPredecessor)
-            computeTopologicalOrdering(scc, visited);
+    }
+    // return at once if no valid successors have been found; as either it has none or they all have a
+    // better predecessor
+    if (!found) return;
+    hasUnvisitedPredecessor = false;
+    const auto& predecessors = sccGraph->getPredecessorSCCs(scc);
+    for (auto scc_j = predecessors.begin(); scc_j != predecessors.end(); ++scc_j) {
+        if (!visited[*scc_j]) {
+            hasUnvisitedPredecessor = true;
+            break;
+        }
+    }
+    hasUnvisitedSuccessor = false;
+    const auto& successors = sccGraph->getSuccessorSCCs(scc);
+    for (auto scc_j = successors.begin(); scc_j != successors.end(); ++scc_j) {
+        if (!visited[*scc_j]) {
+            hasUnvisitedSuccessor = true;
+            break;
+        }
+    }
+    // otherwise, if more white successors remain for the current scc, use it again as the root node in a
+    // recursive call to this function
+    if (hasUnvisitedSuccessor && !hasUnvisitedPredecessor) computeTopologicalOrdering(scc, visited);
 }
 
 void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit) {
@@ -351,7 +348,7 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
     visited.resize(sccGraph->getNumSCCs());
     std::fill(visited.begin(), visited.end(), false);
     // generate topological ordering using forwards algorithm (like Khan's algorithm)
-        // for each of the sccs in the graph
+    // for each of the sccs in the graph
     for (int scc = 0; scc < sccGraph->getNumSCCs(); ++scc) {
         // if that scc has no predecessors
         if (sccGraph->getPredecessorSCCs(scc).empty()) {
@@ -359,8 +356,7 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
             orderedSCCs.push_back(scc);
             visited[scc] = true;
             // if the scc has successors
-            if (!sccGraph->getSuccessorSCCs(scc).empty())
-                computeTopologicalOrdering(scc, visited);
+            if (!sccGraph->getSuccessorSCCs(scc).empty()) computeTopologicalOrdering(scc, visited);
         }
     }
 }
