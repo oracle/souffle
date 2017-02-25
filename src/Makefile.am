@@ -39,7 +39,9 @@ souffle_profile_SOURCES = souffle_prof.cpp profilerlib/Cell.hpp \
                           profilerlib/UserInputReader.cpp       \
                           profilerlib/UserInputReader.hpp
 
-souffle_profile_CXXFLAGS = $(souffle_CPPFLAGS)
+DIR := ${CURDIR}
+
+souffle_profile_CXXFLAGS = $(souffle_CPPFLAGS) -DMAKEDIR='"$(DIR)"'
 
 nodist_souffle_mcpp_SOURCES = $(BUILT_SOURCES)
  
