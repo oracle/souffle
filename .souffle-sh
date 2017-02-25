@@ -88,7 +88,6 @@ souffle_reset() {
 }
 
 souffle_commit() {
-    souffle_make && \
     cd $SOUFFLE && \
     clang-format -i -style=file $SOUFFLE/src/*.cpp $SOUFFLE/src/*.h $SOUFFLE/src/test/*.cpp $SOUFFLE/src/test/*.h && \
     git checkout upstream/master -- src/mcpp*.[chCH] && \
