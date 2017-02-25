@@ -214,24 +214,11 @@ private:
     std::vector<int> orderedSCCs;
 
     /** Marker type to compute topological ordering. */
-    enum Colour { WHITE = 0xFFFFFF, GRAY = 0x7f7f7f, BLACK = 0x000000, RED = 0xFF0000 };
+    enum Colour { WHITE = 0xFFFFFF, BLACK = 0x000000 };
 
     /** Calculate the topological ordering cost of a permutation of as of yet unordered SCCs
     using the ordered SCCs. Returns -1 if the given vector is not a valid topological ordering. */
     const int topologicalOrderingCost(const std::vector<int>& permutationOfSCCs) const;
-
-    /** Compute the best cost topological ordering of the as of yet unordered SCCs in the lookahead
-    set using the ordered SCCs. */
-    void bestCostTopologicalOrdering(std::vector<int>& lookaheadSCCs) const;
-
-    /** Recursive component for the backwards algorithm computing the topological ordering of the SCCs. */
-    void backwardAlgorithmRecursive(int su, std::vector<int>& lookaheadSCCs);
-
-    /** Backwards algorithm for computing the topological order of SCCs, based on reverse DFS. */
-    void backwardAlgorithm();
-
-    /** Traverse the graph and construct the set of lookahead SCCs for the forwards algorithm. */
-    void findForwardLookahead(int scc, std::vector<int>& lookaheadSCCs, unsigned int depth);
 
     /** Recursive component for the forwards algorithm computing the topological ordering of the SCCs. */
     void forwardAlgorithmRecursive(int scc);
@@ -240,14 +227,6 @@ private:
     void forwardAlgorithm();
 
 public:
-    /** Breadth limit for algorithm, used for the forwards algorithm. */
-    static unsigned int BREADTH_LIMIT;
-
-    /** Depth limit for algorithm, used for the forwards algorithm. */
-    static unsigned int DEPTH_LIMIT;
-
-    /** Lookahead limit for algorithm, used for the backwards algorithm. */
-    static unsigned int LOOKAHEAD;
 
     static constexpr const char* name = "topological-scc-graph";
 
