@@ -1898,7 +1898,7 @@ void genCode(std::ostream& out, const RamStatement& stmt, const IndexMap& indice
 std::string RamCompiler::resolveFileName() const {
     if (Global::config().get("dl-program") == "") {
         // generate temporary file
-        char templ[40] = "./fileXXXXXX";
+        char templ[40] = "./souffleXXXXXX";
         close(mkstemp(templ));
         return templ;
     }
@@ -1959,32 +1959,26 @@ std::string RamCompiler::generateCode(
     //                      Code Generation
     // ---------------------------------------------------------------
 
-    // open output file
-    std::string fname = filename;
-    if (fname == "") {
-        fname = resolveFileName();
-    }
-
     // generate class name
-    std::string classname = fname;
-    if (endsWith(classname, ".h")) {
-        classname = classname.substr(0, classname.size() - 2);
-    } else if (endsWith(classname, ".cpp")) {
-        classname = classname.substr(0, classname.size() - 4);
+    std::string simplename = baseName(filename);
+    // strip .h/.cpp, if present
+    if (endsWith(simplename, ".h")) {
+        simplename = simplename.substr(0, simplename.size() - 2);
+    } else if (endsWith(simplename, ".cpp")) {
+        simplename = simplename.substr(0, simplename.size() - 4);
     }
-    char* bname = strdup(classname.c_str());
-    std::string simplename = basename(bname);
-    free(bname);
+    // Remove invalid characters
     for (size_t i = 0; i < simplename.length(); i++) {
         if ((!isalpha(simplename[i]) && i == 0) || !isalnum(simplename[i])) {
             simplename[i] = '_';
         }
     }
-    classname = "Sf_" + simplename;
+
+    std::string classname = "Sf_" + simplename;
 
     // add filename extension
-    std::string source = fname;
-    if (!(endsWith(fname, ".h") || endsWith(fname, ".cpp"))) {
+    std::string source = filename;
+    if (!(endsWith(source, ".h") || endsWith(source, ".cpp"))) {
         source += ".cpp";
     }
 
@@ -2384,6 +2378,10 @@ void RamCompiler::applyOn(const RamStatement& stmt, RamEnvironment& env, RamData
 
     // run executable
     int result = system(binary.c_str());
+    if (Global::config().get("dl-program").empty()) {
+        remove(binary.c_str());
+        remove((binary + ".cpp").c_str());
+    }
     if (result != 0) {
         exit(result);
     }
