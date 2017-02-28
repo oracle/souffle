@@ -17,7 +17,7 @@ env:
   - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile SOUFFLE_CONFS=",-c,-c -p profile.log,-p profile.log,--auto-schedule -o testprog"
   - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile SOUFFLE_CONFS="-c -j8,-j8"
   - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-j8,-c -j8"
-  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS=-c
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS=",-c"
   - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="--auto-schedule -o testprog"
   - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-p profile.log,-c -p profile.log"
 dist: trusty
@@ -41,10 +41,10 @@ matrix:
   - os: osx
     compiler: gcc
 
-script:
-  - echo "travis_fold:start:init"
+before_script:
   - "./.travis/init.sh"
-  - echo "travis_fold:end:init"
+
+script:
   - "./.travis/run.sh"
 
 after_failure:
