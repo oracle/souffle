@@ -242,7 +242,7 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
             if (!isNumberType(typeAnalysis.getTypes(rhs))) {
                 report.addError("Non-numerical operand for comparison", rhs->getSrcLoc());
             }
-        } else if (constraint.isSymbolic()) { 
+        } else if (constraint.isSymbolic()) {
             // check symbolic type
             if (!isSymbolType(typeAnalysis.getTypes(lhs))) {
                 report.addError("Non-string operand for operation", lhs->getSrcLoc());

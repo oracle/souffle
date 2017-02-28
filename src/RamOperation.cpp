@@ -187,8 +187,9 @@ void RamAggregate::addCondition(std::unique_ptr<RamCondition> c, RamOperation* r
                     pattern[element] = std::move(value);
                 } else {
                     std::unique_ptr<RamValue> field(new RamElementAccess(level, element));
-                    RamSearch::addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(
-                                                    BinaryConstraintOp::EQ, std::move(field), std::move(value))),
+                    RamSearch::addCondition(
+                            std::unique_ptr<RamCondition>(new RamBinaryRelation(
+                                    BinaryConstraintOp::EQ, std::move(field), std::move(value))),
                             root);
                 }
             } else {
