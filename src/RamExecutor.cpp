@@ -2204,7 +2204,6 @@ std::string RamCompiler::generateCode(
         os << "IODirectives ioDirectives;\n";
         os << "ioDirectives.setIOType(\"stdout\");\n";
         os << "ioDirectives.setRelationName(\"" << name << "\");\n";
-        // TODO (mmcgr): Allow copying of all IODirectives contents
         os << "IOSystem::getInstance().getWriter(";
         os << "SymbolMask({" << mask << "})";
         os << ", symTable, ioDirectives";

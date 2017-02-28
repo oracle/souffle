@@ -201,7 +201,6 @@ protected:
  * Subclass of Argument that represents a datalog constant value
  */
 class AstStringConstant : public AstConstant {
-    using SymbolTable = souffle::SymbolTable;  // TODO: pending namespace cleanup
     SymbolTable* symTable;
     AstStringConstant(SymbolTable* symTable, size_t index) : AstConstant(index), symTable(symTable) {}
 

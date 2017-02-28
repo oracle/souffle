@@ -28,7 +28,6 @@ public:
             writeNext(current);
         }
     }
-    // TODO (mmcgr): change all the Tuple<RamDomain, arity> to std:array, then remove this.
     template <typename Tuple>
     void writeNext(Tuple tuple) {
         writeNextTuple(tuple.data);
