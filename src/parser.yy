@@ -819,7 +819,7 @@ rule: rule_def {
       }
     | rule exec_plan {
          $$ = $1;
-         for(const auto& cur : $$) cur->setExecutionPlan(std::unique_ptr<AstExecutionPlan>($2));
+         for(const auto& cur : $$) cur->setExecutionPlan(std::unique_ptr<AstExecutionPlan>($2->clone()));
       }
     ;
     
