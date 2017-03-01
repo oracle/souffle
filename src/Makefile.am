@@ -39,7 +39,9 @@ souffle_profile_SOURCES = souffle_prof.cpp profilerlib/Cell.hpp \
                           profilerlib/UserInputReader.cpp       \
                           profilerlib/UserInputReader.hpp
 
-souffle_profile_CXXFLAGS = $(souffle_CPPFLAGS)
+DIR := ${CURDIR}
+
+souffle_profile_CXXFLAGS = $(souffle_CPPFLAGS) -DMAKEDIR='"$(DIR)"'
 
 nodist_souffle_mcpp_SOURCES = $(BUILT_SOURCES)
  
@@ -124,8 +126,7 @@ souffle_sources = \
               IODirectives.h                            \
               WriteStreamCSV.h                          \
               IOSystem.h                                \
-              Global.cpp            Global.h            \
-              IndexUtils.h
+              Global.cpp            Global.h
 
 # -- build souffle as a library so it can be reused in testing
 noinst_LTLIBRARIES = libsouffle.la
