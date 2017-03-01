@@ -23,7 +23,7 @@
 #include "AstTranslationUnit.h"
 #include "GraphUtils.h"
 
-#include <iomanip>
+#include <iostream>
 #include <list>
 #include <map>
 #include <stack>
