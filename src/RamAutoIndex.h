@@ -150,7 +150,7 @@ protected:
 
     /** get all nodes which are unmated from A-> B */
     const SearchSet getUnmatchedKeys(const RamMaxMatching::Matchings& match, const SearchSet& nodes) {
-        ASSERT(nodes.size() > 0);
+        ASSERT(!nodes.empty());
         SearchSet unmatched;
 
         // For all nodes n such that n is not in match

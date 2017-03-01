@@ -164,7 +164,7 @@ public:
     }
 
     void print(std::ostream& out) const override {
-        if (plans.size() > 0) {
+        if (!plans.empty()) {
             out << "\n\n   .plan ";
             bool first = true;
             for (auto it = plans.begin(); it != plans.end(); ++it) {

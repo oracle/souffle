@@ -743,7 +743,7 @@ bool RemoveRedundantRelationsTransformer::transform(AstTranslationUnit& translat
     RedundantRelations* redundantRelationsAnalysis = translationUnit.getAnalysis<RedundantRelations>();
     const std::set<const AstRelation*>& redundantRelations =
             redundantRelationsAnalysis->getRedundantRelations();
-    if (redundantRelations.size() > 0) {
+    if (!redundantRelations.empty()) {
         for (auto rel : redundantRelations) {
             translationUnit.getProgram()->removeRelation(rel->getName());
             changed = true;

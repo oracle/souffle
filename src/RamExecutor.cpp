@@ -723,7 +723,7 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
                     return false;
                 }
                 PrimData* pd = data->getTuples(name);
-                if (pd == NULL || pd->data.size() == 0) {
+                if (pd == NULL || pd->data.empty()) {
                     std::cout << "relation " << name << " is empty\n";
                     return true;
                 }
@@ -1560,7 +1560,7 @@ public:
         }
 
         // create projected tuple
-        if (project.getValues().size() == 0)
+        if (project.getValues().empty())
             out << "Tuple<RamDomain," << arity << "> tuple({});\n";
         else
             out << "Tuple<RamDomain," << arity << "> tuple({(RamDomain)("

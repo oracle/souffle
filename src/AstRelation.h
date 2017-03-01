@@ -194,7 +194,7 @@ public:
     /** Print string representation of the relation to a given output stream */
     void print(std::ostream& os) const override {
         os << ".decl " << this->getName() << "(";
-        if (attributes.size() > 0) {
+        if (!attributes.empty()) {
             os << attributes[0]->getAttributeName() << ":" << attributes[0]->getTypeName();
 
             for (size_t i = 1; i < attributes.size(); ++i) {

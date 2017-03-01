@@ -76,7 +76,7 @@ public:
             return NULL;
         }
 
-        if (data_map[name]->data.size() == 0) {
+        if (data_map[name]->data.empty()) {
             return NULL;
         }
 
