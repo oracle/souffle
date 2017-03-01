@@ -158,7 +158,7 @@ private:
 
     void visitConstraint(const AstConstraint& cnstr, std::ostream& out) override {
         visit(*cnstr.getLHS(), out);
-        out << getSymbolForBinaryRelOp(cnstr.getOperator());
+        out << toBinaryConstraintSymbol(cnstr.getOperator());
         visit(*cnstr.getRHS(), out);
     }
 

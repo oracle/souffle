@@ -229,7 +229,7 @@ protected:
 class AstConstraint : public AstLiteral {
 protected:
     /** The operator in this relation */
-    BinaryRelOp operation;
+    BinaryConstraintOp operation;
 
     /** Left-hand side argument of a binary operation */
     std::unique_ptr<AstArgument> lhs;
@@ -238,11 +238,11 @@ protected:
     std::unique_ptr<AstArgument> rhs;
 
 public:
-    AstConstraint(BinaryRelOp o, std::unique_ptr<AstArgument> ls, std::unique_ptr<AstArgument> rs)
+    AstConstraint(BinaryConstraintOp o, std::unique_ptr<AstArgument> ls, std::unique_ptr<AstArgument> rs)
             : operation(o), lhs(std::move(ls)), rhs(std::move(rs)) {}
 
     AstConstraint(const std::string& op, std::unique_ptr<AstArgument> ls, std::unique_ptr<AstArgument> rs)
-            : operation(getBinaryRelOpForSymbol(op)), lhs(std::move(ls)), rhs(std::move(rs)) {}
+            : operation(toBinaryConstraintOp(op)), lhs(std::move(ls)), rhs(std::move(rs)) {}
 
     virtual ~AstConstraint() {}
 
@@ -262,24 +262,34 @@ public:
     }
 
     /** Return binary operator */
-    BinaryRelOp getOperator() const {
+    BinaryConstraintOp getOperator() const {
         return operation;
     }
 
     /** Update the binary operator */
-    void setOperator(BinaryRelOp op) {
+    void setOperator(BinaryConstraintOp op) {
         operation = op;
     }
 
     /** Negates the constraint */
     void negate() {
-        setOperator(souffle::negate(operation));
+        setOperator(souffle::negatedConstraintOp(operation));
+    }
+
+    /** Check whether constraint is a numeric constraint */
+    const bool isNumerical() const {
+        return isNumericBinaryConstraintOp(operation);
+    }
+
+    /** Check whether constraint is a symbolic constraint */
+    const bool isSymbolic() const {
+        return isSymbolicBinaryConstraintOp(operation);
     }
 
     /** Output the constraint to a given stream */
     virtual void print(std::ostream& os) const {
         lhs->print(os);
-        os << " " << getSymbolForBinaryRelOp(operation) << " ";
+        os << " " << toBinaryConstraintSymbol(operation) << " ";
         rhs->print(os);
     }
 
