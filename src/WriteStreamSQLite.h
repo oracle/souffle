@@ -73,9 +73,9 @@ private:
     void executeSQL(const std::string& sql, sqlite3* db) {
         assert(db && "Database connection is closed");
 
-        char* errorMessage = 0;
+        char* errorMessage = nullptr;
         /* Execute SQL statement */
-        int rc = sqlite3_exec(db, sql.c_str(), NULL, 0, &errorMessage);
+        int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &errorMessage);
         if (rc != SQLITE_OK) {
             std::stringstream error;
             error << "SQLite error in sqlite3_exec: " << sqlite3_errmsg(db) << "\n";
@@ -147,7 +147,7 @@ private:
         std::stringstream insertSQL;
         insertSQL << "INSERT INTO " << symbolTableName;
         insertSQL << " VALUES(null,@V0);";
-        const char* tail = 0;
+        const char* tail = nullptr;
         if (sqlite3_prepare_v2(db, insertSQL.str().c_str(), -1, &symbolInsertStatement, &tail) != SQLITE_OK) {
             throwError("SQLite error in sqlite3_prepare_v2: ");
         }
@@ -157,7 +157,7 @@ private:
         std::stringstream selectSQL;
         selectSQL << "SELECT id FROM " << symbolTableName;
         selectSQL << " WHERE symbol = @V0;";
-        const char* tail = 0;
+        const char* tail = nullptr;
         if (sqlite3_prepare_v2(db, selectSQL.str().c_str(), -1, &symbolSelectStatement, &tail) != SQLITE_OK) {
             throwError("SQLite error in sqlite3_prepare_v2: ");
         }
@@ -171,7 +171,7 @@ private:
             insertSQL << ",@V" << i;
         }
         insertSQL << ");";
-        const char* tail = 0;
+        const char* tail = nullptr;
         if (sqlite3_prepare_v2(db, insertSQL.str().c_str(), -1, &insertStatement, &tail) != SQLITE_OK) {
             throwError("SQLite error in sqlite3_prepare_v2: ");
         }

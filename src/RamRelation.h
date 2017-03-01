@@ -220,14 +220,14 @@ public:
     RamRelation(const RamRelationIdentifier& id)
             : id(id), num_tuples(0), head(std::unique_ptr<Block>(new Block())), tail(head.get()),
               totalIndex(nullptr) {
-        pthread_mutex_init(&lock, NULL);
+        pthread_mutex_init(&lock, nullptr);
     }
 
     RamRelation(const RamRelation& other) = delete;
 
     RamRelation(RamRelation&& other)
             : id(other.id), num_tuples(other.num_tuples), tail(other.tail), totalIndex(other.totalIndex) {
-        pthread_mutex_init(&lock, NULL);
+        pthread_mutex_init(&lock, nullptr);
 
         // take over ownership
         head.swap(other.head);

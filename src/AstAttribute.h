@@ -44,7 +44,7 @@ class AstAttribute : public AstNode {
     AstTypeIdentifier typeName;
 
 public:
-    AstAttribute(const std::string& n, const AstTypeIdentifier& t, const Type* type = NULL)
+    AstAttribute(const std::string& n, const AstTypeIdentifier& t, const Type* type = nullptr)
             : name(n), typeName(t) {}
 
     const std::string& getAttributeName() const {

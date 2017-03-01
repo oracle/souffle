@@ -50,7 +50,7 @@ public:
     }
 
     void addTuples(std::string name, PrimData* d) {
-        assert(d != NULL);
+        assert(d != nullptr);
         data_map[name] = d;
     }
 
@@ -73,11 +73,11 @@ public:
 
     PrimData* getTuples(std::string name) {
         if (data_map.find(name) == data_map.end()) {
-            return NULL;
+            return nullptr;
         }
 
         if (data_map[name]->data.empty()) {
-            return NULL;
+            return nullptr;
         }
 
         return data_map[name];

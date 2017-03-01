@@ -217,7 +217,7 @@ int main(int argc, char** argv) {
     // close input pipe
     int preprocessor_status = pclose(in);
     if (preprocessor_status == -1) {
-        perror(NULL);
+        perror(nullptr);
         ERROR("failed to close pre-processor pipe");
     }
 

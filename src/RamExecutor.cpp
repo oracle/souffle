@@ -55,7 +55,7 @@ bool useNoIndex() {
 }
 
 // See the CPPIdentifierMap, (it is a singleton class).
-CPPIdentifierMap* CPPIdentifierMap::instance = 0;
+CPPIdentifierMap* CPPIdentifierMap::instance = nullptr;
 
 // Static wrapper to get relation names without going directly though the CPPIdentifierMap.
 static const std::string getRelationName(const RamRelationIdentifier& rel) {
@@ -718,12 +718,12 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
             if (load.getRelation().isData()) {
                 // Load from mem
                 std::string name = load.getRelation().getName();
-                if (data == NULL) {
+                if (data == nullptr) {
                     std::cout << "data is null\n";
                     return false;
                 }
                 PrimData* pd = data->getTuples(name);
-                if (pd == NULL || pd->data.empty()) {
+                if (pd == nullptr || pd->data.empty()) {
                     std::cout << "relation " << name << " is empty\n";
                     return true;
                 }

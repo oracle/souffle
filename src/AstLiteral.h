@@ -123,7 +123,7 @@ public:
         for (size_t i = 0; i < arguments.size(); ++i) {
             if (i != 0) os << ",";
 
-            if (arguments[i] != NULL)
+            if (arguments[i] != nullptr)
                 arguments[i]->print(os);
             else
                 os << "_";

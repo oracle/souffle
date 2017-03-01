@@ -245,7 +245,7 @@ public:
      * Obtains the singleton instance.
      */
     static CPPIdentifierMap& getInstance() {
-        if (instance == NULL) instance = new CPPIdentifierMap();
+        if (instance == nullptr) instance = new CPPIdentifierMap();
         return *instance;
     }
 

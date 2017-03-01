@@ -46,7 +46,7 @@ namespace souffle {
  * Check whether a string is a sequence of numbers
  */
 inline bool isNumber(const char* str) {
-    if (str == NULL) return false;
+    if (str == nullptr) return false;
 
     while (*str) {
         if (!isdigit(*str)) return false;
@@ -907,7 +907,7 @@ inline std::string dirName(const std::string& name) {
 inline std::string absPath(const std::string& path) {
     char buf[PATH_MAX];
     char* res = realpath(path.c_str(), buf);
-    return (res == NULL) ? "" : std::string(buf);
+    return (res == nullptr) ? "" : std::string(buf);
 }
 
 /*

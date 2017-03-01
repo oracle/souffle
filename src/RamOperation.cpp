@@ -88,7 +88,7 @@ void RamScan::addCondition(std::unique_ptr<RamCondition> c, RamOperation* root) 
         size_t element;
         if (std::unique_ptr<RamValue> value = getIndexElement(c.get(), element, level)) {
             keys |= (1 << element);
-            if (queryPattern[element] == NULL) {
+            if (queryPattern[element] == nullptr) {
                 queryPattern[element] = std::move(value);
             } else {
                 std::unique_ptr<RamValue> field(new RamElementAccess(level, element));
@@ -113,7 +113,7 @@ void RamScan::print(std::ostream& os, int tabpos) const {
             os << "WITH ";
             bool first = true;
             for (size_t i = 0; i < relation.getArity(); i++) {
-                if (queryPattern[i] != NULL) {
+                if (queryPattern[i] != nullptr) {
                     if (first)
                         first = false;
                     else
@@ -133,7 +133,7 @@ void RamScan::print(std::ostream& os, int tabpos) const {
             os << " ON INDEX ";
             bool first = true;
             for (size_t i = 0; i < relation.getArity(); i++) {
-                if (queryPattern[i] != NULL) {
+                if (queryPattern[i] != nullptr) {
                     if (first)
                         first = false;
                     else
@@ -151,7 +151,7 @@ void RamScan::print(std::ostream& os, int tabpos) const {
     }
 
     os << "\n";
-    if (getNestedOperation() != NULL) {
+    if (getNestedOperation() != nullptr) {
         getNestedOperation()->print(os, tabpos + 1);
     }
 }
@@ -183,7 +183,7 @@ void RamAggregate::addCondition(std::unique_ptr<RamCondition> c, RamOperation* r
         if (std::unique_ptr<RamValue> value = getIndexElement(c.get(), element, level)) {
             if (element > 0 || relation.getName().find("__agg") == std::string::npos) {
                 keys |= (1 << element);
-                if (pattern[element] == NULL) {
+                if (pattern[element] == nullptr) {
                     pattern[element] = std::move(value);
                 } else {
                     std::unique_ptr<RamValue> field(new RamElementAccess(level, element));
@@ -196,7 +196,7 @@ void RamAggregate::addCondition(std::unique_ptr<RamCondition> c, RamOperation* r
                 std::unique_ptr<RamValue> field(new RamElementAccess(level, element));
                 std::unique_ptr<RamCondition> eq(
                         new RamBinaryRelation(BinaryConstraintOp::EQ, std::move(field), std::move(value)));
-                if (condition != NULL) {
+                if (condition != nullptr) {
                     condition =
                             std::unique_ptr<RamCondition>(new RamAnd(std::move(condition), std::move(eq)));
                 } else {
