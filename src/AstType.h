@@ -63,7 +63,7 @@ public:
         names.push_back(name);
     }
 
-    void prepent(const std::string& name) {
+    void prepend(const std::string& name) {
         names.insert(names.begin(), name);
     }
 
@@ -107,7 +107,7 @@ public:
  */
 inline AstTypeIdentifier operator+(const std::string& name, const AstTypeIdentifier& id) {
     AstTypeIdentifier res = id;
-    res.prepent(name);
+    res.prepend(name);
     return res;
 }
 
