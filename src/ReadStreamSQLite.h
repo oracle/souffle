@@ -46,7 +46,7 @@ public:
      * Returns nullptr if no tuple was readable.
      * @return
      */
-    virtual std::unique_ptr<RamDomain[]> readNextTuple() {
+    std::unique_ptr<RamDomain[]> readNextTuple() override {
         if (sqlite3_step(selectStatement) != SQLITE_ROW) {
             return nullptr;
         }
@@ -75,7 +75,7 @@ public:
         return tuple;
     }
 
-    virtual ~ReadStreamSQLite() {
+    ~ReadStreamSQLite() override {
         sqlite3_finalize(selectStatement);
         sqlite3_close(db);
     }
@@ -152,17 +152,17 @@ private:
 
 class ReadStreamSQLiteFactory : public ReadStreamFactory {
 public:
-    std::unique_ptr<ReadStream> getReader(
-            const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
+            const IODirectives& ioDirectives) override {
         std::string dbName = ioDirectives.get("in_dbname");
         std::string relationName = ioDirectives.getRelationName();
         return std::unique_ptr<ReadStreamSQLite>(
                 new ReadStreamSQLite(dbName, relationName, symbolMask, symbolTable));
     }
-    virtual const std::string& getName() const {
+    const std::string& getName() const override {
         return name;
     }
-    virtual ~ReadStreamSQLiteFactory() {}
+    ~ReadStreamSQLiteFactory() override {}
 
 private:
     static const std::string name;

@@ -72,7 +72,7 @@ public:
         return isOpen;
     }
 
-    ~gzfstreambuf() {
+    ~gzfstreambuf() override {
         try {
             close();
         } catch (...) {
@@ -80,7 +80,7 @@ public:
         }
     }
 
-    virtual int overflow(int c = EOF) {
+    int overflow(int c = EOF) override {
         if (!(mode & std::ios::out) || !isOpen) {
             return EOF;
         }
@@ -98,7 +98,7 @@ public:
         return c;
     }
 
-    virtual int underflow() {
+    int underflow() override {
         if (!(mode & std::ios::in) || !isOpen) {
             return EOF;
         }
@@ -122,7 +122,7 @@ public:
         return *reinterpret_cast<unsigned char*>(gptr());
     }
 
-    virtual int sync() {
+    int sync() override {
         if (pptr() && pptr() > pbase()) {
             int toWrite = pptr() - pbase();
             if (gzwrite(fileHandle, pbase(), toWrite) != toWrite) {
@@ -159,7 +159,7 @@ public:
 
     gzfstream(gzfstream&&) = default;
 
-    ~gzfstream() {}
+    ~gzfstream() override {}
 
     void open(const std::string& filename, std::ios_base::openmode mode) {
         if (!buf.open(filename, mode)) {

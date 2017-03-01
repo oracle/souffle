@@ -80,20 +80,20 @@ public:
         return order.end();
     }
 
-    virtual AstExecutionOrder* clone() const {
+    AstExecutionOrder* clone() const override {
         auto res = new AstExecutionOrder();
         res->setSrcLoc(getSrcLoc());
         res->order = order;
         return res;
     }
 
-    virtual void apply(const AstNodeMapper& mapper) {}
+    void apply(const AstNodeMapper& mapper) override {}
 
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         return {};
     }
 
-    virtual void print(std::ostream& out) const {
+    void print(std::ostream& out) const override {
         out << "(" << order[0];
         for (size_t i = 1; i < order.size(); i++) {
             out << "," << order[i];
@@ -103,7 +103,7 @@ public:
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstExecutionOrder*>(&node));
         const AstExecutionOrder& other = static_cast<const AstExecutionOrder&>(node);
         return order == other.order;
@@ -163,7 +163,7 @@ public:
         return result;
     }
 
-    void print(std::ostream& out) const {
+    void print(std::ostream& out) const override {
         if (plans.size() > 0) {
             out << "\n\n   .plan ";
             bool first = true;
@@ -178,7 +178,7 @@ public:
         }
     }
 
-    virtual AstExecutionPlan* clone() const {
+    AstExecutionPlan* clone() const override {
         auto res = new AstExecutionPlan();
         res->setSrcLoc(getSrcLoc());
         for (auto& plan : plans) {
@@ -187,14 +187,14 @@ public:
         return res;
     }
 
-    virtual void apply(const AstNodeMapper& map) {
+    void apply(const AstNodeMapper& map) override {
         for (auto& plan : plans) {
             plan.second = map(std::move(plan.second));
         }
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         std::vector<const AstNode*> childNodes;
         for (auto& plan : plans) {
             childNodes.push_back(plan.second.get());
@@ -204,7 +204,7 @@ public:
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstExecutionPlan*>(&node));
         const AstExecutionPlan& other = static_cast<const AstExecutionPlan&>(node);
         if (maxVersion != other.maxVersion) return false;
@@ -259,7 +259,7 @@ public:
         its head set to NULL */
     AstClause() : head(nullptr), fixedPlan(false), plan(nullptr), generated(false) {}
 
-    ~AstClause() {}
+    ~AstClause() override {}
 
     /** Add a Literal to the body of the clause */
     void addToBody(std::unique_ptr<AstLiteral> l);
@@ -345,10 +345,10 @@ public:
     }
 
     /** Print this clause to a given stream */
-    void print(std::ostream& os) const;
+    void print(std::ostream& os) const override;
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstClause* clone() const {
+    AstClause* clone() const override {
         auto res = new AstClause();
         res->setSrcLoc(getSrcLoc());
         if (getExecutionPlan()) {
@@ -370,7 +370,7 @@ public:
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& map) {
+    void apply(const AstNodeMapper& map) override {
         head = map(std::move(head));
         for (auto& lit : atoms) {
             lit = map(std::move(lit));
@@ -396,7 +396,7 @@ public:
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         std::vector<const AstNode*> res = {head.get()};
         for (auto& cur : atoms) {
             res.push_back(cur.get());
@@ -412,7 +412,7 @@ public:
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstClause*>(&node));
         const AstClause& other = static_cast<const AstClause&>(node);
         return *head == *other.head && equal_targets(atoms, other.atoms) &&

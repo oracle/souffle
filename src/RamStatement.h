@@ -38,7 +38,7 @@ public:
     virtual void print(std::ostream& os, int tabpos) const = 0;
 
     /** Pretty print node */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         print(os, 0);
     }
 };
@@ -62,7 +62,7 @@ public:
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return std::vector<const RamNode*>();  // no child nodes
     }
 };
@@ -73,7 +73,7 @@ public:
     RamCreate(const RamRelationIdentifier& relation) : RamRelationStatement(RN_Create, relation) {}
 
     /** Pretty print statement */
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -97,14 +97,14 @@ public:
     RamFact(const RamRelationIdentifier& rel, value_list&& values)
             : RamRelationStatement(RN_Fact, rel), values(std::move(values)) {}
 
-    ~RamFact() {}
+    ~RamFact() override {}
 
     std::vector<const RamValue*> getValues() const {
         return toPtrVector(values);
     }
 
     /** Pretty print statement */
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -113,7 +113,7 @@ public:
     };
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         std::vector<const RamNode*> res;
         for (const auto& cur : values) {
             res.push_back(cur.get());
@@ -128,7 +128,7 @@ public:
     RamLoad(const RamRelationIdentifier& relation) : RamRelationStatement(RN_Load, relation) {}
 
     /** Pretty print statement */
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -147,7 +147,7 @@ public:
     RamStore(const RamRelationIdentifier& relation) : RamRelationStatement(RN_Store, relation) {}
 
     /** Pretty print statement */
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -165,7 +165,7 @@ class RamClear : public RamRelationStatement {
 public:
     RamClear(const RamRelationIdentifier& rel) : RamRelationStatement(RN_Clear, rel) {}
 
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -179,7 +179,7 @@ class RamDrop : public RamRelationStatement {
 public:
     RamDrop(const RamRelationIdentifier& rel) : RamRelationStatement(RN_Drop, rel) {}
 
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -199,7 +199,7 @@ public:
         return txt;
     }
 
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -220,7 +220,7 @@ public:
         return txt;
     }
 
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -240,7 +240,7 @@ public:
             : RamStatement(RN_Insert), clause(std::unique_ptr<const AstClause>(clause.clone())),
               operation(std::move(o)) {}
 
-    ~RamInsert() {}
+    ~RamInsert() override {}
 
     const AstClause& getOrigin() const {
         return *clause;
@@ -250,7 +250,7 @@ public:
         return *operation;
     }
 
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -259,7 +259,7 @@ public:
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return toVector<const RamNode*>(operation.get());
     }
 };
@@ -282,7 +282,7 @@ public:
         return dest;
     }
 
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -291,7 +291,7 @@ public:
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return std::vector<const RamNode*>();  // no child nodes
     }
 };
@@ -318,7 +318,7 @@ public:
         }
     }
 
-    ~RamSequence() {}
+    ~RamSequence() override {}
 
     /* add new statement to parallel construct */
     void add(std::unique_ptr<RamStatement> s) {
@@ -329,14 +329,14 @@ public:
         return toPtrVector(stmts);
     }
 
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         os << join(stmts, ";\n", [&](std::ostream& os, const std::unique_ptr<RamStatement>& stmt) {
             stmt->print(os, tabpos);
         });
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         std::vector<const RamNode*> res;
         for (const auto& cur : stmts) {
             res.push_back(cur.get());
@@ -352,7 +352,7 @@ class RamParallel : public RamStatement {
 public:
     RamParallel() : RamStatement(RN_Parallel) {}
 
-    ~RamParallel() {}
+    ~RamParallel() override {}
 
     /* add new statement to parallel construct */
     void add(std::unique_ptr<RamStatement> s) {
@@ -364,7 +364,7 @@ public:
     }
 
     /* print parallel statement */
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -387,7 +387,7 @@ public:
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         std::vector<const RamNode*> res;
         for (const auto& cur : stmts) {
             res.push_back(cur.get());
@@ -408,13 +408,13 @@ public:
             : RamStatement(RN_Loop), body(std::unique_ptr<RamStatement>(new RamSequence(
                                              std::move(f), std::move(s), std::move(rest)...))) {}
 
-    ~RamLoop() {}
+    ~RamLoop() override {}
 
     const RamStatement& getBody() const {
         return *body;
     }
 
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -428,7 +428,7 @@ public:
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return toVector<const RamNode*>(body.get());
     }
 };
@@ -444,9 +444,9 @@ public:
         assert(first.getArity() == second.getArity());
     }
 
-    ~RamSwap() {}
+    ~RamSwap() override {}
 
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -461,7 +461,7 @@ public:
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return std::vector<const RamNode*>();  // no child nodes
     }
 };
@@ -472,13 +472,13 @@ class RamExit : public RamStatement {
 
 public:
     RamExit(std::unique_ptr<RamCondition> c) : RamStatement(RN_Exit), condition(std::move(c)) {}
-    ~RamExit() {}
+    ~RamExit() override {}
 
     const RamCondition& getCondition() const {
         return *condition;
     }
 
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -487,7 +487,7 @@ public:
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return toVector<const RamNode*>(condition.get());
     }
 };
@@ -511,7 +511,7 @@ public:
         return *nested;
     }
 
-    virtual void print(std::ostream& os, int tabpos) const {
+    void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
             os << '\t';
         }
@@ -525,7 +525,7 @@ public:
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return toVector<const RamNode*>(nested.get());
     }
 };

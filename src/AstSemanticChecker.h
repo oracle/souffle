@@ -44,7 +44,7 @@ class PrecedenceGraph;
 
 class AstSemanticChecker : public AstTransformer {
 private:
-    virtual bool transform(AstTranslationUnit& translationUnit);
+    bool transform(AstTranslationUnit& translationUnit) override;
 
     static void checkProgram(ErrorReport& report, const AstProgram& program, const TypeEnvironment& typeEnv,
             const TypeAnalysis& typeAnalysis, const ComponentLookup& componentLookup,
@@ -86,19 +86,19 @@ private:
     static void checkNamespaces(ErrorReport& report, const AstProgram& program);
 
 public:
-    virtual ~AstSemanticChecker() {}
+    ~AstSemanticChecker() override {}
 
-    virtual std::string getName() const {
+    std::string getName() const override {
         return "AstSemanticChecker";
     }
 };
 
 class AstExecutionPlanChecker : public AstTransformer {
 private:
-    virtual bool transform(AstTranslationUnit& translationUnit);
+    bool transform(AstTranslationUnit& translationUnit) override;
 
 public:
-    virtual std::string getName() const {
+    std::string getName() const override {
         return "AstExecutionPlanChecker";
     }
 };

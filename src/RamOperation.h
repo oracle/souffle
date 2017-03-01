@@ -37,7 +37,7 @@ protected:
 public:
     RamOperation(RamNodeType type, size_t l) : RamNode(type), level(l), condition(nullptr) {}
 
-    virtual ~RamOperation() {}
+    ~RamOperation() override {}
 
     /** obtains the level of this operation */
     size_t getLevel() const {
@@ -51,7 +51,7 @@ public:
     virtual void print(std::ostream& os, int tabpos) const = 0;
 
     /** Pretty print node */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         print(os, 0);
     }
 
@@ -69,7 +69,7 @@ public:
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         if (!condition) return toVector<const RamNode*>();
         return {condition.get()};
     }
@@ -84,7 +84,7 @@ public:
     RamSearch(RamNodeType type, std::unique_ptr<RamOperation> nested)
             : RamOperation(type, nested->getLevel() - 1), nestedOperation(std::move(nested)) {}
 
-    ~RamSearch() {}
+    ~RamSearch() override {}
 
     /** get nested operation */
     RamOperation* getNestedOperation() const {
@@ -97,15 +97,15 @@ public:
     }
 
     /** Add condition */
-    void addCondition(std::unique_ptr<RamCondition> c, RamOperation* root);
+    void addCondition(std::unique_ptr<RamCondition> c, RamOperation* root) override;
 
     /** get depth of query */
-    virtual size_t getDepth() const {
+    size_t getDepth() const override {
         return 1 + nestedOperation->getDepth();
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         auto res = RamOperation::getChildNodes();
         res.push_back(nestedOperation.get());
         return res;
@@ -142,7 +142,7 @@ public:
             : RamSearch(RN_Scan, std::move(nested)), relation(r), queryPattern(r.getArity()), keys(0),
               pureExistenceCheck(pureExistenceCheck), index(nullptr) {}
 
-    ~RamScan() {}
+    ~RamScan() override {}
 
     /** Obtains the id of the relation scanned by this operation */
     const RamRelationIdentifier& getRelation() const {
@@ -186,13 +186,13 @@ public:
     }
 
     /** print search */
-    void print(std::ostream& os, int tabpos) const;
+    void print(std::ostream& os, int tabpos) const override;
 
     /** add condition */
-    virtual void addCondition(std::unique_ptr<RamCondition> c, RamOperation* root);
+    void addCondition(std::unique_ptr<RamCondition> c, RamOperation* root) override;
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         auto res = RamSearch::getChildNodes();
         for (auto& cur : queryPattern) {
             if (cur) res.push_back(cur.get());
@@ -230,7 +230,7 @@ public:
     }
 
     /** print search */
-    void print(std::ostream& os, int tabpos) const;
+    void print(std::ostream& os, int tabpos) const override;
 };
 
 /** A ram aggregation is computing an aggregated value over a given relation */
@@ -265,7 +265,7 @@ public:
             : RamSearch(RN_Aggregate, std::move(nested)), fun(fun), value(std::move(value)),
               relation(relation), pattern(relation.getArity()), keys(0), index(nullptr) {}
 
-    ~RamAggregate() {}
+    ~RamAggregate() override {}
 
     Function getFunction() const {
         return fun;
@@ -284,7 +284,7 @@ public:
     }
 
     /** add condition */
-    virtual void addCondition(std::unique_ptr<RamCondition> c, RamOperation* root);
+    void addCondition(std::unique_ptr<RamCondition> c, RamOperation* root) override;
 
     /**
      * Obtains a mask indicating the keys to be matched when realizing this scan
@@ -305,7 +305,7 @@ public:
     }
 
     /** print search */
-    void print(std::ostream& os, int tabpos) const;
+    void print(std::ostream& os, int tabpos) const override;
 };
 
 /** Projection */
@@ -328,7 +328,7 @@ public:
             : RamOperation(RN_Project, level), relation(relation),
               filter(std::unique_ptr<RamRelationIdentifier>(new RamRelationIdentifier(filter))) {}
 
-    ~RamProject() {}
+    ~RamProject() override {}
 
     /** add value for a column */
     void addArg(std::unique_ptr<RamValue> v) {
@@ -353,15 +353,15 @@ public:
     }
 
     /** get depth of projection */
-    virtual size_t getDepth() const {
+    size_t getDepth() const override {
         return 1;
     }
 
     /** execute print */
-    virtual void print(std::ostream& os, int tabpos) const;
+    void print(std::ostream& os, int tabpos) const override;
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         auto res = RamOperation::getChildNodes();
         for (const auto& cur : values) {
             res.push_back(cur.get());

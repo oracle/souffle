@@ -39,7 +39,7 @@ public:
         //        executeSQL("BEGIN TRANSACTION", db);
     }
 
-    virtual void writeNextTuple(const RamDomain* tuple) {
+    void writeNextTuple(const RamDomain* tuple) override {
         if (symbolMask.getArity() == 0) {
             return;
         }
@@ -62,7 +62,7 @@ public:
         sqlite3_reset(insertStatement);
     }
 
-    virtual ~WriteStreamSQLite() {
+    ~WriteStreamSQLite() override {
         sqlite3_finalize(insertStatement);
         sqlite3_finalize(symbolInsertStatement);
         sqlite3_finalize(symbolSelectStatement);
@@ -255,17 +255,17 @@ private:
 
 class WriteSQLiteFactory : public WriteStreamFactory {
 public:
-    std::unique_ptr<WriteStream> getWriter(
-            const SymbolMask& symbolMask, const SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+    std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask, const SymbolTable& symbolTable,
+            const IODirectives& ioDirectives) override {
         std::string dbName = ioDirectives.get("dbname");
         std::string relationName = ioDirectives.getRelationName();
         return std::unique_ptr<WriteStreamSQLite>(
                 new WriteStreamSQLite(dbName, relationName, symbolMask, symbolTable));
     }
-    virtual const std::string& getName() const {
+    const std::string& getName() const override {
         return name;
     }
-    virtual ~WriteSQLiteFactory() {}
+    ~WriteSQLiteFactory() override {}
 
 private:
     static const std::string name;

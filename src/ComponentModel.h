@@ -78,7 +78,7 @@ private:
 public:
     static constexpr const char* name = "component-lookup";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
     /**
      * Performs a lookup operation for a component with the given name within the addressed scope.
@@ -93,10 +93,10 @@ public:
 
 class ComponentInstantiationTransformer : public AstTransformer {
 private:
-    virtual bool transform(AstTranslationUnit& translationUnit);
+    bool transform(AstTranslationUnit& translationUnit) override;
 
 public:
-    std::string getName() const {
+    std::string getName() const override {
         return "ComponentInstantiationTransformer";
     }
 };

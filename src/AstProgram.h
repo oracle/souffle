@@ -78,7 +78,7 @@ public:
     AstProgram(AstProgram&&);
 
     /** A programs destructor */
-    ~AstProgram() {}
+    ~AstProgram() override {}
 
     // -- Types ----------------------------------------------------------------
 
@@ -169,19 +169,19 @@ public:
     // -- I/O ------------------------------------------------------------------
 
     /** Output the program to a given output stream */
-    void print(std::ostream& os) const;
+    void print(std::ostream& os) const override;
 
     // -- Manipulation ---------------------------------------------------------
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstProgram* clone() const;
+    AstProgram* clone() const override;
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& map);
+    void apply(const AstNodeMapper& map) override;
 
 public:
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         std::vector<const AstNode*> res;
         for (const auto& cur : types) {
             res.push_back(cur.second.get());
@@ -206,7 +206,7 @@ private:
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstProgram*>(&node));
         const AstProgram& other = static_cast<const AstProgram&>(node);
 

@@ -406,7 +406,7 @@ public:
         return bound.find(var) != bound.end();
     }
 
-    virtual void print(std::ostream& out) const {
+    void print(std::ostream& out) const override {
         out << "State(" << getCost() << "," << bound << ")";
     }
 };
@@ -420,7 +420,7 @@ public:
  * default.
  */
 struct MaxBindingModel : public cost_model<Atom, BindingState> {
-    BindingState applyTo(const BindingState& state, const Atom& atom) const {
+    BindingState applyTo(const BindingState& state, const Atom& atom) const override {
         BindingState res = state;
 
         // adding this relation costs 1 unit
@@ -461,7 +461,7 @@ public:
         return cardinality;
     }
 
-    virtual void print(std::ostream& out) const override {
+    void print(std::ostream& out) const override {
         out << "<" << getID() << ">|" << cardinality << "|( " << getArguments() << " )";
     }
 };
@@ -497,7 +497,7 @@ public:
         innermostIterations = val;
     }
 
-    virtual void print(std::ostream& out) const {
+    void print(std::ostream& out) const override {
         out << "State(" << getCost() << "," << bound << "," << innermostIterations << ")";
     }
 };
@@ -508,8 +508,8 @@ public:
  */
 struct SimpleComputationalCostModel
         : public cost_model<SimpleComputationalCostAtom, SimpleComputationalCostState> {
-    SimpleComputationalCostState applyTo(
-            const SimpleComputationalCostState& state, const SimpleComputationalCostAtom& atom) const {
+    SimpleComputationalCostState applyTo(const SimpleComputationalCostState& state,
+            const SimpleComputationalCostAtom& atom) const override {
         SimpleComputationalCostState res = state;
 
         // keep a record on bound attributes
@@ -577,7 +577,7 @@ public:
         return stats.getCardinality();
     }
 
-    virtual void print(std::ostream& out) const override {
+    void print(std::ostream& out) const override {
         out << "<" << getID() << ">|" << getCardinality() << "," << getRelationStats() << "|( "
             << getArguments() << " )";
     }
@@ -625,7 +625,7 @@ public:
         innermostIterations = val;
     }
 
-    virtual void print(std::ostream& out) const {
+    void print(std::ostream& out) const override {
         out << "State(" << getCost() << "," << multiplicity << "," << innermostIterations << ")";
     }
 };
@@ -641,7 +641,7 @@ public:
  * to be inferior to the simple cost model.
  */
 struct ComputeCostModel : public cost_model<ComputeCostAtom, ComputeCostState> {
-    ComputeCostState applyTo(const ComputeCostState& state, const ComputeCostAtom& atom) const {
+    ComputeCostState applyTo(const ComputeCostState& state, const ComputeCostAtom& atom) const override {
         ComputeCostState res = state;
 
         const RamRelationStats& stats = atom.getRelationStats();
@@ -702,13 +702,13 @@ struct ComputeCostModel : public cost_model<ComputeCostAtom, ComputeCostState> {
  *
  */
 struct LogCostModel : public cost_model<SimpleComputationalCostAtom, BindingState> {
-    virtual BindingState getInitState() const {
+    BindingState getInitState() const override {
         BindingState res;
         res.setCost(1);
         return res;
     }
 
-    BindingState applyTo(const BindingState& state, const SimpleComputationalCostAtom& atom) const {
+    BindingState applyTo(const BindingState& state, const SimpleComputationalCostAtom& atom) const override {
         BindingState res = state;
 
         // compute the costs of this step

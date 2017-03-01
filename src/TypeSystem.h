@@ -100,7 +100,7 @@ class PrimitiveType : public Type {
             : Type(environment, name), baseType(base) {}
 
 public:
-    void print(std::ostream& out) const;
+    void print(std::ostream& out) const override;
 
     const Type& getBaseType() const {
         return baseType;
@@ -126,7 +126,7 @@ public:
         return elementTypes;
     }
 
-    void print(std::ostream& out) const;
+    void print(std::ostream& out) const override;
 };
 
 /**
@@ -155,7 +155,7 @@ public:
         return fields;
     }
 
-    void print(std::ostream& out) const;
+    void print(std::ostream& out) const override;
 };
 
 /**

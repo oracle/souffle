@@ -227,12 +227,12 @@ std::shared_ptr<Constraint<Var>> sub(const Var& a, const Var& b, const std::stri
 
         Sub(const Var& a, const Var& b, const std::string& symbol) : a(a), b(b), symbol(symbol) {}
 
-        virtual bool update(Assignment<Var>& ass) const {
+        bool update(Assignment<Var>& ass) const override {
             typename Var::property_space::meet_assign_op_type meet_assign;
             return meet_assign(ass[b], ass[a]);
         }
 
-        virtual void print(std::ostream& out) const {
+        void print(std::ostream& out) const override {
             out << a << " " << symbol << " " << b;
         }
     };

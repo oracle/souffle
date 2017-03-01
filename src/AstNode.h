@@ -136,7 +136,7 @@ class LambdaNodeMapper : public AstNodeMapper {
 public:
     LambdaNodeMapper(const Lambda& lambda) : lambda(lambda) {}
 
-    virtual std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const {
+    std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
         return lambda(std::move(node));
     }
 };

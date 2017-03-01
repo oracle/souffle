@@ -175,7 +175,7 @@ public:
      * The implementation of the interpreter applying the given program
      * on the given environment.
      */
-    virtual void applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const;
+    void applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const override;
 };
 
 /**
@@ -227,7 +227,7 @@ public:
      * The actual implementation of this executor encoding the given
      * program into a source file, compiling and executing it.
      */
-    virtual void applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const;
+    void applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const override;
 
 private:
     /**

@@ -92,7 +92,7 @@ public:
 
             using AstNodeMapper::operator();
 
-            virtual std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const {
+            std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
                 // see whether it is a variable to be substituted
                 if (auto var = dynamic_cast<AstVariable*>(node.get())) {
                     auto pos = map.find(var->getName());
@@ -382,7 +382,7 @@ void ResolveAliasesTransformer::removeComplexTermsInAtoms(AstClause& clause) {
     struct Update : public AstNodeMapper {
         const substitution_map& map;
         Update(const substitution_map& map) : map(map) {}
-        virtual std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const {
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             // check whether node needs to be replaced
             for (const auto& cur : map) {
                 if (*cur.first == *node) {

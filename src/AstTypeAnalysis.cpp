@@ -43,7 +43,7 @@ struct AstConstraintAnalysisVar : public Variable<const AstArgument*, PropertySp
             : Variable<const AstArgument*, PropertySpace>(&arg) {}
 
     /** adds print support */
-    void print(std::ostream& out) const {
+    void print(std::ostream& out) const override {
         out << "var(" << *(this->id) << ")";
     }
 };
@@ -182,12 +182,12 @@ BoolDisjunctConstraint isTrue(const BoolDisjunctVar& var) {
     struct C : public Constraint<BoolDisjunctVar> {
         BoolDisjunctVar var;
         C(const BoolDisjunctVar& var) : var(var) {}
-        virtual bool update(Assignment<BoolDisjunctVar>& ass) const {
+        bool update(Assignment<BoolDisjunctVar>& ass) const override {
             auto res = !ass[var];
             ass[var] = true;
             return res;
         }
-        virtual void print(std::ostream& out) const {
+        void print(std::ostream& out) const override {
             out << var << " is true";
         }
     };
@@ -219,7 +219,7 @@ BoolDisjunctConstraint imply(const std::vector<BoolDisjunctVar>& vars, const Boo
 
         C(const BoolDisjunctVar& res, const std::vector<BoolDisjunctVar>& vars) : res(res), vars(vars) {}
 
-        virtual bool update(Assignment<BoolDisjunctVar>& ass) const {
+        bool update(Assignment<BoolDisjunctVar>& ass) const override {
             bool r = ass[res];
             if (r) {
                 return false;
@@ -235,7 +235,7 @@ BoolDisjunctConstraint imply(const std::vector<BoolDisjunctVar>& vars, const Boo
             return true;
         }
 
-        virtual void print(std::ostream& out) const {
+        void print(std::ostream& out) const override {
             out << join(vars, " ∧ ") << " ⇒ " << res;
         }
     };
@@ -248,13 +248,13 @@ std::map<const AstArgument*, bool> getConstTerms(const AstClause& clause) {
     // define analysis ..
     struct Analysis : public AstConstraintAnalysis<BoolDisjunctVar> {
         // #1 - constants are constant
-        void visitConstant(const AstConstant& cur) {
+        void visitConstant(const AstConstant& cur) override {
             // this is a constant value
             addConstraint(isTrue(getVar(cur)));
         }
 
         // #2 - binary relations may propagate const
-        void visitConstraint(const AstConstraint& cur) {
+        void visitConstraint(const AstConstraint& cur) override {
             // only target equality
             if (cur.getOperator() != BinaryConstraintOp::EQ) {
                 return;
@@ -269,7 +269,7 @@ std::map<const AstArgument*, bool> getConstTerms(const AstClause& clause) {
         }
 
         // #3 - const is propagated via unary functors
-        void visitUnaryFunctor(const AstUnaryFunctor& cur) {
+        void visitUnaryFunctor(const AstUnaryFunctor& cur) override {
             auto fun = getVar(cur);
             auto op = getVar(cur.getOperand());
 
@@ -277,7 +277,7 @@ std::map<const AstArgument*, bool> getConstTerms(const AstClause& clause) {
         }
 
         // #4 - const is propagated via binary functors
-        void visitBinaryFunctor(const AstBinaryFunctor& cur) {
+        void visitBinaryFunctor(const AstBinaryFunctor& cur) override {
             auto fun = getVar(cur);
             auto lhs = getVar(cur.getLHS());
             auto rhs = getVar(cur.getRHS());
@@ -288,7 +288,7 @@ std::map<const AstArgument*, bool> getConstTerms(const AstClause& clause) {
         }
 
         // #5 - const is propagated via ternary functors
-        void visitTernaryFunctor(const AstTernaryFunctor& cur) {
+        void visitTernaryFunctor(const AstTernaryFunctor& cur) override {
             auto fun = getVar(cur);
             auto a0 = getVar(cur.getArg(0));
             auto a1 = getVar(cur.getArg(1));
@@ -298,7 +298,7 @@ std::map<const AstArgument*, bool> getConstTerms(const AstClause& clause) {
         }
 
         // #6 - if pack nodes and its components
-        void visitRecordInit(const AstRecordInit& init) {
+        void visitRecordInit(const AstRecordInit& init) override {
             auto pack = getVar(init);
 
             std::vector<BoolDisjunctVar> subs;
@@ -324,7 +324,7 @@ std::map<const AstArgument*, bool> getGroundedTerms(const AstClause& clause) {
         std::set<const AstAtom*> ignore;
 
         // #1 - atoms are producing grounded variables
-        void visitAtom(const AstAtom& cur) {
+        void visitAtom(const AstAtom& cur) override {
             // some atoms need to be skipped (head or negation)
             if (ignore.find(&cur) != ignore.end()) {
                 return;
@@ -337,19 +337,19 @@ std::map<const AstArgument*, bool> getGroundedTerms(const AstClause& clause) {
         }
 
         // #2 - negations need to be skipped
-        void visitNegation(const AstNegation& cur) {
+        void visitNegation(const AstNegation& cur) override {
             // add nested atom to black-list
             ignore.insert(cur.getAtom());
         }
 
         // #3 - also skip head
-        void visitClause(const AstClause& clause) {
+        void visitClause(const AstClause& clause) override {
             // ignore head
             ignore.insert(clause.getHead());
         }
 
         // #4 - binary equality relations propagates groundness
-        void visitConstraint(const AstConstraint& cur) {
+        void visitConstraint(const AstConstraint& cur) override {
             // only target equality
             if (cur.getOperator() != BinaryConstraintOp::EQ) {
                 return;
@@ -364,7 +364,7 @@ std::map<const AstArgument*, bool> getGroundedTerms(const AstClause& clause) {
         }
 
         // #5 - record init nodes
-        void visitRecordInit(const AstRecordInit& init) {
+        void visitRecordInit(const AstRecordInit& init) override {
             auto cur = getVar(init);
 
             std::vector<BoolDisjunctVar> vars;
@@ -381,12 +381,12 @@ std::map<const AstArgument*, bool> getGroundedTerms(const AstClause& clause) {
         }
 
         // #6 - constants are also sources of grounded values
-        void visitConstant(const AstConstant& c) {
+        void visitConstant(const AstConstant& c) override {
             addConstraint(isTrue(getVar(c)));
         }
 
         // #7 - aggregators are grounding values
-        void visitAggregator(const AstAggregator& c) {
+        void visitAggregator(const AstAggregator& c) override {
             addConstraint(isTrue(getVar(c)));
         }
     };
@@ -463,7 +463,7 @@ TypeConstraint isSubtypeOf(const TypeVar& a, const Type& b) {
 
         C(const TypeVar& a, const Type& b) : a(a), b(b) {}
 
-        virtual bool update(Assignment<TypeVar>& ass) const {
+        bool update(Assignment<TypeVar>& ass) const override {
             // get current value of variable a
             TypeSet& s = ass[a];
 
@@ -486,7 +486,7 @@ TypeConstraint isSubtypeOf(const TypeVar& a, const Type& b) {
             return true;
         }
 
-        virtual void print(std::ostream& out) const {
+        void print(std::ostream& out) const override {
             out << a << " <: " << b.getName();
         }
     };
@@ -506,7 +506,7 @@ TypeConstraint isSupertypeOf(const TypeVar& a, const Type& b) {
 
         C(const TypeVar& a, const Type& b) : a(a), b(b), repeat(true) {}
 
-        virtual bool update(Assignment<TypeVar>& ass) const {
+        bool update(Assignment<TypeVar>& ass) const override {
             // don't continually update super type constraints
             if (!repeat) return false;
             repeat = false;
@@ -533,7 +533,7 @@ TypeConstraint isSupertypeOf(const TypeVar& a, const Type& b) {
             return true;
         }
 
-        virtual void print(std::ostream& out) const {
+        void print(std::ostream& out) const override {
             out << a << " >: " << b.getName();
         }
     };
@@ -601,7 +601,7 @@ TypeConstraint isSubtypeOfComponent(const TypeVar& a, const TypeVar& b, int inde
 
         C(const TypeVar& a, const TypeVar& b, int index) : a(a), b(b), index(index) {}
 
-        virtual bool update(Assignment<TypeVar>& ass) const {
+        bool update(Assignment<TypeVar>& ass) const override {
             // get list of types for b
             const TypeSet& recs = ass[b];
 
@@ -653,7 +653,7 @@ TypeConstraint isSubtypeOfComponent(const TypeVar& a, const TypeVar& b, int inde
             return changed;
         }
 
-        virtual void print(std::ostream& out) const {
+        void print(std::ostream& out) const override {
             out << a << " <: " << b << "::" << index;
         }
     };
@@ -759,7 +759,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
         Analysis(const TypeEnvironment& env, const AstProgram* program) : env(env), program(program) {}
 
         // predicate
-        void visitAtom(const AstAtom& atom) {
+        void visitAtom(const AstAtom& atom) override {
             // get relation
             auto rel = getAtomRelation(&atom, program);
             if (!rel) return;  // error in input program
@@ -783,25 +783,25 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
         }
 
         // #2 - negations need to be skipped
-        void visitNegation(const AstNegation& cur) {
+        void visitNegation(const AstNegation& cur) override {
             // add nested atom to black-list
             negated.insert(cur.getAtom());
         }
 
         // symbol
-        void visitStringConstant(const AstStringConstant& cnst) {
+        void visitStringConstant(const AstStringConstant& cnst) override {
             // this type has to be a sub-type of symbol
             addConstraint(isSubtypeOf(getVar(cnst), env.getSymbolType()));
         }
 
         // number
-        void visitNumberConstant(const AstNumberConstant& cnst) {
+        void visitNumberConstant(const AstNumberConstant& cnst) override {
             // this type has to be a sub-type of number
             addConstraint(isSubtypeOf(getVar(cnst), env.getNumberType()));
         }
 
         // binary constraint
-        void visitConstraint(const AstConstraint& rel) {
+        void visitConstraint(const AstConstraint& rel) override {
             auto lhs = getVar(rel.getLHS());
             auto rhs = getVar(rel.getRHS());
             addConstraint(isSubtypeOf(lhs, rhs));
@@ -809,7 +809,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
         }
 
         // unary functor
-        void visitUnaryFunctor(const AstUnaryFunctor& fun) {
+        void visitUnaryFunctor(const AstUnaryFunctor& fun) override {
             auto out = getVar(fun);
             auto in = getVar(fun.getOperand());
 
@@ -823,7 +823,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
         }
 
         // binary functor
-        void visitBinaryFunctor(const AstBinaryFunctor& fun) {
+        void visitBinaryFunctor(const AstBinaryFunctor& fun) override {
             auto cur = getVar(fun);
             auto lhs = getVar(fun.getLHS());
             auto rhs = getVar(fun.getRHS());
@@ -842,7 +842,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
         }
 
         // ternary functor
-        void visitTernaryFunctor(const AstTernaryFunctor& fun) {
+        void visitTernaryFunctor(const AstTernaryFunctor& fun) override {
             auto cur = getVar(fun);
 
             auto a0 = getVar(fun.getArg(0));
@@ -867,13 +867,13 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
         }
 
         // counter
-        void visitCounter(const AstCounter& counter) {
+        void visitCounter(const AstCounter& counter) override {
             // this value must be a number value
             addConstraint(isSubtypeOf(getVar(counter), env.getNumberType()));
         }
 
         // components of records
-        void visitRecordInit(const AstRecordInit& init) {
+        void visitRecordInit(const AstRecordInit& init) override {
             // link element types with sub-values
             auto rec = getVar(init);
             int i = 0;
@@ -884,7 +884,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
         }
 
         // visit aggregates
-        void visitAggregator(const AstAggregator& agg) {
+        void visitAggregator(const AstAggregator& agg) override {
             // this value must be a number value
             addConstraint(isSubtypeOf(getVar(agg), env.getNumberType()));
 

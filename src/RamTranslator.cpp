@@ -788,7 +788,7 @@ void nameUnnamedVariables(AstClause* clause) {
 
         Instantiator() : counter(0) {}
 
-        virtual std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const {
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             // apply recursive
             node->apply(*this);
 

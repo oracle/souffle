@@ -250,7 +250,7 @@ template <typename R, typename N>
 struct LambdaVisitor : public RamVisitor<void> {
     std::function<R(const N&)> lambda;
     LambdaVisitor(const std::function<R(const N&)>& lambda) : lambda(lambda) {}
-    virtual void visit(const RamNode& node) {
+    void visit(const RamNode& node) override {
         if (const N* n = dynamic_cast<const N*>(&node)) {
             lambda(*n);
         }

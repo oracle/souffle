@@ -360,7 +360,7 @@ public:
 
 private:
     struct NullBuffer : public std::streambuf {
-        int overflow(int c) {
+        int overflow(int c) override {
             return c;
         }
     };
@@ -380,7 +380,7 @@ public:
         streams.push_back(stream1);
         streams.push_back(stream2);
     }
-    int overflow(int c) {
+    int overflow(int c) override {
         for (auto stream : streams) {
             stream->put(c);
         }

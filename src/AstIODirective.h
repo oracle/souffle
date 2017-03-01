@@ -30,16 +30,16 @@ namespace souffle {
  */
 class AstIODirective : public AstNode {
 public:
-    virtual ~AstIODirective() {}
+    ~AstIODirective() override {}
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         // type is just cached, not essential
         return std::vector<const AstNode*>();
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstIODirective* clone() const {
+    AstIODirective* clone() const override {
         auto res = new AstIODirective();
         res->names = names;
         res->kvps = kvps;
@@ -51,10 +51,10 @@ public:
     }
 
     /** No nested nodes to apply to */
-    virtual void apply(const AstNodeMapper& mapper) {}
+    void apply(const AstNodeMapper& mapper) override {}
 
     /** Output to a given output stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         if (input) {
             os << ".input ";
         }
@@ -127,7 +127,7 @@ public:
 
 protected:
     /** An internal function to determine equality to another node */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstIODirective*>(&node));
         const AstIODirective& other = static_cast<const AstIODirective&>(node);
         return other.names == names && other.input == input && other.kvps == kvps;

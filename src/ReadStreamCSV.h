@@ -49,7 +49,7 @@ public:
      * Returns nullptr if no tuple was readable.
      * @return
      */
-    virtual std::unique_ptr<RamDomain[]> readNextTuple() {
+    std::unique_ptr<RamDomain[]> readNextTuple() override {
         if (file.eof()) {
             return nullptr;
         }
@@ -122,7 +122,7 @@ public:
         return tuple;
     }
 
-    virtual ~ReadStreamCSV() {}
+    ~ReadStreamCSV() override {}
 
 private:
     const char delimiter;
@@ -149,7 +149,7 @@ public:
      * Returns nullptr if no tuple was readable.
      * @return
      */
-    virtual std::unique_ptr<RamDomain[]> readNextTuple() {
+    std::unique_ptr<RamDomain[]> readNextTuple() override {
         try {
             return readStream.readNextTuple();
         } catch (std::exception& e) {
@@ -160,7 +160,7 @@ public:
         }
     }
 
-    virtual ~ReadFileCSV() {}
+    ~ReadFileCSV() override {}
 
 private:
     std::string baseName;
@@ -211,17 +211,17 @@ protected:
 
 class ReadCinCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
 public:
-    std::unique_ptr<ReadStream> getReader(
-            const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
+            const IODirectives& ioDirectives) override {
         std::map<int, int> inputMap = getInputColumnMap(ioDirectives, symbolMask.getArity());
         char delimiter = getDelimiter(ioDirectives);
         return std::unique_ptr<ReadStreamCSV>(
                 new ReadStreamCSV(std::cin, symbolMask, symbolTable, inputMap, delimiter));
     }
-    virtual const std::string& getName() const {
+    const std::string& getName() const override {
         return name;
     }
-    virtual ~ReadCinCSVFactory() {}
+    ~ReadCinCSVFactory() override {}
 
 private:
     static const std::string name;
@@ -231,8 +231,8 @@ const std::string ReadCinCSVFactory::name = "stdin";
 
 class ReadFileCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
 public:
-    std::unique_ptr<ReadStream> getReader(
-            const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
+            const IODirectives& ioDirectives) override {
         std::map<int, int> inputMap = getInputColumnMap(ioDirectives, symbolMask.getArity());
         char delimiter = getDelimiter(ioDirectives);
         std::string filename = ioDirectives.has("filename") ? ioDirectives.get("filename")
@@ -240,10 +240,10 @@ public:
         return std::unique_ptr<ReadFileCSV>(
                 new ReadFileCSV(filename, symbolMask, symbolTable, inputMap, delimiter));
     }
-    virtual const std::string& getName() const {
+    const std::string& getName() const override {
         return name;
     }
-    virtual ~ReadFileCSVFactory() {}
+    ~ReadFileCSVFactory() override {}
 
 private:
     static const std::string name;
