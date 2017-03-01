@@ -48,7 +48,9 @@ const AstComponent* ComponentLookup::getComponent(
     const AstComponent* searchScope = scope;
     while (searchScope != nullptr) {
         for (const AstComponent* cur : searchScope->getComponents()) {
-            if (cur->getComponentType().getName() == toString(boundName)) return cur;
+            if (cur->getComponentType().getName() == toString(boundName)) {
+                return cur;
+            }
         }
         auto found = enclosingComponent.find(searchScope);
         if (found != enclosingComponent.end()) {
@@ -61,7 +63,9 @@ const AstComponent* ComponentLookup::getComponent(
 
     // check global scope
     for (const AstComponent* cur : globalScopeComponents) {
-        if (cur->getComponentType().getName() == toString(boundName)) return cur;
+        if (cur->getComponentType().getName() == toString(boundName)) {
+            return cur;
+        }
     }
 
     // no such component in scope

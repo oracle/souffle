@@ -205,7 +205,9 @@ template <typename R, typename... Ps, typename... Args>
 void visitDepthFirstPreOrder(const RamNode& root, RamVisitor<R, Ps...>& visitor, Args&... args) {
     visitor(root, args...);
     for (const RamNode* cur : root.getChildNodes()) {
-        if (cur) visitDepthFirstPreOrder(*cur, visitor, args...);
+        if (cur) {
+            visitDepthFirstPreOrder(*cur, visitor, args...);
+        }
     }
 }
 
@@ -221,7 +223,9 @@ void visitDepthFirstPreOrder(const RamNode& root, RamVisitor<R, Ps...>& visitor,
 template <typename R, typename... Ps, typename... Args>
 void visitDepthFirstPostOrder(const RamNode& root, RamVisitor<R, Ps...>& visitor, Args&... args) {
     for (const RamNode* cur : root.getChildNodes()) {
-        if (cur) visitDepthFirstPreOrder(*cur, visitor, args...);
+        if (cur) {
+            visitDepthFirstPreOrder(*cur, visitor, args...);
+        }
     }
     visitor(root, args...);
 }

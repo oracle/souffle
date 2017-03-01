@@ -129,10 +129,18 @@ struct TypeVisitor {
 
     virtual R visit(const Type& type) const {
         // check all kinds of types and dispatch
-        if (auto* t = dynamic_cast<const PredefinedType*>(&type)) return visitPredefinedType(*t);
-        if (auto* t = dynamic_cast<const PrimitiveType*>(&type)) return visitPrimitiveType(*t);
-        if (auto* t = dynamic_cast<const UnionType*>(&type)) return visitUnionType(*t);
-        if (auto* t = dynamic_cast<const RecordType*>(&type)) return visitRecordType(*t);
+        if (auto* t = dynamic_cast<const PredefinedType*>(&type)) {
+            return visitPredefinedType(*t);
+        }
+        if (auto* t = dynamic_cast<const PrimitiveType*>(&type)) {
+            return visitPrimitiveType(*t);
+        }
+        if (auto* t = dynamic_cast<const UnionType*>(&type)) {
+            return visitUnionType(*t);
+        }
+        if (auto* t = dynamic_cast<const RecordType*>(&type)) {
+            return visitRecordType(*t);
+        }
         assert(false && "Unsupported type encountered!");
         return R();
     }
@@ -252,10 +260,11 @@ std::string getTypeQualifier(const Type& type) {
             str += "[";
             bool first = true;
             for (auto unionType : type.getElementTypes()) {
-                if (first)
+                if (first) {
                     first = false;
-                else
+                } else {
                     str += ",";
+                }
                 str += visit(*unionType);
             }
             str += "]";
@@ -267,10 +276,11 @@ std::string getTypeQualifier(const Type& type) {
             str += "{";
             bool first = true;
             for (auto field : type.getFields()) {
-                if (first)
+                if (first) {
                     first = false;
-                else
+                } else {
                     str += ",";
+                }
                 str += field.name;
                 str += "#";
                 str += visit(field.type);

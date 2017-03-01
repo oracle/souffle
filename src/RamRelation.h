@@ -289,7 +289,9 @@ public:
         }
 
         // make existence check
-        if (exists(tuple)) return;
+        if (exists(tuple)) {
+            return;
+        }
 
         // prepare tail
         if (tail->getFreeSpace() < arity || arity == 0) {
@@ -342,7 +344,9 @@ public:
     /** get index for a given set of keys using a cached index as a helper. Keys are encoded as bits for each
      * column */
     RamIndex* getIndex(const SearchColumns& key, RamIndex* cachedIndex) const {
-        if (!cachedIndex) return getIndex(key);
+        if (!cachedIndex) {
+            return getIndex(key);
+        }
         return getIndex(cachedIndex->order());
     }
 
@@ -366,12 +370,16 @@ public:
         RamIndex* res = nullptr;
         pthread_mutex_lock(&lock);
         for (auto it = indices.begin(); !res && it != indices.end(); ++it) {
-            if (order.isCompatible(it->first)) res = it->second.get();
+            if (order.isCompatible(it->first)) {
+                res = it->second.get();
+            }
         }
         pthread_mutex_unlock(&lock);
 
         // if found, use compatible index
-        if (res) return res;
+        if (res) {
+            return res;
+        }
 
         // extend index to full index
         for (auto cur : suffix) {
@@ -409,10 +417,14 @@ public:
     /** check whether a tuple exists in the relation */
     bool exists(const RamDomain* tuple) const {
         // handle arity 0
-        if (getArity() == 0) return !empty();
+        if (getArity() == 0) {
+            return !empty();
+        }
 
         // handle all other arities
-        if (!totalIndex) totalIndex = getIndex(getTotalIndexKey());
+        if (!totalIndex) {
+            totalIndex = getIndex(getTotalIndexKey());
+        }
         return totalIndex->exists(tuple);
     }
 
@@ -450,7 +462,9 @@ public:
 
         iterator& operator++() {
             // check for end
-            if (!cur) return *this;
+            if (!cur) {
+                return *this;
+            }
 
             // support 0-arity
             if (arity == 0) {
@@ -472,7 +486,9 @@ public:
     /** get iterator begin of relation */
     inline iterator begin() const {
         // check for emptiness
-        if (empty()) return end();
+        if (empty()) {
+            return end();
+        }
 
         // support 0-arity
         auto arity = getArity();
@@ -543,7 +559,9 @@ public:
      */
     RamRelation& getRelation(const RamRelationIdentifier& id) {
         // use cached value
-        if (id.last == this) return *id.rel;
+        if (id.last == this) {
+            return *id.rel;
+        }
 
         RamRelation* res = nullptr;
         auto pos = data.find(id.getName());
@@ -569,7 +587,9 @@ public:
      */
     const RamRelation& getRelation(const RamRelationIdentifier& id) const {
         // use cached value if available
-        if (id.last == this) return *id.rel;
+        if (id.last == this) {
+            return *id.rel;
+        }
 
         // look up relation
         auto pos = data.find(id.getName());

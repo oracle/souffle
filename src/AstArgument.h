@@ -714,7 +714,9 @@ public:
 
     /** Mutates this node */
     void apply(const AstNodeMapper& map) override {
-        if (expr) expr = map(std::move(expr));
+        if (expr) {
+            expr = map(std::move(expr));
+        }
         for (auto& cur : body) {
             cur = map(std::move(cur));
         }

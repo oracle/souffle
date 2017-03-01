@@ -45,15 +45,18 @@ public:
     const AstTypeIdentifier& find(const AstTypeIdentifier& name) const {
         const static AstTypeIdentifier unknown;
         auto pos = binding.find(name);
-        if (pos == binding.end()) return unknown;
+        if (pos == binding.end()) {
+            return unknown;
+        }
         return pos->second;
     }
 
     TypeBinding extend(const std::vector<AstTypeIdentifier>& formalParams,
             const std::vector<AstTypeIdentifier>& actualParams) const {
         TypeBinding result;
-        if (formalParams.size() != actualParams.size())
+        if (formalParams.size() != actualParams.size()) {
             return *this;  // invalid init => will trigger a semantic error
+        }
 
         for (std::size_t i = 0; i < formalParams.size(); i++) {
             auto pos = binding.find(actualParams[i]);

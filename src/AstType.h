@@ -276,7 +276,9 @@ public:
         os << ".type " << getName() << " = "
            << "[";
         for (unsigned i = 0; i < fields.size(); i++) {
-            if (i != 0) os << ",";
+            if (i != 0) {
+                os << ",";
+            }
             os << fields[i].name;
             os << ":";
             os << fields[i].type;

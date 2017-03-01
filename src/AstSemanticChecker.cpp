@@ -98,31 +98,42 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
     // all string constants are used as symbols
     visitDepthFirst(nodes, [&](const AstStringConstant& cnst) {
         TypeSet types = typeAnalysis.getTypes(&cnst);
-        if (!isSymbolType(types)) report.addError("Symbol constant (type mismatch)", cnst.getSrcLoc());
+        if (!isSymbolType(types)) {
+            report.addError("Symbol constant (type mismatch)", cnst.getSrcLoc());
+        }
     });
 
     // all number constants are used as numbers
     visitDepthFirst(nodes, [&](const AstNumberConstant& cnst) {
         TypeSet types = typeAnalysis.getTypes(&cnst);
-        if (!isNumberType(types)) report.addError("Number constant (type mismatch)", cnst.getSrcLoc());
+        if (!isNumberType(types)) {
+            report.addError("Number constant (type mismatch)", cnst.getSrcLoc());
+        }
         AstDomain idx = (AstDomain)cnst.getIndex();
-        if (idx > 2147483647 || idx < -2147483648)
+        if (idx > 2147483647 || idx < -2147483648) {
             report.addError("Number constant not in range [-2^31, 2^31-1]", cnst.getSrcLoc());
+        }
     });
 
     // all null constants are used as records
     visitDepthFirst(nodes, [&](const AstNullConstant& cnst) {
         TypeSet types = typeAnalysis.getTypes(&cnst);
-        if (!isRecordType(types)) report.addError("Null constant used as a non-record", cnst.getSrcLoc());
+        if (!isRecordType(types)) {
+            report.addError("Null constant used as a non-record", cnst.getSrcLoc());
+        }
     });
 
     // record initializations have the same size as their types
     visitDepthFirst(nodes, [&](const AstRecordInit& cnst) {
         TypeSet types = typeAnalysis.getTypes(&cnst);
-        if (isRecordType(types))
-            for (const Type& type : types)
-                if (cnst.getArguments().size() != dynamic_cast<const RecordType*>(&type)->getFields().size())
+        if (isRecordType(types)) {
+            for (const Type& type : types) {
+                if (cnst.getArguments().size() !=
+                        dynamic_cast<const RecordType*>(&type)->getFields().size()) {
                     report.addError("Wrong number of arguments given to record", cnst.getSrcLoc());
+                }
+            }
+        }
     });
 
     // - unary functors -
@@ -446,10 +457,14 @@ void AstSemanticChecker::checkFact(ErrorReport& report, const AstProgram& progra
     assert(fact.isFact());
 
     AstAtom* head = fact.getHead();
-    if (!head) return;  // checked by clause
+    if (!head) {
+        return;  // checked by clause
+    }
 
     AstRelation* rel = program.getRelation(head->getName());
-    if (!rel) return;  // checked by clause
+    if (!rel) {
+        return;  // checked by clause
+    }
 
     // facts must only contain constants
     for (size_t i = 0; i < head->argSize(); i++) {
@@ -808,35 +823,39 @@ void AstSemanticChecker::checkNamespaces(ErrorReport& report, const AstProgram& 
     // Find all names and report redeclarations as we go.
     for (const auto& type : program.getTypes()) {
         const std::string name = toString(type->getName());
-        if (names.count(name))
+        if (names.count(name)) {
             report.addError("Name clash on type " + name, type->getSrcLoc());
-        else
+        } else {
             names[name] = type->getSrcLoc();
+        }
     }
 
     for (const auto& rel : program.getRelations()) {
         const std::string name = toString(rel->getName());
-        if (names.count(name))
+        if (names.count(name)) {
             report.addError("Name clash on relation " + name, rel->getSrcLoc());
-        else
+        } else {
             names[name] = rel->getSrcLoc();
+        }
     }
 
     // Note: Nested component and instance names are not obtained.
     for (const auto& comp : program.getComponents()) {
         const std::string name = toString(comp->getComponentType().getName());
-        if (names.count(name))
+        if (names.count(name)) {
             report.addError("Name clash on component " + name, comp->getSrcLoc());
-        else
+        } else {
             names[name] = comp->getSrcLoc();
+        }
     }
 
     for (const auto& inst : program.getComponentInstantiations()) {
         const std::string name = toString(inst->getInstanceName());
-        if (names.count(name))
+        if (names.count(name)) {
             report.addError("Name clash on instantiation " + name, inst->getSrcLoc());
-        else
+        } else {
             names[name] = inst->getSrcLoc();
+        }
     }
 }
 

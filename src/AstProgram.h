@@ -211,27 +211,45 @@ protected:
         const AstProgram& other = static_cast<const AstProgram&>(node);
 
         // check list sizes
-        if (types.size() != other.types.size()) return false;
-        if (relations.size() != other.relations.size()) return false;
+        if (types.size() != other.types.size()) {
+            return false;
+        }
+        if (relations.size() != other.relations.size()) {
+            return false;
+        }
 
         // check types
         for (const auto& cur : types) {
             auto pos = other.types.find(cur.first);
-            if (pos == other.types.end()) return false;
-            if (*cur.second != *pos->second) return false;
+            if (pos == other.types.end()) {
+                return false;
+            }
+            if (*cur.second != *pos->second) {
+                return false;
+            }
         }
 
         // check relations
         for (const auto& cur : relations) {
             auto pos = other.relations.find(cur.first);
-            if (pos == other.relations.end()) return false;
-            if (*cur.second != *pos->second) return false;
+            if (pos == other.relations.end()) {
+                return false;
+            }
+            if (*cur.second != *pos->second) {
+                return false;
+            }
         }
 
         // check components
-        if (!equal_targets(components, other.components)) return false;
-        if (!equal_targets(instantiations, other.instantiations)) return false;
-        if (!equal_targets(clauses, other.clauses)) return false;
+        if (!equal_targets(components, other.components)) {
+            return false;
+        }
+        if (!equal_targets(instantiations, other.instantiations)) {
+            return false;
+        }
+        if (!equal_targets(clauses, other.clauses)) {
+            return false;
+        }
 
         // no different found => programs are equal
         return true;

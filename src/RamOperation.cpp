@@ -114,10 +114,11 @@ void RamScan::print(std::ostream& os, int tabpos) const {
             bool first = true;
             for (size_t i = 0; i < relation.getArity(); i++) {
                 if (queryPattern[i] != nullptr) {
-                    if (first)
+                    if (first) {
                         first = false;
-                    else
+                    } else {
                         os << "and ";
+                    }
                     os << "t" << level << "." << relation.getArg(i) << "=";
                     queryPattern[i]->print(os);
                     os << " ";
@@ -134,10 +135,11 @@ void RamScan::print(std::ostream& os, int tabpos) const {
             bool first = true;
             for (size_t i = 0; i < relation.getArity(); i++) {
                 if (queryPattern[i] != nullptr) {
-                    if (first)
+                    if (first) {
                         first = false;
-                    else
+                    } else {
                         os << "and ";
+                    }
                     os << "t" << level << "." << relation.getArg(i) << "=";
                     queryPattern[i]->print(os);
                     os << " ";
@@ -236,10 +238,11 @@ void RamAggregate::print(std::ostream& os, int tabpos) const {
 
     os << "AS t" << getLevel() << ".0 IN t" << getLevel() << " ∈ " << relation.getName();
     os << "(" << join(pattern, ",", [&](std::ostream& out, const std::unique_ptr<RamValue>& value) {
-        if (!value)
+        if (!value) {
             out << "_";
-        else
+        } else {
             out << *value;
+        }
     }) << ")";
 
     if (auto condition = getCondition()) {

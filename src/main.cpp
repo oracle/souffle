@@ -132,8 +132,9 @@ int main(int argc, char** argv) {
         }
 
         /* check that datalog program exists */
-        if (!Global::config().has("") || !existFile(Global::config().get("")))
+        if (!Global::config().has("") || !existFile(Global::config().get(""))) {
             ERROR("cannot open file " + std::string(Global::config().get("")));
+        }
 
         /* turn on compilation of executables */
         if (Global::config().has("dl-program")) {
@@ -143,11 +144,13 @@ int main(int argc, char** argv) {
         /* for the jobs option, to determine the number of threads used */
         if (Global::config().has("jobs")) {
             if (isNumber(Global::config().get("jobs").c_str())) {
-                if (std::stoi(Global::config().get("jobs")) < 1)
+                if (std::stoi(Global::config().get("jobs")) < 1) {
                     ERROR("Number of jobs in the -j/--jobs options must be greater than zero!");
+                }
             } else {
-                if (!Global::config().has("jobs", "auto"))
+                if (!Global::config().has("jobs", "auto")) {
                     ERROR("Wrong parameter " + Global::config().get("jobs") + " for option -j/--jobs!");
+                }
                 Global::config().set("jobs", "0");
             }
         } else {
@@ -156,16 +159,19 @@ int main(int argc, char** argv) {
 
         /* if an output directory is given, check it exists */
         if (Global::config().has("output-dir") && !Global::config().has("output-dir", "-") &&
-                !existDir(Global::config().get("output-dir")))
+                !existDir(Global::config().get("output-dir"))) {
             ERROR("output directory " + Global::config().get("output-dir") + " does not exists");
+        }
 
         /* turn on compilation if auto-scheduling is enabled */
-        if (Global::config().has("auto-schedule") && !Global::config().has("compile"))
+        if (Global::config().has("auto-schedule") && !Global::config().has("compile")) {
             Global::config().set("compile");
+        }
 
         /* ensure that if auto-scheduling is enabled an output file is given */
-        if (Global::config().has("auto-schedule") && !Global::config().has("dl-program"))
+        if (Global::config().has("auto-schedule") && !Global::config().has("dl-program")) {
             ERROR("no executable is specified for auto-scheduling (option -o <FILE>)");
+        }
 
         /* collect all input directories for the c pre-processor */
         if (Global::config().has("include-dir")) {
@@ -193,7 +199,9 @@ int main(int argc, char** argv) {
 
     std::string programName = which(argv[0]);
 
-    if (programName.empty()) ERROR("failed to determine souffle executable path");
+    if (programName.empty()) {
+        ERROR("failed to determine souffle executable path");
+    }
 
     /* Create the pipe to establish a communication between cpp and souffle */
     std::string cmd = ::findTool("souffle-mcpp", programName, ".");
@@ -334,7 +342,9 @@ int main(int argc, char** argv) {
         /* Locate souffle-compile script */
         std::string compileCmd = ::findTool("souffle-compile", programName, ".");
         /* Fail if a souffle-compile executable is not found */
-        if (!isExecutable(compileCmd)) ERROR("failed to locate souffle-compile");
+        if (!isExecutable(compileCmd)) {
+            ERROR("failed to locate souffle-compile");
+        }
         compileCmd += " ";
         // configure compiler
         executor = std::unique_ptr<RamExecutor>(new RamCompiler(compileCmd));

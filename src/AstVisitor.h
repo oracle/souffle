@@ -171,7 +171,9 @@ template <typename R, typename... Ps, typename... Args>
 void visitDepthFirstPreOrder(const AstNode& root, AstVisitor<R, Ps...>& visitor, Args&... args) {
     visitor(root, args...);
     for (const AstNode* cur : root.getChildNodes()) {
-        if (cur) visitDepthFirstPreOrder(*cur, visitor, args...);
+        if (cur) {
+            visitDepthFirstPreOrder(*cur, visitor, args...);
+        }
     }
 }
 
@@ -187,7 +189,9 @@ void visitDepthFirstPreOrder(const AstNode& root, AstVisitor<R, Ps...>& visitor,
 template <typename R, typename... Ps, typename... Args>
 void visitDepthFirstPostOrder(const AstNode& root, AstVisitor<R, Ps...>& visitor, Args&... args) {
     for (const AstNode* cur : root.getChildNodes()) {
-        if (cur) visitDepthFirstPreOrder(*cur, visitor, args...);
+        if (cur) {
+            visitDepthFirstPreOrder(*cur, visitor, args...);
+        }
     }
     visitor(root, args...);
 }

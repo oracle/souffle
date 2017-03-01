@@ -67,7 +67,9 @@ public:
     /** Verifies that this order is complete */
     bool isComplete() const {
         for (unsigned i = 1; i <= order.size(); i++) {
-            if (!contains(order, i)) return false;
+            if (!contains(order, i)) {
+                return false;
+            }
         }
         return true;
     }
@@ -131,7 +133,9 @@ public:
     /** Updates the execution order for a special version of a rule */
     void setOrderFor(int version, std::unique_ptr<AstExecutionOrder> plan) {
         plans[version] = std::move(plan);
-        if (version > maxVersion) maxVersion = version;
+        if (version > maxVersion) {
+            maxVersion = version;
+        }
     }
 
     /** Determines whether for the given version a plan has been specified */
@@ -168,10 +172,11 @@ public:
             out << "\n\n   .plan ";
             bool first = true;
             for (auto it = plans.begin(); it != plans.end(); ++it) {
-                if (first)
+                if (first) {
                     first = false;
-                else
+                } else {
                     out << ",";
+                }
                 out << (*it).first << ":";
                 (*it).second->print(out);
             }
@@ -207,13 +212,21 @@ protected:
     bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstExecutionPlan*>(&node));
         const AstExecutionPlan& other = static_cast<const AstExecutionPlan&>(node);
-        if (maxVersion != other.maxVersion) return false;
-        if (plans.size() != other.plans.size()) return false;
+        if (maxVersion != other.maxVersion) {
+            return false;
+        }
+        if (plans.size() != other.plans.size()) {
+            return false;
+        }
         auto iter = plans.begin();
         auto otherIter = other.plans.begin();
         for (; iter != plans.end(); ++iter, ++otherIter) {
-            if (iter->first != otherIter->first) return false;
-            if (*iter->second != *otherIter->second) return false;
+            if (iter->first != otherIter->first) {
+                return false;
+            }
+            if (*iter->second != *otherIter->second) {
+                return false;
+            }
         }
         return true;
     }

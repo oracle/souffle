@@ -73,7 +73,9 @@ public:
     /** Determines whether the given edge is present */
     bool contains(const Node& from, const Node& to) const {
         auto pos = forward.find(from);
-        if (pos == forward.end()) return false;
+        if (pos == forward.end()) {
+            return false;
+        }
         auto p2 = pos->second.find(to);
         return p2 != pos->second.end();
     }
@@ -81,7 +83,9 @@ public:
     /** Determines whether there is a directed path between the two nodes */
     bool reaches(const Node& from, const Node& to) const {
         // quick check
-        if (!contains(from) || !contains(to)) return false;
+        if (!contains(from) || !contains(to)) {
+            return false;
+        }
 
         // conduct a depth-first search starting at from
         bool found = false;
@@ -98,7 +102,9 @@ public:
         std::set<Node, Compare> res;
         res.insert(node);
         for (const auto& cur : getNodes()) {
-            if (reaches(node, cur) && reaches(cur, node)) res.insert(cur);
+            if (reaches(node, cur) && reaches(cur, node)) {
+                res.insert(cur);
+            }
         }
         return res;
     }
@@ -116,7 +122,9 @@ public:
         out << "{";
         for (const auto& cur : forward) {
             for (const auto& trg : cur.second) {
-                if (!first) out << ",";
+                if (!first) {
+                    out << ",";
+                }
                 out << cur.first << "->" << trg;
                 first = false;
             }
@@ -135,7 +143,9 @@ private:
     void visitDepthFirst(const Node& node, const Lambda& lambda, std::set<Node, Compare>& visited) const {
         lambda(node);
         auto pos = forward.find(node);
-        if (pos == forward.end()) return;
+        if (pos == forward.end()) {
+            return;
+        }
         for (const auto& cur : pos->second) {
             if (visited.insert(cur).second) {
                 visitDepthFirst(cur, lambda, visited);

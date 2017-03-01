@@ -1016,7 +1016,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
         appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(rrel)));
 
         // optional: load inputs
-        if (rel->isInput()) appendStmt(res, std::unique_ptr<RamStatement>(new RamLoad(rrel)));
+        if (rel->isInput()) {
+            appendStmt(res, std::unique_ptr<RamStatement>(new RamLoad(rrel)));
+        }
 
         // create delta-relations if necessary
         if (relationSchedule->isRecursive(rel)) {

@@ -171,7 +171,9 @@ public:
     size_t getLevel() override {
         size_t level = 0;
         for (const auto& cur : values) {
-            if (cur) level = std::max(level, cur->getLevel());
+            if (cur) {
+                level = std::max(level, cur->getLevel());
+            }
         }
         return level;
     }
@@ -189,10 +191,11 @@ public:
     void print(std::ostream& os) const override {
         os << "(" << join(values, ",",
                              [](std::ostream& out, const std::unique_ptr<RamValue>& value) {
-                                 if (!value)
+                                 if (!value) {
                                      out << "_";
-                                 else
+                                 } else {
                                      out << *value;
+                                 }
                              })
            << ") ∉ " << relation.getName();
     }
@@ -209,14 +212,18 @@ public:
     SearchColumns getKey() const {
         SearchColumns res = 0;
         for (unsigned i = 0; i < values.size(); i++) {
-            if (values[i]) res |= (1 << i);
+            if (values[i]) {
+                res |= (1 << i);
+            }
         }
         return res;
     }
 
     bool isTotal() const {
         for (const auto& cur : values) {
-            if (!cur) return false;
+            if (!cur) {
+                return false;
+            }
         }
         return true;
     }

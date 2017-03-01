@@ -156,7 +156,9 @@ public:
     unsigned getNumConstants() const {
         unsigned count = 0;
         for (const auto& cur : args) {
-            if (cur.isConstant()) count++;
+            if (cur.isConstant()) {
+                count++;
+            }
         }
         return count;
     }
@@ -167,7 +169,9 @@ public:
         for (const Argument& cur : args) {
             if (cur.isVariable()) {
                 Var v = cur;
-                if (!contains(res, v)) res.push_back(v);
+                if (!contains(res, v)) {
+                    res.push_back(v);
+                }
             }
         }
         return res;
@@ -240,12 +244,16 @@ public:
         CostModel model;
 
         // shortcut
-        if (atoms.size() < 2) return atoms;  // not much to plan there
+        if (atoms.size() < 2) {
+            return atoms;  // not much to plan there
+        }
 
         // print some debugging
-        if (debug) std::cout << "Processing Problem: " << atoms << "\n";
+        if (debug) {
+            std::cout << "Processing Problem: " << atoms << "\n";
 
-        // list of memorized results
+            // list of memorized results
+        }
         map<int, map<plan, state_type>> cache;
 
         // initialize with empty plan
@@ -259,7 +267,9 @@ public:
 
                 for (const auto& cur : atoms) {
                     // only add non-covered steps
-                    if (contains(subPlan, cur)) continue;
+                    if (contains(subPlan, cur)) {
+                        continue;
+                    }
 
                     // extend plan
                     plan plan = subPlan;
@@ -668,7 +678,9 @@ struct ComputeCostModel : public cost_model<ComputeCostAtom, ComputeCostState> {
 
         // compute number of nested iterations
         uint64_t numIterations = (uint64_t)f;
-        if (numIterations <= 0) numIterations = 1;
+        if (numIterations <= 0) {
+            numIterations = 1;
+        }
 
         // costs per iteration
         double iterCost = (!constraint) ? 1 : log(stats.getCardinality());

@@ -50,14 +50,20 @@ void PrecedenceGraph::outputPrecedenceGraph(std::ostream& os) {
     /* Print dependency graph */
     os << "digraph \"dependence-graph\" {\n";
     /* Print node of dependence graph */
-    for (const AstRelation* rel : precedenceGraph.getNodes())
-        if (rel) os << "\t\"" << rel->getName() << "\" [label = \"" << rel->getName() << "\"];\n";
-
-    for (const AstRelation* rel : precedenceGraph.getNodes())
-        if (rel)
-            for (const AstRelation* adjRel : precedenceGraph.getEdges(rel))
-                if (adjRel) os << "\t\"" << adjRel->getName() << "\" -> \"" << rel->getName() << "\";\n";
-
+    for (const AstRelation* rel : precedenceGraph.getNodes()) {
+        if (rel) {
+            os << "\t\"" << rel->getName() << "\" [label = \"" << rel->getName() << "\"];\n";
+        }
+    }
+    for (const AstRelation* rel : precedenceGraph.getNodes()) {
+        if (rel) {
+            for (const AstRelation* adjRel : precedenceGraph.getEdges(rel)) {
+                if (adjRel) {
+                    os << "\t\"" << adjRel->getName() << "\" -> \"" << rel->getName() << "\";\n";
+                }
+            }
+        }
+    }
     os << "}\n";
 }
 
@@ -225,8 +231,9 @@ void SCCGraph::scR(const AstRelation* w, std::map<const AstRelation*, int>& preO
     }
     if (P.top() == w) {
         P.pop();
-    } else
+    } else {
         return;
+    }
 
     const AstRelation* v;
     do {
@@ -268,18 +275,25 @@ const int TopologicallySortedSCCGraph::topologicalOrderingCost(
     // for each of the scc's in the ordering, resetting the cost of the scc to zero on each loop
     for (auto it_i = permutationOfSCCs.begin(); it_i != permutationOfSCCs.end(); ++it_i, costOfSCC = 0) {
         // if the index of the current scc is after the end of the ordered partition
-        if (it_i >= it_k)
+        if (it_i >= it_k) {
             // check that the index of all predecessor sccs of are before the index of the current scc
-            for (int scc : sccGraph->getPredecessorSCCs(*it_i))
-                if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i)
+            for (int scc : sccGraph->getPredecessorSCCs(*it_i)) {
+                if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i) {
                     // if not, the sort is not a valid topological sort
                     return -1;
+                }
+            }
+        }
         // otherwise, calculate the cost of the current scc
         // as the number of sccs with an index before the current scc
-        for (auto it_j = permutationOfSCCs.begin(); it_j != it_i; ++it_j)
+        for (auto it_j = permutationOfSCCs.begin(); it_j != it_i; ++it_j) {
             // having some successor scc with an index after the current scc
-            for (int scc : sccGraph->getSuccessorSCCs(*it_j))
-                if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i) costOfSCC++;
+            for (int scc : sccGraph->getSuccessorSCCs(*it_j)) {
+                if (std::find(permutationOfSCCs.begin(), it_i, scc) == it_i) {
+                    costOfSCC++;
+                }
+            }
+        }
         // and if this cost is greater than the maximum recorded cost for the whole permutation so far,
         // set the cost of the permutation to it
         if (costOfSCC > costOfPermutation) {
@@ -295,7 +309,9 @@ void TopologicallySortedSCCGraph::computeTopologicalOrdering(int scc, std::vecto
     // for each successor of the input scc
     const auto& successorsToVisit = sccGraph->getSuccessorSCCs(scc);
     for (auto scc_i = successorsToVisit.begin(); scc_i != successorsToVisit.end(); ++scc_i) {
-        if (visited[*scc_i]) continue;
+        if (visited[*scc_i]) {
+            continue;
+        }
         hasUnvisitedPredecessor = false;
         const auto& successorsPredecessors = sccGraph->getPredecessorSCCs(*scc_i);
         for (auto scc_j = successorsPredecessors.begin(); scc_j != successorsPredecessors.end(); ++scc_j) {
@@ -317,7 +333,9 @@ void TopologicallySortedSCCGraph::computeTopologicalOrdering(int scc, std::vecto
     }
     // return at once if no valid successors have been found; as either it has none or they all have a
     // better predecessor
-    if (!found) return;
+    if (!found) {
+        return;
+    }
     hasUnvisitedPredecessor = false;
     const auto& predecessors = sccGraph->getPredecessorSCCs(scc);
     for (auto scc_j = predecessors.begin(); scc_j != predecessors.end(); ++scc_j) {
@@ -336,7 +354,9 @@ void TopologicallySortedSCCGraph::computeTopologicalOrdering(int scc, std::vecto
     }
     // otherwise, if more white successors remain for the current scc, use it again as the root node in a
     // recursive call to this function
-    if (hasUnvisitedSuccessor && !hasUnvisitedPredecessor) computeTopologicalOrdering(scc, visited);
+    if (hasUnvisitedSuccessor && !hasUnvisitedPredecessor) {
+        computeTopologicalOrdering(scc, visited);
+    }
 }
 
 void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit) {
@@ -356,7 +376,9 @@ void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit)
             orderedSCCs.push_back(scc);
             visited[scc] = true;
             // if the scc has successors
-            if (!sccGraph->getSuccessorSCCs(scc).empty()) computeTopologicalOrdering(scc, visited);
+            if (!sccGraph->getSuccessorSCCs(scc).empty()) {
+                computeTopologicalOrdering(scc, visited);
+            }
         }
     }
 }

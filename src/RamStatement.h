@@ -322,7 +322,9 @@ public:
 
     /* add new statement to parallel construct */
     void add(std::unique_ptr<RamStatement> s) {
-        if (s) stmts.push_back(std::move(s));
+        if (s) {
+            stmts.push_back(std::move(s));
+        }
     }
 
     std::vector<RamStatement*> getStatements() const {
@@ -356,7 +358,9 @@ public:
 
     /* add new statement to parallel construct */
     void add(std::unique_ptr<RamStatement> s) {
-        if (s) stmts.push_back(std::move(s));
+        if (s) {
+            stmts.push_back(std::move(s));
+        }
     }
 
     std::vector<RamStatement*> getStatements() const {

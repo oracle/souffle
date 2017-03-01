@@ -508,7 +508,9 @@ TypeConstraint isSupertypeOf(const TypeVar& a, const Type& b) {
 
         bool update(Assignment<TypeVar>& ass) const override {
             // don't continually update super type constraints
-            if (!repeat) return false;
+            if (!repeat) {
+                return false;
+            }
             repeat = false;
 
             // get current value of variable a
@@ -712,7 +714,9 @@ void TypeEnvironmentAnalysis::updateTypeEnvironment(const AstProgram& program) {
         } else if (auto* t = dynamic_cast<const AstUnionType*>(cur)) {
             // get type as union type
             UnionType* ut = dynamic_cast<UnionType*>(type);
-            if (!ut) continue;  // support faulty input
+            if (!ut) {
+                continue;  // support faulty input
+            }
 
             // add element types
             for (const auto& cur : t->getTypes()) {
@@ -723,7 +727,9 @@ void TypeEnvironmentAnalysis::updateTypeEnvironment(const AstProgram& program) {
         } else if (auto* t = dynamic_cast<const AstRecordType*>(cur)) {
             // get type as record type
             RecordType* rt = dynamic_cast<RecordType*>(type);
-            if (!rt) continue;  // support faulty input
+            if (!rt) {
+                continue;  // support faulty input
+            }
 
             // add fields
             for (const auto& f : t->getFields()) {
@@ -762,11 +768,15 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
         void visitAtom(const AstAtom& atom) override {
             // get relation
             auto rel = getAtomRelation(&atom, program);
-            if (!rel) return;  // error in input program
+            if (!rel) {
+                return;  // error in input program
+            }
 
             auto atts = rel->getAttributes();
             auto args = atom.getArguments();
-            if (atts.size() != args.size()) return;  // error in input program
+            if (atts.size() != args.size()) {
+                return;  // error in input program
+            }
 
             // set upper boundary of argument types
             for (unsigned i = 0; i < atts.size(); i++) {
@@ -814,12 +824,20 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             auto in = getVar(fun.getOperand());
 
             // add a constraint for the return type of the unary functor
-            if (fun.isNumerical()) addConstraint(isSubtypeOf(out, env.getNumberType()));
-            if (fun.isSymbolic()) addConstraint(isSubtypeOf(out, env.getSymbolType()));
+            if (fun.isNumerical()) {
+                addConstraint(isSubtypeOf(out, env.getNumberType()));
+            }
+            if (fun.isSymbolic()) {
+                addConstraint(isSubtypeOf(out, env.getSymbolType()));
+            }
 
             // add a constraint for the argument type of the unary functor
-            if (fun.acceptsNumbers()) addConstraint(isSubtypeOf(in, env.getNumberType()));
-            if (fun.acceptsSymbols()) addConstraint(isSubtypeOf(in, env.getSymbolType()));
+            if (fun.acceptsNumbers()) {
+                addConstraint(isSubtypeOf(in, env.getNumberType()));
+            }
+            if (fun.acceptsSymbols()) {
+                addConstraint(isSubtypeOf(in, env.getSymbolType()));
+            }
         }
 
         // binary functor
@@ -829,16 +847,28 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             auto rhs = getVar(fun.getRHS());
 
             // add a constraint for the return type of the binary functor
-            if (fun.isNumerical()) addConstraint(isSubtypeOf(cur, env.getNumberType()));
-            if (fun.isSymbolic()) addConstraint(isSubtypeOf(cur, env.getSymbolType()));
+            if (fun.isNumerical()) {
+                addConstraint(isSubtypeOf(cur, env.getNumberType()));
+            }
+            if (fun.isSymbolic()) {
+                addConstraint(isSubtypeOf(cur, env.getSymbolType()));
+            }
 
             // add a constraint for the first argument of the binary functor
-            if (fun.acceptsNumbers(0)) addConstraint(isSubtypeOf(lhs, env.getNumberType()));
-            if (fun.acceptsSymbols(0)) addConstraint(isSubtypeOf(lhs, env.getSymbolType()));
+            if (fun.acceptsNumbers(0)) {
+                addConstraint(isSubtypeOf(lhs, env.getNumberType()));
+            }
+            if (fun.acceptsSymbols(0)) {
+                addConstraint(isSubtypeOf(lhs, env.getSymbolType()));
+            }
 
             // add a constraint for the second argument of the binary functor
-            if (fun.acceptsNumbers(1)) addConstraint(isSubtypeOf(rhs, env.getNumberType()));
-            if (fun.acceptsSymbols(1)) addConstraint(isSubtypeOf(rhs, env.getSymbolType()));
+            if (fun.acceptsNumbers(1)) {
+                addConstraint(isSubtypeOf(rhs, env.getNumberType()));
+            }
+            if (fun.acceptsSymbols(1)) {
+                addConstraint(isSubtypeOf(rhs, env.getSymbolType()));
+            }
         }
 
         // ternary functor
@@ -850,20 +880,36 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             auto a2 = getVar(fun.getArg(2));
 
             // add a constraint for the return type of the ternary functor
-            if (fun.isNumerical()) addConstraint(isSubtypeOf(cur, env.getNumberType()));
-            if (fun.isSymbolic()) addConstraint(isSubtypeOf(cur, env.getSymbolType()));
+            if (fun.isNumerical()) {
+                addConstraint(isSubtypeOf(cur, env.getNumberType()));
+            }
+            if (fun.isSymbolic()) {
+                addConstraint(isSubtypeOf(cur, env.getSymbolType()));
+            }
 
             // add a constraint for the first argument of the ternary functor
-            if (fun.acceptsNumbers(0)) addConstraint(isSubtypeOf(a0, env.getNumberType()));
-            if (fun.acceptsSymbols(0)) addConstraint(isSubtypeOf(a0, env.getSymbolType()));
+            if (fun.acceptsNumbers(0)) {
+                addConstraint(isSubtypeOf(a0, env.getNumberType()));
+            }
+            if (fun.acceptsSymbols(0)) {
+                addConstraint(isSubtypeOf(a0, env.getSymbolType()));
+            }
 
             // add a constraint for the second argument of the ternary functor
-            if (fun.acceptsNumbers(1)) addConstraint(isSubtypeOf(a1, env.getNumberType()));
-            if (fun.acceptsSymbols(1)) addConstraint(isSubtypeOf(a1, env.getSymbolType()));
+            if (fun.acceptsNumbers(1)) {
+                addConstraint(isSubtypeOf(a1, env.getNumberType()));
+            }
+            if (fun.acceptsSymbols(1)) {
+                addConstraint(isSubtypeOf(a1, env.getSymbolType()));
+            }
 
             // add a constraint for the third argument of the ternary functor
-            if (fun.acceptsNumbers(2)) addConstraint(isSubtypeOf(a2, env.getNumberType()));
-            if (fun.acceptsSymbols(2)) addConstraint(isSubtypeOf(a2, env.getSymbolType()));
+            if (fun.acceptsNumbers(2)) {
+                addConstraint(isSubtypeOf(a2, env.getNumberType()));
+            }
+            if (fun.acceptsSymbols(2)) {
+                addConstraint(isSubtypeOf(a2, env.getSymbolType()));
+            }
         }
 
         // counter

@@ -172,10 +172,11 @@ public:
     }
 
     void close() {
-        if (buf.is_open())
+        if (buf.is_open()) {
             if (!buf.close()) {
                 clear(rdstate() | std::ios::badbit);
             }
+        }
     }
 
     gzfstreambuf* rdbuf() const {

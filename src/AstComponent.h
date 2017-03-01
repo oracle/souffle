@@ -93,7 +93,9 @@ public:
 
     void print(std::ostream& out) const {
         out << name;
-        if (!typeParams.empty()) out << "<" << join(typeParams, ",") << ">";
+        if (!typeParams.empty()) {
+            out << "<" << join(typeParams, ",") << ">";
+        }
     }
 
     friend std::ostream& operator<<(std::ostream& out, const AstComponentType& id) {

@@ -530,7 +530,9 @@ void apply(const RamOperation& op, RamEnvironment& env) {
 
             // check for emptiness
             if (aggregate.getFunction() != RamAggregate::COUNT) {
-                if (range.first == range.second) return;  // no elements => no min/max
+                if (range.first == range.second) {
+                    return;  // no elements => no min/max
+                }
             }
 
             // iterate through values
@@ -955,12 +957,16 @@ const QueryExecutionStrategy ScheduledExecution = [](
     Order order;
 
     // (re-)schedule clause
-    if (report) *report << "\nScheduling clause @ " << clause->getSrcLoc() << "\n";
+    if (report) {
+        *report << "\nScheduling clause @ " << clause->getSrcLoc() << "\n";
+    }
     {
         auto start = now();
         order = scheduleByModel(*clause, env, report);
         auto end = now();
-        if (report) *report << "    Original Query: " << insert.getOrigin() << "\n";
+        if (report) {
+            *report << "    Original Query: " << insert.getOrigin() << "\n";
+        }
         if (report) {
             *report << "       Rescheduled: " << *clause << "\n";
         }
@@ -969,7 +975,9 @@ const QueryExecutionStrategy ScheduledExecution = [](
                 *report << "            Order has Changed!\n";
             }
         }
-        if (report) *report << "   Scheduling Time: " << duration_in_ms(start, end) << "ms\n";
+        if (report) {
+            *report << "   Scheduling Time: " << duration_in_ms(start, end) << "ms\n";
+        }
     }
 
     // create operation
@@ -1176,9 +1184,11 @@ public:
             out << "num_failed_proofs += private_num_failed_proofs;\n";
         }
 
-        if (parallel) out << "PARALLEL_END;\n";  // end parallel
+        if (parallel) {
+            out << "PARALLEL_END;\n";  // end parallel
 
-        // aggregate proof counters
+            // aggregate proof counters
+        }
         if (Global::config().has("profile")) {
             // get target relation
             RamRelationIdentifier rel;
@@ -1560,13 +1570,14 @@ public:
         }
 
         // create projected tuple
-        if (project.getValues().empty())
+        if (project.getValues().empty()) {
             out << "Tuple<RamDomain," << arity << "> tuple({});\n";
-        else
+        } else {
             out << "Tuple<RamDomain," << arity << "> tuple({(RamDomain)("
                 << join(project.getValues(), "),(RamDomain)(", rec) << ")});\n";
 
-        // check filter
+            // check filter
+        }
         if (project.hasFilter()) {
             auto relFilter = getRelationName(project.getFilter());
             auto ctxFilter = "READ_OP_CONTEXT(" + getOpContextName(project.getFilter()) + ")";
@@ -1696,10 +1707,11 @@ public:
         out << toIndex(ne.getKey());
         out << "(Tuple<RamDomain," << arity << ">({";
         out << join(ne.getValues(), ",", [&](std::ostream& out, RamValue* value) {
-            if (!value)
+            if (!value) {
                 out << "0";
-            else
+            } else {
                 visit(*value, out);
+            }
         });
         out << "})," << ctxName << ").empty()";
     }

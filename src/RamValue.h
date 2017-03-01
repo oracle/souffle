@@ -280,17 +280,20 @@ public:
 
     void print(std::ostream& os) const override {
         os << "[" << join(values, ",", [](std::ostream& out, const std::unique_ptr<RamValue>& value) {
-            if (value)
+            if (value) {
                 out << *value;
-            else
+            } else {
                 out << "_";
+            }
         }) << "]";
     }
 
     size_t getLevel() const override {
         size_t level = 0;
         for (const auto& value : values) {
-            if (value) level = std::max(level, value->getLevel());
+            if (value) {
+                level = std::max(level, value->getLevel());
+            }
         }
         return level;
     }
@@ -298,8 +301,11 @@ public:
     /** Obtains a list of child nodes */
     std::vector<const RamNode*> getChildNodes() const override {
         std::vector<const RamNode*> res;
-        for (const auto& cur : values)
-            if (cur) res.push_back(cur.get());
+        for (const auto& cur : values) {
+            if (cur) {
+                res.push_back(cur.get());
+            }
+        }
         return res;
     }
 };

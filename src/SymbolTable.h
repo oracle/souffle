@@ -54,7 +54,9 @@ private:
         for (auto& cur : numToStr) {
             cur = strdup(cur);
         }
-        for (auto& cur : strToNum) const_cast<std::string&>(cur.first) = numToStr[cur.second];
+        for (auto& cur : strToNum) {
+            const_cast<std::string&>(cur.first) = numToStr[cur.second];
+        }
     }
 
     /** Convenience method to free memory allocated for strings. */
@@ -111,7 +113,9 @@ public:
 
     /** Assignment operator, performs a deep copy and frees memory allocated for all strings. */
     SymbolTable& operator=(const SymbolTable& other) {
-        if (this == &other) return *this;
+        if (this == &other) {
+            return *this;
+        }
         freeAll();
         numToStr = other.numToStr;
         strToNum = other.strToNum;

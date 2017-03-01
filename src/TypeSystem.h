@@ -81,7 +81,9 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& out, const Type* t) {
-        if (!t) return out << "-null-";
+        if (!t) {
+            return out << "-null-";
+        }
         return t->print(out), out;
     }
 };
@@ -222,13 +224,17 @@ public:
 
     /** Adds the given type to this set */
     void insert(const Type& type) {
-        if (all) return;
+        if (all) {
+            return;
+        }
         types.insert(&type);
     }
 
     /** Inserts all the types of the given set into this set */
     void insert(const TypeSet& set) {
-        if (all) return;
+        if (all) {
+            return;
+        }
 
         // if the other set is universal => make this one universal
         if (set.isAll()) {
@@ -238,7 +244,9 @@ public:
         }
 
         // add types one by one
-        for (const auto& t : set) insert(t);
+        for (const auto& t : set) {
+            insert(t);
+        }
     }
 
     /** Allows to iterate over the types contained in this set (only if not universal) */
@@ -255,7 +263,9 @@ public:
 
     /** Determines whether this set is a subset of the given set */
     bool isSubsetOf(const TypeSet& b) const {
-        if (all) return b.isAll();
+        if (all) {
+            return b.isAll();
+        }
         return all_of(*this, [&](const Type& cur) { return b.contains(cur); });
     }
 

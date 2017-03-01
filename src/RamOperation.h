@@ -70,7 +70,9 @@ public:
 
     /** Obtains a list of child nodes */
     std::vector<const RamNode*> getChildNodes() const override {
-        if (!condition) return toVector<const RamNode*>();
+        if (!condition) {
+            return toVector<const RamNode*>();
+        }
         return {condition.get()};
     }
 };
@@ -195,7 +197,9 @@ public:
     std::vector<const RamNode*> getChildNodes() const override {
         auto res = RamSearch::getChildNodes();
         for (auto& cur : queryPattern) {
-            if (cur) res.push_back(cur.get());
+            if (cur) {
+                res.push_back(cur.get());
+            }
         }
         return res;
     }
