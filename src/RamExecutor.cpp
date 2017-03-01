@@ -1130,7 +1130,8 @@ public:
         }
 
         // outline each search operation to improve compilation time
-        out << "[&]()";
+        // Disabled to work around issue #345 with clang 3.7-3.9 & omp.
+        // out << "[&]()";
 
         // enclose operation in its own scope
         out << "{\n";
@@ -1201,7 +1202,7 @@ public:
         }
 
         out << "}\n";  // end lambda
-        out << "();";  // call lambda
+        // out << "();";  // call lambda
     }
 
     void visitMerge(const RamMerge& merge, std::ostream& out) {
