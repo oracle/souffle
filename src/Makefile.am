@@ -8,7 +8,9 @@
 SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 
 bin_PROGRAMS = souffle souffle-mcpp souffle-profile
- 
+
+BUILT_SOURCES = parser.hh stack.hh
+
 nodist_souffle_profile_SOURCES = $(BUILT_SOURCES)
 
 souffle_profile_SOURCES = souffle_prof.cpp profilerlib/Cell.hpp \
