@@ -5,7 +5,6 @@
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 .type Node
-.type Street
 .number_type Card
 
 .decl Edge			(m:Node, n:Node)

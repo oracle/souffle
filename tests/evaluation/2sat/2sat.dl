@@ -4,7 +4,6 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-.type Street
 .type Var
 .type Neg
 .type Val
