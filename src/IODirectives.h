@@ -116,4 +116,4 @@ private:
 
     std::map<std::string, std::string> directives;
 };
-}
+}  // namespace souffle

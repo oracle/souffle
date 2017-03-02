@@ -250,7 +250,7 @@ bool isSubType(const Type& a, const UnionType& b) {
 
     return visitor(a).visit(b);
 }
-}
+}  // namespace
 
 /* generate unique type qualifier string for a type */
 std::string getTypeQualifier(const Type& type) {

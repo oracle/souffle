@@ -140,7 +140,7 @@ public:
         return lambda(std::move(node));
     }
 };
-}
+}  // namespace detail
 
 /**
  * Creates a node mapper based on a corresponding lambda expression.

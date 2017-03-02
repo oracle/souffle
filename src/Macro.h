@@ -17,8 +17,8 @@ inline void call(const std::string& name, const std::string& text, const int cod
     callback();
     exit(code);
 }
-}
-}
+}  // namespace macro
+}  // namespace souffle
 
 /* Macro for BREAKPOINT */
 #ifndef BREAKPOINT

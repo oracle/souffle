@@ -179,4 +179,4 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
         }
     }
 }
-};
+}  // namespace souffle;

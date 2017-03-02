@@ -242,7 +242,7 @@ BoolDisjunctConstraint imply(const std::vector<BoolDisjunctVar>& vars, const Boo
 
     return std::make_shared<C>(res, vars);
 }
-}
+}  // namespace
 
 std::map<const AstArgument*, bool> getConstTerms(const AstClause& clause) {
     // define analysis ..
@@ -662,7 +662,7 @@ TypeConstraint isSubtypeOfComponent(const TypeVar& a, const TypeVar& b, int inde
 
     return std::make_shared<C>(a, b, index);
 }
-}
+}  // namespace
 
 void TypeEnvironmentAnalysis::run(const AstTranslationUnit& translationUnit) {
     updateTypeEnvironment(*translationUnit.getProgram());

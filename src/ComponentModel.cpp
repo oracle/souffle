@@ -391,7 +391,7 @@ ComponentContent getInstantiatedContent(const AstComponentInit& componentInit,
     // done
     return res;
 }
-}
+}  // namespace
 
 bool ComponentInstantiationTransformer::transform(AstTranslationUnit& translationUnit) {
     // TODO: Do this without being a friend class of AstProgram

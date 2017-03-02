@@ -479,7 +479,7 @@ struct print {
         out << ext(value);
     }
 };
-}
+}  // namespace detail
 
 /**
  * A functor representing the identity function for a generic type T.
@@ -639,7 +639,7 @@ template <typename T>
 struct is_printable<T, typename std::conditional<false,
                                decltype(std::declval<std::ostream&>() << std::declval<T>()), void>::type>
         : public std::true_type {};
-}
+}  // namespace detail
 
 /**
  * A generic function converting arbitrary objects to strings by utilizing
@@ -687,7 +687,7 @@ struct multiplying_printer {
         return out;
     }
 };
-}
+}  // namespace detail
 
 /**
  * A utility printing a given value multiple times.
@@ -765,7 +765,7 @@ struct lambda_traits_helper<R (C::*)(Args...)> : public lambda_traits_helper<R(A
 
 template <typename R, typename C, typename... Args>
 struct lambda_traits_helper<R (C::*)(Args...) const> : public lambda_traits_helper<R (C::*)(Args...)> {};
-}
+}  // namespace detail
 
 /**
  * A type trait enabling the deduction of type properties of lambdas.

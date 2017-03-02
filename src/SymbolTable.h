@@ -191,4 +191,4 @@ public:
         return out;
     }
 };
-}
+}  // namespace souffle

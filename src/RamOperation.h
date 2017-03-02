@@ -21,6 +21,7 @@
 #include "RamNode.h"
 #include "RamRelation.h"
 
+#include <memory>
 #include <set>
 
 namespace souffle {
@@ -374,4 +375,4 @@ public:
     }
 };
 
-}  // end of namespace souffle
+}  // namespace souffle

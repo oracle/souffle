@@ -24,10 +24,8 @@
 
 #include <iostream>
 #include <list>
+#include <memory>
 #include <string>
-
-#include <memory.h>
-#include <stdio.h>
 
 namespace souffle {
 
@@ -79,7 +77,7 @@ std::unique_ptr<RamValue> getIndexElement(RamCondition* c, size_t& element, size
     }
     return std::unique_ptr<RamValue>(nullptr);
 }
-}
+}  // namespace
 
 /** add condition */
 void RamScan::addCondition(std::unique_ptr<RamCondition> c, RamOperation* root) {

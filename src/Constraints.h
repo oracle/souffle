@@ -62,7 +62,7 @@ struct default_meet_op {
         return res;
     }
 };
-}
+}  // namespace detail
 
 /**
  * A MPL type for defining a property space. A property space consists of
@@ -106,7 +106,7 @@ struct set_meet_assign_op {
         return changed;
     }
 };
-}
+}  // namespace detail
 
 /**
  * A property space for set-based properties based on sub-set lattices.

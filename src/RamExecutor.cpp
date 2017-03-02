@@ -816,7 +816,7 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
     // create and run interpreter
     Interpreter(env, executor, report, profile, data).visit(stmt);
 }
-}
+}  // namespace
 
 void RamGuidedInterpreter::applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const {
     if (Global::config().has("profile")) {
@@ -929,7 +929,7 @@ Order scheduleByModel(AstClause& clause, RamEnvironment& env, std::ostream* repo
     // done
     return res;
 }
-}
+}  // namespace
 
 /** With this strategy queries will be processed as they are stated by the user */
 const QueryExecutionStrategy DirectExecution = [](
@@ -1905,7 +1905,7 @@ void genCode(std::ostream& out, const RamStatement& stmt, const IndexMap& indice
     // use printer
     Printer(indices).visit(stmt, out);
 }
-}
+}  // namespace
 
 std::string RamCompiler::resolveFileName() const {
     if (Global::config().get("dl-program") == "") {

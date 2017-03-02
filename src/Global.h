@@ -128,4 +128,4 @@ public:
         return _config;
     }
 };
-};
+}  // namespace souffle

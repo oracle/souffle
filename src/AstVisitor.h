@@ -248,7 +248,7 @@ struct is_visitor<const T> : public is_visitor<T> {};
 
 template <typename T>
 struct is_visitor<T&> : public is_visitor<T> {};
-}
+}  // namespace
 
 /**
  * A utility function visiting all nodes within the ast rooted by the given node
@@ -344,4 +344,4 @@ typename std::enable_if<!is_visitor<Lambda>::value, void>::type visitDepthFirstP
     visitDepthFirstPostOrder(root, std::function<R(const N&)>(fun));
 }
 
-}  // end of namespace souffle
+}  // namespace souffle

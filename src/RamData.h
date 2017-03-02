@@ -97,4 +97,4 @@ public:
         return ss;
     }
 };
-}
+}  // namespace souffle

@@ -203,7 +203,7 @@ struct Equation {
         return out;
     }
 };
-}
+}  // namespace
 
 std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstClause& clause) {
     /**

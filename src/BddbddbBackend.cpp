@@ -217,7 +217,7 @@ private:
                 "Unable to convert the following language construct into bddbddb format: " + toString(node));
     }
 };
-}
+}  // namespace detail
 
 void toBddbddb(std::ostream& out, const AstTranslationUnit& translationUnit) {
     // simply run the converter
