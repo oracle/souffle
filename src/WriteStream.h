@@ -33,7 +33,7 @@ public:
         writeNextTuple(tuple.data);
     }
     virtual void writeNextTuple(const RamDomain* tuple) = 0;
-    virtual ~WriteStream() {}
+    virtual ~WriteStream() = default;
 };
 
 class WriteStreamFactory {
@@ -41,7 +41,7 @@ public:
     virtual std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask,
             const SymbolTable& symbolTable, const IODirectives& ioDirectives) = 0;
     virtual const std::string& getName() const = 0;
-    virtual ~WriteStreamFactory() {}
+    virtual ~WriteStreamFactory() = default;
 };
 
 template <>

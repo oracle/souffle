@@ -159,7 +159,7 @@ public:
 
     gzfstream(gzfstream&&) = default;
 
-    ~gzfstream() override {}
+    ~gzfstream() override = default;
 
     void open(const std::string& filename, std::ios_base::openmode mode) {
         if (!buf.open(filename, mode)) {

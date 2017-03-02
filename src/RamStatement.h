@@ -97,7 +97,7 @@ public:
     RamFact(const RamRelationIdentifier& rel, value_list&& values)
             : RamRelationStatement(RN_Fact, rel), values(std::move(values)) {}
 
-    ~RamFact() override {}
+    ~RamFact() override = default;
 
     std::vector<const RamValue*> getValues() const {
         return toPtrVector(values);
@@ -240,7 +240,7 @@ public:
             : RamStatement(RN_Insert), clause(std::unique_ptr<const AstClause>(clause.clone())),
               operation(std::move(o)) {}
 
-    ~RamInsert() override {}
+    ~RamInsert() override = default;
 
     const AstClause& getOrigin() const {
         return *clause;
@@ -318,7 +318,7 @@ public:
         }
     }
 
-    ~RamSequence() override {}
+    ~RamSequence() override = default;
 
     /* add new statement to parallel construct */
     void add(std::unique_ptr<RamStatement> s) {
@@ -354,7 +354,7 @@ class RamParallel : public RamStatement {
 public:
     RamParallel() : RamStatement(RN_Parallel) {}
 
-    ~RamParallel() override {}
+    ~RamParallel() override = default;
 
     /* add new statement to parallel construct */
     void add(std::unique_ptr<RamStatement> s) {
@@ -412,7 +412,7 @@ public:
             : RamStatement(RN_Loop), body(std::unique_ptr<RamStatement>(new RamSequence(
                                              std::move(f), std::move(s), std::move(rest)...))) {}
 
-    ~RamLoop() override {}
+    ~RamLoop() override = default;
 
     const RamStatement& getBody() const {
         return *body;
@@ -448,7 +448,7 @@ public:
         assert(first.getArity() == second.getArity());
     }
 
-    ~RamSwap() override {}
+    ~RamSwap() override = default;
 
     void print(std::ostream& os, int tabpos) const override {
         for (int i = 0; i < tabpos; ++i) {
@@ -476,7 +476,7 @@ class RamExit : public RamStatement {
 
 public:
     RamExit(std::unique_ptr<RamCondition> c) : RamStatement(RN_Exit), condition(std::move(c)) {}
-    ~RamExit() override {}
+    ~RamExit() override = default;
 
     const RamCondition& getCondition() const {
         return *condition;

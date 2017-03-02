@@ -91,7 +91,7 @@ protected:
 public:
     AstRelation() : qualifier(0) {}
 
-    ~AstRelation() override {}
+    ~AstRelation() override = default;
 
     /** Return the name of the relation */
     const AstRelationIdentifier& getName() const {

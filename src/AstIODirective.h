@@ -30,7 +30,7 @@ namespace souffle {
  */
 class AstIODirective : public AstNode {
 public:
-    ~AstIODirective() override {}
+    ~AstIODirective() override = default;
 
     /** Obtains a list of all embedded child nodes */
     std::vector<const AstNode*> getChildNodes() const override {

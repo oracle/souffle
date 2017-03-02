@@ -45,7 +45,7 @@ public:
     RamExecutor() : report(nullptr) {}
 
     /** A virtual destructor to support safe inheritance */
-    virtual ~RamExecutor() {}
+    virtual ~RamExecutor() = default;
 
     /**
      * Updates the target this executor is reporting to.
@@ -260,7 +260,7 @@ public:
         return getInstance().identifier(name);
     }
 
-    ~CPPIdentifierMap() {}
+    ~CPPIdentifierMap() = default;
 
 private:
     CPPIdentifierMap() {}

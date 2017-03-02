@@ -140,7 +140,7 @@ struct Atom {
 public:
     Atom(int id, const std::vector<Argument>& args) : id(id), args(args) {}
 
-    virtual ~Atom() {}
+    virtual ~Atom() = default;
 
     /** Obtains the identifier of this atom */
     int getID() const {
@@ -348,7 +348,7 @@ class State {
 public:
     State() : cost(0) {}
 
-    virtual ~State() {}
+    virtual ~State() = default;
 
     Cost getCost() const {
         return cost;
@@ -381,7 +381,7 @@ struct cost_model {
     /** The type of state to be associated to plans by this model. */
     typedef State state_type;
 
-    virtual ~cost_model() {}
+    virtual ~cost_model() = default;
 
     /** A factory for creating the state to be associated to the empty plan */
     virtual State getInitState() const {

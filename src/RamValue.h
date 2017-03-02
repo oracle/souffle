@@ -42,7 +42,7 @@ class RamValue : public RamNode {
 public:
     RamValue(RamNodeType type, bool isCnst) : RamNode(type), cnst(isCnst) {}
 
-    ~RamValue() override {}
+    ~RamValue() override = default;
 
     /** get level of value (which for-loop of a query) */
     virtual size_t getLevel() const = 0;
@@ -65,7 +65,7 @@ public:
     RamUnaryOperator(UnaryOp op, std::unique_ptr<RamValue> v)
             : RamValue(RN_UnaryOperator, v->isConstant()), op(op), value(std::move(v)) {}
 
-    ~RamUnaryOperator() override {}
+    ~RamUnaryOperator() override = default;
 
     void print(std::ostream& os) const override {
         os << getSymbolForUnaryOp(op);
@@ -105,7 +105,7 @@ public:
             : RamValue(RN_BinaryOperator, l->isConstant() && r->isConstant()), op(op), lhs(std::move(l)),
               rhs(std::move(r)) {}
 
-    ~RamBinaryOperator() override {}
+    ~RamBinaryOperator() override = default;
 
     void print(std::ostream& os) const override {
         if (isNumericBinaryOp(op)) {
@@ -160,7 +160,7 @@ public:
             : RamValue(RN_TernaryOperator, a0->isConstant() && a1->isConstant() && a2->isConstant()), op(op),
               arg({{std::move(a0), std::move(a1), std::move(a2)}}) {}
 
-    ~RamTernaryOperator() override {}
+    ~RamTernaryOperator() override = default;
 
     void print(std::ostream& os) const override {
         os << getSymbolForTernaryOp(op);
@@ -272,7 +272,7 @@ public:
                                [](const std::unique_ptr<RamValue>& v) { return v && v->isConstant(); })),
               values(std::move(values)) {}
 
-    ~RamPack() override {}
+    ~RamPack() override = default;
 
     std::vector<RamValue*> getValues() const {
         return toPtrVector(values);

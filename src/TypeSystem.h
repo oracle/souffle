@@ -50,7 +50,7 @@ public:
 
     Type(const Type& other) = delete;
 
-    virtual ~Type() {}
+    virtual ~Type() = default;
 
     const AstTypeIdentifier& getName() const {
         return name;

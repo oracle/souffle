@@ -136,7 +136,7 @@ protected:
 
 public:
     Variable(const Id& id) : id(id) {}
-    virtual ~Variable() {}
+    virtual ~Variable() = default;
 
     Variable(const Variable&) = default;
     Variable(Variable&&) = default;
@@ -186,7 +186,7 @@ class Constraint {
 
 public:
     /** A virtual destructor */
-    virtual ~Constraint() {}
+    virtual ~Constraint() = default;
 
     /**
      * Requests the given assignment to be updated according to

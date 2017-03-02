@@ -44,7 +44,7 @@ class AstNode {
     AstSrcLocation location;
 
 public:
-    virtual ~AstNode() {}
+    virtual ~AstNode() = default;
 
     /** Return source location of the AstNode */
     AstSrcLocation getSrcLoc() const {
@@ -102,7 +102,7 @@ protected:
 class AstNodeMapper {
 public:
     /** A virtual destructor for this abstract type */
-    virtual ~AstNodeMapper() {}
+    virtual ~AstNodeMapper() = default;
 
     /**
      * Computes a replacement for the given node. If the given nodes

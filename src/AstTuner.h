@@ -38,7 +38,7 @@ private:
 public:
     AutoScheduleTransformer() {}
 
-    ~AutoScheduleTransformer() override {}
+    ~AutoScheduleTransformer() override = default;
 
     std::string getName() const override {
         return "AutoScheduleTransformer";

@@ -1100,7 +1100,7 @@ class Printer : public RamVisitor<void, std::ostream&> {
         Printer& p;
         const RamNode& node;
         printer(Printer& p, const RamNode& n) : p(p), node(n) {}
-        printer(const printer& other) : p(other.p), node(other.node) {}
+        printer(const printer& other) = default;
         friend std::ostream& operator<<(std::ostream& out, const printer& p) {
             p.p.visit(p.node, out);
             return out;

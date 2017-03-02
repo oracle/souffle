@@ -122,7 +122,7 @@ public:
         return tuple;
     }
 
-    ~ReadStreamCSV() override {}
+    ~ReadStreamCSV() override = default;
 
 private:
     const char delimiter;
@@ -160,7 +160,7 @@ public:
         }
     }
 
-    ~ReadFileCSV() override {}
+    ~ReadFileCSV() override = default;
 
 private:
     std::string baseName;
@@ -221,7 +221,7 @@ public:
     const std::string& getName() const override {
         return name;
     }
-    ~ReadCinCSVFactory() override {}
+    ~ReadCinCSVFactory() override = default;
 
 private:
     static const std::string name;
@@ -243,7 +243,7 @@ public:
     const std::string& getName() const override {
         return name;
     }
-    ~ReadFileCSVFactory() override {}
+    ~ReadFileCSVFactory() override = default;
 
 private:
     static const std::string name;

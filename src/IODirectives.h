@@ -30,7 +30,7 @@ public:
         }
     }
 
-    ~IODirectives() {}
+    ~IODirectives() = default;
 
     const std::string& getIOType() const {
         return get("IO");

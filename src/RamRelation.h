@@ -234,7 +234,7 @@ public:
         indices.swap(other.indices);
     }
 
-    ~RamRelation() {}
+    ~RamRelation() = default;
 
     RamRelation& operator=(const RamRelation& other) = delete;
 

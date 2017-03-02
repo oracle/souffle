@@ -86,7 +86,7 @@ private:
     static void checkNamespaces(ErrorReport& report, const AstProgram& program);
 
 public:
-    ~AstSemanticChecker() override {}
+    ~AstSemanticChecker() override = default;
 
     std::string getName() const override {
         return "AstSemanticChecker";

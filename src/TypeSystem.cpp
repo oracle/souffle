@@ -121,7 +121,7 @@ namespace {
  */
 template <typename R>
 struct TypeVisitor {
-    virtual ~TypeVisitor(){};
+    virtual ~TypeVisitor() = default;
 
     R operator()(const Type& type) const {
         return visit(type);

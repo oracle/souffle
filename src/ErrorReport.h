@@ -143,7 +143,7 @@ class ErrorReport {
 public:
     ErrorReport(bool nowarn = false) : nowarn(nowarn) {}
 
-    ErrorReport(const ErrorReport& other) : diagnostics(other.diagnostics), nowarn(other.nowarn) {}
+    ErrorReport(const ErrorReport& other) = default;
 
     unsigned getNumErrors() const {
         return std::count_if(diagnostics.begin(), diagnostics.end(),

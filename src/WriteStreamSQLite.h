@@ -265,7 +265,7 @@ public:
     const std::string& getName() const override {
         return name;
     }
-    ~WriteSQLiteFactory() override {}
+    ~WriteSQLiteFactory() override = default;
 
 private:
     static const std::string name;

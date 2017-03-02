@@ -74,7 +74,7 @@ public:
         map.insert(std::make_pair(var, std::unique_ptr<AstArgument>(arg->clone())));
     }
 
-    virtual ~Substitution() {}
+    virtual ~Substitution() = default;
 
     /**
      * Applies this substitution to the given argument and
@@ -183,7 +183,7 @@ struct Equation {
 
     Equation(Equation&& other) : lhs(std::move(other.lhs)), rhs(std::move(other.rhs)) {}
 
-    ~Equation() {}
+    ~Equation() = default;
 
     /**
      * Applies the given substitution to both sides of the equation.

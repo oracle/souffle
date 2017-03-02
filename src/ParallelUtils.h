@@ -509,7 +509,7 @@ struct Lock {
  */
 class SpinLock {
 public:
-    SpinLock() {}
+    SpinLock() = default;
 
     void lock() {}
 
@@ -522,7 +522,7 @@ public:
 
 class ReadWriteLock {
 public:
-    ReadWriteLock() {}
+    ReadWriteLock() = default;
 
     void start_read() {}
 
@@ -550,7 +550,7 @@ class OptimisticReadWriteLock {
 public:
     class Lease {};
 
-    OptimisticReadWriteLock() {}
+    OptimisticReadWriteLock() = default;
 
     Lease start_read() {
         return Lease();

@@ -37,7 +37,7 @@ class RamCondition : public RamNode {
 public:
     RamCondition(RamNodeType type) : RamNode(type) {}
 
-    ~RamCondition() override {}
+    ~RamCondition() override = default;
 
     /** get level of condition */
     virtual size_t getLevel() = 0;
@@ -55,7 +55,7 @@ public:
     RamAnd(std::unique_ptr<RamCondition> l, std::unique_ptr<RamCondition> r)
             : RamCondition(RN_And), lhs(std::move(l)), rhs(std::move(r)) {}
 
-    ~RamAnd() override {}
+    ~RamAnd() override = default;
 
     const RamCondition& getLHS() const {
         return *lhs;
@@ -93,7 +93,7 @@ public:
     RamBinaryRelation(BinaryConstraintOp op, std::unique_ptr<RamValue> l, std::unique_ptr<RamValue> r)
             : RamCondition(RN_BinaryRelation), op(op), lhs(std::move(l)), rhs(std::move(r)) {}
 
-    ~RamBinaryRelation() override {}
+    ~RamBinaryRelation() override = default;
 
     void print(std::ostream& os) const override {
         lhs->print(os);
@@ -154,7 +154,7 @@ public:
     RamNotExists(const RamRelationIdentifier& rel)
             : RamCondition(RN_NotExists), relation(rel), index(nullptr) {}
 
-    ~RamNotExists() override {}
+    ~RamNotExists() override = default;
 
     const RamRelationIdentifier& getRelation() const {
         return relation;
@@ -237,7 +237,7 @@ class RamEmpty : public RamCondition {
 public:
     RamEmpty(const RamRelationIdentifier& rel) : RamCondition(RN_Empty), relation(rel) {}
 
-    ~RamEmpty() override {}
+    ~RamEmpty() override = default;
 
     const RamRelationIdentifier& getRelation() const {
         return relation;

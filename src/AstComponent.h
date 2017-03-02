@@ -221,7 +221,7 @@ class AstComponent : public AstNode {
     std::set<std::string> overrideRules;
 
 public:
-    ~AstComponent() override {}
+    ~AstComponent() override = default;
 
     // -- getters and setters --
 

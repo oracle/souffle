@@ -45,7 +45,7 @@ struct ast_visitor_tag {};
 template <typename R = void, typename... Params>
 struct AstVisitor : public ast_visitor_tag {
     /** A virtual destructor */
-    virtual ~AstVisitor() {}
+    virtual ~AstVisitor() = default;
 
     /** The main entry for the user allowing visitors to be utilized as functions */
     R operator()(const AstNode& node, Params... args) {

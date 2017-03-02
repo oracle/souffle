@@ -272,7 +272,7 @@ public:
         its head set to NULL */
     AstClause() : head(nullptr), fixedPlan(false), plan(nullptr), generated(false) {}
 
-    ~AstClause() override {}
+    ~AstClause() override = default;
 
     /** Add a Literal to the body of the clause */
     void addToBody(std::unique_ptr<AstLiteral> l);

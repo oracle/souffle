@@ -44,7 +44,7 @@ class AstLiteral : public AstNode {
 public:
     AstLiteral() {}
 
-    ~AstLiteral() override {}
+    ~AstLiteral() override = default;
 
     /** Obtains the atom referenced by this literal - if any */
     virtual const AstAtom* getAtom() const = 0;
@@ -69,7 +69,7 @@ protected:
 public:
     AstAtom(const AstRelationIdentifier& name = AstRelationIdentifier()) : name(name) {}
 
-    ~AstAtom() override {}
+    ~AstAtom() override = default;
 
     /** Return the name of this atom */
     const AstRelationIdentifier& getName() const {
@@ -180,7 +180,7 @@ protected:
 public:
     AstNegation(std::unique_ptr<AstAtom> a) : atom(std::move(a)) {}
 
-    ~AstNegation() override {}
+    ~AstNegation() override = default;
 
     /** Returns the nested atom as the referenced atom */
     const AstAtom* getAtom() const override {
@@ -246,7 +246,7 @@ public:
     AstConstraint(const std::string& op, std::unique_ptr<AstArgument> ls, std::unique_ptr<AstArgument> rs)
             : operation(toBinaryConstraintOp(op)), lhs(std::move(ls)), rhs(std::move(rs)) {}
 
-    ~AstConstraint() override {}
+    ~AstConstraint() override = default;
 
     /** This kind of literal has no nested atom */
     const AstAtom* getAtom() const override {

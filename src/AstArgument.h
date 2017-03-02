@@ -43,7 +43,7 @@ class AstLiteral;
  */
 class AstArgument : public AstNode {
 public:
-    ~AstArgument() override {}
+    ~AstArgument() override = default;
 
     /** Obtains a list of all embedded child nodes */
     std::vector<const AstNode*> getChildNodes() const override {
@@ -283,7 +283,7 @@ protected:
 public:
     AstUnaryFunctor(UnaryOp fun, std::unique_ptr<AstArgument> o) : fun(fun), operand(std::move(o)) {}
 
-    ~AstUnaryFunctor() override {}
+    ~AstUnaryFunctor() override = default;
 
     AstArgument* getOperand() const {
         return operand.get();
@@ -362,7 +362,7 @@ public:
     AstBinaryFunctor(BinaryOp fun, std::unique_ptr<AstArgument> l, std::unique_ptr<AstArgument> r)
             : fun(fun), lhs(std::move(l)), rhs(std::move(r)) {}
 
-    ~AstBinaryFunctor() override {}
+    ~AstBinaryFunctor() override = default;
 
     AstArgument* getLHS() const {
         return lhs.get();
@@ -459,7 +459,7 @@ public:
             std::unique_ptr<AstArgument> a3)
             : fun(fun), arg({{std::move(a1), std::move(a2), std::move(a3)}}) {}
 
-    ~AstTernaryFunctor() override {}
+    ~AstTernaryFunctor() override = default;
 
     AstArgument* getArg(int idx) const {
         assert(idx >= 0 && idx < 3 && "wrong argument");
@@ -547,7 +547,7 @@ class AstRecordInit : public AstArgument {
 public:
     AstRecordInit() {}
 
-    ~AstRecordInit() override {}
+    ~AstRecordInit() override = default;
 
     void add(std::unique_ptr<AstArgument> arg) {
         args.push_back(std::move(arg));
@@ -673,7 +673,7 @@ public:
     AstAggregator(Op fun) : fun(fun), expr(nullptr) {}
 
     /** Destructor */
-    ~AstAggregator() override {}
+    ~AstAggregator() override = default;
 
     // -- getters and setters --
 

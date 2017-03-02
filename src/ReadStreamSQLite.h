@@ -162,7 +162,7 @@ public:
     const std::string& getName() const override {
         return name;
     }
-    ~ReadStreamSQLiteFactory() override {}
+    ~ReadStreamSQLiteFactory() override = default;
 
 private:
     static const std::string name;

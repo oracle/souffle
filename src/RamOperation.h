@@ -37,7 +37,7 @@ protected:
 public:
     RamOperation(RamNodeType type, size_t l) : RamNode(type), level(l), condition(nullptr) {}
 
-    ~RamOperation() override {}
+    ~RamOperation() override = default;
 
     /** obtains the level of this operation */
     size_t getLevel() const {
@@ -86,7 +86,7 @@ public:
     RamSearch(RamNodeType type, std::unique_ptr<RamOperation> nested)
             : RamOperation(type, nested->getLevel() - 1), nestedOperation(std::move(nested)) {}
 
-    ~RamSearch() override {}
+    ~RamSearch() override = default;
 
     /** get nested operation */
     RamOperation* getNestedOperation() const {
@@ -144,7 +144,7 @@ public:
             : RamSearch(RN_Scan, std::move(nested)), relation(r), queryPattern(r.getArity()), keys(0),
               pureExistenceCheck(pureExistenceCheck), index(nullptr) {}
 
-    ~RamScan() override {}
+    ~RamScan() override = default;
 
     /** Obtains the id of the relation scanned by this operation */
     const RamRelationIdentifier& getRelation() const {
@@ -269,7 +269,7 @@ public:
             : RamSearch(RN_Aggregate, std::move(nested)), fun(fun), value(std::move(value)),
               relation(relation), pattern(relation.getArity()), keys(0), index(nullptr) {}
 
-    ~RamAggregate() override {}
+    ~RamAggregate() override = default;
 
     Function getFunction() const {
         return fun;
@@ -332,7 +332,7 @@ public:
             : RamOperation(RN_Project, level), relation(relation),
               filter(std::unique_ptr<RamRelationIdentifier>(new RamRelationIdentifier(filter))) {}
 
-    ~RamProject() override {}
+    ~RamProject() override = default;
 
     /** add value for a column */
     void addArg(std::unique_ptr<RamValue> v) {

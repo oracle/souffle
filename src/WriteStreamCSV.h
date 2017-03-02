@@ -54,7 +54,7 @@ public:
         out << "\n";
     }
 
-    ~WriteStreamCSV() override {}
+    ~WriteStreamCSV() override = default;
 
 private:
     const char delimiter;
@@ -72,7 +72,7 @@ public:
         writeStream.writeNextTuple(tuple);
     }
 
-    ~WriteFileCSV() override {}
+    ~WriteFileCSV() override = default;
 
 private:
     std::ofstream file;
@@ -89,7 +89,7 @@ public:
         writeStream.writeNextTuple(tuple);
     }
 
-    ~WriteGZipFileCSV() override {}
+    ~WriteGZipFileCSV() override = default;
 
 private:
     gzfstream::ogzfstream file;
@@ -144,7 +144,7 @@ public:
     const std::string& getName() const override {
         return name;
     }
-    ~WriteFileCSVFactory() override {}
+    ~WriteFileCSVFactory() override = default;
 
 private:
     static const std::string name;
@@ -163,7 +163,7 @@ public:
     const std::string& getName() const override {
         return name;
     }
-    ~WriteCoutCSVFactory() override {}
+    ~WriteCoutCSVFactory() override = default;
 
 private:
     static const std::string name;

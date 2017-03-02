@@ -78,7 +78,7 @@ public:
     AstProgram(AstProgram&&);
 
     /** A programs destructor */
-    ~AstProgram() override {}
+    ~AstProgram() override = default;
 
     // -- Types ----------------------------------------------------------------
 

@@ -42,7 +42,7 @@ struct ram_visitor_tag {};
 template <typename R = void, typename... Params>
 struct RamVisitor : public ram_visitor_tag {
     /** A virtual destructor */
-    virtual ~RamVisitor() {}
+    virtual ~RamVisitor() = default;
 
     /** The main entry for the user allowing visitors to be utilized as functions */
     R operator()(const RamNode& node, Params... args) {
