@@ -895,7 +895,7 @@ inline std::string which(const std::string& name) {
 /**
  *  C++-style dirname
  */
-inline std::string dirName(std::string& name) {
+inline std::string dirName(const std::string& name) {
     char buf[PATH_MAX];
     strcpy(buf, name.c_str());
     return std::string(dirname(buf));
@@ -904,7 +904,7 @@ inline std::string dirName(std::string& name) {
 /**
  *  C++-style realpath
  */
-inline std::string absPath(std::string& path) {
+inline std::string absPath(const std::string& path) {
     char buf[PATH_MAX];
     char* res = realpath(path.c_str(), buf);
     return (res == NULL) ? "" : std::string(buf);
@@ -915,7 +915,7 @@ inline std::string absPath(std::string& path) {
  * relative to the directory given by @ base. A path here refers a
  * colon-separated list of directories.
  */
-inline std::string findTool(std::string tool, std::string base, std::string path) {
+inline std::string findTool(const std::string& tool, const std::string& base, const std::string& path) {
     std::string dir = dirName(base);
     std::stringstream sstr(path);
     std::string sub;
@@ -930,7 +930,7 @@ inline std::string findTool(std::string tool, std::string base, std::string path
 /*
  * Get the basename of a fully qualified filename
  */
-inline std::string baseName(std::string& filename) {
+inline std::string baseName(const std::string& filename) {
     char fn[filename.size() + 1];
     strcpy(fn, filename.c_str());
     std::string result = basename(fn);
