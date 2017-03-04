@@ -235,7 +235,7 @@ public:
 
     /**  Print argument to the given output stream */
     void print(std::ostream& os) const override {
-        os << (AstDomain)idx;
+        os << idx;
     }
 
     /** Creates a clone if this AST sub-structure */

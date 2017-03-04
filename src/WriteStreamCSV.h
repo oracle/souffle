@@ -40,7 +40,7 @@ public:
         if (symbolMask.isSymbol(0)) {
             out << symbolTable.resolve(tuple[0]);
         } else {
-            out << (int32_t)tuple[0];
+            out << static_cast<int32_t>(tuple[0]);
         }
         for (size_t col = 1; col < symbolMask.getArity(); ++col) {
             out << delimiter;
@@ -48,7 +48,7 @@ public:
                 std::string s = symbolTable.resolve(tuple[col]);
                 out << s;
             } else {
-                out << (int32_t)tuple[col];
+                out << static_cast<int32_t>(tuple[col]);
             }
         }
         out << "\n";
