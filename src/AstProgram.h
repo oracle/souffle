@@ -103,7 +103,7 @@ private:
     void addClause(std::unique_ptr<AstClause> clause);
 
     /** Add an IO directive to the program */
-    void addIODirective(std::unique_ptr<AstIODirective> r);
+    void addIODirective(std::unique_ptr<AstIODirective> directive);
 
 public:
     /** Find and return the relation in the program given its name */
@@ -124,7 +124,7 @@ public:
     void appendRelation(std::unique_ptr<AstRelation> r);
 
     /** Remove a relation from the program. */
-    void removeRelation(const AstRelationIdentifier& r);
+    void removeRelation(const AstRelationIdentifier& name);
 
     /** append a new clause to this program -- after parsing */
     void appendClause(std::unique_ptr<AstClause> clause);
