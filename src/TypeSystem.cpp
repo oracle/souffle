@@ -161,7 +161,7 @@ struct TypeVisitor {
         return visitType(type);
     }
 
-    virtual R visitType(const Type& type) const {
+    virtual R visitType(const Type& /*type*/) const {
         return R();
     }
 };
@@ -218,7 +218,7 @@ bool isOfRootType(const Type& type, const Type& root) {
             auto fit = [&](const Type* cur) { return visit(*cur); };
             return all_of(type.getElementTypes(), fit);
         }
-        bool visitType(const Type&) const override {
+        bool visitType(const Type& /*unused*/) const override {
             return false;
         }
     };

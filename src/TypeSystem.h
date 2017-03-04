@@ -344,11 +344,11 @@ public:
 
     // -- query type information --
 
-    bool isType(const identifier& name) const;
+    bool isType(const identifier& ident) const;
 
     bool isType(const Type& type) const;
 
-    const Type& getType(const identifier& name) const;
+    const Type& getType(const identifier& ident) const;
 
     const Type& getNumberType() const {
         return getType("number");

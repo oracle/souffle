@@ -147,7 +147,7 @@ public:
     }
 
     /** Applies the node mapper to all child nodes and conducts the corresponding replacements */
-    void apply(const AstNodeMapper& mapper) override {
+    void apply(const AstNodeMapper& /*mapper*/) override {
         return;  // nothing to do
     }
 

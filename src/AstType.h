@@ -143,7 +143,7 @@ public:
     AstType* clone() const override = 0;
 
     /** Mutates this node */
-    void apply(const AstNodeMapper& map) override {
+    void apply(const AstNodeMapper& /*map*/) override {
         // no nested nodes in any type
     }
 };

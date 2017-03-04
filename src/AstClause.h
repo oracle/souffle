@@ -89,7 +89,7 @@ public:
         return res;
     }
 
-    void apply(const AstNodeMapper& mapper) override {}
+    void apply(const AstNodeMapper& /*mapper*/) override {}
 
     std::vector<const AstNode*> getChildNodes() const override {
         return {};

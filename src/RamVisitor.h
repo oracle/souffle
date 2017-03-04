@@ -187,7 +187,7 @@ protected:
 #undef LINK
 
     /** The base case for all visitors -- if no more specific overload was defined */
-    virtual R visitNode(const RamNode& node, Params... args) {
+    virtual R visitNode(const RamNode& /*node*/, Params... /*args*/) {
         return R();
     }
 };

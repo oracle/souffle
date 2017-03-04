@@ -42,8 +42,6 @@ class AstArgument;
  *          that consists of relations, clauses and types
  */
 class AstProgram : public AstNode {
-    using SymbolTable = souffle::SymbolTable;  // XXX pending namespace cleanup
-
     // TODO: Check whether this is needed
     friend class ParserDriver;
     friend class ComponentInstantiationTransformer;
@@ -68,14 +66,14 @@ class AstProgram : public AstNode {
     std::vector<std::unique_ptr<AstComponentInit>> instantiations;
 
     /** a private constructor to restrict creation */
-    AstProgram() {}
+    AstProgram() = default;
 
 public:
     /** Deleted copy constructor since instances can not be copied */
     AstProgram(const AstProgram&) = delete;
 
     /** A move constructor */
-    AstProgram(AstProgram&&);
+    AstProgram(AstProgram&& other);
 
     /** A programs destructor */
     ~AstProgram() override = default;
@@ -102,7 +100,7 @@ private:
     void addRelation(std::unique_ptr<AstRelation> r);
 
     /** Add a clause to the program */
-    void addClause(std::unique_ptr<AstClause> r);
+    void addClause(std::unique_ptr<AstClause> clause);
 
     /** Add an IO directive to the program */
     void addIODirective(std::unique_ptr<AstIODirective> r);

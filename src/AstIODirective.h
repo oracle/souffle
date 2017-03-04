@@ -51,7 +51,7 @@ public:
     }
 
     /** No nested nodes to apply to */
-    void apply(const AstNodeMapper& mapper) override {}
+    void apply(const AstNodeMapper& /*mapper*/) override {}
 
     /** Output to a given output stream */
     void print(std::ostream& os) const override {
@@ -88,13 +88,13 @@ public:
     }
 
     /** Set kvp map name */
-    void addName(const AstRelationIdentifier& n) {
-        names.insert(n);
+    void addName(const AstRelationIdentifier& name) {
+        names.insert(name);
     }
     /** Set kvp map name */
-    void setName(const AstRelationIdentifier& n) {
+    void setName(const AstRelationIdentifier& name) {
         names.clear();
-        names.insert(n);
+        names.insert(name);
     }
 
     void addKVP(const std::string& key, const std::string& value) {

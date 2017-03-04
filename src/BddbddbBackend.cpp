@@ -212,7 +212,7 @@ private:
         out << join(id.getNames(), "_");
     }
 
-    void visitNode(const AstNode& node, std::ostream&) override {
+    void visitNode(const AstNode& node, std::ostream& /*unused*/) override {
         throw UnsupportedConstructException(
                 "Unable to convert the following language construct into bddbddb format: " + toString(node));
     }

@@ -88,7 +88,7 @@ public:
     }
 
     /** Mutates this node */
-    void apply(const AstNodeMapper& mapper) override {
+    void apply(const AstNodeMapper& /*mapper*/) override {
         // no sub-nodes to consider
     }
 
@@ -122,7 +122,7 @@ public:
     }
 
     /** Mutates this node */
-    void apply(const AstNodeMapper& mapper) override {
+    void apply(const AstNodeMapper& /*mapper*/) override {
         // no sub-nodes to consider
     }
 
@@ -155,7 +155,7 @@ public:
     }
 
     /** Mutates this node */
-    void apply(const AstNodeMapper& mapper) override {
+    void apply(const AstNodeMapper& /*mapper*/) override {
         // no sub-nodes to consider within constants
     }
 
@@ -184,7 +184,7 @@ public:
     }
 
     /** Mutates this node */
-    void apply(const AstNodeMapper& mapper) override {
+    void apply(const AstNodeMapper& /*mapper*/) override {
         // no sub-nodes to consider within constants
     }
 

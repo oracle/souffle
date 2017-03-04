@@ -492,7 +492,7 @@ private:
          * larger portions to the right fragment provide higher performance
          * and a better node-filling rate.
          */
-        int getSplitPoint(int) {
+        int getSplitPoint(int /*unused*/) {
             return std::min(3 * maxKeys / 4, maxKeys - 2);
         }
 

@@ -44,7 +44,7 @@ class AstAttribute : public AstNode {
     AstTypeIdentifier typeName;
 
 public:
-    AstAttribute(const std::string& n, const AstTypeIdentifier& t, const Type* type = nullptr)
+    AstAttribute(const std::string& n, const AstTypeIdentifier& t, const Type* /*type*/ = nullptr)
             : name(n), typeName(t) {}
 
     const std::string& getAttributeName() const {
@@ -71,7 +71,7 @@ public:
     }
 
     /** Mutates this node */
-    void apply(const AstNodeMapper& map) override {
+    void apply(const AstNodeMapper& /*map*/) override {
         // no nested AST nodes
     }
 

@@ -101,7 +101,7 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
             return ctxt[access.getLevel()][access.getElement()];
         }
 
-        RamDomain visitAutoIncrement(const RamAutoIncrement& inc) override {
+        RamDomain visitAutoIncrement(const RamAutoIncrement& /*inc*/) override {
             return env.incCounter();
         }
 
@@ -1108,22 +1108,22 @@ class Printer : public RamVisitor<void, std::ostream&> {
     };
 
 public:
-    Printer(const IndexMap&) {
+    Printer(const IndexMap& /*indexMap*/) {
         rec = [&](std::ostream& out, const RamNode* node) { this->visit(*node, out); };
     }
 
     // -- relation statements --
 
-    void visitCreate(const RamCreate& create, std::ostream& out) override {}
+    void visitCreate(const RamCreate& /*create*/, std::ostream& /*out*/) override {}
 
     void visitFact(const RamFact& fact, std::ostream& out) override {
         out << getRelationName(fact.getRelation()) << "->"
             << "insert(" << join(fact.getValues(), ",", rec) << ");\n";
     }
 
-    void visitLoad(const RamLoad& load, std::ostream& out) override {}
+    void visitLoad(const RamLoad& /*load*/, std::ostream& /*out*/) override {}
 
-    void visitStore(const RamStore& store, std::ostream& out) override {}
+    void visitStore(const RamStore& /*store*/, std::ostream& /*out*/) override {}
 
     void visitInsert(const RamInsert& insert, std::ostream& out) override {
         // enclose operation with a check for an empty relation
@@ -1233,7 +1233,7 @@ public:
         }
     }
 
-    void visitPrintSize(const RamPrintSize& print, std::ostream& out) override {}
+    void visitPrintSize(const RamPrintSize& /*print*/, std::ostream& /*out*/) override {}
 
     void visitLogSize(const RamLogSize& print, std::ostream& out) override {
         out << "{ auto lease = getOutputLock().acquire(); \n";
@@ -1725,7 +1725,7 @@ public:
         out << "env" << access.getLevel() << "[" << access.getElement() << "]";
     }
 
-    void visitAutoIncrement(const RamAutoIncrement& inc, std::ostream& out) override {
+    void visitAutoIncrement(const RamAutoIncrement& /*inc*/, std::ostream& out) override {
         out << "(ctr++)";
     }
 
@@ -1886,7 +1886,7 @@ public:
 
     // -- safety net --
 
-    void visitNode(const RamNode& node, std::ostream&) override {
+    void visitNode(const RamNode& node, std::ostream& /*out*/) override {
         std::cerr << "Unsupported node type: " << typeid(node).name() << "\n";
         assert(false && "Unsupported Node Type!");
     }
@@ -2314,11 +2314,11 @@ std::string RamCompiler::generateCode(
 }
 
 std::string RamCompiler::compileToLibrary(
-        const SymbolTable& symTable, const RamStatement& stmt, const std::string& name) const {
-    std::string source = generateCode(symTable, stmt, name + ".cpp");
+        const SymbolTable& symTable, const RamStatement& stmt, const std::string& filename) const {
+    std::string source = generateCode(symTable, stmt, filename + ".cpp");
 
     // execute shell script that compiles the generated C++ program
-    std::string libCmd = "souffle-compilelib " + name;
+    std::string libCmd = "souffle-compilelib " + filename;
 
     // separate souffle output form executable output
     if (Global::config().has("profile")) {
@@ -2327,13 +2327,13 @@ std::string RamCompiler::compileToLibrary(
 
     // run executable
     if (system(libCmd.c_str()) != 0) {
-        std::cerr << "failed to compile C++ source " << name << "\n";
+        std::cerr << "failed to compile C++ source " << filename << "\n";
         std::cerr << "Have you installed souffle with java?\n";
         return "";
     }
 
     // done
-    return name;
+    return filename;
 }
 
 std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamStatement& stmt) const {
@@ -2373,7 +2373,7 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     return binary;
 }
 
-void RamCompiler::applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const {
+void RamCompiler::applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* /*data*/) const {
     // compile statement
     std::string binary = compileToBinary(env.getSymbolTable(), stmt);
 
