@@ -96,11 +96,11 @@ public:
     const std::string getArg(uint32_t i) const {
         if (!attributeNames.empty()) {
             return attributeNames[i];
-        } else if (arity == 0) {
-            return "";
-        } else {
-            return "c" + std::to_string(i);
         }
+        if (arity == 0) {
+            return "";
+        }
+        return "c" + std::to_string(i);
     }
 
     const std::string getArgTypeQualifier(uint32_t i) const {

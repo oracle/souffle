@@ -50,9 +50,8 @@ public:
 
         if (!fileHandle) {
             return nullptr;
-        } else {
-            isOpen = true;
         }
+        isOpen = true;
 
         return this;
     }

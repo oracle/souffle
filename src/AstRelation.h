@@ -334,9 +334,8 @@ struct AstNameComparison {
     bool operator()(const AstRelation* x, const AstRelation* y) const {
         if (x != nullptr && y != nullptr) {
             return x->getName() < y->getName();
-        } else {
-            return y != nullptr;
         }
+        return y != nullptr;
     }
 };
 

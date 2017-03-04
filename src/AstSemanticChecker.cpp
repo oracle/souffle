@@ -316,27 +316,34 @@ void AstSemanticChecker::checkAtom(ErrorReport& report, const AstProgram& progra
 static bool hasUnnamedVariable(const AstArgument* arg) {
     if (dynamic_cast<const AstUnnamedVariable*>(arg)) {
         return true;
-    } else if (dynamic_cast<const AstVariable*>(arg)) {
+    }
+    if (dynamic_cast<const AstVariable*>(arg)) {
         return false;
-    } else if (dynamic_cast<const AstConstant*>(arg)) {
+    }
+    if (dynamic_cast<const AstConstant*>(arg)) {
         return false;
-    } else if (dynamic_cast<const AstCounter*>(arg)) {
+    }
+    if (dynamic_cast<const AstCounter*>(arg)) {
         return false;
-    } else if (const AstUnaryFunctor* uf = dynamic_cast<const AstUnaryFunctor*>(arg)) {
+    }
+    if (const AstUnaryFunctor* uf = dynamic_cast<const AstUnaryFunctor*>(arg)) {
         return hasUnnamedVariable(uf->getOperand());
-    } else if (const AstBinaryFunctor* bf = dynamic_cast<const AstBinaryFunctor*>(arg)) {
+    }
+    if (const AstBinaryFunctor* bf = dynamic_cast<const AstBinaryFunctor*>(arg)) {
         return hasUnnamedVariable(bf->getLHS()) || hasUnnamedVariable(bf->getRHS());
-    } else if (const AstTernaryFunctor* tf = dynamic_cast<const AstTernaryFunctor*>(arg)) {
+    }
+    if (const AstTernaryFunctor* tf = dynamic_cast<const AstTernaryFunctor*>(arg)) {
         return hasUnnamedVariable(tf->getArg(0)) || hasUnnamedVariable(tf->getArg(1)) ||
                hasUnnamedVariable(tf->getArg(2));
-    } else if (const AstRecordInit* ri = dynamic_cast<const AstRecordInit*>(arg)) {
-        return any_of(ri->getArguments(), (bool (*)(const AstArgument*))hasUnnamedVariable);
-    } else if (dynamic_cast<const AstAggregator*>(arg)) {
-        return false;
-    } else {
-        std::cout << "Unsupported Argument type: " << typeid(*arg).name() << "\n";
-        ASSERT(false && "Unsupported Argument Type!");
     }
+    if (const AstRecordInit* ri = dynamic_cast<const AstRecordInit*>(arg)) {
+        return any_of(ri->getArguments(), (bool (*)(const AstArgument*))hasUnnamedVariable);
+    }
+    if (dynamic_cast<const AstAggregator*>(arg)) {
+        return false;
+    }
+    std::cout << "Unsupported Argument type: " << typeid(*arg).name() << "\n";
+    ASSERT(false && "Unsupported Argument Type!");
     return false;
 }
 
@@ -349,10 +356,9 @@ static bool hasUnnamedVariable(const AstLiteral* lit) {
     }
     if (const AstConstraint* br = dynamic_cast<const AstConstraint*>(lit)) {
         return hasUnnamedVariable(br->getLHS()) || hasUnnamedVariable(br->getRHS());
-    } else {
-        std::cout << "Unsupported Literal type: " << typeid(lit).name() << "\n";
-        ASSERT(false && "Unsupported Argument Type!");
     }
+    std::cout << "Unsupported Literal type: " << typeid(lit).name() << "\n";
+    ASSERT(false && "Unsupported Argument Type!");
     return false;
 }
 
@@ -409,12 +415,15 @@ void AstSemanticChecker::checkArgument(
 static bool isConstantArithExpr(const AstArgument& argument) {
     if (dynamic_cast<const AstNumberConstant*>(&argument)) {
         return true;
-    } else if (const AstUnaryFunctor* unOp = dynamic_cast<const AstUnaryFunctor*>(&argument)) {
+    }
+    if (const AstUnaryFunctor* unOp = dynamic_cast<const AstUnaryFunctor*>(&argument)) {
         return unOp->isNumerical() && isConstantArithExpr(*unOp->getOperand());
-    } else if (const AstBinaryFunctor* binOp = dynamic_cast<const AstBinaryFunctor*>(&argument)) {
+    }
+    if (const AstBinaryFunctor* binOp = dynamic_cast<const AstBinaryFunctor*>(&argument)) {
         return binOp->isNumerical() && isConstantArithExpr(*binOp->getLHS()) &&
                isConstantArithExpr(*binOp->getRHS());
-    } else if (const AstTernaryFunctor* ternOp = dynamic_cast<const AstTernaryFunctor*>(&argument)) {
+    }
+    if (const AstTernaryFunctor* ternOp = dynamic_cast<const AstTernaryFunctor*>(&argument)) {
         return ternOp->isNumerical() && isConstantArithExpr(*ternOp->getArg(0)) &&
                isConstantArithExpr(*ternOp->getArg(1)) && isConstantArithExpr(*ternOp->getArg(2));
     }
@@ -457,12 +466,12 @@ void AstSemanticChecker::checkFact(ErrorReport& report, const AstProgram& progra
     assert(fact.isFact());
 
     AstAtom* head = fact.getHead();
-    if (!head) {
+    if (head == nullptr) {
         return;  // checked by clause
     }
 
     AstRelation* rel = program.getRelation(head->getName());
-    if (!rel) {
+    if (rel == nullptr) {
         return;  // checked by clause
     }
 

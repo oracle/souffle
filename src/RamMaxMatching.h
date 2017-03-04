@@ -83,9 +83,8 @@ protected:
         Matchings::iterator it = match.find(v);
         if (it == match.end()) {
             return NIL;
-        } else {
-            return it->second;
         }
+        return it->second;
     }
 
     /** returns distance of v */
@@ -93,9 +92,8 @@ protected:
         Distance::iterator it = distance.find(v);
         if (it == distance.end()) {
             return INF;
-        } else {
-            return it->second;
         }
+        return it->second;
     }
 
     /** breadth first search */

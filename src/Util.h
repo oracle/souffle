@@ -914,15 +914,14 @@ inline std::string which(const std::string& name) {
     char buf[PATH_MAX];
     if (::realpath(name.c_str(), buf) && isExecutable(buf)) {
         return std::string(buf);
-    } else {
-        std::string syspath = ::getenv("PATH");
-        std::stringstream sstr(syspath);
-        std::string sub;
-        while (std::getline(sstr, sub, ':')) {
-            std::string path = sub + "/" + name;
-            if (isExecutable(path) && realpath(path.c_str(), buf)) {
-                return std::string(buf);
-            }
+    }
+    std::string syspath = ::getenv("PATH");
+    std::stringstream sstr(syspath);
+    std::string sub;
+    while (std::getline(sstr, sub, ':')) {
+        std::string path = sub + "/" + name;
+        if (isExecutable(path) && realpath(path.c_str(), buf)) {
+            return std::string(buf);
         }
     }
     return "";
