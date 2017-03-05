@@ -160,14 +160,10 @@ public:
                 new ReadStreamSQLite(dbName, relationName, symbolMask, symbolTable));
     }
     const std::string& getName() const override {
+        static const std::string name = "sqlite";
         return name;
     }
     ~ReadStreamSQLiteFactory() override = default;
-
-private:
-    static const std::string name;
 };
-
-const std::string ReadStreamSQLiteFactory::name = "sqlite";
 
 } /* namespace souffle */

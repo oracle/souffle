@@ -263,14 +263,10 @@ public:
                 new WriteStreamSQLite(dbName, relationName, symbolMask, symbolTable));
     }
     const std::string& getName() const override {
+        static const std::string name = "sqlite";
         return name;
     }
     ~WriteSQLiteFactory() override = default;
-
-private:
-    static const std::string name;
 };
-
-const std::string WriteSQLiteFactory::name = "sqlite";
 
 } /* namespace souffle */

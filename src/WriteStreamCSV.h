@@ -144,15 +144,11 @@ public:
                 new WriteFileCSV(ioDirectives.get("filename"), symbolMask, symbolTable, delimiter));
     }
     const std::string& getName() const override {
+        static const std::string name = "file";
         return name;
     }
     ~WriteFileCSVFactory() override = default;
-
-private:
-    static const std::string name;
 };
-
-const std::string WriteFileCSVFactory::name = "file";
 
 class WriteCoutCSVFactory : public WriteStreamFactory, public WriteCSVFactory {
 public:
@@ -163,14 +159,10 @@ public:
                 new WriteCoutCSV(ioDirectives.getRelationName(), symbolMask, symbolTable, delimiter));
     }
     const std::string& getName() const override {
+        static const std::string name = "stdout";
         return name;
     }
     ~WriteCoutCSVFactory() override = default;
-
-private:
-    static const std::string name;
 };
-
-const std::string WriteCoutCSVFactory::name = "stdout";
 
 } /* namespace souffle */

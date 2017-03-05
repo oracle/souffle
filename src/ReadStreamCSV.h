@@ -219,15 +219,11 @@ public:
                 new ReadStreamCSV(std::cin, symbolMask, symbolTable, inputMap, delimiter));
     }
     const std::string& getName() const override {
+        static const std::string name = "stdin";
         return name;
     }
     ~ReadCinCSVFactory() override = default;
-
-private:
-    static const std::string name;
 };
-
-const std::string ReadCinCSVFactory::name = "stdin";
 
 class ReadFileCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
 public:
@@ -241,14 +237,11 @@ public:
                 new ReadFileCSV(filename, symbolMask, symbolTable, inputMap, delimiter));
     }
     const std::string& getName() const override {
+        static const std::string name = "file";
         return name;
     }
+
     ~ReadFileCSVFactory() override = default;
-
-private:
-    static const std::string name;
 };
-
-const std::string ReadFileCSVFactory::name = "file";
 
 } /* namespace souffle */
