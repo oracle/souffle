@@ -903,7 +903,7 @@ inline bool existDir(const std::string& name) {
 /**
  * Check whether a given file exists and it is an executable
  */
-inline int isExecutable(const std::string& name) {
+inline bool isExecutable(const std::string& name) {
     return existFile(name) && !access(name.c_str(), X_OK);
 }
 
