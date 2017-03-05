@@ -102,19 +102,35 @@ public:
     }
 
     bool operator<(const Diagnostic& other) const {
-        if (primaryMessage.hasLocation() && !other.primaryMessage.hasLocation()) return true;
-        if (other.primaryMessage.hasLocation() && !primaryMessage.hasLocation()) return false;
-
-        if (primaryMessage.hasLocation() && other.primaryMessage.hasLocation()) {
-            if (primaryMessage.getLocation() < other.primaryMessage.getLocation()) return true;
-            if (other.primaryMessage.getLocation() < primaryMessage.getLocation()) return false;
+        if (primaryMessage.hasLocation() && !other.primaryMessage.hasLocation()) {
+            return true;
+        }
+        if (other.primaryMessage.hasLocation() && !primaryMessage.hasLocation()) {
+            return false;
         }
 
-        if (type == ERROR && other.getType() == WARNING) return true;
-        if (other.getType() == ERROR && type == WARNING) return false;
+        if (primaryMessage.hasLocation() && other.primaryMessage.hasLocation()) {
+            if (primaryMessage.getLocation() < other.primaryMessage.getLocation()) {
+                return true;
+            }
+            if (other.primaryMessage.getLocation() < primaryMessage.getLocation()) {
+                return false;
+            }
+        }
 
-        if (primaryMessage.getMessage() < other.primaryMessage.getMessage()) return true;
-        if (other.primaryMessage.getMessage() < primaryMessage.getMessage()) return false;
+        if (type == ERROR && other.getType() == WARNING) {
+            return true;
+        }
+        if (other.getType() == ERROR && type == WARNING) {
+            return false;
+        }
+
+        if (primaryMessage.getMessage() < other.primaryMessage.getMessage()) {
+            return true;
+        }
+        if (other.primaryMessage.getMessage() < primaryMessage.getMessage()) {
+            return false;
+        }
 
         return false;
     }
@@ -127,7 +143,7 @@ class ErrorReport {
 public:
     ErrorReport(bool nowarn = false) : nowarn(nowarn) {}
 
-    ErrorReport(const ErrorReport& other) : diagnostics(other.diagnostics), nowarn(other.nowarn) {}
+    ErrorReport(const ErrorReport& other) = default;
 
     unsigned getNumErrors() const {
         return std::count_if(diagnostics.begin(), diagnostics.end(),

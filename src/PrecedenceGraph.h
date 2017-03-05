@@ -45,7 +45,7 @@ private:
 public:
     static constexpr const char* name = "precedence-graph";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
     /** Output precedence graph in graphviz format to a given stream */
     void outputPrecedenceGraph(std::ostream& os);
@@ -73,7 +73,7 @@ private:
 public:
     static constexpr const char* name = "redundant-relations";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
     const std::set<const AstRelation*>& getRedundantRelations() {
         return redundantRelations;
@@ -93,7 +93,7 @@ private:
 public:
     static constexpr const char* name = "recursive-clauses";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
     bool isRecursive(const AstClause* clause) const {
         return recursiveClauses.count(clause);
@@ -126,7 +126,7 @@ private:
 public:
     static constexpr const char* name = "scc-graph";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
     int getSCCForRelation(const AstRelation* relation) {
         return nodeToSCC[relation];
@@ -191,7 +191,7 @@ private:
 public:
     static constexpr const char* name = "topological-scc-graph";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
     SCCGraph* getSCCGraph() {
         return sccGraph;
@@ -251,7 +251,7 @@ private:
 public:
     static constexpr const char* name = "relation-schedule";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
     const std::vector<RelationScheduleStep>& getSchedule() {
         return schedule;

@@ -133,7 +133,7 @@ RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity,
             getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), rel->isOutput(), rel->isBTree(),
             rel->isBrie(), rel->isEqRel(), rel->isData(), inputDirectives, outputDirectives, istemp);
 }
-}
+}  // namespace
 
 std::string RamTranslator::translateRelationName(const AstRelationIdentifier& id) {
     return getRelationName(id);
@@ -376,7 +376,7 @@ std::unique_ptr<RamValue> translateValue(const AstArgument* arg, const ValueInde
 std::unique_ptr<RamValue> translateValue(const AstArgument& arg, const ValueIndex& index = ValueIndex()) {
     return translateValue(&arg, index);
 }
-}
+}  // namespace
 
 /** generate RAM code for a clause */
 std::unique_ptr<RamStatement> RamTranslator::translateClause(
@@ -788,7 +788,7 @@ void nameUnnamedVariables(AstClause* clause) {
 
         Instantiator() : counter(0) {}
 
-        virtual std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const {
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             // apply recursive
             node->apply(*this);
 
@@ -809,7 +809,7 @@ void nameUnnamedVariables(AstClause* clause) {
         atom->apply(init);
     }
 }
-}
+}  // namespace
 
 /** generate RAM code for recursive relations in a strongly-connected component */
 std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
@@ -1016,7 +1016,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
         appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(rrel)));
 
         // optional: load inputs
-        if (rel->isInput()) appendStmt(res, std::unique_ptr<RamStatement>(new RamLoad(rrel)));
+        if (rel->isInput()) {
+            appendStmt(res, std::unique_ptr<RamStatement>(new RamLoad(rrel)));
+        }
 
         // create delta-relations if necessary
         if (relationSchedule->isRecursive(rel)) {

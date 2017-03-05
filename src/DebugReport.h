@@ -105,13 +105,13 @@ class DebugReporter : public AstTransformer {
 private:
     std::unique_ptr<AstTransformer> wrappedTransformer;
 
-    virtual bool transform(AstTranslationUnit& translationUnit);
+    bool transform(AstTranslationUnit& translationUnit) override;
 
 public:
     DebugReporter(std::unique_ptr<AstTransformer> wrappedTransformer)
             : wrappedTransformer(std::move(wrappedTransformer)) {}
 
-    virtual std::string getName() const {
+    std::string getName() const override {
         return "DebugReporter";
     }
 

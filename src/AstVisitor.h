@@ -45,7 +45,7 @@ struct ast_visitor_tag {};
 template <typename R = void, typename... Params>
 struct AstVisitor : public ast_visitor_tag {
     /** A virtual destructor */
-    virtual ~AstVisitor() {}
+    virtual ~AstVisitor() = default;
 
     /** The main entry for the user allowing visitors to be utilized as functions */
     R operator()(const AstNode& node, Params... args) {
@@ -153,7 +153,7 @@ protected:
 #undef LINK
 
     /** The base case for all visitors -- if no more specific overload was defined */
-    virtual R visitNode(const AstNode& node, Params... args) {
+    virtual R visitNode(const AstNode& /*node*/, Params... /*args*/) {
         return R();
     }
 };
@@ -171,7 +171,9 @@ template <typename R, typename... Ps, typename... Args>
 void visitDepthFirstPreOrder(const AstNode& root, AstVisitor<R, Ps...>& visitor, Args&... args) {
     visitor(root, args...);
     for (const AstNode* cur : root.getChildNodes()) {
-        if (cur) visitDepthFirstPreOrder(*cur, visitor, args...);
+        if (cur) {
+            visitDepthFirstPreOrder(*cur, visitor, args...);
+        }
     }
 }
 
@@ -187,7 +189,9 @@ void visitDepthFirstPreOrder(const AstNode& root, AstVisitor<R, Ps...>& visitor,
 template <typename R, typename... Ps, typename... Args>
 void visitDepthFirstPostOrder(const AstNode& root, AstVisitor<R, Ps...>& visitor, Args&... args) {
     for (const AstNode* cur : root.getChildNodes()) {
-        if (cur) visitDepthFirstPreOrder(*cur, visitor, args...);
+        if (cur) {
+            visitDepthFirstPreOrder(*cur, visitor, args...);
+        }
     }
     visitor(root, args...);
 }
@@ -216,7 +220,7 @@ template <typename R, typename N>
 struct LambdaVisitor : public AstVisitor<void> {
     std::function<R(const N&)> lambda;
     LambdaVisitor(const std::function<R(const N&)>& lambda) : lambda(lambda) {}
-    virtual void visit(const AstNode& node) {
+    void visit(const AstNode& node) override {
         if (const N* n = dynamic_cast<const N*>(&node)) {
             lambda(*n);
         }
@@ -244,7 +248,7 @@ struct is_visitor<const T> : public is_visitor<T> {};
 
 template <typename T>
 struct is_visitor<T&> : public is_visitor<T> {};
-}
+}  // namespace
 
 /**
  * A utility function visiting all nodes within the ast rooted by the given node
@@ -340,4 +344,4 @@ typename std::enable_if<!is_visitor<Lambda>::value, void>::type visitDepthFirstP
     visitDepthFirstPostOrder(root, std::function<R(const N&)>(fun));
 }
 
-}  // end of namespace souffle
+}  // namespace souffle

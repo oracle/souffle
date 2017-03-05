@@ -74,7 +74,7 @@ public:
         map.insert(std::make_pair(var, std::unique_ptr<AstArgument>(arg->clone())));
     }
 
-    virtual ~Substitution() {}
+    virtual ~Substitution() = default;
 
     /**
      * Applies this substitution to the given argument and
@@ -92,7 +92,7 @@ public:
 
             using AstNodeMapper::operator();
 
-            virtual std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const {
+            std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
                 // see whether it is a variable to be substituted
                 if (auto var = dynamic_cast<AstVariable*>(node.get())) {
                     auto pos = map.find(var->getName());
@@ -183,7 +183,7 @@ struct Equation {
 
     Equation(Equation&& other) : lhs(std::move(other.lhs)), rhs(std::move(other.rhs)) {}
 
-    ~Equation() {}
+    ~Equation() = default;
 
     /**
      * Applies the given substitution to both sides of the equation.
@@ -203,7 +203,7 @@ struct Equation {
         return out;
     }
 };
-}
+}  // namespace
 
 std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstClause& clause) {
     /**
@@ -382,7 +382,7 @@ void ResolveAliasesTransformer::removeComplexTermsInAtoms(AstClause& clause) {
     struct Update : public AstNodeMapper {
         const substitution_map& map;
         Update(const substitution_map& map) : map(map) {}
-        virtual std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const {
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             // check whether node needs to be replaced
             for (const auto& cur : map) {
                 if (*cur.first == *node) {
@@ -743,7 +743,7 @@ bool RemoveRedundantRelationsTransformer::transform(AstTranslationUnit& translat
     RedundantRelations* redundantRelationsAnalysis = translationUnit.getAnalysis<RedundantRelations>();
     const std::set<const AstRelation*>& redundantRelations =
             redundantRelationsAnalysis->getRedundantRelations();
-    if (redundantRelations.size() > 0) {
+    if (!redundantRelations.empty()) {
         for (auto rel : redundantRelations) {
             translationUnit.getProgram()->removeRelation(rel->getName());
             changed = true;

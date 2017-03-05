@@ -46,10 +46,14 @@ namespace souffle {
  * Check whether a string is a sequence of numbers
  */
 inline bool isNumber(const char* str) {
-    if (str == NULL) return false;
+    if (str == nullptr) {
+        return false;
+    }
 
     while (*str) {
-        if (!isdigit(*str)) return false;
+        if (!isdigit(*str)) {
+            return false;
+        }
         str++;
     }
     return true;
@@ -222,8 +226,12 @@ range<Iter> make_range(const Iter& a, const Iter& b) {
 template <typename T>
 struct comp_deref {
     bool operator()(const T& a, const T& b) const {
-        if (a == nullptr) return false;
-        if (b == nullptr) return false;
+        if (a == nullptr) {
+            return false;
+        }
+        if (b == nullptr) {
+            return false;
+        }
         return *a == *b;
     }
 };
@@ -234,15 +242,21 @@ struct comp_deref {
 template <typename T, typename Comp = std::equal_to<T>>
 bool equal(const std::vector<T>& a, const std::vector<T>& b, const Comp& comp = Comp()) {
     // check reference
-    if (&a == &b) return true;
+    if (&a == &b) {
+        return true;
+    }
 
     // check size
-    if (a.size() != b.size()) return false;
+    if (a.size() != b.size()) {
+        return false;
+    }
 
     // check content
     for (std::size_t i = 0; i < a.size(); ++i) {
         // if there is a difference
-        if (!comp(a[i], b[i])) return false;
+        if (!comp(a[i], b[i])) {
+            return false;
+        }
     }
 
     // all the same
@@ -282,16 +296,24 @@ bool equal_targets(const std::vector<std::shared_ptr<T>>& a, const std::vector<s
 template <typename T, typename Comp = std::equal_to<T>>
 bool equal(const std::set<T>& a, const std::set<T>& b, const Comp& comp = Comp()) {
     // check reference
-    if (&a == &b) return true;
+    if (&a == &b) {
+        return true;
+    }
 
     // check size
-    if (a.size() != b.size()) return false;
+    if (a.size() != b.size()) {
+        return false;
+    }
 
     // check content
-    for (auto it_i = a.begin(); it_i != a.end(); ++it_i)
-        for (auto it_j = a.begin(); it_j != a.end(); ++it_j)
+    for (auto it_i = a.begin(); it_i != a.end(); ++it_i) {
+        for (auto it_j = a.begin(); it_j != a.end(); ++it_j) {
             // if there is a difference
-            if (!comp(*it_i, *it_j)) return false;
+            if (!comp(*it_i, *it_j)) {
+                return false;
+            }
+        }
+    }
 
     // all the same
     return true;
@@ -330,8 +352,12 @@ bool equal_targets(const std::set<std::shared_ptr<T>>& a, const std::set<std::sh
  */
 template <typename T>
 bool equal_ptr(const T* a, const T* b) {
-    if (!a && !b) return true;
-    if (a && b) return *a == *b;
+    if (!a && !b) {
+        return true;
+    }
+    if (a && b) {
+        return *a == *b;
+    }
     return false;
 }
 
@@ -341,8 +367,12 @@ bool equal_ptr(const T* a, const T* b) {
  */
 template <typename T>
 bool equal_ptr(const std::unique_ptr<T>& a, const std::unique_ptr<T>& b) {
-    if (!a && !b) return true;
-    if (a && b) return *a == *b;
+    if (!a && !b) {
+        return true;
+    }
+    if (a && b) {
+        return *a == *b;
+    }
     return false;
 }
 
@@ -360,7 +390,7 @@ public:
 
 private:
     struct NullBuffer : public std::streambuf {
-        int overflow(int c) {
+        int overflow(int c) override {
             return c;
         }
     };
@@ -380,7 +410,7 @@ public:
         streams.push_back(stream1);
         streams.push_back(stream2);
     }
-    int overflow(int c) {
+    int overflow(int c) override {
         for (auto stream : streams) {
             stream->put(c);
         }
@@ -421,7 +451,9 @@ public:
     /** The actual print method */
     friend std::ostream& operator<<(std::ostream& out, const joined_sequence& s) {
         auto cur = s.begin;
-        if (cur == s.end) return out;
+        if (cur == s.end) {
+            return out;
+        }
 
         s.p(out, *cur);
         ++cur;
@@ -447,7 +479,7 @@ struct print {
         out << ext(value);
     }
 };
-}
+}  // namespace detail
 
 /**
  * A functor representing the identity function for a generic type T.
@@ -607,7 +639,7 @@ template <typename T>
 struct is_printable<T, typename std::conditional<false,
                                decltype(std::declval<std::ostream&>() << std::declval<T>()), void>::type>
         : public std::true_type {};
-}
+}  // namespace detail
 
 /**
  * A generic function converting arbitrary objects to strings by utilizing
@@ -655,7 +687,7 @@ struct multiplying_printer {
         return out;
     }
 };
-}
+}  // namespace detail
 
 /**
  * A utility printing a given value multiple times.
@@ -674,7 +706,9 @@ detail::multiplying_printer<T> times(const T& value, unsigned num) {
  * end string.
  */
 inline bool endsWith(const std::string& value, const std::string& ending) {
-    if (value.size() < ending.size()) return false;
+    if (value.size() < ending.size()) {
+        return false;
+    }
     return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
@@ -731,7 +765,7 @@ struct lambda_traits_helper<R (C::*)(Args...)> : public lambda_traits_helper<R(A
 
 template <typename R, typename C, typename... Args>
 struct lambda_traits_helper<R (C::*)(Args...) const> : public lambda_traits_helper<R (C::*)(Args...)> {};
-}
+}  // namespace detail
 
 /**
  * A type trait enabling the deduction of type properties of lambdas.
@@ -869,7 +903,7 @@ inline bool existDir(const std::string& name) {
 /**
  * Check whether a given file exists and it is an executable
  */
-inline int isExecutable(const std::string& name) {
+inline bool isExecutable(const std::string& name) {
     return existFile(name) && !access(name.c_str(), X_OK);
 }
 
@@ -878,15 +912,16 @@ inline int isExecutable(const std::string& name) {
  */
 inline std::string which(const std::string& name) {
     char buf[PATH_MAX];
-    if (::realpath(name.c_str(), buf) && isExecutable(buf))
+    if (::realpath(name.c_str(), buf) && isExecutable(buf)) {
         return std::string(buf);
-    else {
-        std::string syspath = ::getenv("PATH");
-        std::stringstream sstr(syspath);
-        std::string sub;
-        while (std::getline(sstr, sub, ':')) {
-            std::string path = sub + "/" + name;
-            if (isExecutable(path) && realpath(path.c_str(), buf)) return std::string(buf);
+    }
+    std::string syspath = ::getenv("PATH");
+    std::stringstream sstr(syspath);
+    std::string sub;
+    while (std::getline(sstr, sub, ':')) {
+        std::string path = sub + "/" + name;
+        if (isExecutable(path) && realpath(path.c_str(), buf)) {
+            return std::string(buf);
         }
     }
     return "";
@@ -896,9 +931,24 @@ inline std::string which(const std::string& name) {
  *  C++-style dirname
  */
 inline std::string dirName(const std::string& name) {
-    char buf[PATH_MAX];
-    strcpy(buf, name.c_str());
-    return std::string(dirname(buf));
+    if (name.empty()) {
+        return ".";
+    }
+    size_t lastNotSlash = name.find_last_not_of('/');
+    // All '/'
+    if (lastNotSlash == std::string::npos) {
+        return "/";
+    }
+    size_t leadingSlash = name.find_last_of('/', lastNotSlash);
+    // No '/'
+    if (leadingSlash == std::string::npos) {
+        return ".";
+    }
+    // dirname is '/'
+    if (leadingSlash == 0) {
+        return "/";
+    }
+    return name.substr(0, leadingSlash);
 }
 
 /**
@@ -907,7 +957,7 @@ inline std::string dirName(const std::string& name) {
 inline std::string absPath(const std::string& path) {
     char buf[PATH_MAX];
     char* res = realpath(path.c_str(), buf);
-    return (res == NULL) ? "" : std::string(buf);
+    return (res == nullptr) ? "" : std::string(buf);
 }
 
 /*
@@ -922,7 +972,9 @@ inline std::string findTool(const std::string& tool, const std::string& base, co
 
     while (std::getline(sstr, sub, ':')) {
         std::string subpath = dir + "/" + sub + '/' + tool;
-        if (isExecutable(subpath)) return absPath(subpath);
+        if (isExecutable(subpath)) {
+            return absPath(subpath);
+        }
     }
     return "";
 }
@@ -931,10 +983,20 @@ inline std::string findTool(const std::string& tool, const std::string& base, co
  * Get the basename of a fully qualified filename
  */
 inline std::string baseName(const std::string& filename) {
-    char fn[filename.size() + 1];
-    strcpy(fn, filename.c_str());
-    std::string result = basename(fn);
-    return result;
+    if (filename.empty()) {
+        return ".";
+    }
+
+    size_t lastNotSlash = filename.find_last_not_of('/');
+    if (lastNotSlash == std::string::npos) {
+        return "/";
+    }
+
+    size_t lastSlashBeforeBasename = filename.find_last_of('/', lastNotSlash - 1);
+    if (lastSlashBeforeBasename == std::string::npos) {
+        lastSlashBeforeBasename = -1;
+    }
+    return filename.substr(lastSlashBeforeBasename + 1, lastNotSlash - lastSlashBeforeBasename);
 }
 
 /**
