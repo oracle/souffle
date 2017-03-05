@@ -183,7 +183,7 @@ public:
 
     TypeSet(const TypeSet& other) = default;
 
-    TypeSet(TypeSet&& other) : all(other.all), types() {
+    TypeSet(TypeSet&& other) noexcept : all(other.all), types() {
         types.swap(other.types);
     }
 

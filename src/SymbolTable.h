@@ -97,7 +97,7 @@ public:
     }
 
     /** Copy constructor for r-value reference. */
-    SymbolTable(SymbolTable&& other) {
+    SymbolTable(SymbolTable&& other) noexcept {
         numToStr.swap(other.numToStr);
         strToNum.swap(other.strToNum);
     }
@@ -120,7 +120,7 @@ public:
     }
 
     /** Assignment operator for r-value references. */
-    SymbolTable& operator=(SymbolTable&& other) {
+    SymbolTable& operator=(SymbolTable&& other) noexcept {
         numToStr.swap(other.numToStr);
         strToNum.swap(other.strToNum);
         return *this;

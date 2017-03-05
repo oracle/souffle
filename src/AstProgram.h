@@ -73,7 +73,7 @@ public:
     AstProgram(const AstProgram&) = delete;
 
     /** A move constructor */
-    AstProgram(AstProgram&& other);
+    AstProgram(AstProgram&& other) noexcept;
 
     /** A programs destructor */
     ~AstProgram() override = default;
