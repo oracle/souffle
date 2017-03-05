@@ -81,7 +81,7 @@ public:
     }
 
 private:
-    virtual void executeSQL(const std::string& sql, sqlite3* db) {
+    void executeSQL(const std::string& sql) {
         assert(db && "Database connection is closed");
 
         char* errorMessage = nullptr;
@@ -103,7 +103,7 @@ private:
         throw std::invalid_argument(error.str());
     }
 
-    virtual void prepareSelectStatement() {
+    void prepareSelectStatement() {
         std::stringstream selectSQL;
         selectSQL << "SELECT * FROM '" << relationName << "'";
         const char* tail = nullptr;
@@ -117,8 +117,8 @@ private:
             throwError("SQLite error in sqlite3_open: ");
         }
         sqlite3_extended_result_codes(db, 1);
-        executeSQL("PRAGMA synchronous = OFF", db);
-        executeSQL("PRAGMA journal_mode = MEMORY", db);
+        executeSQL("PRAGMA synchronous = OFF");
+        executeSQL("PRAGMA journal_mode = MEMORY");
     }
 
     void checkTableExists() {
