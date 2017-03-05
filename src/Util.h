@@ -931,9 +931,24 @@ inline std::string which(const std::string& name) {
  *  C++-style dirname
  */
 inline std::string dirName(const std::string& name) {
-    char buf[PATH_MAX];
-    strcpy(buf, name.c_str());
-    return std::string(dirname(buf));
+    if (name.empty()) {
+        return ".";
+    }
+    size_t lastNotSlash = name.find_last_not_of('/');
+    // All '/'
+    if (lastNotSlash == std::string::npos) {
+        return "/";
+    }
+    size_t leadingSlash = name.find_last_of('/', lastNotSlash);
+    // No '/'
+    if (leadingSlash == std::string::npos) {
+        return ".";
+    }
+    // dirname is '/'
+    if (leadingSlash == 0) {
+        return "/";
+    }
+    return name.substr(0, leadingSlash);
 }
 
 /**
@@ -968,10 +983,20 @@ inline std::string findTool(const std::string& tool, const std::string& base, co
  * Get the basename of a fully qualified filename
  */
 inline std::string baseName(const std::string& filename) {
-    char fn[filename.size() + 1];
-    strcpy(fn, filename.c_str());
-    std::string result = basename(fn);
-    return result;
+    if (filename.empty()) {
+        return ".";
+    }
+
+    size_t lastNotSlash = filename.find_last_not_of('/');
+    if (lastNotSlash == std::string::npos) {
+        return "/";
+    }
+
+    size_t lastSlashBeforeBasename = filename.find_last_of('/', lastNotSlash - 1);
+    if (lastSlashBeforeBasename == std::string::npos) {
+        lastSlashBeforeBasename = -1;
+    }
+    return filename.substr(lastSlashBeforeBasename + 1, lastNotSlash - lastSlashBeforeBasename);
 }
 
 /**
