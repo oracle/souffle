@@ -21,7 +21,9 @@
 #include "gzfstream.h"
 #endif
 
+#include <fstream>
 #include <memory>
+#include <ostream>
 #include <string>
 
 namespace souffle {

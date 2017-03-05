@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "IODirectives.h"
 #include "RamTypes.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"

@@ -19,15 +19,11 @@
 #include "ParallelUtils.h"
 #include "Util.h"
 
-#include <fstream>
-#include <functional>
 #include <iostream>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include <string.h>
 
 namespace souffle {
 
