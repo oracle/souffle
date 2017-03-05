@@ -215,8 +215,6 @@ class RamRelation {
     mutable pthread_mutex_t lock;
 
 public:
-    using SymbolTable = souffle::SymbolTable;  // XXX pending namespace cleanup
-
     RamRelation(const RamRelationIdentifier& id)
             : id(id), num_tuples(0), head(std::unique_ptr<Block>(new Block())), tail(head.get()),
               totalIndex(nullptr) {
@@ -226,7 +224,8 @@ public:
     RamRelation(const RamRelation& other) = delete;
 
     RamRelation(RamRelation&& other)
-            : id(other.id), num_tuples(other.num_tuples), tail(other.tail), totalIndex(other.totalIndex) {
+            : id(std::move(other.id)), num_tuples(other.num_tuples), tail(other.tail),
+              totalIndex(other.totalIndex) {
         pthread_mutex_init(&lock, nullptr);
 
         // take over ownership
