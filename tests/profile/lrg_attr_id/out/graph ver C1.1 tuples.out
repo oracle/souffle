@@ -1,5 +1,3 @@
-lrg_attr_id.dl [34:1-37:99]
-lrg_attr_id.dl [34:1-37:99]
   C1.1  "rel(thisIsAnotherreallyLongAttributeNameWhichCanBecomeUnreadbleVeryQuicklyButIsNeededForTesting,m) :- \n   rel(thisIsAnotherreallyLongAttributeNameWhichCanBecomeUnreadbleVeryQuicklyButIsNeededForTesting,_),\n   rel(m,_),\n   thisIsAnotherreallyLongAttributeNameWhichCanBecomeUnreadbleVeryQuicklyButIsNeededForTesting < m."
 
   NO   TUPLES
