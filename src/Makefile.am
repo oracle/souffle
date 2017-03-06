@@ -136,6 +136,10 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
 				        ParallelUtils.h         \
 				        RamTypes.h              \
 				        BTree.h                 \
+				        UnionFind.h             \
+				        BinaryRelation.h        \
+				        Types.h                 \
+				        BlockList.h             \
 				        Trie.h                  \
 				        Table.h                 \
 				        Util.h                  \

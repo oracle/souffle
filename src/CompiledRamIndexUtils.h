@@ -28,6 +28,7 @@
 #include "BTree.h"
 #include "Trie.h"
 #include "CompiledRamTuple.h"
+#include "BinaryRelation.h"
 #include "SymbolTable.h"
 #include "ParallelUtils.h"
 
@@ -1022,9 +1023,10 @@ namespace index_utils {
     template<typename Index>
     class DisjointSetIndex {
 
-        typedef BinaryRelation<RamDomain, Index> data_type;
 
         typedef typename ram::Tuple<RamDomain,2> tuple_type;
+
+        typedef BinaryRelation<tuple_type> data_type;
 
         data_type data;
 
@@ -1083,20 +1085,26 @@ namespace index_utils {
 
         class iterator : public std::iterator<std::forward_iterator_tag,tuple_type> {
 
-            typedef typename tree_type::iterator nested_iterator
+            typedef typename tree_type::iterator nested_iterator;
+
+            // the wrapped iterator
+            nested_iterator nested;
+
+            // the value currently pointed to
+            tuple_type value;
 
         public:
 
             // default constructor -- creating an end-iterator
-            iterator() {}
+            iterator() {};
 
-            iterator(const nested_iterator& iter) : nested(iter), value(orderOut(*iter)) {}
+            iterator(const nested_iterator& iter) : nested(iter), value(orderOut(*iter)) {};
 
             // a copy constructor
             iterator(const iterator& other) = default;
 
             // an assignment operator
-            iterator& operator=(const iterator& other) =default;
+            iterator& operator=(const iterator& other) = default;
 
             // the equality operator as required by the iterator concept
             bool operator==(const iterator& other) const {
@@ -1143,81 +1151,16 @@ namespace index_utils {
          * @param np the number of partitions to attempt to return
          * @return a list of iterators over each partition to return
          */
-        // std::vector<range<iterator>> partition(std::size_t np = 400) const {
+        std::vector<range<iterator>> partition(std::size_t np = 400) const {
+            std::vector<range<iterator>> ret;
+            auto val = data.partition(np);
 
-        //             //
-        //     // pseudocode for the partition function for a binary relation
-        //     // note, this will be a bit wonky on the side if you've got a lot of small disjoint sets
-        //     // do we really worry about that? should we merge small ones together?
-        //     // the iterators for doing that would be rather cumbersome to create I think
-        //     // the current method will over generate partitions
+            for (auto& x : val) {
+                ret.push_back(make_range(x.begin(), x.end()));
+            }
 
-        //     // if we request 400 partitions, and we have 5k disjoint sets, each of size <= 5k/400, we'll generate 5k partitions
-        //     // if we request 400 partitions and we have 5k disjoint sets, with a couple being extra large, and the rest tiny, we can end up with way more.
-        //     // if we request 400 partitions and we have 20 disjoint sets, each with size 5k, it will generate just over 400, due to the remainder rounding up into a full slice
-        //     // this isn't too bad, as we cap the size of each disjoint set pretty much, and we don't worry about squeezing the lower bound up
-        //     // this can be improved for sure, but it may be considerable more expensive to do so, in the programming effort side and perhaps also the computational complexity.
-
-
-
-        //     num <- num of partitions
-        //     sz <- number of pairs in the binary relation (sum of squares)
-
-        //     if (sz == 0) return std::vector(make_range(begin(), end()))
-
-        //     chunk_size <- ceil(sz/num)
-
-        //     vec <- vec<range<..>>   // vector of ranges to return
-        //     it1 <- disjoint_set.repToSubords.begin()
-
-        //     // until we don't have any more to merge
-        //     while (it1 != disjoint_set.repToSubords.begin()) {
-
-        //         // as we're starting a new disjoint set, perhaps it may be best to see if the entire pair set will fit in a chunk_size
-        //         std::size_t djSz = (*it1).second.size();
-        //         if (djSz * djSz <= chunk_size) {
-                    
-        //             // add an iterator for the entire pairset for each rep to the ranger
-        //             // so basically we need to have an iterator across all pairs in the disjoint set with this representative
-        //             vec.append(make_range(br.beginRep((*it1).first), br.endRep((*it1).first))
-
-        //             // look at the next disjoint set
-        //             ++it1;
-
-        //             //we've pushed one iter to the vector, so we add one vec
-        //             ++num_partitions;
-
-        //             continue;   
-
-        //         } else {
-
-        //             // we count how many we cycles of the disjoint set we can extract
-        //             // i.e. how many pairs of (X, _) can we add?
-        //             cycles <- ceil(djSz*djSz / chunk_size);
-        //             cycle_split_size <- ceil(djSz / cycles);
-
-        //             it2 <- (*it1).second
-
-        //             // go through and add cycle_split_size rep spins to the iterator at a time
-        //             // and we keep splicing and adding them until we need to move to the next disjoint set
-
-        //             for (std::size_t iteration = 0; iteration < cycles; ++iteration) {
-        //                 std::vector<DATATYPE> thisSplit;
-
-        //                 // add all the values in the disjoint set that we can before reaching our budget
-        //                 for (std::size_t cyc_count = 0; cyc_count < cycle_split_size; ++cyc_count) thisSplit.add(*it2++)
-
-        //                 // we'll need to create this iterator which will create an iterator to generate all pairs that have thisSplit's values as the front pair (constrained within the same djSet of course)
-        //                 vec.add(make_range(br.beginInvolved(thisSplit), br.endInvolved(thisSplit)));
-
-        //                 ++num_partitions
-        //             }
-        //         }
-        //     }
-
-        //     return vec;
-
-        // }
+            return ret;
+        }
 
         /**
          * Find the requested tuple in the data structure, and generate an iterator that begins at that point
@@ -1225,9 +1168,11 @@ namespace index_utils {
          * @param ctxt the context hint to provide help in finding this position
          * @return an iterator that begins at that position.. and I'm pretty sure if the tuple does not exist, then an iterator == this->end()
          */
-        // iterator find(const tuple_type& key, operation_hints& ctxt) const {
-        //     return iterator(data.find(orderIn(key), ctxt));
-        // }
+        iterator find(const tuple_type& key, operation_hints& ctxt) const {
+            //TODO: utilise the ctxt for th
+            // return iterator(data.find(orderIn(key)));
+            return iterator(data.find(orderIn(key), ctxt));
+        }
 
         // template<typename SubIndex>
         // range<iterator> equalRange(const tuple_type& tuple, operation_hints& ctxt) const {
