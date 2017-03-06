@@ -154,7 +154,7 @@ class ReadStreamSQLiteFactory : public ReadStreamFactory {
 public:
     std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
             const IODirectives& ioDirectives) override {
-        std::string dbName = ioDirectives.get("in_dbname");
+        std::string dbName = ioDirectives.get("dbname");
         std::string relationName = ioDirectives.getRelationName();
         return std::unique_ptr<ReadStreamSQLite>(
                 new ReadStreamSQLite(dbName, relationName, symbolMask, symbolTable));
