@@ -25,6 +25,7 @@
 
 #include <map>
 #include <string>
+#include <list>
 
 #include "RamIndex.h"
 #include "RamTypes.h"
@@ -32,6 +33,7 @@
 #include "SymbolTable.h"
 #include "Table.h"
 #include "Util.h"
+
 
 namespace souffle {
 
@@ -195,6 +197,9 @@ class RamRelation {
     std::unique_ptr<Block> head;
     Block* tail;
 
+    /** keep an eye on the implicit tuples we create so that we can remove when dtor is called */
+    std::list<RamDomain*> allocatedBlocks;
+
     mutable std::map<RamIndexOrder, std::unique_ptr<RamIndex>> indices;
 
     mutable RamIndex* totalIndex;
@@ -219,9 +224,13 @@ public:
         // take over ownership
         head.swap(other.head);
         indices.swap(other.indices);
+
+        allocatedBlocks.swap(other.allocatedBlocks);
     }
 
-    ~RamRelation() { }
+    ~RamRelation() { 
+        for (auto x : allocatedBlocks) delete[] x;
+    }
 
     RamRelation& operator=(const RamRelation& other) = delete;
 
@@ -265,16 +274,15 @@ public:
         return num_tuples;
     }
 
-    /** insert a new tuple to table */
-    void insert(const RamDomain *tuple) {
-
-    	// check for null-arity
+    /** only insert exactly one tuple, maintaining order **/
+    void quickInsert(const RamDomain *tuple) {
+        // check for null-arity
         auto arity = getArity();
-    	if (arity == 0) {
-    		// set number of tuples to one -- that's it
-    		num_tuples = 1;
-    		return;
-    	}
+        if (arity == 0) {
+            // set number of tuples to one -- that's it
+            num_tuples = 1;
+            return;
+        }
 
         // make existence check
         if (exists(tuple)) return;
@@ -297,6 +305,86 @@ public:
 
         // increment relation size
         num_tuples++;
+    }
+
+    /** insert a new tuple to table, possibly more than one tuple depending on relation type */
+    void insert(const RamDomain *tuple) {
+
+        // TODO: (pnappa) an eqrel check here is all that appears to be needed for implicit additions
+        if (id.isEqRel()) {
+            // TODO: future optimisation would require this as a member datatype
+            // brave soul required to pass this quest
+            // // specialisation for eqrel defs
+            // std::unique_ptr<binaryrelation> eqreltuples;
+            // in addition, it requires insert functions to insert into that, and functions 
+            // which allow reading of stored values must be changed to accommodate.
+            // e.g. insert =>  eqRelTuples->insert(tuple[0], tuple[1]);
+
+            // for now, we just have a naive & extremely slow version, otherwise known as a O(n^2) insertion ): 
+
+            // store all values that will be implicitly relevant to the two that we will insert
+            std::list<const RamDomain*> relevantStored;
+            for (const RamDomain* vals : *this) {
+                if (vals[0] == tuple[0] || vals[0] == tuple[1] || 
+                    vals[1] == tuple[0] || vals[1] == tuple[1]) {
+                    relevantStored.push_back(vals);
+                }
+            }
+
+            // we also need to keep a list of all tuples stored s.t. we can free on destruction
+            std::list<RamDomain*> dtorLooks;
+
+            for (const auto vals : relevantStored) {
+                //insert all possible pairings between these and existing elements
+
+                // ew, temp code
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = vals[0];
+                dtorLooks.back()[1] = tuple[0];
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = vals[0];
+                dtorLooks.back()[1] = tuple[1];
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = vals[1];
+                dtorLooks.back()[1] = tuple[0];
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = vals[1];
+                dtorLooks.back()[1] = tuple[1];
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = tuple[0];
+                dtorLooks.back()[1] = vals[0];
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = tuple[0];
+                dtorLooks.back()[1] = vals[1];
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = tuple[1];
+                dtorLooks.back()[1] = vals[0];
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = tuple[1];
+                dtorLooks.back()[1] = vals[1];
+            }
+
+            // and of course we need to actually insert this pair
+            dtorLooks.push_back(new RamDomain[2]);
+            dtorLooks.back()[0] = tuple[1];
+            dtorLooks.back()[1] = tuple[0];
+            dtorLooks.push_back(new RamDomain[2]);
+            dtorLooks.back()[0] = tuple[0];
+            dtorLooks.back()[1] = tuple[1];
+            dtorLooks.push_back(new RamDomain[2]);
+            dtorLooks.back()[0] = tuple[0];
+            dtorLooks.back()[1] = tuple[0];
+            dtorLooks.push_back(new RamDomain[2]);
+            dtorLooks.back()[0] = tuple[1];
+            dtorLooks.back()[1] = tuple[1];
+
+            for (const auto x : dtorLooks) quickInsert(x);
+
+            allocatedBlocks.insert(allocatedBlocks.end(), dtorLooks.begin(), dtorLooks.end());
+
+        } else {
+            quickInsert(tuple);
+        }
     }
 
     /** a convenience function for inserting tuples */

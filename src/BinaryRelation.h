@@ -15,13 +15,12 @@ class BinaryRelation {
     typedef typename TupleType::value_type DomainInt;
     enum { arity = TupleType::arity };
     
-    SparseDisjointSet<DomainInt> sds;
+    // XXX: mutable hack fixme please - added just to satisfy const-ness of parent fns
+    mutable SparseDisjointSet<DomainInt> sds;
     
     //lock for modifying the std::map pairs for the trie
-    std::mutex genTrieSetsMutex;
+    mutable std::mutex genTrieSetsMutex;
 
-
-    
 public:
     /**
      * TODO: implement this operation_hint class
@@ -85,7 +84,7 @@ public:
      * @param x front of pair
      * @param y back of pair
      */
-    bool contains(DomainInt x, DomainInt y) {
+    bool contains(DomainInt x, DomainInt y) const {
         //TODO: possible sore spot for data races
         return sds.nodeExists(x) && sds.nodeExists(y) && sds.readOnlyFindNode(x) == sds.readOnlyFindNode(y);
     }
@@ -105,7 +104,7 @@ public:
      * Size of relation
      * @return the sum of the number of pairs per disjoint set
      */
-    size_t size() {
+    size_t size() const {
         size_t retval = 0;
 //        sds.genMap();
         // sum (n^2)
@@ -118,15 +117,20 @@ public:
     }
 private:
     
+    // XXX: vv mutable hack fixme please - added just to satisfy const-ness of parent fns
+    // actually, is this a hack? mutability should only apply to data types which changes to are not observable to outside
+    // which follows for this one.
+
     // the ordering of states per disjoint set (mapping from representative to trie)
-    std::unordered_map<DomainInt, std::shared_ptr<souffle::Trie<1>>> orderedStates;
+    mutable std::unordered_map<DomainInt, std::shared_ptr<souffle::Trie<1>>> orderedStates;
+
     
     /**
      * Create a trie which contains the disjoint set which contains this value
      * @param val the value whose disjoint set will be constructed into a trie
      * @return a reference to the newly created trie
      */
-    std::shared_ptr<souffle::Trie<1>> generateTrieIfNone(DomainInt val) {
+    std::shared_ptr<souffle::Trie<1>> generateTrieIfNone(DomainInt val) const {
         
         if (!sds.nodeExists(val)) throw "cannot generate trie for non-existent node";
         DomainInt rep = sds.readOnlyFindNode(val);
@@ -155,7 +159,7 @@ public:
         bool isEndVal = false;
         
         TupleType value;
-        BinaryRelation* br = nullptr;
+        const BinaryRelation* br = nullptr;
         // iterate over all pairs, iterate over all starting at, iterate over all starting at & ending at, iterate over all in dj set, iterate over all (x,_) s.t. x in djset
         enum IterType {BASIC, STARTAT, BETWEEN, CLOSURE, FRONTPROD};
         IterType ityp;
@@ -178,37 +182,37 @@ public:
         
     public:
         // ctor for end()
-        iterator(bool truthy, BinaryRelation* br) : isEndVal(true), br(br) {};
+        iterator(bool truthy, const BinaryRelation* br) : isEndVal(true), br(br) {};
         
         //ctor for begin(...)
-        iterator(BinaryRelation* br) : br(br) {
+        iterator(const BinaryRelation* br) : br(br) {
             ityp = BASIC;
             initIterators();
             setValue();
         }
         
         //ctor for find(..)
-        iterator(BinaryRelation* br, TupleType& start) : br(br) {
+        iterator(const BinaryRelation* br, TupleType& start) : br(br) {
             ityp = STARTAT;
             initIterators();
             ffIterators(start);
             setValue();
         };
         
-        iterator(BinaryRelation* br, TupleType& start, TupleType& end) : br(br), endPoint(end) {
+        iterator(const BinaryRelation* br, TupleType& start, TupleType& end) : br(br), endPoint(end) {
             ityp = BETWEEN;
             initIterators();
             ffIterators(start);
             setValue();
         }
         
-        iterator(BinaryRelation* br, DomainInt rep, std::shared_ptr<souffle::Trie<1>> trie) : br(br), rep(rep) {
+        iterator(const BinaryRelation* br, DomainInt rep, std::shared_ptr<souffle::Trie<1>> trie) : br(br), rep(rep) {
             ityp = CLOSURE;
             initIterator(trie);
             setValue();
         }
         
-        iterator(BinaryRelation* br, std::list<DomainInt> fronts, std::shared_ptr<souffle::Trie<1>> trie) : br(br), fronts(fronts){
+        iterator(const BinaryRelation* br, std::list<DomainInt> fronts, std::shared_ptr<souffle::Trie<1>> trie) : br(br), fronts(fronts){
             ityp = FRONTPROD;
             initIterator(trie);
             //fast forward iter to the first requirement
@@ -478,7 +482,7 @@ public:
      * iterator pointing to the beginning of the tuples, with no restrictions
      * @return the iterator that corresponds to the beginning of the binary relation
      */
-    iterator begin() {
+    iterator begin() const {
         // generate tries for all disjoint sets
         for (auto rep = sds.beginReps(); rep != sds.endReps(); ++rep) {
             generateTrieIfNone(*rep);
@@ -491,7 +495,7 @@ public:
      * iterator pointing to the end of the tuples
      * @return the iterator which represents the end of the binary rel
      */
-    iterator end() {
+    iterator end() const {
         return iterator(true, this);
     }
     
@@ -500,7 +504,7 @@ public:
      * @param start where the returned iterator should start from
      * @return the iterator which starts at the requested element
      */
-    iterator find(TupleType& start) {
+    iterator find(TupleType& start) const {
         // generate tries for all disjoint sets
         std::for_each(sds.beginReps(), sds.endReps(), [&](DomainInt r) { generateTrieIfNone(r); });
         
@@ -517,7 +521,7 @@ public:
      * @param end the requested end to iterate until
      * @return the resulting iterator that satisfies this
      */
-    iterator findBetween(TupleType& start, TupleType& end) {
+    iterator findBetween(TupleType& start, TupleType& end) const {
         // generate tries for all disjoint sets
         std::for_each(sds.beginReps(), sds.endReps(), [&](DomainInt r) { generateTrieIfNone(r); });
         
@@ -533,7 +537,7 @@ public:
      * @param start a list of front elements that must exist at the front pairing generated
      * @return the resulting iterator that satisfies this
      */
-    iterator frontProduct(std::list<DomainInt> start) {
+    iterator frontProduct(std::list<DomainInt> start) const {
         
         if (start.size() == 0) throw "invalid sized vector for front product";
         
@@ -556,7 +560,7 @@ public:
      * @param rep the representative of (or element within) a disjoint set of which to generate all pairs
      * @return an iterator that will generate all pairs within the disjoint set
      */
-    iterator closure(DomainInt rep) {
+    iterator closure(DomainInt rep) const {
         //the trie that contains this rep
         auto trie = generateTrieIfNone(rep);
         
@@ -570,7 +574,7 @@ public:
      * @param chunks the number of requested partitions
      * @return a list of the iterators as ranges
      */
-    std::vector<souffle::range<iterator>> partition(size_t chunks) {
+    std::vector<souffle::range<iterator>> partition(size_t chunks) const {
         std::vector<souffle::range<iterator>> ret;
         
         for (auto rep = sds.beginReps(); rep != sds.endReps(); ++rep) {
