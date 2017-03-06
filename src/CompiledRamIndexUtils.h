@@ -1032,14 +1032,14 @@ namespace index_utils {
 
     public:
 
-        typedef typename tuple_type::operation_hints operation_hints;
+        typedef typename data_type::operation_hints operation_hints;
 
         bool empty() const {
             return data.size() == 0;
         }
 
         /* returns the number of pairs (NOT the number of elements in the domain, but the number of possibly enumerated pairs!) */
-        std::size_t size() const {
+        std::size_t size() {
             return data.size();
         }
 
@@ -1049,7 +1049,7 @@ namespace index_utils {
          * @param ctxt context hints to help the query process
          * @return true if the data structure contains this tuple
          */
-        bool contains(const tuple_type& tuple, operation_hints& ctxt) const {
+        bool contains(const tuple_type& tuple, operation_hints& ctxt) {
             // ctxt?
             // TODO pnappa: optimisations would include ctxt for a more knowledgable search? doesn't really make much sense with djSet
             return data.contains(tuple[0], tuple[1]);
@@ -1085,7 +1085,7 @@ namespace index_utils {
 
         class iterator : public std::iterator<std::forward_iterator_tag,tuple_type> {
 
-            typedef typename tree_type::iterator nested_iterator;
+            typedef typename data_type::iterator nested_iterator;
 
             // the wrapped iterator
             nested_iterator nested;
@@ -1136,11 +1136,13 @@ namespace index_utils {
 
         };
 
-        iterator begin() const {
+        /** non-const due to binrel find fns */
+        iterator begin() {
             return iterator(data.begin());
         }
 
-        iterator end() const {
+        /** non-const due to binrel find fns */
+        iterator end() {
             return iterator(data.end());
         }
 

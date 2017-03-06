@@ -189,7 +189,7 @@ public:
         /* begin iterator for iterating over all elements */
         iterator(BlockList* bl) : bl(bl) {};
         /* ender iterator for marking the end of the iteration */
-        iterator(BlockList* bl, size_t beginInd) : bl(bl), cIndex(beginInd) {};
+        iterator(BlockList* bl, size_t beginInd) : cIndex(beginInd), bl(bl) {};
         
         T operator*() { return bl->get(cIndex); };
         const T operator*() const { return bl->get(cIndex); };

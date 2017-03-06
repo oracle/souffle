@@ -181,7 +181,7 @@ struct EqRel : public Auto {
     
     template<typename Tuple, typename Index, bool>
     struct eqrel_index_factory {
-        using type = typename index_utils::DisjointSetIndex<Tuple,Index>;
+        using type = typename index_utils::DisjointSetIndex<Index>;
     };
     
     // determines the relation implementation for a given use case

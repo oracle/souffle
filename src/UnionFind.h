@@ -437,11 +437,12 @@ public:
     
     /** iterator stuff */
     class iterator : public std::iterator<std::forward_iterator_tag, SparseDomain> {
-        // we offload all iteration jobs to the underlying disjoint set's iterable
-        // and simply convert upon dereference
-        DisjointSet::iterator maskIter;
         
         SparseDisjointSet* sds;
+        // we offload all iteration jobs to the underlying disjoint set's iterable
+        
+        // and simply convert upon dereference
+        DisjointSet::iterator maskIter;
         
     private:
         SparseDomain yield() const {

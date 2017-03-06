@@ -20,6 +20,9 @@ class BinaryRelation {
     //lock for modifying the std::map pairs for the trie
     std::mutex genTrieSetsMutex;
 
+
+    
+public:
     /**
      * TODO: implement this operation_hint class
      * A collection of operation hints speeding up some of the involved operations
@@ -29,8 +32,6 @@ class BinaryRelation {
         // resets all hints (to be triggered e.g. when deleting nodes)
         void clear() {}
     };
-    
-public:
 
     /**
      * Insert the two values symbolically as a binary relation
@@ -146,6 +147,7 @@ private:
         return this->orderedStates[rep];
     }
     
+public:
     
     class iterator : public std::iterator<std::forward_iterator_tag, TupleType> {
         
