@@ -1023,7 +1023,6 @@ namespace index_utils {
     template<typename Index>
     class DisjointSetIndex {
 
-
         typedef typename ram::Tuple<RamDomain,2> tuple_type;
 
         typedef BinaryRelation<tuple_type> data_type;
@@ -1039,7 +1038,7 @@ namespace index_utils {
         }
 
         /* returns the number of pairs (NOT the number of elements in the domain, but the number of possibly enumerated pairs!) */
-        std::size_t size() {
+        std::size_t size() const {
             return data.size();
         }
 
@@ -1049,7 +1048,7 @@ namespace index_utils {
          * @param ctxt context hints to help the query process
          * @return true if the data structure contains this tuple
          */
-        bool contains(const tuple_type& tuple, operation_hints& ctxt) {
+        bool contains(const tuple_type& tuple, operation_hints& ctxt) const {
             // ctxt?
             // TODO pnappa: optimisations would include ctxt for a more knowledgable search? doesn't really make much sense with djSet
             return data.contains(tuple[0], tuple[1]);
@@ -1137,12 +1136,12 @@ namespace index_utils {
         };
 
         /** non-const due to binrel find fns */
-        iterator begin() {
+        iterator begin() const {
             return iterator(data.begin());
         }
 
         /** non-const due to binrel find fns */
-        iterator end() {
+        iterator end() const {
             return iterator(data.end());
         }
 
@@ -1176,12 +1175,13 @@ namespace index_utils {
             return iterator(data.find(orderIn(key), ctxt));
         }
 
-        // template<typename SubIndex>
-        // range<iterator> equalRange(const tuple_type& tuple, operation_hints& ctxt) const {
-        //     static_assert(is_compatible_with<SubIndex,Index>::value, "Invalid sub-index query!");
-        //     auto r = data.template getBoundaries<SubIndex::size>(orderIn(tuple), ctxt);
-        //     return make_range(iterator(r.begin()), iterator(r.end()));
-        // }
+        template<typename SubIndex>
+        range<iterator> equalRange(const tuple_type& tuple, operation_hints& ctxt) const {
+            //TODO: this is invalid
+            // static_assert(is_compatible_with<SubIndex,Index>::value, "Invalid sub-index query!");
+            // auto r = data.template getBoundaries<SubIndex::size>(orderIn(tuple), ctxt);
+            return make_range(iterator(begin()), iterator(end()));
+        }
 
         static void printDescription(std::ostream& out) {
             out << "disjoint-set-index(" << Index() << ")";

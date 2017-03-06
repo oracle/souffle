@@ -177,7 +177,7 @@ struct Brie {
  * A setup utilizing disjoint sets for binary relations exclusively
  * TODO: implement core DisjointSet factory
  */
-struct EqRel : public Auto {
+struct EqRel {
     
     template<typename Tuple, typename Index, bool>
     struct eqrel_index_factory {
