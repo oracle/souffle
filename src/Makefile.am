@@ -133,7 +133,11 @@ souffle_sources = \
 # -- build souffle as a library so it can be reused in testing
 noinst_LTLIBRARIES = libsouffle.la
 libsouffle_la_SOURCES  = $(souffle_sources)
+if JAVAI
 libsouffle_la_CXXFLAGS = $(souffle_CPPFLAGS) -DJNI_INTERFACE
+else
+libsouffle_la_CXXFLAGS = $(souffle_CPPFLAGS)
+endif
 libsouffle_la_LDFLAGS = --static --dlopen --pic
 
 souffle_SOURCES = main.cpp
