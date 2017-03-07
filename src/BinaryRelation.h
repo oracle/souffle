@@ -117,13 +117,8 @@ public:
     }
 private:
     
-    // XXX: vv mutable hack fixme please - added just to satisfy const-ness of parent fns
-    // actually, is this a hack? mutability should only apply to data types which changes to are not observable to outside
-    // which follows for this one.
-
     // the ordering of states per disjoint set (mapping from representative to trie)
-    mutable std::unordered_map<DomainInt, std::shared_ptr<souffle::Trie<1>>> orderedStates;
-
+    std::unordered_map<DomainInt, std::shared_ptr<souffle::Trie<1>>> orderedStates;
     
     /**
      * Create a trie which contains the disjoint set which contains this value
