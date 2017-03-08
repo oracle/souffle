@@ -54,7 +54,7 @@ public:
         //TODO: use the op hints to speed up insertion
         //TODO: return value
         
-        std::lock_guard<std::mutex> guard(genTrieSetsMutex);
+        // std::lock_guard<std::mutex> guard(genTrieSetsMutex);
         
         sds.unionNodes(x, y);
         
@@ -118,7 +118,7 @@ public:
 private:
     
     // the ordering of states per disjoint set (mapping from representative to trie)
-    std::unordered_map<DomainInt, std::shared_ptr<souffle::Trie<1>>> orderedStates;
+    mutable std::unordered_map<DomainInt, std::shared_ptr<souffle::Trie<1>>> orderedStates;
     
     /**
      * Create a trie which contains the disjoint set which contains this value
@@ -130,13 +130,14 @@ private:
         if (!sds.nodeExists(val)) throw "cannot generate trie for non-existent node";
         DomainInt rep = sds.readOnlyFindNode(val);
         
-        std::lock_guard<std::mutex> guard(genTrieSetsMutex);
         
         //return if already created
-        if (this->orderedStates.find(rep) != this->orderedStates.end()) return this->orderedStates[rep];
-        
-        this->orderedStates[rep] = std::shared_ptr<souffle::Trie<1>>(new souffle::Trie<1>);
-        
+        if (this->orderedStates.find(rep) != this->orderedStates.end()) return this->orderedStates.at(rep);
+        {
+            std::lock_guard<std::mutex> guard(genTrieSetsMutex);
+
+            this->orderedStates[rep] = std::shared_ptr<souffle::Trie<1>>(new souffle::Trie<1>);
+        }
         // populate the trie
         for (auto it = sds.begin(rep); it != sds.end(rep); ++it) {
             // add the current value of the iterator to the trie

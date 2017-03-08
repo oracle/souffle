@@ -1,0 +1,10 @@
+// Test that creating an eqrel with clauses works
+.decl A(x : number)
+A(2).
+A(3).
+
+.decl B(x : number)
+B(1).
+
+.decl C(x : number, y : number) eqrel output
+C(x,y) :- B(x), A(y).

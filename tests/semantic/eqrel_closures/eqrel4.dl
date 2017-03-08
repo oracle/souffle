@@ -1,0 +1,7 @@
+// custom data types in eqrel
+.type Val
+.decl A(x : Val, y : Val) eqrel
+A("michael", "pete").
+
+.decl B(x : Val, r : Val, y : Val) output
+B(x, r, y) :- A(x,y), r = "lives with".

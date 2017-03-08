@@ -1157,7 +1157,7 @@ namespace index_utils {
             auto val = data.partition(np);
 
             for (auto& x : val) {
-                ret.push_back(make_range(x.begin(), x.end()));
+                ret.push_back(make_range(iterator(x.begin()), iterator(x.end())));
             }
 
             return ret;
@@ -1180,6 +1180,7 @@ namespace index_utils {
             //TODO: this is invalid
             // static_assert(is_compatible_with<SubIndex,Index>::value, "Invalid sub-index query!");
             // auto r = data.template getBoundaries<SubIndex::size>(orderIn(tuple), ctxt);
+            throw "unimplemented";
             return make_range(iterator(begin()), iterator(end()));
         }
 
