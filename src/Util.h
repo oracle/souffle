@@ -407,7 +407,7 @@ private:
     std::vector<std::ostream*> streams;
 
 public:
-    SplitStream(std::vector<std::ostream*> streams) : std::ostream(this), streams(streams) {}
+    SplitStream(std::vector<std::ostream*> streams) : std::ostream(this), streams(std::move(streams)) {}
     SplitStream(std::ostream* stream1, std::ostream* stream2) : std::ostream(this) {
         streams.push_back(stream1);
         streams.push_back(stream2);
