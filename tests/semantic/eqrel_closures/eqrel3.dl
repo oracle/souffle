@@ -1,6 +1,0 @@
-// empty rel test
-.decl out(x: number, y : number) eqrel output
-
-
-.decl vacuum(x : number, y : number) eqrel output
-vacuum(x, y) :- out(x, y).

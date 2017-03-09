@@ -185,6 +185,7 @@ public:
         iterator(const BinaryRelation* br) : br(br) {
             ityp = BASIC;
             initIterators();
+            initCheckEnd();
             setValue();
         }
         
@@ -193,22 +194,27 @@ public:
             ityp = STARTAT;
             initIterators();
             ffIterators(start);
+            initCheckEnd();
             setValue();
         };
         
+        // ctor for findBetween(..)
         iterator(const BinaryRelation* br, TupleType& start, TupleType& end) : br(br), endPoint(end) {
             ityp = BETWEEN;
             initIterators();
             ffIterators(start);
+            initCheckEnd();
             setValue();
         }
         
+        // ctor for closure
         iterator(const BinaryRelation* br, DomainInt rep, std::shared_ptr<souffle::Trie<1>> trie) : br(br), rep(rep) {
             ityp = CLOSURE;
             initIterator(trie);
             setValue();
         }
         
+        // ctor for front product aka R(x, _) for all x in fronts
         iterator(const BinaryRelation* br, std::list<DomainInt> fronts, std::shared_ptr<souffle::Trie<1>> trie) : br(br), fronts(fronts){
             ityp = FRONTPROD;
             initIterator(trie);
@@ -217,6 +223,14 @@ public:
             this->fronts.pop_front();
             while ((*frontIter)[0] != f) ++frontIter;
             setValue();
+        }
+
+        /** special fn to set endVal = true
+         * only set when the current iterator actually cannot iterate anymore
+         * should only be called in the constructor
+         */
+        void initCheckEnd() {
+            if (frontIter == cTrie->end() && backIter == cTrie->end()) isEndVal = true;
         }
         
         //copy ctor
