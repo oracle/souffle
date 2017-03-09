@@ -175,7 +175,6 @@ struct Brie {
 
 /**
  * A setup utilizing disjoint sets for binary relations exclusively
- * TODO: implement core DisjointSet factory
  */
 struct EqRel {
     

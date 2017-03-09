@@ -1170,9 +1170,8 @@ namespace index_utils {
          * @return an iterator that begins at that position.. and I'm pretty sure if the tuple does not exist, then an iterator == this->end()
          */
         iterator find(const tuple_type& key, operation_hints& ctxt) const {
-            //TODO: utilise the ctxt for th
-            // return iterator(data.find(orderIn(key)));
-            return iterator(data.find(orderIn(key), ctxt));
+            //TODO: utilise the ctxt for this
+            return iterator(data.find(orderIn(key)));
         }
 
         template<typename SubIndex>

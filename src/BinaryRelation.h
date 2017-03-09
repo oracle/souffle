@@ -55,9 +55,7 @@ public:
      */
     bool insert(DomainInt x, DomainInt y, operation_hints z) {
         //TODO: use the op hints to speed up insertion
-        //TODO: return value
-        // std::lock_guard<std::mutex> guard(genTrieSetsMutex);
-
+    
         sds.unionNodes(x, y);
         
         //remove these djSets from the ordering tries, as they have become stale
@@ -91,8 +89,6 @@ public:
     }
     
     void clear() {
-        
-        //TODO: we may need a special lock for this one, as its the only one that removes nodes from the data struct
         
         // we should be able to clear this prior, as it requires a lock on its own
         sds.clear();
@@ -274,7 +270,7 @@ public:
                 ++backIter;
             }
             
-            // TODO: depending on the type of iterator - if its a iterate until iterator, we should check if the current "value" is > end point
+            // if its a iterate_until iterator, we should check if the current "value" is > end point
             // if so, mark it as end
             if ( ityp == BETWEEN && ((*frontIter)[0] > endPoint[0] || ((*frontIter)[0] == endPoint[0] && (*backIter)[0] > endPoint[1]))) {
                 isEndVal = true;
@@ -377,10 +373,7 @@ public:
         /**
          * Adjust the iterators to point to the beginning of each trie
          */
-        void initIterators() {
-            
-            //TODO: can we supply orderedStates as an arg? this can remove redundancy of the initIterator(trie) fn
-            
+        void initIterators() {            
             bool start = true;
             
             for (auto& x : br->orderedStates) {
@@ -399,7 +392,6 @@ public:
                     backIter = souffle::Trie<1>::iterator(frontIter);
                     cTrie = x.second;
                 }
-                // TODO: check iterBeg as arg vv (this may be an off by one error?)
                 iterList.push_back(std::make_pair(x.second, iterBeg));
             }
         }
@@ -414,9 +406,6 @@ public:
             frontIter = trie->begin();
             backIter = trie->begin();
             cTrie = trie;
-            // TODO: check trie->begin as arg vv (this may be an off by one error?)
-            //TODO: do we need this?
-//            iterList.push_back(std::make_pair(trie, trie->begin()));
         }
 
         /**
