@@ -127,15 +127,18 @@ private:
         
         if (!sds.nodeExists(val)) throw "cannot generate trie for non-existent node";
         DomainInt rep = sds.readOnlyFindNode(val);
-        
+        std::atomic_thread_fence(std::memory_order_acquire);
+
         //return if already created
         if (this->orderedStates.find(rep) != this->orderedStates.end()) return this->orderedStates.at(rep);
-        // {
-            std::lock_guard<std::mutex> guard(genTrieSetsMutex);
+        
+        //double checked locking pattern (with aq/rel fences)
+        std::lock_guard<std::mutex> guard(genTrieSetsMutex);
+        if (this->orderedStates.find(rep) != this->orderedStates.end()) return this->orderedStates.at(rep);
 
-            this->orderedStates[rep] = std::shared_ptr<souffle::Trie<1>>(new souffle::Trie<1>);
-        // }
-    
+        std::atomic_thread_fence(std::memory_order_release);
+        this->orderedStates[rep] = std::shared_ptr<souffle::Trie<1>>(new souffle::Trie<1>);
+        
         // populate the trie
         for (auto it = sds.begin(rep); it != sds.end(rep); ++it) {
             // add the current value of the iterator to the trie
