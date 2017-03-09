@@ -8,7 +8,7 @@ gen2(1).
 gen2(x+1) :- gen2(x), !lim(x).
 
 .decl lim(x : number)
-lim(1000).
+lim(10000).
 
 .decl transform(x : number, y : number) output
 transform(x, y) :- transform(y, x).

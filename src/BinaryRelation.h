@@ -21,6 +21,9 @@ class BinaryRelation {
     //lock for modifying the std::map pairs for the trie
     mutable std::mutex genTrieSetsMutex;
 
+    // the ordering of states per disjoint set (mapping from representative to trie)
+    mutable std::unordered_map<DomainInt, std::shared_ptr<souffle::Trie<1>>> orderedStates;
+
 public:
     /**
      * TODO: implement this operation_hint class
@@ -53,9 +56,8 @@ public:
     bool insert(DomainInt x, DomainInt y, operation_hints z) {
         //TODO: use the op hints to speed up insertion
         //TODO: return value
-        
         // std::lock_guard<std::mutex> guard(genTrieSetsMutex);
-        
+
         sds.unionNodes(x, y);
         
         //remove these djSets from the ordering tries, as they have become stale
@@ -85,8 +87,7 @@ public:
      * @param y back of pair
      */
     bool contains(DomainInt x, DomainInt y) const {
-        //TODO: possible sore spot for data races
-        return sds.nodeExists(x) && sds.nodeExists(y) && sds.readOnlyFindNode(x) == sds.readOnlyFindNode(y);
+        return sds.contains(x, y);
     }
     
     void clear() {
@@ -117,9 +118,6 @@ public:
     }
 private:
     
-    // the ordering of states per disjoint set (mapping from representative to trie)
-    mutable std::unordered_map<DomainInt, std::shared_ptr<souffle::Trie<1>>> orderedStates;
-    
     /**
      * Create a trie which contains the disjoint set which contains this value
      * @param val the value whose disjoint set will be constructed into a trie
@@ -130,21 +128,21 @@ private:
         if (!sds.nodeExists(val)) throw "cannot generate trie for non-existent node";
         DomainInt rep = sds.readOnlyFindNode(val);
         
-        
         //return if already created
         if (this->orderedStates.find(rep) != this->orderedStates.end()) return this->orderedStates.at(rep);
-        {
+        // {
             std::lock_guard<std::mutex> guard(genTrieSetsMutex);
 
             this->orderedStates[rep] = std::shared_ptr<souffle::Trie<1>>(new souffle::Trie<1>);
-        }
+        // }
+    
         // populate the trie
         for (auto it = sds.begin(rep); it != sds.end(rep); ++it) {
             // add the current value of the iterator to the trie
-            this->orderedStates[rep]->insert(*it);
+            this->orderedStates.at(rep)->insert(*it);
         }
         
-        return this->orderedStates[rep];
+        return this->orderedStates.at(rep);
     }
     
 public:

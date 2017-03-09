@@ -1180,6 +1180,8 @@ namespace index_utils {
             //TODO: this is invalid
             // static_assert(is_compatible_with<SubIndex,Index>::value, "Invalid sub-index query!");
             // auto r = data.template getBoundaries<SubIndex::size>(orderIn(tuple), ctxt);
+            std::cout << "poor call\n";
+            std::cerr << "poor call\n";
             throw "unimplemented";
             return make_range(iterator(begin()), iterator(end()));
         }

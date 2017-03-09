@@ -414,10 +414,15 @@ private:
      */
     parent_t toDense(const SparseDomain in) {
         auto it = sparseToDenseMap.find(in);
+        std::atomic_thread_fence(std::memory_order_acquire);
         if (it != sparseToDenseMap.end()) {
             return it->second;
         } else {
             std::lock_guard<std::mutex> lock(modLock);
+            auto it = sparseToDenseMap.find(in);
+
+            if (it != sparseToDenseMap.end()) return it->second;
+            std::atomic_thread_fence(std::memory_order_release);
             
             size_t j = denseToSparseMap.size();
             //check if we create a dense value outside of the bounds that can be stored
@@ -508,7 +513,10 @@ public:
     /* finds the node in the underlying disjoint set, adding the node if non-existent */
     inline SparseDomain findNode(SparseDomain x) { return toSparse(ds.findNode(toDense(x))); };
     /* union the nodes, add if not existing */
-    inline void unionNodes(SparseDomain x, SparseDomain y) { ds.unionNodes(toDense(x), toDense(y)); };
+    inline void unionNodes(SparseDomain x, SparseDomain y) { 
+
+        ds.unionNodes(toDense(x), toDense(y)); 
+    };
     
     inline std::size_t size() { return ds.size(); };
     
@@ -539,6 +547,13 @@ public:
     
     /* whether we the supplied node exists */
     inline bool nodeExists(const SparseDomain val) const { return sparseToDenseMap.find(val) != sparseToDenseMap.end(); };
+
+    inline bool contains(SparseDomain v1, SparseDomain v2) {
+        if (nodeExists(v1) && nodeExists(v2)) {
+            return sameSet(v1, v2);
+        }
+        return false;
+    }
     
-    void genMap() { ds.genMap(); }
+    // void genMap() { ds.genMap(); }
 };
