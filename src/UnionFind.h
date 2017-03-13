@@ -12,30 +12,17 @@
 #include <limits>
 #include <exception>
 
-
 #include "BlockList.h"
-#include "Types.h"
 
-/*
- * This is a C++ implementation of a parallel union-find listData structure
- * It also allows insertion of arbitrary nodes during run-time
- *
- * Author:
- *      Patrick Nappa
- *
- * Reference:
- *      Richard J. Anderson and Heather Woll. 1991.
- *      Wait-free parallel algorithms for the union-find problem.
- *      In Proceedings of the twenty-third annual ACM symposium on
- *      Theory of computing (STOC '91). ACM, New York, NY, USA,
- *      370-380. DOI=http://dx.doi.org/10.1145/103418.103458
- */
+namespace souffle {
 
+typedef uint32_t rank_t;
+typedef uint32_t parent_t;
 
-/**
- * TODO:
- *      - implement rule of 5 properly (might be difficult with the atomics, but to hell with it)
- */
+//number of bits each are (sizeof(rank_t) == sizeof(parent_t))
+constexpr uint8_t split_size = 32u;
+constexpr block_t rank_mask = (2ul << split_size) - 1;
+
 
 /**
  * Structure that emulates a Disjoint Set, i.e. a data structure that supports efficient union-find operations
@@ -45,7 +32,7 @@ class DisjointSet {
     /* store blocks of atomics */
     BlockList<std::atomic<block_t>> a_blocks;
 
-    std::mutex insertMutex;
+    mutable std::mutex insertMutex;
 
     /* whether the generated iterator needs to be updated */
     std::atomic<bool> isStale;
@@ -56,6 +43,22 @@ class DisjointSet {
 
 public:
     DisjointSet() : isStale(true), mapStale(true) {};
+
+    // WARNING! not quite threadsafe, but probably close enough, not dangerous enough to warrant possible deadlock scenario
+    DisjointSet& operator=(const DisjointSet& old) {
+
+        if (this == &old) return *this;
+
+        std::lock_guard<std::mutex> lock(old.insertMutex);
+
+        a_blocks = old.a_blocks;
+        repToSubords = old.repToSubords;
+        isStale.store(old.isStale.load());
+        mapStale.store(old.mapStale.load());
+
+        return *this;
+
+    }
 
     inline size_t size() const { return a_blocks.size(); };
 
@@ -399,7 +402,7 @@ public:
 template<typename SparseDomain>
 class SparseDisjointSet {
     // lock on write operations - STL containers only support 1 writer at all times
-    std::mutex modLock;
+    mutable std::mutex modLock;
     
     DisjointSet ds;
     //values stored in here to those in the dense disjoint set
@@ -439,6 +442,25 @@ private:
     }
     
 public:
+
+    // SparseDisjointSet() = default;
+
+    // //copy op
+    // SparseDisjointSet(const SparseDisjointSet& old) : ds(old.ds), sparseToDenseMap(old.sparseToDenseMap), denseToSparseMap(old.denseToSparseMap) {
+
+    // }
+
+    SparseDisjointSet& operator=(const SparseDisjointSet& old)  {
+        if (&old == this) return *this;
+
+        std::lock_guard<std::mutex> lock(old.modLock);
+
+        ds = old.ds;
+        sparseToDenseMap = old.sparseToDenseMap;
+        denseToSparseMap = old.denseToSparseMap;
+        
+        return *this;        
+    }
     
     /** iterator stuff */
     class iterator : public std::iterator<std::forward_iterator_tag, SparseDomain> {
@@ -557,3 +579,4 @@ public:
     
     // void genMap() { ds.genMap(); }
 };
+}

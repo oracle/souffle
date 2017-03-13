@@ -9,6 +9,7 @@
 #include <utility>
 #include <unordered_map>
 
+namespace souffle {
 template<typename TupleType>
 class BinaryRelation {
     
@@ -25,6 +26,15 @@ class BinaryRelation {
     mutable std::unordered_map<DomainInt, std::shared_ptr<souffle::Trie<1>>> orderedStates;
 
 public:
+
+    BinaryRelation& operator=(const BinaryRelation& old) {
+        if (this == &old) return *this;
+
+        sds = old.sds;
+        //don't copy mutex or generated Tries
+        return *this;
+    }
+
     /**
      * TODO: implement this operation_hint class
      * A collection of operation hints speeding up some of the involved operations
@@ -56,11 +66,11 @@ public:
     bool insert(DomainInt x, DomainInt y, operation_hints z) {
         //TODO: use the op hints to speed up insertion
     
-        sds.unionNodes(x, y);
-        
         //remove these djSets from the ordering tries, as they have become stale
         orderedStates.erase(sds.findNode(x));
         orderedStates.erase(sds.findNode(y));
+
+        sds.unionNodes(x, y);
         
         return false;
     }
@@ -188,6 +198,12 @@ public:
         //ctor for find(..)
         iterator(const BinaryRelation* br, TupleType& start) : br(br) {
             ityp = STARTAT;
+
+            if (!br->sds.nodeExists(start[0]) || !br->sds.nodeExists(start[1])) {
+                isEndVal = true;
+                return;
+            }            
+
             initIterators();
             ffIterators(start);
             initCheckEnd();
@@ -197,6 +213,12 @@ public:
         // ctor for findBetween(..)
         iterator(const BinaryRelation* br, TupleType& start, TupleType& end) : br(br), endPoint(end) {
             ityp = BETWEEN;
+
+            if (!br->sds.nodeExists(start[0]) || !br->sds.nodeExists(start[1]) ) {
+                isEndVal = true;
+                return;
+            }
+            
             initIterators();
             ffIterators(start);
             initCheckEnd();
@@ -206,12 +228,15 @@ public:
         // ctor for closure
         iterator(const BinaryRelation* br, DomainInt rep, std::shared_ptr<souffle::Trie<1>> trie) : br(br), rep(rep) {
             ityp = CLOSURE;
+            if (!br->sds.nodeExists(rep)) { isEndVal = true; return; }
+
             initIterator(trie);
             setValue();
         }
         
         // ctor for front product aka R(x, _) for all x in fronts
         iterator(const BinaryRelation* br, std::list<DomainInt> fronts, std::shared_ptr<souffle::Trie<1>> trie) : br(br), fronts(fronts){
+            if (std::any_of(fronts.begin(), fronts.end(), [&](DomainInt n) { return !br->sds.nodeExists(n); })) throw "non-existent nodes provided";
             ityp = FRONTPROD;
             initIterator(trie);
             //fast forward iter to the first requirement
@@ -506,7 +531,7 @@ public:
      */
     iterator find(TupleType& start) const {
         // generate tries for all disjoint sets
-        std::for_each(sds.beginReps(), sds.endReps(), [&](DomainInt r) { generateTrieIfNone(r); });
+        // std::for_each(sds.beginReps(), sds.endReps(), [&](DomainInt r) { generateTrieIfNone(r); });
         
         for (auto rep = sds.beginReps(); rep != sds.endReps(); ++rep) {
             generateTrieIfNone(*rep);
@@ -630,3 +655,4 @@ public:
         return ret;
     }
 };
+}

@@ -4,11 +4,17 @@
 
 #pragma once
 
-#include "Types.h"
 #include <vector>
 #include <exception>
-
 #include <iostream>
+
+namespace souffle {
+
+//number of elements in each array of the vector
+static constexpr uint8_t BLOCKBITS = 10u;
+static constexpr size_t BLOCKSIZE = (1u << BLOCKBITS);
+//block_t stores parent in the upper half, rank in the lower half
+typedef uint64_t block_t;
 
 /**
  * A class that is designed to mimic std::list, but with better destructor speed
@@ -239,4 +245,4 @@ inline void BlockList<std::atomic<block_t>>::add(const std::atomic<block_t>& val
 
 }
 
-
+}

@@ -139,7 +139,6 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
 				        BTree.h                 \
 				        UnionFind.h             \
 				        BinaryRelation.h        \
-				        Types.h                 \
 				        BlockList.h             \
 				        Trie.h                  \
 				        Table.h                 \
@@ -213,6 +212,12 @@ check_PROGRAMS += test/btree_multiset_test
 test_btree_multiset_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_btree_multiset_test_SOURCES = test/btree_multiset_test.cpp
 test_btree_multiset_test_LDADD = libsouffle.la
+
+# binary relation tests
+check_PROGRAMS += test/binary_relation_test
+test_binary_relation_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
+test_binary_relation_test_SOURCES = test/binary_relation_test.cpp
+test_binary_relation_test_LDADD = libsouffle.la
 
 # compiled ram tuple test
 check_PROGRAMS += test/compiled_ram_tuple_test
