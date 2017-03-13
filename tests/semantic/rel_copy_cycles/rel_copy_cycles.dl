@@ -1,3 +1,9 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
 
 // Cycles with stuff hanging off them
 .decl A(x:number)
@@ -6,7 +12,8 @@ A(x) :- B(x).
 .decl B(x:number)
 B(x) :- A(x).
 
-.decl C(x:number) printsize
+.decl C(x:number)
+.printsize C
 C(1).
 C(x) :- A(x), B(x).
 
@@ -27,7 +34,8 @@ H(x) :- G(x).
 .decl H(x:number)
 G(x) :- F(x).
 
-.decl I(x:number) printsize
+.decl I(x:number)
+.printsize I
 I(x) :- F(x).
 
 
@@ -48,13 +56,15 @@ P(x) :- M(x).
 T(x) :- Z(x).
 .decl U(x:number)
 U(x) :- T(x).
-.decl V(x:number) printsize
+.decl V(x:number)
+.printsize V
 V(x) :- U(x).
 .decl W(x:number)
 W(x) :- V(x).
 .decl X(x:number)
 X(x) :- W(x).
-.decl Y(x:number) printsize
+.decl Y(x:number)
+.printsize Y
 Y(x) :- X(x).
 .decl Z(x:number)
 Z(x) :- Y(x).

@@ -51,8 +51,6 @@ function graphRel() {
         return;
     }
 
-    came_from = "rel";
-
     graph_vals.labels = [];
     graph_vals.tot_t = [];
     graph_vals.tuples = [];
@@ -164,8 +162,13 @@ function drawGraph() {
 
 function changeTab(event, change_to) {
     if (change_to === "Chart") {
+        document.getElementById("code-tab").style.display = "none";
         document.getElementById("chart-tab").style.display = "block";
+    } else if (change_to === "Code") {
+        document.getElementById("code-tab").style.display = "block";
+        document.getElementById("chart-tab").style.display = "none";
     } else {
+        document.getElementById("code-tab").style.display = "none";
         document.getElementById("chart-tab").style.display = "none";
     }
     var c, d, e;
@@ -218,6 +221,13 @@ function create_cell(type, value, perc_total) {
         text_span = document.createElement("span");
         text_span.innerHTML = value;
         cell.appendChild(text_span);
+    } else if (type === "code_loc") {
+        cell.className = "text_cell";
+        text_span = document.createElement("span");
+        text_span.innerHTML = value;
+        cell.appendChild(text_span);
+        if (data.hasOwnProperty("code"))
+            text_span.onclick = function() {view_code_snippet(value);}
     } else if (type === "id") {
         cell.innerHTML = value;
     } else if (type === "time") {
@@ -234,6 +244,9 @@ function create_cell(type, value, perc_total) {
         if (perc_total == 0) {
             div.style.width = "0%";
             div.innerHTML = "0";
+        } else if (isNaN(value)) {
+            div.style.width = "0%";
+            div.innerHTML = "NaN";
         } else {
             div.style.width = parseFloat(value) / perc_total * 100 + "%";
             div.innerHTML = clean_percentages(parseFloat(value) / perc_total * 100);
@@ -258,7 +271,9 @@ function generate_table(data_format,body_id,data_key) {
     for (item in data[data_key]) {
         if (data[data_key].hasOwnProperty(item)) {
             for (i in perc_totals) {
-                perc_totals[i][2] += data[data_key][item][perc_totals[i][1]];
+                if (!isNaN(data[data_key][item][perc_totals[i][1]])) {
+                    perc_totals[i][2] += data[data_key][item][perc_totals[i][1]];
+                }
             }
         }
     }
@@ -299,14 +314,14 @@ function generate_table(data_format,body_id,data_key) {
 
 function gen_rel_table() {
     generate_table([["text",0],["id",1],["time",2],["time",3],["time",4],
-        ["time",5],["int",6],["perc","float",2],["perc","int",6],["text",7]],
+        ["time",5],["int",6],["perc","float",2],["perc","int",6],["code_loc",7]],
         "Rel_table_body",
     "rel");
 }
 
 function gen_rul_table() {
     generate_table([["text",0],["id",1],["time",2],["time",3],["time",4],
-            ["time",5],["int",6],["perc","float",2],["perc","int",6],["text",7]],
+            ["time",5],["int",6],["perc","float",2],["perc","int",6],["code_loc",7]],
         "Rul_table_body",
         "rul");
 }
@@ -314,7 +329,7 @@ function gen_rul_table() {
 
 function genRulesOfRelations() {
     var data_format = [["text",0],["id",1],["time",2],["time",3],["time",4],
-            ["time",5],["int",6],["perc","float",2],["perc","int",6],["text",7]];
+            ["time",5],["int",6],["perc","float",2],["perc","int",6],["code_loc",7]];
     var rules = data.rel[selected.rel][8];
     var perc_totals = [];
     var row, cell, perc_counter, table_body, i, j;
@@ -324,7 +339,9 @@ function genRulesOfRelations() {
     for (i in data_format) {
         if (!data_format.hasOwnProperty(i)) continue;
         if (data_format[i][0] === "perc") {
-            perc_totals.push([data_format[i][1],data_format[i][2],data.rel[selected.rel][data_format[i][2]]]);
+            if (!isNaN(data.rel[selected.rel][data_format[i][2]])) {
+                perc_totals.push([data_format[i][1], data_format[i][2], data.rel[selected.rel][data_format[i][2]]]);
+            }
         }
     }
 
@@ -360,7 +377,7 @@ function genRulesOfRelations() {
 
 function genRulVer() {
     var data_format = [["text",0],["id",1],["time",2],["time",3],["time",4],["time",5],
-        ["int",6],["int",8],["perc","float",2],["perc","int",6],["text",7]];
+        ["int",6],["int",8],["perc","float",2],["perc","int",6],["code_loc",7]];
     var rules = data.rul[selected.rul][8];
     var perc_totals = [];
     var row, cell, perc_counter, table_body, i, j;
@@ -370,7 +387,9 @@ function genRulVer() {
     for (i in data_format) {
         if (!data_format.hasOwnProperty(i)) continue;
         if (data_format[i][0] === "perc") {
-            perc_totals.push([data_format[i][1],data_format[i][2],data.rul[selected.rul][data_format[i][2]]]);
+            if (!isNaN(data.rul[selected.rul][data_format[i][2]])) {
+                perc_totals.push([data_format[i][1], data_format[i][2], data.rul[selected.rul][data_format[i][2]]]);
+            }
         }
     }
 
@@ -417,6 +436,51 @@ function gen_top() {
     x.appendChild(line2)
 }
 
+function view_code_snippet(value) {
+    value = value.split(" ");
+    value = value[value.length-1]; // get [num:num]
+    value = value.slice(1); // cut out "["
+    value = value.split(":");
+    value = value[0];
+    var targetLi = gen_code(parseInt(value));
+    document.getElementById("code_tab").click();
+
+    var list = document.getElementById("code-view");
+
+    list.scrollTop = Math.max(21*parseInt(value) - 100, 0);
+
+}
+
+
+function gen_code(highlight_row) {
+    var list, row, text, target_row;
+    list = document.getElementById("code-list");
+    list.innerHTML = "";
+    list.style.background = "#AAA";
+    list.style.paddingLeft = "12px";
+    list.style.color = "#666";
+    for (var i=0; i<data.code.length; i++) {
+        row = document.createElement("li");
+        row.className = "code-li";
+        if (i+1 != highlight_row) {
+            row.style.background = "#FAFAFA";
+            target_row = row;
+        } else {
+            row.style.background = "#E0FFFF";
+        }
+        row.style.marginBottom = "0";
+        text = document.createElement("span");
+        text.style.paddingLeft = "6px";
+        text.style.color = "#666";
+        text.className = "text-span";
+        text.textContent = data.code[i];
+        row.appendChild(text);
+        list.appendChild(row);
+    }
+    document.getElementById("code-view").appendChild(list);
+    return target_row;
+}
+
 
 var precision = !1;
 var selected = {rel: !1, rul: !1};
@@ -427,6 +491,8 @@ var graph_vals = {
     tuples:[],
     copy_t:[]
 };
+
+
 function init() {
     gen_top();
     gen_rel_table();
@@ -436,7 +502,7 @@ function init() {
     Tablesort(document.getElementById('rulesofrel_table'),{descending: true});
     Tablesort(document.getElementById('rulvertable'),{descending: true});
     document.getElementById("default").click();
-    document.getElementById("default").classList['active'] = !0;
+    //document.getElementById("default").classList['active'] = !0;
 
 }
 

@@ -15,9 +15,9 @@
  ***********************************************************************/
 #pragma once
 
-#include "TypeSystem.h"
-#include "AstTranslationUnit.h"
 #include "AstAnalysis.h"
+#include "AstTranslationUnit.h"
+#include "TypeSystem.h"
 
 namespace souffle {
 
@@ -52,30 +52,31 @@ class TypeEnvironmentAnalysis : public AstAnalysis {
 private:
     TypeEnvironment env;
 
-    void updateTypeEnvironment(const AstProgram &program);
+    void updateTypeEnvironment(const AstProgram& program);
+
 public:
-    static constexpr const char *name = "type-environment";
+    static constexpr const char* name = "type-environment";
 
-    virtual void run(const AstTranslationUnit &translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
-    const TypeEnvironment &getTypeEnvironment() {
+    const TypeEnvironment& getTypeEnvironment() {
         return env;
     }
 };
 
 class TypeAnalysis : public AstAnalysis {
 private:
-    std::map<const AstArgument *, TypeSet> argumentTypes;
+    std::map<const AstArgument*, TypeSet> argumentTypes;
 
 public:
-    static constexpr const char *name = "type-analysis";
+    static constexpr const char* name = "type-analysis";
 
-    virtual void run(const AstTranslationUnit &translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
     /**
      * Get the computed types for the given argument.
      */
-    TypeSet getTypes(const AstArgument *argument) const {
+    TypeSet getTypes(const AstArgument* argument) const {
         auto found = argumentTypes.find(argument);
         assert(found != argumentTypes.end());
         return found->second;
@@ -91,9 +92,8 @@ public:
      * @param program the program
      * @return a map mapping each contained argument to a a set of types
      */
-    static std::map<const AstArgument*, TypeSet> analyseTypes(const TypeEnvironment& env, const AstClause& clause, const AstProgram *program, bool verbose = false);
+    static std::map<const AstArgument*, TypeSet> analyseTypes(const TypeEnvironment& env,
+            const AstClause& clause, const AstProgram* program, bool verbose = false);
 };
 
-} // end of namespace souffle
-
-
+}  // end of namespace souffle

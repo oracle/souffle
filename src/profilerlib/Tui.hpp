@@ -8,29 +8,26 @@
 
 #pragma once
 
-
 #include <iostream>
 #include <string>
 #include <vector>
 #include <dirent.h>
 
-// TODO
-//#ifdef __linux__
-//#include <editline.h>
-//#endif
-//#ifdef __OpenBSD__
-//#include <readline/readline.h>
-//#endif
-#include <editline/readline.h>
-
-
+#include "DataComparator.hpp"
 #include "OutputProcessor.hpp"
 #include "Reader.hpp"
 #include "StringUtils.hpp"
-#include "DataComparator.hpp"
+#include "UserInputReader.hpp"
 #include "html_string.hpp"
 
-
+/*
+ * Text User interface for SouffleProf
+ * OutputProcessor creates a ProgramRun object
+ * ProgramRun -> Reader.hpp ProgramRun stores all the data
+ * OutputProcessor grabs the data and makes tables
+ * Tui displays the data
+ * TODO: move parts of the code into other classes, especially the outputJson function
+ */
 class Tui {
 private:
     OutputProcessor out;
@@ -42,10 +39,12 @@ private:
     Table rel_table_state;
     Table rul_table_state;
     std::shared_ptr<Reader> reader;
+    InputReader linereader;
+
 public:
     Tui(std::string filename, bool live, bool gui);
 
-    void runCommand(std::vector <std::string> c);
+    void runCommand(std::vector<std::string> c);
 
     void runProf();
 
@@ -60,6 +59,8 @@ public:
     void load(std::string method, std::string load_file);
 
     static void help();
+
+    void setupTabCompletion();
 
     void top();
 
@@ -83,5 +84,5 @@ public:
 
     void graphL(std::vector<long> list);
 
-    static bool string_sort(std::vector <std::string> a, std::vector <std::string> b);
+    static bool string_sort(std::vector<std::string> a, std::vector<std::string> b);
 };

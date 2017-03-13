@@ -21,38 +21,32 @@
 
 namespace souffle {
 
-	class AstTranslationUnit;
+class AstTranslationUnit;
 
-	/**
-	 * Converts the given souffle-datalog translation unit into bdddbddb input code
-	 * and writes the result into the given output stream.
-	 *
-	 * @param out the stream to write the result to
-	 * @param translationUnit the translation unit to be converted
-	 * @throws UnsupportedConstructException if constructs that can not be expressed
-	 *        within bddbddb have been encountered
-	 */
-	void toBddbddb(std::ostream& out, const AstTranslationUnit& translationUnit);
+/**
+ * Converts the given souffle-datalog translation unit into bdddbddb input code
+ * and writes the result into the given output stream.
+ *
+ * @param out the stream to write the result to
+ * @param translationUnit the translation unit to be converted
+ * @throws UnsupportedConstructException if constructs that can not be expressed
+ *        within bddbddb have been encountered
+ */
+void toBddbddb(std::ostream& out, const AstTranslationUnit& translationUnit);
 
+/**
+ * The kind of exception to be raised if an error in the conversion to a
+ * bddbddb input program has been encountered.
+ */
+class UnsupportedConstructException : public std::exception {
+    std::string msg;
 
-	/**
-	 * The kind of exception to be raised if an error in the conversion to a
-	 * bddbddb input program has been encountered.
-	 */
-	class UnsupportedConstructException : public std::exception {
+public:
+    UnsupportedConstructException(const std::string& msg) : msg(msg) {}
 
-		std::string msg;
+    const char* what() const noexcept override {
+        return msg.c_str();
+    }
+};
 
-	public:
-
-		UnsupportedConstructException(const std::string& msg)
-			: msg(msg) {}
-
-		const char* what() const noexcept override {
-			return msg.c_str();
-		}
-
-	};
-
-} // end of namespace souffle
-
+}  // end of namespace souffle

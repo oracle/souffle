@@ -6,18 +6,14 @@
 * - <souffle root>/licenses/SOUFFLE-UPL.txt
 */
 
+#include "profilerlib/Cli.hpp"
 
 #include <iostream>
 #include <string>
 
-#include "profilerlib/Cli.hpp"
-
-
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     Cli cli_obj = Cli(argc, argv);
     cli_obj.parse();
     std::cout << "\n";
     return 0;
 }
-
-

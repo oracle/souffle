@@ -6,15 +6,10 @@
 * - <souffle root>/licenses/SOUFFLE-UPL.txt
 */
 
-
 #include "Cli.hpp"
 
-
-
-
-
 void Cli::error() {
-    std::cout << "souffle-profiler -v | -h | <log-file> [ -c <command> | -j | -l ]\n";
+    std::cout << "souffle-profile -v | -h | <log-file> [ -c <command> | -j | -l ]\n";
     exit(1);
 }
 
@@ -32,12 +27,11 @@ void Cli::parse() {
 
     std::string arg = args.at(i++);
     if (arg.at(0) != '-') {
-
         filename = arg;
         if (args.size() > 2) {
             arg = args.at(i++);
 
-            if (arg.compare("-c")==0) {
+            if (arg.compare("-c") == 0) {
                 if (i < args.size()) {
                     // split at \s+ and save into commands
                     std::string& command_str = args.at(i++);
@@ -46,33 +40,33 @@ void Cli::parse() {
                     std::cout << "Parameters for option -c missing!\n";
                     error();
                 }
-            } else if (arg.compare("-l")==0) {
+            } else if (arg.compare("-l") == 0) {
                 alive = true;
-            } else if (arg.compare("-j")==0) {
+            } else if (arg.compare("-j") == 0) {
                 gui = true;
             }
         }
-    } else if (arg.compare("-h")==0) {
+    } else if (arg.compare("-h") == 0) {
         std::cout << "Souffle Profiler v3.0.1\n";
-        std::cout << "usage: souffle-profiler -v | -h | <log-file> [ -c <command> | -j | -l ]\n"
-                <<  "<log-file>     the selected log file to profile\n"
-                <<  "-c <command>   run the given command on the log file (run -c \"help\" for a list of profiler commands)\n"
-                <<  "-j             generate a GUI(html/js) version of the profiler\n"
-                <<  "-l             run in live mode\n"
-                <<  "-v             print the profiler version\n"
-                <<  "-h             print this message" << std::endl;
+        std::cout << "usage: souffle-profile -v | -h | <log-file> [ -c <command> | -j | -l ]\n"
+                  << "<log-file>     the selected log file to profile\n"
+                  << "-c <command>   run the given command on the log file (run -c \"help\" for a list of "
+                     "profiler commands)\n"
+                  << "-j             generate a GUI(html/js) version of the profiler\n"
+                  << "-l             run in live mode\n"
+                  << "-v             print the profiler version\n"
+                  << "-h             print this message" << std::endl;
         error();
-    } else if (arg.compare("-v")==0) {
+    } else if (arg.compare("-v") == 0) {
         std::cout << "Souffle Profiler v3.0.1\n";
         error();
-    } else if (arg.compare("-f")==0) {
+    } else if (arg.compare("-f") == 0) {
         std::cout << "Option -f has been phased out!\n";
         error();
     } else {
         std::cout << "Unknown argument " << arg << "\n";
         error();
     }
-
 
     if (filename.empty()) {
         error();
@@ -81,7 +75,6 @@ void Cli::parse() {
     if (commands.size() > 0) {
         Tui(filename, alive, false).runCommand(commands);
     } else {
-
         if (gui) {
             Tui(filename, alive, true).outputJson();
         } else {

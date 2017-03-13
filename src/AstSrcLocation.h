@@ -16,18 +16,16 @@
 
 #pragma once
 
-#include <string>
 #include <ostream>
+#include <string>
 
 namespace souffle {
 
 /** A class describing a range in an input file */
 class AstSrcLocation {
 public:
-
     /** A class locating a single point in an input file */
     struct Point {
-
         /** The line in the source file */
         int line;
 
@@ -45,7 +43,6 @@ public:
 
         void print(std::ostream& out) const {
             out << line << ":" << column;
-
         }
 
         /** Enables locations to be printed */
@@ -64,14 +61,23 @@ public:
     /** The End location */
     Point end;
 
-
     /** A comparison for source locations */
     bool operator<(const AstSrcLocation& other) const {
-        if (filename < other.filename) return true;
-        if (filename > other.filename) return false;
-        if (start < other.start) return true;
-        if (start > other.start) return false;
-        if (end < other.end) return true;
+        if (filename < other.filename) {
+            return true;
+        }
+        if (filename > other.filename) {
+            return false;
+        }
+        if (start < other.start) {
+            return true;
+        }
+        if (start > other.start) {
+            return false;
+        }
+        if (end < other.end) {
+            return true;
+        }
         return false;
     }
 
@@ -87,8 +93,6 @@ public:
         range.print(out);
         return out;
     }
-
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

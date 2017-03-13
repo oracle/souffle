@@ -25,19 +25,14 @@ namespace souffle {
  * @tparam Iter ... the type of wrapped iterator
  * @tparam T    ... the value to be accessed by the resulting iterator
  */
-template<
-    typename Iter,
-    typename T = typename std::remove_pointer<typename Iter::value_type>::type
->
-struct IterDerefWrapper : public std::iterator<std::forward_iterator_tag,T> {
-
+template <typename Iter, typename T = typename std::remove_pointer<typename Iter::value_type>::type>
+struct IterDerefWrapper : public std::iterator<std::forward_iterator_tag, T> {
     /* The nested iterator. */
     Iter iter;
 
 public:
-
     // some constructores
-    IterDerefWrapper() {}
+    IterDerefWrapper() = default;
     IterDerefWrapper(const Iter& iter) : iter(iter) {}
 
     // defaulted copy and move constructors
@@ -73,37 +68,31 @@ public:
         ++iter;
         return *this;
     }
-
 };
 
 /**
  * A factory function enabling the construction of a dereferencing
  * iterator utilizing the automated deduction of template parameters.
  */
-template<typename Iter>
+template <typename Iter>
 IterDerefWrapper<Iter> derefIter(const Iter& iter) {
     return IterDerefWrapper<Iter>(iter);
 }
-
-
 
 // ---------------------------------------------------------------------
 //                        Single-Value-Iterator
 // ---------------------------------------------------------------------
 
-
 /**
  * An iterator to be utilized if there is only a single element to iterate over.
  */
-template<typename T>
-class SingleValueIterator : public std::iterator<std::forward_iterator_tag,T> {
-
+template <typename T>
+class SingleValueIterator : public std::iterator<std::forward_iterator_tag, T> {
     T value;
 
     bool end;
 
 public:
-
     SingleValueIterator() : end(true) {}
 
     SingleValueIterator(const T& value) : value(value), end(false) {}
@@ -112,7 +101,7 @@ public:
     SingleValueIterator(const SingleValueIterator& other) = default;
 
     // an assignment operator
-    SingleValueIterator& operator=(const SingleValueIterator& other) =default;
+    SingleValueIterator& operator=(const SingleValueIterator& other) = default;
 
     // the equality operator as required by the iterator concept
     bool operator==(const SingleValueIterator& other) const {
@@ -140,8 +129,6 @@ public:
         end = true;
         return *this;
     }
-
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

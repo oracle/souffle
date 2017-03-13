@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include <vector>
 #include <iostream>
+#include <vector>
 
 namespace souffle {
 
@@ -26,8 +26,9 @@ enum RamNodeType {
     // values
     RN_ElementAccess,
     RN_Number,
-    RN_BinaryOperator,
     RN_UnaryOperator,
+    RN_BinaryOperator,
+    RN_TernaryOperator,
     RN_AutoIncrement,
     RN_Pack,
 
@@ -66,28 +67,25 @@ enum RamNodeType {
 
 };
 
-
 /**
  *  @class RamNode
  *  @brief RamNode is a superclass for all elements of the RAM IR.
  */
 class RamNode {
-
     const RamNodeType type;
 
 public:
-
     RamNode(RamNodeType type) : type(type) {}
 
     /** A virtual destructor for RAM nodes */
-    virtual ~RamNode() {}
+    virtual ~RamNode() = default;
 
     RamNodeType getNodeType() const {
         return type;
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const =0;
+    virtual std::vector<const RamNode*> getChildNodes() const = 0;
 
     /** Requires all RAM nodes to be printable */
     virtual void print(std::ostream& out = std::cout) const = 0;
@@ -97,8 +95,6 @@ public:
         node.print(out);
         return out;
     }
-
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

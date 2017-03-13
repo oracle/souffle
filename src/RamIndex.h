@@ -11,17 +11,16 @@
  * @file RamIndex.h
  *
  * An index is implemented either as a hash-index, a double-hash, as a
- * red-black tree or as a b-tree. The choice of the implementation is 
- * set by preprocessor defines. 
+ * red-black tree or as a b-tree. The choice of the implementation is
+ * set by preprocessor defines.
  *
  ***********************************************************************/
 
 #pragma once
 
-#include "Util.h"
 #include "BTree.h"
-
 #include "RamTypes.h"
+#include "Util.h"
 
 namespace souffle {
 
@@ -29,16 +28,13 @@ namespace souffle {
  * A class describing the sorting order of tuples within an index.
  */
 class RamIndexOrder {
-
     // the order of columns along which fields should be sorted by an index
     std::vector<unsigned char> columns;
 
 public:
-
     // -- constructors --
 
-    RamIndexOrder(const std::vector<unsigned char>& order = std::vector<unsigned char>())
-        : columns(order) {}
+    RamIndexOrder(const std::vector<unsigned char>& order = std::vector<unsigned char>()) : columns(order) {}
 
     RamIndexOrder(const RamIndexOrder&) = default;
     RamIndexOrder(RamIndexOrder&&) = default;
@@ -81,8 +77,10 @@ public:
     /** Tests whether the given order covers a complete list of columns */
     bool isComplete() const {
         // the columns must contain the values 0 ... |length|
-        for(unsigned i = 0; i<columns.size(); i++) {
-            if (!contains(columns, i)) return false;
+        for (unsigned i = 0; i < columns.size(); i++) {
+            if (!contains(columns, i)) {
+                return false;
+            }
         }
         return true;
     }
@@ -90,9 +88,13 @@ public:
     /** Tests whether this order is a prefix of the given order. */
     bool isPrefixOf(const RamIndexOrder& other) const {
         // this one must not be longer
-        if (columns.size() > other.columns.size()) return false;
-        for(unsigned i = 0; i<columns.size(); i++) {
-            if (columns[i] != other.columns[i]) return false;
+        if (columns.size() > other.columns.size()) {
+            return false;
+        }
+        for (unsigned i = 0; i < columns.size(); i++) {
+            if (columns[i] != other.columns[i]) {
+                return false;
+            }
         }
         return true;
     }
@@ -104,10 +106,14 @@ public:
      */
     bool isCompatible(const RamIndexOrder& other) const {
         // this one must be shorter
-        if (columns.size() > other.columns.size()) return false;
+        if (columns.size() > other.columns.size()) {
+            return false;
+        }
         // check overlapping prefix
-        for(unsigned i = 0; i < columns.size(); ++i) {
-            if (!contains(columns, other.columns[i])) return false;
+        for (unsigned i = 0; i < columns.size(); ++i) {
+            if (!contains(columns, other.columns[i])) {
+                return false;
+            }
         }
         return true;
     }
@@ -121,71 +127,71 @@ public:
         order.print(out);
         return out;
     }
-
 };
 
-
-/* B-Tree indexes as default implementation for indexes */ 
+/* B-Tree indexes as default implementation for indexes */
 class RamIndex {
 protected:
-
-    /* lexicographical comparison operation on two tuple pointers */ 
+    /* lexicographical comparison operation on two tuple pointers */
     struct comparator {
-
         const RamIndexOrder& order;
 
-        /* constructor to initialize state */ 
+        /* constructor to initialize state */
         comparator(const RamIndexOrder& order) : order(order) {}
 
         /* comparison function */
         int operator()(const RamDomain* x, const RamDomain* y) const {
-            for(size_t i=0; i<order.size(); i++) {
-                if (x[order[i]] < y[order[i]]) return -1;
-                if (x[order[i]] > y[order[i]]) return 1;
+            for (size_t i = 0; i < order.size(); i++) {
+                if (x[order[i]] < y[order[i]]) {
+                    return -1;
+                }
+                if (x[order[i]] > y[order[i]]) {
+                    return 1;
+                }
             }
             return 0;
         }
 
-
         /* less comparison */
         bool less(const RamDomain* x, const RamDomain* y) const {
-            return operator()(x,y) < 0;
+            return operator()(x, y) < 0;
         }
 
         /* equal comparison */
         bool equal(const RamDomain* x, const RamDomain* y) const {
-            for(size_t i=0; i<order.size(); i++) {
-                if (x[order[i]] != y[order[i]]) return false;
+            for (size_t i = 0; i < order.size(); i++) {
+                if (x[order[i]] != y[order[i]]) {
+                    return false;
+                }
             }
             return true;
         }
     };
 
-    /* btree for storing tuple pointers with a given lexicographical order */ 
-    typedef btree_multiset<const RamDomain *,
-                          comparator, std::allocator<const RamDomain *>,
-                          512> index_set;
+    /* btree for storing tuple pointers with a given lexicographical order */
+    typedef btree_multiset<const RamDomain*, comparator, std::allocator<const RamDomain*>, 512> index_set;
+
 public:
-    typedef index_set::iterator iterator; 
+    typedef index_set::iterator iterator;
 
 private:
-
-    const RamIndexOrder theOrder; // retain the index order used to construct an object of this class
-    index_set set;                // set storing tuple pointers of table
+    const RamIndexOrder theOrder;  // retain the index order used to construct an object of this class
+    index_set set;                 // set storing tuple pointers of table
 
 public:
+    RamIndex(const RamIndexOrder& order) : theOrder(order), set(comparator(theOrder)) {}
 
-    RamIndex(const RamIndexOrder& order): theOrder(order), set(comparator(theOrder)) {}
-
-    const RamIndexOrder& order() const { return theOrder; }
+    const RamIndexOrder& order() const {
+        return theOrder;
+    }
 
     /**
-     * add tuple to the index 
-     * 
-     * precondition: tuple does not exist in the index 
+     * add tuple to the index
+     *
+     * precondition: tuple does not exist in the index
      */
-    void insert(const RamDomain *tuple) {
-       set.insert(tuple);    
+    void insert(const RamDomain* tuple) {
+        set.insert(tuple);
     }
 
     /**
@@ -193,15 +199,15 @@ public:
      *
      * precondition: the tuples do not exist in the index
      */
-    template<class Iter>
+    template <class Iter>
     void insert(const Iter& a, const Iter& b) {
         set.insert(a, b);
     };
 
     /** check whether tuple exists in index */
-    bool exists(const RamDomain *value) {
-       return set.find(value) != set.end();  
-    } 
+    bool exists(const RamDomain* value) {
+        return set.find(value) != set.end();
+    }
 
     /** purge all hashes of index */
     void purge() {
@@ -216,15 +222,14 @@ public:
     }
 
     /** return start and end iterator of an equal range */
-    inline std::pair<iterator, iterator> equalRange(const RamDomain *value) const {
-        return lowerUpperBound(value,value);
+    inline std::pair<iterator, iterator> equalRange(const RamDomain* value) const {
+        return lowerUpperBound(value, value);
     }
 
     /** return start and end iterator of a range */
     inline std::pair<iterator, iterator> lowerUpperBound(const RamDomain* low, const RamDomain* high) const {
         return std::pair<iterator, iterator>(set.lower_bound(low), set.upper_bound(high));
     }
-}; 
+};
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

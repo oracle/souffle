@@ -15,10 +15,11 @@ AC_CANONICAL_TARGET # target_cpu, target_vendor, and target_os
 AC_CANONICAL_BUILD  # build_cpu, build_vendor, and build_os
 AC_CANONICAL_HOST   # host_cpu, host_vendor, and host_os
 
-AM_INIT_AUTOMAKE([foreign subdir-objects])
+AM_INIT_AUTOMAKE([foreign subdir-objects 1.9 tar-pax])
 AM_MAINTAINER_MODE
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIRS([m4])
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_ARG_ENABLE([java],
 [  --enable-java    Turn on java interface],
@@ -32,12 +33,20 @@ AM_CONDITIONAL([JAVAI], [test x$java = xtrue])
 
 dnl Do not set default CFLAGS and CXXFLAGS
 CXXFLAGS=" -Wall -std=c++11  $CXXFLAGS"
+
+# Enable debug mode
+AC_ARG_ENABLE(
+  [debug],
+  [AS_HELP_STRING([--enable-debug], [Enable debug mode])]
+)
+AS_IF([test "x$enable_debug" = "xyes"], [CXXFLAGS="$CXXFLAGS -O0 -g3"],
+  [test "x$enable_debug" != "xyes"], [CXXFLAGS="$CXXFLAGS -O3"]
+)
+
 if test "$BUILD_TYPE" == "Debug" ; then
+  AC_MSG_WARN( [BUILD_TYPE environment variable is deprecated. Use --enable-debug])
   # set up debug mode
   CXXFLAGS="$CXXFLAGS -O0 -g3"
-else
-  # default is release mode
-  CXXFLAGS="$CXXFLAGS -O3"
 fi
 
 AC_ISC_POSIX
@@ -87,10 +96,35 @@ AS_IF([test -z "$BISON"], [AC_MSG_ERROR([bison not found.])])
 # Enable packaging option
 AC_ARG_ENABLE(
   [host-packaging],
-  [enable packaging using a given distribution],
-  [SOUFFLE_PACKAGING=1],
-  [unset SOUFFLE_PACKAGING]
+  AS_HELP_STRING([--enable-host-packaging], [Enable packaging using a given distribution])
 )
+AS_IF([test "x$enable_host_packaging" = "xyes"], [SOUFFLE_PACKAGING=1],
+  [test "x$enable_host_packaging" != "xyes"], [unset SOUFFLE_PACKAGING]
+)
+
+# Disable libz
+AC_ARG_ENABLE(
+  [libz],
+  AS_HELP_STRING([--disable-libz], [Disable use of libz file compression])
+)
+AS_IF([test "x$enable_libz" != "xno"], [
+    AC_CHECK_HEADER(zlib.h,,[AC_MSG_ERROR([required library zlib missing])])
+    AC_CHECK_LIB(z, compress,,[AC_MSG_ERROR([required library zlib missing])])
+    AS_VAR_APPEND(CXXFLAGS, [" -DUSE_LIBZ "])
+])
+AM_CONDITIONAL([LIBZ], [test "x$enable_libz" != "xno"])
+
+# Disable sqlite3
+AC_ARG_ENABLE(
+  [sqlite],
+  AS_HELP_STRING([--disable-sqlite], [Disable use of sqlite IO])
+)
+AS_IF([test "x$enable_sqlite" != "xno"], [
+    AC_CHECK_HEADER(sqlite3.h,,[AC_MSG_ERROR([required library sqlite3 missing])])
+    AC_CHECK_LIB(sqlite3, sqlite3_open,,[AC_MSG_ERROR([required library sqlite3 missing])])
+    AS_VAR_APPEND(CXXFLAGS, [" -DUSE_SQLITE "])
+])
+AM_CONDITIONAL([SQLITE], [test "x$enable_sqlite" != "xno"])
 
 ##
 ## START PART 1 MCPP DEFS
@@ -252,11 +286,6 @@ DIST_PACKAGING([bsd],[BSD_PACKAGE],[PKGBUILD],[pkgbuild])
 dnl Enable pthread library
 AC_CHECK_LIB(pthread, pthread_create,,
           [AC_MSG_ERROR([required library pthread missing])])
-AC_CHECK_HEADER(sqlite3.h,,[AC_MSG_ERROR([required library sqlite3 missing])])
-AC_CHECK_LIB(sqlite3, sqlite3_open,,
-          [AC_MSG_ERROR([required library sqlite3 missing])])
-
-PKG_CHECK_MODULES(LIBEDIT, libedit)
 
 dnl Enables OpenMP in the souffle compiler and interpreter
 AC_OPENMP
@@ -480,6 +509,7 @@ AC_CONFIG_LINKS([include/souffle/CompiledSouffle.h:src/CompiledSouffle.h])
 AC_CONFIG_LINKS([include/souffle/SouffleInterface.h:src/SouffleInterface.h])
 AC_CONFIG_LINKS([include/souffle/ParallelUtils.h:src/ParallelUtils.h])
 AC_CONFIG_LINKS([include/souffle/RamTypes.h:src/RamTypes.h])
+AC_CONFIG_LINKS([include/souffle/AstTypes.h:src/AstTypes.h])
 AC_CONFIG_LINKS([include/souffle/BTree.h:src/BTree.h])
 AC_CONFIG_LINKS([include/souffle/Trie.h:src/Trie.h])
 AC_CONFIG_LINKS([include/souffle/BinaryRelation.h:src/BinaryRelation.h])
@@ -488,8 +518,11 @@ AC_CONFIG_LINKS([include/souffle/UnionFind.h:src/UnionFind.h])
 AC_CONFIG_LINKS([include/souffle/Table.h:src/Table.h])
 AC_CONFIG_LINKS([include/souffle/IterUtils.h:src/IterUtils.h])
 AC_CONFIG_LINKS([include/souffle/Util.h:src/Util.h])
+AC_CONFIG_LINKS([include/souffle/Macro.h:src/Macro.h])
 AC_CONFIG_LINKS([include/souffle/RamLogger.h:src/RamLogger.h])
+AC_CONFIG_LINKS([include/souffle/IODirectives.h:src/IODirectives.h])
 AC_CONFIG_LINKS([include/souffle/IOSystem.h:src/IOSystem.h])
+AC_CONFIG_LINKS([include/souffle/gzfstream.h:src/gzfstream.h])
 AC_CONFIG_LINKS([include/souffle/ReadStream.h:src/ReadStream.h])
 AC_CONFIG_LINKS([include/souffle/ReadStreamCSV.h:src/ReadStreamCSV.h])
 AC_CONFIG_LINKS([include/souffle/ReadStreamSQLite.h:src/ReadStreamSQLite.h])
@@ -498,7 +531,6 @@ AC_CONFIG_LINKS([include/souffle/WriteStreamCSV.h:src/WriteStreamCSV.h])
 AC_CONFIG_LINKS([include/souffle/WriteStreamSQLite.h:src/WriteStreamSQLite.h])
 AC_CONFIG_LINKS([include/souffle/SymbolMask.h:src/SymbolMask.h])
 AC_CONFIG_LINKS([include/souffle/SymbolTable.h:src/SymbolTable.h])
-AC_CONFIG_LINKS([include/souffle/SqliteRelationWriter.h:src/SqliteRelationWriter.h])
 
 AM_MISSING_PROG([AUTOM4TE], [autom4te])
 

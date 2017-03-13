@@ -21,12 +21,9 @@ class AstTranslationUnit;
 
 class AstAnalysis {
 public:
+    virtual ~AstAnalysis() = default;
 
-
-    virtual ~AstAnalysis() { }
-
-    virtual void run(const AstTranslationUnit &translationUnit) = 0;
+    virtual void run(const AstTranslationUnit& translationUnit) = 0;
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

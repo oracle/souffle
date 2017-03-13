@@ -16,11 +16,11 @@
 
 #pragma once
 
+#include "Util.h"
+
 #include <algorithm>
 #include <string>
 #include <vector>
-
-#include "Util.h"
 
 namespace souffle {
 
@@ -32,31 +32,25 @@ namespace souffle {
  *
  */
 class AstRelationIdentifier {
-
     /**
      * The list of names forming this identifier.
      */
     std::vector<std::string> names;
 
 public:
-
     // -- constructors --
 
-    AstRelationIdentifier(const std::string& name = "")
-        : names(toVector(name)) {}
+    AstRelationIdentifier(const std::string& name = "") : names(toVector(name)) {}
 
-    AstRelationIdentifier(const char* name)
-        : AstRelationIdentifier(std::string(name)) {}
+    AstRelationIdentifier(const char* name) : AstRelationIdentifier(std::string(name)) {}
 
-    AstRelationIdentifier(const AstRelationIdentifier&) =default;
-    AstRelationIdentifier(AstRelationIdentifier&&) =default;
-
+    AstRelationIdentifier(const AstRelationIdentifier&) = default;
+    AstRelationIdentifier(AstRelationIdentifier&&) = default;
 
     // -- assignment operators --
 
     AstRelationIdentifier& operator=(const AstRelationIdentifier&) = default;
     AstRelationIdentifier& operator=(AstRelationIdentifier&&) = default;
-
 
     // -- mutators --
 
@@ -64,17 +58,15 @@ public:
         names.push_back(name);
     }
 
-    void prepent(const std::string& name) {
+    void prepend(const std::string& name) {
         names.insert(names.begin(), name);
     }
-
 
     // -- getters and setters --
 
     const std::vector<std::string>& getNames() const {
         return names;
     }
-
 
     // -- comparison operators --
 
@@ -87,7 +79,8 @@ public:
     }
 
     bool operator<(const AstRelationIdentifier& other) const {
-        return std::lexicographical_compare(names.begin(), names.end(), other.names.begin(), other.names.end());
+        return std::lexicographical_compare(
+                names.begin(), names.end(), other.names.begin(), other.names.end());
     }
 
     void print(std::ostream& out) const {
@@ -98,7 +91,6 @@ public:
         id.print(out);
         return out;
     }
-
 };
 
 /**
@@ -106,9 +98,8 @@ public:
  */
 inline AstRelationIdentifier operator+(const std::string& name, const AstRelationIdentifier& id) {
     AstRelationIdentifier res = id;
-    res.prepent(name);
+    res.prepend(name);
     return res;
 }
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

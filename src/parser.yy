@@ -38,10 +38,12 @@
     #include "AstClause.h"
     #include "AstComponent.h"
     #include "AstRelation.h"
+    #include "AstIODirective.h"
     #include "AstArgument.h"
     #include "AstNode.h"
-    #include "BinaryOperator.h"
-    #include "UnaryOperator.h"
+    #include "UnaryFunctorOps.h"
+    #include "BinaryFunctorOps.h"
+    #include "BinaryConstraintOps.h"
     #include "AstParserUtils.h"
     
     #include "AstSrcLocation.h"
@@ -82,10 +84,11 @@
     #include "ParserDriver.h"
 }
 
+%token <std::string> RESERVED    "reserved keyword"
 %token END 0                     "end of file"
 %token <std::string> STRING      "symbol"
 %token <std::string> IDENT       "identifier"
-%token <long long> NUMBER        "number"
+%token <AstDomain> NUMBER        "number"
 %token <std::string> RELOP       "relational operator"
 %token OUTPUT_QUALIFIER          "relation qualifier output"
 %token INPUT_QUALIFIER           "relation qualifier input"
@@ -99,6 +102,8 @@
 %token TCONTAINS                 "checks whether substring is contained in a string"
 %token CAT                       "concatenation of two strings"
 %token ORD                       "ordinal number of a string"
+%token STRLEN                    "length of a string"
+%token SUBSTR                    "sub-string of a string"
 %token MIN                       "min aggregator"
 %token MAX                       "max aggregator"
 %token COUNT                     "count aggregator"
@@ -107,6 +112,9 @@
 %token PLAN                      "plan keyword"
 %token IF                        ":-"
 %token DECL                      "relation declaration"
+%token INPUT_DECL                "input directives declaration"
+%token OUTPUT_DECL               "output directives declaration"
+%token PRINTSIZE_DECL            "printsize directives declaration"
 %token OVERRIDE                  "override rules of super-component"
 %token TYPE                      "type declaration"
 %token COMPONENT                 "component declaration"
@@ -145,11 +153,24 @@
 %token L_AND                     "land"
 %token L_OR                      "lor"
 %token L_NOT                     "lnot"
+%token SIN                       "sin"
+%token COS                       "cos"
+%token TAN                       "tan"
+%token ASIN                      "asin"
+%token ACOS                      "acos"
+%token ATAN                      "atan"
+%token SINH                      "sinh"
+%token COSH                      "cosh"
+%token TANH                      "tanh"
+%token ASINH                     "asinh"
+%token ACOSH                     "acosh"
+%token ATANH                     "atanh"
+%token LOG                       "log"
+%token EXP                       "exp"
 
 %type <int>                              qualifiers
 %type <AstTypeIdentifier *>              type_id
 %type <AstRelationIdentifier *>          rel_id
-%type <AstProgram *>                     unit
 %type <AstType *>                        type
 %type <AstComponent *>                   component component_head component_body
 %type <AstComponentType *>               comp_type
@@ -168,7 +189,7 @@
 %type <AstUnionType *>                   uniontype
 %type <std::vector<AstTypeIdentifier>>   type_params type_param_list
 %type <std::string>                      comp_override
-
+%type <AstIODirective *>                 key_value_pairs non_empty_key_value_pairs iodirective iodirective_body
 %printer { yyoutput << $$; } <*>;
 
 %precedence AS
@@ -190,12 +211,13 @@
 program: unit
 
 /* Top-level statement */
-unit: unit type { $$ = $1; driver.addType($2); }
-    | unit relation { $$ = $1; driver.addRelation($2); }
-    | unit fact { $$ = $1; driver.addClause($2); }
-    | unit rule { $$ = $1; for(const auto& cur : $2) driver.addClause(cur); }
-    | unit component { $$ = $1; driver.addComponent($2); }
-    | unit comp_init { $$ = $1; driver.addInstantiation($2); }
+unit: unit type { driver.addType($2); }
+    | unit relation { driver.addRelation($2); }
+    | unit iodirective { driver.addIODirectiveChain($2); }
+    | unit fact { driver.addClause($2); }
+    | unit rule { for(const auto& cur : $2) driver.addClause(cur); }
+    | unit component { driver.addComponent($2); }
+    | unit comp_init { driver.addInstantiation($2); }
     | %empty {
       }
     ;
@@ -298,6 +320,66 @@ relation: DECL IDENT LPAREN attributes RPAREN qualifiers {
           }
         ;
 
+non_empty_key_value_pairs : IDENT EQUALS STRING {
+           $$ = new AstIODirective();
+           $$->addKVP($1, $3);
+          }
+        | key_value_pairs COMMA IDENT EQUALS STRING {
+           $$ = $1;
+           $$->addKVP($3, $5);
+          }
+        | IDENT EQUALS IDENT {
+           $$ = new AstIODirective();
+           $$->addKVP($1, $3);
+          }
+        | key_value_pairs COMMA IDENT EQUALS IDENT {
+           $$ = $1;
+           $$->addKVP($3, $5);
+          }
+        ;
+
+
+key_value_pairs: non_empty_key_value_pairs { $$ = $1; }
+	     | %empty {
+                $$ = new AstIODirective();
+                $$->setSrcLoc(@$);
+               }
+             ;
+
+iodirective_body : rel_id LPAREN key_value_pairs RPAREN {
+	   $$ = $3;
+           $3->addName(*$1);
+           $3->setSrcLoc(@1);
+	  }
+        | rel_id {
+           $$ = new AstIODirective();
+           $$->setName(*$1);
+           $$->setSrcLoc(@1);
+          }
+        | rel_id COMMA iodirective_body {
+           $$ = $3;
+           $3->addName(*$1);
+           $3->setSrcLoc(@1);
+          }
+        ;
+
+iodirective: INPUT_DECL iodirective_body {
+	          $$ = $2;
+                  $$->setAsInput();
+                  $$->setSrcLoc(@2);
+             }
+            | OUTPUT_DECL iodirective_body {
+                  $$ = $2;
+                  $$->setAsOutput();
+                  $$->setSrcLoc(@2);
+             }
+            | PRINTSIZE_DECL iodirective_body {
+                  $$ = $2;
+                  $$->setAsPrintSize();
+                  $$->setSrcLoc(@2);
+              }
+            ;
+
 /* Atom */
 arg: STRING {
        $$ = new AstStringConstant(driver.getSymbolTable(), $1.c_str());
@@ -342,6 +424,62 @@ arg: STRING {
        $$ = new AstBinaryFunctor(BinaryOp::LAND, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
+   | SIN LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::SIN, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | COS LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::COS, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | TAN LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::TAN, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | ASIN LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::ASIN, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | ACOS LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::ACOS, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | ATAN LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::ATAN, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | SINH LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::SINH, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | COSH LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::COSH, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | TANH LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::TANH, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | ASINH LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::ASINH, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | ACOSH LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::ACOSH, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | ATANH LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::ATANH, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | LOG LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::LOG, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | EXP LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::EXP, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
    | arg PLUS arg {
        $$ = new AstBinaryFunctor(BinaryOp::ADD, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
@@ -372,6 +510,17 @@ arg: STRING {
      }
    | ORD LPAREN arg RPAREN {
        $$ = new AstUnaryFunctor(UnaryOp::ORD, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | STRLEN LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::STRLEN, std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | SUBSTR LPAREN arg COMMA arg COMMA arg RPAREN {
+       $$ = new AstTernaryFunctor(TernaryOp::SUBSTR, 
+                                  std::unique_ptr<AstArgument>($3),
+                                  std::unique_ptr<AstArgument>($5),
+                                  std::unique_ptr<AstArgument>($7));
        $$->setSrcLoc(@$);
      }
    | arg AS IDENT {
@@ -495,6 +644,10 @@ arg: STRING {
        $$ = res;
        $$->setSrcLoc(@$);
      }
+   | RESERVED LPAREN arg RPAREN {
+        std::cerr << "ERROR: '" << $1 << "' is a keyword reserved for future implementation!" << std::endl;
+        exit(1);
+   }
    ;
 
 recordlist: arg {
@@ -538,17 +691,17 @@ literal: arg RELOP arg {
             $$ = new RuleBody(RuleBody::constraint(res));
           }
        | arg LT arg {
-           auto* res = new AstConstraint(BinaryRelOp::LT, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+           auto* res = new AstConstraint(BinaryConstraintOp::LT, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
            res->setSrcLoc(@$);
            $$ = new RuleBody(RuleBody::constraint(res));
          }
        | arg GT arg {
-    	   auto* res = new AstConstraint(BinaryRelOp::GT, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+    	   auto* res = new AstConstraint(BinaryConstraintOp::GT, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
            res->setSrcLoc(@$);
            $$ = new RuleBody(RuleBody::constraint(res));
          }
        | arg EQUALS arg {
-    	   auto* res = new AstConstraint(BinaryRelOp::EQ, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+    	   auto* res = new AstConstraint(BinaryConstraintOp::EQ, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
            res->setSrcLoc(@$);
            $$ = new RuleBody(RuleBody::constraint(res));
          }
@@ -557,12 +710,12 @@ literal: arg RELOP arg {
             $$ = new RuleBody(RuleBody::atom($1));
           }
        | TMATCH LPAREN arg COMMA arg RPAREN {
-            auto* res = new AstConstraint(BinaryRelOp::MATCH, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
+            auto* res = new AstConstraint(BinaryConstraintOp::MATCH, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
             res->setSrcLoc(@$);
 		    $$ = new RuleBody(RuleBody::constraint(res));
           }
        | TCONTAINS LPAREN arg COMMA arg RPAREN {
-            auto* res = new AstConstraint(BinaryRelOp::CONTAINS, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
+            auto* res = new AstConstraint(BinaryConstraintOp::CONTAINS, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
             res->setSrcLoc(@$);
             $$ = new RuleBody(RuleBody::constraint(res));
           }
@@ -666,7 +819,7 @@ rule: rule_def {
       }
     | rule exec_plan {
          $$ = $1;
-         for(const auto& cur : $$) cur->setExecutionPlan(std::unique_ptr<AstExecutionPlan>($2));
+         for(const auto& cur : $$) cur->setExecutionPlan(std::unique_ptr<AstExecutionPlan>($2->clone()));
       }
     ;
     
@@ -718,6 +871,7 @@ component_head: COMPONENT comp_type {
 component_body:
       component_body type          { $$ = $1; $$->addType(std::unique_ptr<AstType>($2)); }
     | component_body relation      { $$ = $1; $$->addRelation(std::unique_ptr<AstRelation>($2)); }
+    | component_body iodirective   { $$ = $1; $$->addIODirective(std::unique_ptr<AstIODirective>($2)); }
     | component_body fact          { $$ = $1; $$->addClause(std::unique_ptr<AstClause>($2)); }
     | component_body rule          { $$ = $1; for(const auto& cur : $2) $$->addClause(std::unique_ptr<AstClause>(cur)); }
     | component_body comp_override { $$ = $1; $$->addOverride($2); }

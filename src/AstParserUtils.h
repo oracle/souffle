@@ -8,82 +8,72 @@
 
 /************************************************************************
  *
- * @file AstClause.h
+ * @file AstParserUtils.h
  *
- * Defines class Clause that represents rules including facts, predicates, and
- * queries in a Datalog program.
+ * Defines class RuleBody to represents rule bodies.
  *
  ***********************************************************************/
 
 #pragma once
 
-#include <vector>
-#include <memory>
-
 #include "AstLiteral.h"
 #include "Util.h"
+
+#include <memory>
+#include <vector>
 
 namespace souffle {
 
 class RuleBody {
+    // a struct to represent literals
+    struct literal {
+        // whether this literal is negated or not
+        bool negated;
 
-	// a struct to represent literals
-	struct literal {
+        // the atom referenced by tis literal
+        std::unique_ptr<AstLiteral> atom;
 
-		// whether this literal is negated or not
-		bool negated;
+        literal clone() const {
+            return literal({negated, std::unique_ptr<AstLiteral>(atom->clone())});
+        }
+    };
 
-		// the atom referenced by tis literal
-		std::unique_ptr<AstLiteral> atom;
-
-		literal clone() const {
-			return literal({
-				negated,
-				std::unique_ptr<AstLiteral>(atom->clone())
-			});
-		}
-	};
-
-	using clause = std::vector<literal>;
-	std::vector<clause> dnf;
+    using clause = std::vector<literal>;
+    std::vector<clause> dnf;
 
 public:
+    RuleBody() {}
 
-	RuleBody() {}
+    void negate();
 
-	void negate();
+    void conjunct(RuleBody&& other);
 
-	void conjunct(RuleBody&& other);
+    void disjunct(RuleBody&& other);
 
-	void disjunct(RuleBody&& other);
+    std::vector<AstClause*> toClauseBodies() const;
 
-	std::vector<AstClause*> toClauseBodies() const;
+    // -- factory functions --
 
-	// -- factory functions --
+    static RuleBody getTrue();
 
-	static RuleBody getTrue();
+    static RuleBody getFalse();
 
-	static RuleBody getFalse();
+    static RuleBody atom(AstAtom* atom);
 
-	static RuleBody atom(AstAtom* atom);
+    static RuleBody constraint(AstConstraint* constraint);
 
-	static RuleBody constraint(AstConstraint* constraint);
-
-	friend std::ostream& operator<<(std::ostream& out, const RuleBody& body);
+    friend std::ostream& operator<<(std::ostream& out, const RuleBody& body);
 
 private:
+    static bool equal(const literal& a, const literal& b);
 
-	static bool equal(const literal& a, const literal& b);
+    static bool equal(const clause& a, const clause& b);
 
-	static bool equal(const clause& a, const clause& b);
+    static bool isSubsetOf(const clause& a, const clause& b);
 
-	static bool isSubsetOf(const clause& a, const clause& b);
+    static void insert(clause& cl, literal&& lit);
 
-	static void insert(clause& cl, literal&& lit);
-
-	static void insert(std::vector<clause>& cnf, clause&& cls);
-
+    static void insert(std::vector<clause>& cnf, clause&& cls);
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

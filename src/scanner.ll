@@ -61,8 +61,10 @@
 %option yylineno noyywrap nounput
 
 %%
-
 ".decl"                               { return yy::parser::make_DECL(yylloc); }
+".input"                              { return yy::parser::make_INPUT_DECL(yylloc); }
+".output"                             { return yy::parser::make_OUTPUT_DECL(yylloc); }
+".printsize"                          { return yy::parser::make_PRINTSIZE_DECL(yylloc); }
 ".type"                               { return yy::parser::make_TYPE(yylloc); }
 ".comp"                               { return yy::parser::make_COMPONENT(yylloc); }
 ".init"                               { return yy::parser::make_INSTANTIATE(yylloc); }
@@ -76,18 +78,34 @@
 "land"                                { return yy::parser::make_L_AND(yylloc); }
 "lor"                                 { return yy::parser::make_L_OR(yylloc); }
 "lnot"                                { return yy::parser::make_L_NOT(yylloc); }
+"sin"                                 { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"cos"                                 { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"tan"                                 { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"asin"                                { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"acos"                                { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"atan"                                { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"sinh"                                { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"cosh"                                { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"tanh"                                { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"asinh"                               { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"acosh"                               { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"atanh"                               { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"log"                                 { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
+"exp"                                 { return yy::parser::make_RESERVED(yytext, yylloc); } // TODO (see issue #298)
 "match"                               { return yy::parser::make_TMATCH(yylloc); }
 "cat"                                 { return yy::parser::make_CAT(yylloc); }
 "ord"                                 { return yy::parser::make_ORD(yylloc); }
+"strlen"                              { return yy::parser::make_STRLEN(yylloc); }
+"substr"                              { return yy::parser::make_SUBSTR(yylloc); }
 "contains"                            { return yy::parser::make_TCONTAINS(yylloc); }
 "output"                              { return yy::parser::make_OUTPUT_QUALIFIER(yylloc); }
 "input"                               { return yy::parser::make_INPUT_QUALIFIER(yylloc); }
 "data"                                { return yy::parser::make_DATA_QUALIFIER(yylloc); }
 "overridable"                         { return yy::parser::make_OVERRIDABLE_QUALIFIER(yylloc); }
 "printsize"                           { return yy::parser::make_PRINTSIZE_QUALIFIER(yylloc); }
-"eqrel"                          { return yy::parser::make_EQREL_QUALIFIER(yylloc); } 
-"brie"                           { return yy::parser::make_BRIE_QUALIFIER(yylloc); } 
-"btree"                          { return yy::parser::make_BTREE_QUALIFIER(yylloc); } 
+"eqrel"                               { return yy::parser::make_EQREL_QUALIFIER(yylloc); }
+"brie"                                { return yy::parser::make_BRIE_QUALIFIER(yylloc); }
+"btree"                               { return yy::parser::make_BTREE_QUALIFIER(yylloc); }
 "min"                                 { return yy::parser::make_MIN(yylloc); }
 "max"                                 { return yy::parser::make_MAX(yylloc); }
 "nil"                                 { return yy::parser::make_NIL(yylloc); }
@@ -143,7 +161,7 @@
                                       }
 0b[0-1][0-1]*                         {
                                         try {
-                                          return yy::parser::make_NUMBER(std::stoll(yytext+2, NULL, 2), yylloc);
+                                          return yy::parser::make_NUMBER(std::stoull(yytext+2, NULL, 2), yylloc);
                                         } catch(...) {
                                           driver.error(yylloc, "bool out of range");
                                           return yy::parser::make_NUMBER(0, yylloc);
@@ -151,7 +169,7 @@
                                       }
 0x[a-fA-F0-9]+                        {
                                         try {
-                                          return yy::parser::make_NUMBER(std::stoll(yytext+2, NULL, 16), yylloc);
+                                          return yy::parser::make_NUMBER(std::stoull(yytext+2, NULL, 16), yylloc);
                                         } catch(...) {
                                           driver.error(yylloc, "hex out of range");
                                           return yy::parser::make_NUMBER(0, yylloc);
@@ -159,7 +177,7 @@
                                       }
 0|([1-9][0-9]*)                       {
                                         try {
-                                          return yy::parser::make_NUMBER(std::stoll(yytext, NULL, 10), yylloc);
+                                          return yy::parser::make_NUMBER(std::stoull(yytext, NULL, 10), yylloc);
                                         } catch (...) {
                                           driver.error(yylloc, "int out of range");
                                           return yy::parser::make_NUMBER(0, yylloc);
@@ -168,7 +186,7 @@
 [\?a-zA-Z]|[_\?a-zA-Z][_\?a-zA-Z0-9]+ {
                                         return yy::parser::make_IDENT(SLOOKUP(yytext), yylloc);
                                       }
-\"[^\"]*\"                            {
+\"([^\"]*|\\[^n])*\"                  {
                                         yytext[strlen(yytext)-1]=0;
                                         if(strlen(&yytext[1]) == 0) {
                                           driver.error(yylloc, "string literal is empty");

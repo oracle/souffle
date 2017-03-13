@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file CompiledRamLogger.h
+ * @file RamLogger.h
  *
  * A logger is the utility utilized by RAM programs to create logs and
  * traces.
@@ -17,10 +17,10 @@
 
 #pragma once
 
-#include <iostream>
-#include <chrono>
-
 #include "ParallelUtils.h"
+
+#include <chrono>
+#include <iostream>
 
 namespace souffle {
 
@@ -32,7 +32,6 @@ inline Lock& getOutputLock() {
     return output_lock;
 }
 
-
 /**
  * The class utilized to times for the souffle profiling tool. This class
  * is utilized by both -- the interpreted and compiled version -- to conduct
@@ -42,35 +41,32 @@ inline Lock& getOutputLock() {
  * processed tuples may be added in the future.
  */
 class RamLogger {
+    // the type of clock to be utilized by this class
+    typedef std::chrono::steady_clock clock;
+    typedef clock::time_point time;
 
-	// the type of clock to be utilized by this class
-	typedef std::chrono::steady_clock clock;
-	typedef clock::time_point time;
+    // a label to be printed when reporting the execution time
+    const char* label;
 
-	// a label to be printed when reporting the execution time
-	const char* label;
+    // the start time
+    time start;
 
-	// the start time
-	time start;
-
-	// an output stream to report to
-	std::ostream& out;
+    // an output stream to report to
+    std::ostream& out;
 
 public:
+    RamLogger(const char* label, std::ostream& out = std::cout) : label(label), out(out) {
+        start = clock::now();
+    }
 
-	RamLogger(const char* label, std::ostream& out = std::cout) : label(label), out(out) {
-		start = clock::now();
-	}
-
-	~RamLogger() {
-		auto duration = clock::now() - start;
+    ~RamLogger() {
+        auto duration = clock::now() - start;
 
         auto leas = getOutputLock().acquire();
-        (void) leas; // avoid warning
-        out << label << std::chrono::duration_cast<std::chrono::duration<double>>(duration).count() << "\n";
-	}
-
+        (void)leas;  // avoid warning
+        out << label << std::chrono::duration_cast<std::chrono::duration<double>>(duration).count()
+            << std::endl;
+    }
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

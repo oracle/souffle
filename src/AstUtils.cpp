@@ -16,20 +16,16 @@
 
 #include "AstUtils.h"
 #include "AstVisitor.h"
-
 #include "Constraints.h"
-#include "Util.h"
-
 #include "TypeSystem.h"
+#include "Util.h"
 
 namespace souffle {
 
 std::vector<const AstVariable*> getVariables(const AstNode& root) {
     // simply collect the list of all variables by visiting all variables
     std::vector<const AstVariable*> vars;
-    visitDepthFirst(root, [&](const AstVariable& var) {
-            vars.push_back(&var);
-            });
+    visitDepthFirst(root, [&](const AstVariable& var) { vars.push_back(&var); });
     return vars;
 }
 
@@ -37,32 +33,31 @@ std::vector<const AstVariable*> getVariables(const AstNode* root) {
     return getVariables(*root);
 }
 
-const AstRelation *getAtomRelation(const AstAtom *atom, const AstProgram *program) {
+const AstRelation* getAtomRelation(const AstAtom* atom, const AstProgram* program) {
     return program->getRelation(atom->getName());
 }
 
-const AstRelation *getHeadRelation(const AstClause *clause, const AstProgram *program) {
+const AstRelation* getHeadRelation(const AstClause* clause, const AstProgram* program) {
     return getAtomRelation(clause->getHead(), program);
 }
 
-std::set<const AstRelation *> getBodyRelations(const AstClause *clause, const AstProgram *program) {
-    std::set<const AstRelation *> bodyRelations;
-    for(const auto& lit : clause->getBodyLiterals()) {
-        visitDepthFirst(*lit, [&](const AstAtom& atom) {
-            bodyRelations.insert(getAtomRelation(&atom, program));
-        });
+std::set<const AstRelation*> getBodyRelations(const AstClause* clause, const AstProgram* program) {
+    std::set<const AstRelation*> bodyRelations;
+    for (const auto& lit : clause->getBodyLiterals()) {
+        visitDepthFirst(
+                *lit, [&](const AstAtom& atom) { bodyRelations.insert(getAtomRelation(&atom, program)); });
     }
-    for(const auto& arg : clause->getHead()->getArguments()) {
-        visitDepthFirst(*arg, [&](const AstAtom& atom) {
-            bodyRelations.insert(getAtomRelation(&atom, program));
-        });
+    for (const auto& arg : clause->getHead()->getArguments()) {
+        visitDepthFirst(
+                *arg, [&](const AstAtom& atom) { bodyRelations.insert(getAtomRelation(&atom, program)); });
     }
     return bodyRelations;
 }
 
-bool hasClauseWithNegatedRelation(const AstRelation *relation, const AstRelation *negRelation, const AstProgram *program, const AstLiteral *&foundLiteral) {
-    for(const AstClause* cl : relation->getClauses()) {
-        for(const AstNegation* neg : cl->getNegations()) {
+bool hasClauseWithNegatedRelation(const AstRelation* relation, const AstRelation* negRelation,
+        const AstProgram* program, const AstLiteral*& foundLiteral) {
+    for (const AstClause* cl : relation->getClauses()) {
+        for (const AstNegation* neg : cl->getNegations()) {
             if (negRelation == getAtomRelation(neg->getAtom(), program)) {
                 foundLiteral = neg;
                 return true;
@@ -72,10 +67,11 @@ bool hasClauseWithNegatedRelation(const AstRelation *relation, const AstRelation
     return false;
 }
 
-bool hasClauseWithAggregatedRelation(const AstRelation *relation, const AstRelation *aggRelation, const AstProgram *program, const AstLiteral *&foundLiteral) {
-    for(const AstClause* cl : relation->getClauses()) {
+bool hasClauseWithAggregatedRelation(const AstRelation* relation, const AstRelation* aggRelation,
+        const AstProgram* program, const AstLiteral*& foundLiteral) {
+    for (const AstClause* cl : relation->getClauses()) {
         bool hasAgg = false;
-        visitDepthFirst(*cl, [&](const AstAggregator& cur){
+        visitDepthFirst(*cl, [&](const AstAggregator& cur) {
             visitDepthFirst(cur, [&](const AstAtom& atom) {
                 if (aggRelation == getAtomRelation(&atom, program)) {
                     foundLiteral = &atom;
@@ -90,5 +86,4 @@ bool hasClauseWithAggregatedRelation(const AstRelation *relation, const AstRelat
     return false;
 }
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

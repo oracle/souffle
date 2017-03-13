@@ -14,11 +14,12 @@
 
 #pragma once
 
-#include <memory>
-
+#include "IODirectives.h"
 #include "RamTypes.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
+
+#include <memory>
 
 namespace souffle {
 
@@ -33,14 +34,15 @@ public:
     }
 
     virtual std::unique_ptr<RamDomain[]> readNextTuple() = 0;
-    virtual ~ReadStream(){};
+    virtual ~ReadStream() = default;
 };
 
 class ReadStreamFactory {
 public:
-    virtual std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
-            const std::map<std::string, std::string>& options) = 0;
-    virtual ~ReadStreamFactory() {}
+    virtual std::unique_ptr<ReadStream> getReader(
+            const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) = 0;
+    virtual const std::string& getName() const = 0;
+    virtual ~ReadStreamFactory() = default;
 };
 
 } /* namespace souffle */

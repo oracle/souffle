@@ -6,20 +6,21 @@
 * - <souffle root>/licenses/SOUFFLE-UPL.txt
 */
 
-
-
 #pragma once
 
-#include <vector>
-#include <string>
-#include <memory>
-#include <iostream>
 #include "CellInterface.hpp"
 
+#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
 
+/*
+ * Row class for Tables, holds a vector of cells.
+ */
 class Row {
 public:
-    std::vector <std::shared_ptr<CellInterface>> cells;
+    std::vector<std::shared_ptr<CellInterface>> cells;
 
     Row(unsigned long size) : cells() {
         for (unsigned long i = 0; i < size; i++) {
@@ -27,15 +28,15 @@ public:
         }
     }
 
-    std::shared_ptr <CellInterface> &operator[](unsigned long i) {
+    std::shared_ptr<CellInterface>& operator[](unsigned long i) {
         return cells.at(i);
     }
 
-//    void addCell(int location, std::shared_ptr<CellInterface> cell) {
-//        cells[location] = cell;
-//    }
+    //    void addCell(int location, std::shared_ptr<CellInterface> cell) {
+    //        cells[location] = cell;
+    //    }
 
-    inline std::vector <std::shared_ptr<CellInterface>> getCells() {
+    inline std::vector<std::shared_ptr<CellInterface>> getCells() {
         return cells;
     }
 };

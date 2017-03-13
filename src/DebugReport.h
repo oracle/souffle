@@ -15,12 +15,12 @@
  ***********************************************************************/
 #pragma once
 
-#include <memory>
-#include <vector>
-#include <sstream>
-#include <ostream>
-
 #include "AstTransformer.h"
+
+#include <memory>
+#include <ostream>
+#include <sstream>
+#include <vector>
 
 namespace souffle {
 
@@ -37,33 +37,34 @@ private:
     std::string title;
     std::vector<DebugReportSection> subsections;
     std::string body;
+
 public:
-    DebugReportSection(std::string id, std::string title, std::vector<DebugReportSection> subsections, std::string body) :
-            id(id), title(title), subsections(subsections), body(body) { }
+    DebugReportSection(
+            std::string id, std::string title, std::vector<DebugReportSection> subsections, std::string body)
+            : id(id), title(title), subsections(subsections), body(body) {}
 
     /**
      * Outputs the HTML code for the index to the given stream,
      * consisting of a link to the section body followed by a list of
      * the indices for each subsection.
      */
-    void printIndex(std::ostream &out) const;
+    void printIndex(std::ostream& out) const;
 
     /**
      * Outputs the HTML code for the title header to the given stream.
      */
-    void printTitle(std::ostream &out) const;
+    void printTitle(std::ostream& out) const;
 
     /**
      * Outputs the HTML code for the content of the section to the given
      * stream, consisting of the title header, the body text, followed
      * by the content for each subsection.
      */
-    void printContent(std::ostream &out) const;
+    void printContent(std::ostream& out) const;
 
     bool hasSubsections() const {
         return !subsections.empty();
     }
-
 };
 
 /**
@@ -72,12 +73,13 @@ public:
 class DebugReport {
 private:
     std::vector<DebugReportSection> sections;
+
 public:
     bool empty() const {
         return sections.empty();
     }
 
-    void addSection(const DebugReportSection &section) {
+    void addSection(const DebugReportSection& section) {
         sections.push_back(section);
     }
 
@@ -86,8 +88,7 @@ public:
      * consisting of an index of all of the sections of the report,
      * followed by the content of each section.
      */
-    void print(std::ostream &out) const;
-
+    void print(std::ostream& out) const;
 
     friend std::ostream& operator<<(std::ostream& out, const DebugReport& report) {
         report.print(out);
@@ -104,11 +105,13 @@ class DebugReporter : public AstTransformer {
 private:
     std::unique_ptr<AstTransformer> wrappedTransformer;
 
-    virtual bool transform(AstTranslationUnit &translationUnit);
-public:
-    DebugReporter(std::unique_ptr<AstTransformer> wrappedTransformer) : wrappedTransformer(std::move(wrappedTransformer)) { }
+    bool transform(AstTranslationUnit& translationUnit) override;
 
-    virtual std::string getName() const {
+public:
+    DebugReporter(std::unique_ptr<AstTransformer> wrappedTransformer)
+            : wrappedTransformer(std::move(wrappedTransformer)) {}
+
+    std::string getName() const override {
         return "DebugReporter";
     }
 
@@ -119,7 +122,7 @@ public:
      * @param id the unique id of the generated section
      * @param title the text to display as the heading of the section
      */
-    static void generateDebugReport(AstTranslationUnit &translationUnit, std::string id, std::string title);
+    static void generateDebugReport(AstTranslationUnit& translationUnit, std::string id, std::string title);
 
     /**
      * Generate a debug report section for code (preserving formatting), with the given id and title.
@@ -132,5 +135,4 @@ public:
     static DebugReportSection getDotGraphSection(std::string id, std::string title, std::string dotSpec);
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

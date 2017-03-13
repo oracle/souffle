@@ -8,7 +8,9 @@
 SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 
 bin_PROGRAMS = souffle souffle-mcpp souffle-profile
- 
+
+BUILT_SOURCES = parser.hh stack.hh
+
 nodist_souffle_profile_SOURCES = $(BUILT_SOURCES)
 
 souffle_profile_SOURCES = souffle_prof.cpp profilerlib/Cell.hpp \
@@ -35,22 +37,34 @@ souffle_profile_SOURCES = souffle_prof.cpp profilerlib/Cell.hpp \
                           profilerlib/Table.hpp                 \
                           profilerlib/Tui.cpp                   \
                           profilerlib/Tui.hpp                   \
-                          profilerlib/html_string.hpp
+                          profilerlib/html_string.hpp           \
+                          profilerlib/UserInputReader.cpp       \
+                          profilerlib/UserInputReader.hpp
 
-souffle_profile_CXXFLAGS = $(souffle_CPPFLAGS) -ledit
+DIR := ${CURDIR}
+
+souffle_profile_CXXFLAGS = $(souffle_CPPFLAGS) -DMAKEDIR='"$(DIR)"'
 
 nodist_souffle_mcpp_SOURCES = $(BUILT_SOURCES)
  
 souffle_mcpp_SOURCES = mcpp-system.H mcpp-configed.H mcpp-internal.H mcpp-main.c mcpp-directive.c mcpp-eval.c \
- 					   mcpp-expand.c mcpp-mbchar.c mcpp-support.c mcpp-system.c mcpp_out.h
+                        mcpp-expand.c mcpp-mbchar.c mcpp-support.c mcpp-system.c mcpp_out.h
  
-mcpp-main.o mcpp-directive.o mcpp-eval.o mcpp-expand.o mcpp-mbchar.o mcpp-support.o mcpp-system.o	:	\
- 	mcpp-system.H mcpp-internal.H mcpp_out.h
-mcpp-system.H	: mcpp-configed.H
+mcpp-main.o mcpp-directive.o mcpp-eval.o mcpp-expand.o mcpp-mbchar.o mcpp-support.o mcpp-system.o    :    \
+     mcpp-system.H mcpp-internal.H mcpp_out.h
+mcpp-system.H    : mcpp-configed.H
  
 
 # ... which should no go to distribution
 nodist_souffle_SOURCES = $(BUILT_SOURCES)
+
+if LIBZ
+libz_sources = gzfstream.h
+endif
+
+if SQLITE
+sqlite_sources = ReadStreamSQLite.h WriteStreamSQLite.h
+endif
 
 souffle_sources = \
               parser.cc             parser.hh           \
@@ -60,6 +74,7 @@ souffle_sources = \
               AstAttribute.h                            \
               AstClause.cpp         AstClause.h         \
               AstComponent.h                            \
+              AstIODirective.h                          \
               AstLiteral.h                              \
               AstNode.h                                 \
               AstParserUtils.cpp    AstParserUtils.h    \
@@ -81,8 +96,10 @@ souffle_sources = \
               AstSemanticChecker.cpp                    \
               AstSemanticChecker.h                      \
               AstTransforms.cpp     AstTransforms.h     \
-              BinaryOperator.h                          \
-              UnaryOperator.h                           \
+              UnaryFunctorOps.h                         \
+              BinaryFunctorOps.h                        \
+              TernaryFunctorOps.h                       \
+              BinaryConstraintOps.h                     \
               Constraints.h                             \
               GraphUtils.h                              \
               RamValue.h                                \
@@ -104,13 +121,14 @@ souffle_sources = \
               StringPool.h                              \
               TypeSystem.cpp        TypeSystem.h        \
               PrecedenceGraph.cpp   PrecedenceGraph.h   \
+              $(sqlite_sources)     $(libz_sources)     \
               ReadStream.h                              \
               ReadStreamCSV.h                           \
               WriteStream.h                             \
-              WriteStreamCSV.h      WriteStreamSQLite.h \
+              IODirectives.h                            \
+              WriteStreamCSV.h                          \
               IOSystem.h                                \
-              GlobalConfig.cpp      GlobalConfig.h
-
+              Global.cpp            Global.h
 
 # -- build souffle as a library so it can be reused in testing
 noinst_LTLIBRARIES = libsouffle.la
@@ -133,28 +151,30 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
                         CompiledRamTuple.h      \
                         CompiledRamRecord.h     \
                         CompiledSouffle.h       \
-				        SouffleInterface.h      \
-				        ParallelUtils.h         \
-				        RamTypes.h              \
-				        BTree.h                 \
-				        UnionFind.h             \
-				        BinaryRelation.h        \
-				        BlockList.h             \
-				        Trie.h                  \
-				        Table.h                 \
-				        Util.h                  \
-				        IterUtils.h             \
-				        SymbolTable.h           \
-				        RamLogger.h             \
-				        SqliteRelationWriter.h  \
-				        IOSystem.h              \
-				        ReadStream.h            \
-				        ReadStreamCSV.h         \
-				        SymbolMask.h            \
-				        ReadStreamSQLite.h      \
-				        WriteStream.h           \
-                        WriteStreamCSV.h        \
-                        WriteStreamSQLite.h
+                        SouffleInterface.h      \
+                        ParallelUtils.h         \
+                        BTree.h                 \
+                        Trie.h                  \
+                        UnionFind.h             \
+                        BinaryRelation.h        \
+                        BlockList.h             \
+                        Table.h                 \
+                        Util.h                  \
+                        Macro.h                 \
+                        AstTypes.h              \
+                        RamTypes.h              \
+                        IterUtils.h             \
+                        SymbolTable.h           \
+                        RamLogger.h             \
+                        $(sqlite_sources)       \
+                        $(libz_sources)         \
+                        IODirectives.h          \
+                        IOSystem.h              \
+                        ReadStream.h            \
+                        ReadStreamCSV.h         \
+                        SymbolMask.h            \
+                        WriteStream.h           \
+                        WriteStreamCSV.h
 
 souffle_CPPFLAGS = -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\""
 

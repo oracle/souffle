@@ -23,16 +23,14 @@ class AstTranslationUnit;
 
 class AstTransformer {
 private:
-    virtual bool transform(AstTranslationUnit &translationUnit) = 0;
+    virtual bool transform(AstTranslationUnit& translationUnit) = 0;
 
 public:
-    virtual ~AstTransformer() { }
+    virtual ~AstTransformer() = default;
 
-    bool apply(AstTranslationUnit &translationUnit);
+    bool apply(AstTranslationUnit& translationUnit);
 
     virtual std::string getName() const = 0;
-
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

@@ -16,8 +16,9 @@
 
 #pragma once
 
-#include "RamExecutor.h"
 #include "AstTransformer.h"
+#include "Global.h"
+#include "RamExecutor.h"
 
 namespace souffle {
 
@@ -32,19 +33,14 @@ class AstTranslationUnit;
  */
 class AutoScheduleTransformer : public AstTransformer {
 private:
-    std::string factDir;
-    bool verbose;
-    bool generateScheduleReport;
-
-    virtual bool transform(AstTranslationUnit &translationUnit);
+    bool transform(AstTranslationUnit& translationUnit) override;
 
 public:
-    AutoScheduleTransformer(const std::string &factDir, bool verbose = false, bool generateScheduleReport = false) :
-        factDir(factDir), verbose(verbose), generateScheduleReport(generateScheduleReport) { }
+    AutoScheduleTransformer() {}
 
-    virtual ~AutoScheduleTransformer() { }
+    ~AutoScheduleTransformer() override = default;
 
-    virtual std::string getName() const {
+    std::string getName() const override {
         return "AutoScheduleTransformer";
     }
 
@@ -52,8 +48,7 @@ public:
      * Perform auto-scheduling for the given program.
      * @return whether the program was modified
      */
-    static bool autotune(AstTranslationUnit& translationUnit, const std::string& factDir, std::ostream* report, bool verbose = false, const QueryExecutionStrategy& strategy = ScheduledExecution);
+    static bool autotune(AstTranslationUnit& translationUnit, std::ostream* report);
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

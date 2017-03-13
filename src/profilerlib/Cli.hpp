@@ -9,20 +9,21 @@
 #pragma once
 
 #include <iostream>
-#include <string>
 #include <sstream>
+#include <string>
 #include <vector>
 
 #include "Tui.hpp"
 
-
+/*
+ * CLI to parse command line arguments and start up the TUI to either run a single command,
+ * generate the GUI file or run the TUI
+ */
 class Cli {
 public:
+    std::vector<std::string> args;
 
-    std::vector <std::string> args;
-
-    Cli(int argc, char *argv[]) :
-            args() {
+    Cli(int argc, char* argv[]) : args() {
         for (int i = 0; i < argc; i++) {
             args.push_back(std::string(argv[i]));
         }

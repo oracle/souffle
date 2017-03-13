@@ -13,9 +13,9 @@
  * Defines classes Table, TupleBlock, Index, and HashBlock for implementing
  * an ram relational database. A table consists of a linked list of
  * tuple blocks that contain tuples of the table. An index is a hash-index
- * whose hash table is stored in Index. The entry of a hash table entry 
- * refer to HashBlocks that are blocks of pointers that point to tuples 
- * in tuple blocks with the same hash.  
+ * whose hash table is stored in Index. The entry of a hash table entry
+ * refer to HashBlocks that are blocks of pointers that point to tuples
+ * in tuple blocks with the same hash.
  *
  ***********************************************************************/
 
@@ -27,13 +27,13 @@
 #include <string>
 #include <list>
 
+#include "IODirectives.h"
 #include "RamIndex.h"
 #include "RamTypes.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
 #include "Table.h"
 #include "Util.h"
-
 
 namespace souffle {
 
@@ -42,7 +42,6 @@ class RamEnvironment;
 class RamRelation;
 
 class RamRelationIdentifier {
-
     std::string name;
     unsigned arity;
     std::vector<std::string> attributeNames;
@@ -57,6 +56,8 @@ class RamRelationIdentifier {
 
     bool isdata;
     bool istemp;
+    IODirectives inputDirectives;
+    std::vector<IODirectives> outputDirectives;
 
     // allow the ram environment to cache lookup results
     friend class RamEnvironment;
@@ -64,22 +65,27 @@ class RamRelationIdentifier {
     mutable RamRelation* rel;
 
 public:
-
-    RamRelationIdentifier() : arity(0), mask(arity), input(false), computed(false), output(false), 
-      btree(false), brie(false), eqrel(false), isdata(false), istemp(false), last(nullptr), rel(nullptr) {
-    }
+    RamRelationIdentifier()
+            : arity(0), mask(arity), input(false), computed(false), output(false), btree(false), brie(false),
+              eqrel(false), isdata(false), istemp(false), last(nullptr), rel(nullptr) {}
 
     RamRelationIdentifier(const std::string& name, unsigned arity, const bool istemp)
-    : RamRelationIdentifier(name, arity) {
+            : RamRelationIdentifier(name, arity) {
         this->istemp = istemp;
     }
 
     RamRelationIdentifier(const std::string& name, unsigned arity,
             std::vector<std::string> attributeNames = {},
             std::vector<std::string> attributeTypeQualifiers = {}, const SymbolMask& mask = SymbolMask(0),
-            const bool input = false, const bool computed = false, const bool output = false, const bool btree=false, const bool brie=false, const bool eqrel=false, const bool isdata=false, const bool istemp = false)
-        : name(name), arity(arity), attributeNames(attributeNames), attributeTypeQualifiers(attributeTypeQualifiers),
-          mask(mask), input(input), computed(computed), output(output), btree(btree), brie(brie), eqrel(eqrel), isdata(isdata), istemp(istemp), last(nullptr), rel(nullptr)   {
+            const bool input = false, const bool computed = false, const bool output = false,
+            const bool btree = false, const bool brie = false, const bool eqrel = false,
+            const bool isdata = false, const IODirectives inputDirectives = IODirectives(),
+            const std::vector<IODirectives> outputDirectives = {}, const bool istemp = false)
+            : name(name), arity(arity), attributeNames(attributeNames),
+              attributeTypeQualifiers(attributeTypeQualifiers), mask(mask), input(input), computed(computed),
+              output(output), btree(btree), brie(brie), eqrel(eqrel), isdata(isdata), istemp(istemp),
+              inputDirectives(inputDirectives), outputDirectives(outputDirectives), last(nullptr),
+              rel(nullptr) {
         assert(this->attributeNames.size() == arity || this->attributeNames.empty());
         assert(this->attributeTypeQualifiers.size() == arity || this->attributeTypeQualifiers.empty());
     }
@@ -89,22 +95,22 @@ public:
     }
 
     const std::string getArg(uint32_t i) const {
-       if(!attributeNames.empty()) {
-           return attributeNames[i];
-       } 
-       else if (arity == 0) {
-           return "";
-       }
-       else {
-           return "c"+std::to_string(i); 
-       }
+        if (!attributeNames.empty()) {
+            return attributeNames[i];
+        }
+        if (arity == 0) {
+            return "";
+        }
+        return "c" + std::to_string(i);
     }
 
     const std::string getArgTypeQualifier(uint32_t i) const {
-    	return (i < attributeTypeQualifiers.size()) ? attributeTypeQualifiers[i] : "";
+        return (i < attributeTypeQualifiers.size()) ? attributeTypeQualifiers[i] : "";
     }
 
-    const SymbolMask& getSymbolMask() const { return mask; }
+    const SymbolMask& getSymbolMask() const {
+        return mask;
+    }
 
     const bool isInput() const {
         return input;
@@ -142,6 +148,14 @@ public:
         return arity;
     }
 
+    const IODirectives& getInputDirectives() const {
+        return inputDirectives;
+    }
+
+    const std::vector<IODirectives>& getOutputDirectives() const {
+        return outputDirectives;
+    }
+
     bool operator==(const RamRelationIdentifier& other) const {
         return name == other.name;
     }
@@ -157,32 +171,29 @@ public:
     void print(std::ostream& out) const {
         out << name << "(";
         out << getArg(0);
-        for(unsigned i=1;i<arity;i++) {
+        for (unsigned i = 1; i < arity; i++) {
             out << ",";
             out << getArg(i);
         }
         out << ")";
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const RamRelationIdentifier &rel) {
+    friend std::ostream& operator<<(std::ostream& out, const RamRelationIdentifier& rel) {
         rel.print(out);
         return out;
     }
-
 };
 
 class RamRelation {
-
     static const int BLOCK_SIZE = 1024;
 
     struct Block {
-
         size_t size;
         size_t used;
         std::unique_ptr<Block> next;
         std::unique_ptr<RamDomain[]> data;
 
-        Block(size_t s = BLOCK_SIZE) : size(s), used(0), next(nullptr), data(new RamDomain[size]) { }
+        Block(size_t s = BLOCK_SIZE) : size(s), used(0), next(nullptr), data(new RamDomain[size]) {}
 
         size_t getFreeSpace() const {
             return size - used;
@@ -208,18 +219,18 @@ class RamRelation {
     mutable pthread_mutex_t lock;
 
 public:
-    using SymbolTable = souffle::SymbolTable; // XXX pending namespace cleanup
-
     RamRelation(const RamRelationIdentifier& id)
-        : id(id), num_tuples(0), head(std::unique_ptr<Block>(new Block())), tail(head.get()), totalIndex(nullptr) {
-        pthread_mutex_init(&lock, NULL);
+            : id(id), num_tuples(0), head(std::unique_ptr<Block>(new Block())), tail(head.get()),
+              totalIndex(nullptr) {
+        pthread_mutex_init(&lock, nullptr);
     }
 
     RamRelation(const RamRelation& other) = delete;
 
     RamRelation(RamRelation&& other)
-        : id(other.id), num_tuples(other.num_tuples), tail(other.tail), totalIndex(other.totalIndex) {
-        pthread_mutex_init(&lock, NULL);
+            : id(std::move(other.id)), num_tuples(other.num_tuples), tail(other.tail),
+              totalIndex(other.totalIndex) {
+        pthread_mutex_init(&lock, nullptr);
 
         // take over ownership
         head.swap(other.head);
@@ -285,7 +296,9 @@ public:
         }
 
         // make existence check
-        if (exists(tuple)) return;
+        if (exists(tuple)) {
+            return;
+        }
 
         // prepare tail
         if (tail->getFreeSpace() < arity || arity == 0) {
@@ -295,11 +308,13 @@ public:
 
         // insert element into tail
         RamDomain* newTuple = &tail->data[tail->used];
-        for(size_t i=0; i<arity; ++i) newTuple[i] = tuple[i];
+        for (size_t i = 0; i < arity; ++i) {
+            newTuple[i] = tuple[i];
+        }
         tail->used += arity;
 
         // update all indexes with new tuple
-        for(const auto& cur : indices) {
+        for (const auto& cur : indices) {
             cur.second->insert(newTuple);
         }
 
@@ -388,8 +403,8 @@ public:
     }
 
     /** a convenience function for inserting tuples */
-    template<typename ... Args>
-    void insert(RamDomain first, Args ... rest) {
+    template <typename... Args>
+    void insert(RamDomain first, Args... rest) {
         RamDomain tuple[] = {first, RamDomain(rest)...};
         insert(tuple);
     }
@@ -397,7 +412,7 @@ public:
     /** Merges all elements of the given relation into this relation */
     void insert(const RamRelation& other) {
         assert(getArity() == other.getArity());
-        for(const auto& cur : other) {
+        for (const auto& cur : other) {
             insert(cur);
         }
     }
@@ -407,29 +422,31 @@ public:
         std::unique_ptr<Block> newHead(new Block());
         head.swap(newHead);
         tail = head.get();
-        for(const auto& cur : indices) {
+        for (const auto& cur : indices) {
             cur.second->purge();
         }
         num_tuples = 0;
     }
 
-    /** get index for a given set of keys using a cached index as a helper. Keys are encoded as bits for each column */
+    /** get index for a given set of keys using a cached index as a helper. Keys are encoded as bits for each
+     * column */
     RamIndex* getIndex(const SearchColumns& key, RamIndex* cachedIndex) const {
-        if (!cachedIndex) return getIndex(key);
+        if (!cachedIndex) {
+            return getIndex(key);
+        }
         return getIndex(cachedIndex->order());
     }
 
     /** get index for a given set of keys. Keys are encoded as bits for each column */
     RamIndex* getIndex(const SearchColumns& key) const {
-
         // suffix for order, if no matching prefix exists
         std::vector<unsigned char> suffix;
         suffix.reserve(getArity());
 
         // convert to order
         RamIndexOrder order;
-        for(size_t k=1,i=0; i<getArity(); i++,k*=2) {
-            if(key & k) {
+        for (size_t k = 1, i = 0; i < getArity(); i++, k *= 2) {
+            if (key & k) {
                 order.append(i);
             } else {
                 suffix.push_back(i);
@@ -439,21 +456,26 @@ public:
         // see whether there is an order with a matching prefix
         RamIndex* res = nullptr;
         pthread_mutex_lock(&lock);
-        for(auto it = indices.begin(); !res && it != indices.end(); ++it) {
-            if (order.isCompatible(it->first)) res = it->second.get();
+        for (auto it = indices.begin(); !res && it != indices.end(); ++it) {
+            if (order.isCompatible(it->first)) {
+                res = it->second.get();
+            }
         }
         pthread_mutex_unlock(&lock);
 
         // if found, use compatible index
-        if (res) return res;
+        if (res) {
+            return res;
+        }
 
         // extend index to full index
-        for (auto cur : suffix) order.append(cur);
+        for (auto cur : suffix) {
+            order.append(cur);
+        }
         assert(order.isComplete());
 
         // get a new index
         return getIndex(order);
-
     }
 
     /** get index for a given order. Keys are encoded as bits for each column */
@@ -463,11 +485,11 @@ public:
         pthread_mutex_lock(&lock);
         auto pos = indices.find(order);
         if (pos == indices.end()) {
-            std::unique_ptr<RamIndex> &newIndex = indices[order];
+            std::unique_ptr<RamIndex>& newIndex = indices[order];
             newIndex = std::unique_ptr<RamIndex>(new RamIndex(order));
             newIndex->insert(this->begin(), this->end());
             res = newIndex.get();
-        }  else {
+        } else {
             res = pos->second.get();
         }
         pthread_mutex_unlock(&lock);
@@ -476,69 +498,67 @@ public:
 
     /** Obtains a full index-key for this relation */
     SearchColumns getTotalIndexKey() const {
-        return (1 << (getArity()))-1;
+        return (1 << (getArity())) - 1;
     }
 
     /** check whether a tuple exists in the relation */
     bool exists(const RamDomain* tuple) const {
-    	// handle arity 0
-    	if (getArity() == 0) return !empty();
+        // handle arity 0
+        if (getArity() == 0) {
+            return !empty();
+        }
 
-    	// handle all other arities
-        if (!totalIndex)
+        // handle all other arities
+        if (!totalIndex) {
             totalIndex = getIndex(getTotalIndexKey());
+        }
         return totalIndex->exists(tuple);
     }
 
-    /** input table as memory */ 
-    bool load(std::vector<std::vector<std::string>> data, SymbolTable& symTable, 
-      const SymbolMask& mask);
-
+    /** input table as memory */
+    bool load(std::vector<std::vector<std::string>> data, SymbolTable& symTable, const SymbolMask& mask);
 
     /** store data to vectors */
-    void store(std::vector<std::vector<std::string>>& result, const SymbolTable& symTable, 
-      const SymbolMask& mask) const;
-
+    void store(std::vector<std::vector<std::string>>& result, const SymbolTable& symTable,
+            const SymbolMask& mask) const;
 
     // --- iterator ---
 
-    /** Iterator for relation */ 
-    class iterator : public std::iterator<std::forward_iterator_tag,RamDomain*> {
+    /** Iterator for relation */
+    class iterator : public std::iterator<std::forward_iterator_tag, RamDomain*> {
+        Block* cur;
+        RamDomain* tuple;
+        size_t arity;
 
-        Block *cur;
-        RamDomain *tuple;
-        size_t arity; 
+    public:
+        iterator() : cur(nullptr), tuple(nullptr), arity(0) {}
 
-    public: 
+        iterator(Block* c, RamDomain* t, size_t a) : cur(c), tuple(t), arity(a) {}
 
-        iterator()
-            : cur(nullptr), tuple(nullptr), arity(0) { }
-
-        iterator(Block *c, RamDomain *t, size_t a)
-            : cur(c), tuple(t), arity(a) {}
-
-        const RamDomain *operator*() {
-            return tuple; 
-        } 
+        const RamDomain* operator*() {
+            return tuple;
+        }
 
         bool operator==(const iterator& other) const {
             return tuple == other.tuple;
         }
 
-        bool operator!=(const iterator &other) const {
+        bool operator!=(const iterator& other) const {
             return (tuple != other.tuple);
         }
 
         iterator& operator++() {
-        	// check for end
-            if (!cur) return *this;
+            // check for end
+            if (!cur) {
+                return *this;
+            }
 
             // support 0-arity
-        	if (arity == 0) {
-        		// move to end
-        		*this = iterator();
-        		return *this;
-        	}
+            if (arity == 0) {
+                // move to end
+                *this = iterator();
+                return *this;
+            }
 
             // support all other arities
             tuple += arity;
@@ -552,24 +572,26 @@ public:
 
     /** get iterator begin of relation */
     inline iterator begin() const {
-    	// check for emptiness
-        if (empty()) return end();
+        // check for emptiness
+        if (empty()) {
+            return end();
+        }
 
         // support 0-arity
         auto arity = getArity();
-        if(arity == 0) {
-        	Block dummyBlock;
-        	RamDomain dummyTuple;
-        	return iterator(&dummyBlock, &dummyTuple, 0);
+        if (arity == 0) {
+            Block dummyBlock;
+            RamDomain dummyTuple;
+            return iterator(&dummyBlock, &dummyTuple, 0);
         }
 
         // support non-empty non-zero arity relation
         return iterator(head.get(), &head->data[0], arity);
     }
 
-    /** get iterator begin of relation */ 
+    /** get iterator begin of relation */
     inline iterator end() const {
-        return iterator(); 
+        return iterator();
     }
 };
 
@@ -593,9 +615,7 @@ class RamEnvironment {
     int counter;
 
 public:
-
-    RamEnvironment(SymbolTable& symbolTable)
-        : symbolTable(symbolTable), counter(0) {}
+    RamEnvironment(SymbolTable& symbolTable) : symbolTable(symbolTable), counter(0) {}
 
     /**
      * Obtains a reference to the enclosed symbol table.
@@ -626,7 +646,9 @@ public:
      */
     RamRelation& getRelation(const RamRelationIdentifier& id) {
         // use cached value
-        if (id.last == this) return *id.rel;
+        if (id.last == this) {
+            return *id.rel;
+        }
 
         RamRelation* res = nullptr;
         auto pos = data.find(id.getName());
@@ -651,9 +673,10 @@ public:
      * id, but the correct content).
      */
     const RamRelation& getRelation(const RamRelationIdentifier& id) const {
-
         // use cached value if available
-        if (id.last == this) return *id.rel;
+        if (id.last == this) {
+            return *id.rel;
+        }
 
         // look up relation
         auto pos = data.find(id.getName());
@@ -691,8 +714,6 @@ public:
         data.erase(id.getName());
         id.last = nullptr;
     }
-
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

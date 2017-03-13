@@ -15,10 +15,11 @@
  ***********************************************************************/
 #pragma once
 
-#include <memory>
 #include "parser.hh"
 
-#define YY_DECL yy::parser::symbol_type yylex(ParserDriver &driver, yyscan_t yyscanner)
+#include <memory>
+
+#define YY_DECL yy::parser::symbol_type yylex(ParserDriver& driver, yyscan_t yyscanner)
 YY_DECL;
 
 namespace souffle {
@@ -36,8 +37,7 @@ struct scanner_data {
     AstSrcLocation yylloc;
 
     /* Stack of parsed files */
-    const char *yyfilename;
-
+    const char* yyfilename;
 };
 
 class ParserDriver {
@@ -47,26 +47,29 @@ public:
 
     std::unique_ptr<AstTranslationUnit> translationUnit;
 
-    void addRelation(AstRelation *r);
-    void addType(AstType *t);
-    void addClause(AstClause *c);
-    void addComponent(AstComponent *c);
-    void addInstantiation(AstComponentInit *ci);
+    void addRelation(AstRelation* r);
+    void addIODirective(AstIODirective* d);
+    void addIODirectiveChain(AstIODirective* d);
+    void addType(AstType* type);
+    void addClause(AstClause* c);
+    void addComponent(AstComponent* c);
+    void addInstantiation(AstComponentInit* ci);
 
-    souffle::SymbolTable &getSymbolTable();
+    souffle::SymbolTable& getSymbolTable();
 
     bool trace_scanning;
 
-    std::unique_ptr<AstTranslationUnit> parse(const std::string &f, FILE* in, bool nowarn = false);
-    std::unique_ptr<AstTranslationUnit> parse(const std::string &code, bool nowarn = false);
-    static std::unique_ptr<AstTranslationUnit> parseTranslationUnit(const std::string &f, FILE* in, bool nowarn = false);
-    static std::unique_ptr<AstTranslationUnit> parseTranslationUnit(const std::string &code, bool nowarn = false);
+    std::unique_ptr<AstTranslationUnit> parse(const std::string& f, FILE* in, bool nowarn = false);
+    std::unique_ptr<AstTranslationUnit> parse(const std::string& code, bool nowarn = false);
+    static std::unique_ptr<AstTranslationUnit> parseTranslationUnit(
+            const std::string& f, FILE* in, bool nowarn = false);
+    static std::unique_ptr<AstTranslationUnit> parseTranslationUnit(
+            const std::string& code, bool nowarn = false);
 
     bool trace_parsing;
 
-    void error(const AstSrcLocation &loc, const std::string &msg);
-    void error(const std::string &msg);
+    void error(const AstSrcLocation& loc, const std::string& msg);
+    void error(const std::string& msg);
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle

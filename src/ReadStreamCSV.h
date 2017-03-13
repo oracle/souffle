@@ -14,13 +14,15 @@
 
 #pragma once
 
-#include "ReadStream.h"
-
 #include "RamTypes.h"
+#include "ReadStream.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
+#include "Util.h"
+#ifdef USE_LIBZ
+#include "gzfstream.h"
+#endif
 
-#include <fstream>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -33,11 +35,7 @@ class ReadStreamCSV : public ReadStream {
 public:
     ReadStreamCSV(std::istream& in, const SymbolMask& symbolMask, SymbolTable& symbolTable,
             std::map<int, int> inputMap = std::map<int, int>(), char delimiter = '\t')
-            : delimiter(delimiter),
-              file(in),
-              lineNumber(0),
-              symbolMask(symbolMask),
-              symbolTable(symbolTable),
+            : delimiter(delimiter), file(in), lineNumber(0), symbolMask(symbolMask), symbolTable(symbolTable),
               inputMap(inputMap) {
         while (this->inputMap.size() < symbolMask.getArity()) {
             int size = this->inputMap.size();
@@ -51,7 +49,7 @@ public:
      * Returns nullptr if no tuple was readable.
      * @return
      */
-    virtual std::unique_ptr<RamDomain[]> readNextTuple() {
+    std::unique_ptr<RamDomain[]> readNextTuple() override {
         if (file.eof()) {
             return nullptr;
         }
@@ -124,7 +122,7 @@ public:
         return tuple;
     }
 
-    virtual ~ReadStreamCSV() {}
+    ~ReadStreamCSV() override = default;
 
 private:
     const char delimiter;
@@ -140,16 +138,9 @@ public:
     ReadFileCSV(const std::string& filename, const SymbolMask& symbolMask, SymbolTable& symbolTable,
             std::map<int, int> inputMap = std::map<int, int>(), char delimiter = '\t')
             : fileHandle(filename), readStream(fileHandle, symbolMask, symbolTable, inputMap, delimiter) {
-        char bfn[filename.size()];
-        strcpy(bfn, filename.c_str());
-        std::stringstream baseNameStream(basename(bfn));
-        baseName = baseNameStream.str();
+        baseName = souffle::baseName(filename);
         if (!fileHandle.is_open()) {
-            char bfn[filename.size()];
-            strcpy(bfn, filename.c_str());
-            std::stringstream errorMessage;
-            errorMessage << "Cannot open fact file " << baseName << "\n";
-            throw std::invalid_argument(errorMessage.str());
+            throw std::invalid_argument("Cannot open fact file " + baseName + "\n");
         }
     }
     /**
@@ -158,7 +149,7 @@ public:
      * Returns nullptr if no tuple was readable.
      * @return
      */
-    virtual std::unique_ptr<RamDomain[]> readNextTuple() {
+    std::unique_ptr<RamDomain[]> readNextTuple() override {
         try {
             return readStream.readNextTuple();
         } catch (std::exception& e) {
@@ -169,61 +160,88 @@ public:
         }
     }
 
-    virtual ~ReadFileCSV() {}
+    ~ReadFileCSV() override = default;
 
 private:
     std::string baseName;
+#ifdef USE_LIBZ
+    gzfstream::igzfstream fileHandle;
+#else
     std::ifstream fileHandle;
+#endif
     ReadStreamCSV readStream;
 };
 
 class ReadCSVFactory {
 protected:
-    char getDelimiter(const std::map<std::string, std::string>& options) {
+    char getDelimiter(const IODirectives& ioDirectives) {
         char delimiter = '\t';
-        if (options.count("delimiter") > 0) {
-            delimiter = options.at("delimiter").at(0);
+        if (ioDirectives.has("delimiter")) {
+            delimiter = ioDirectives.get("delimiter").at(0);
         }
         return delimiter;
     }
-};
-
-class ReadCinCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
-public:
-    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
-            const std::map<std::string, std::string>& options) {
-        return std::unique_ptr<ReadStreamCSV>(new ReadStreamCSV(
-                std::cin, symbolMask, symbolTable, std::map<int, int>(), getDelimiter(options)));
-    }
-    virtual ~ReadCinCSVFactory() {}
-};
-
-class ReadFileCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
-public:
-    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
-            const std::map<std::string, std::string>& options) {
+    std::map<int, int> getInputColumnMap(const IODirectives& ioDirectives, const unsigned arity) {
+        std::string columnString = "";
+        if (ioDirectives.has("columns")) {
+            columnString = ioDirectives.get("columns");
+        }
         std::map<int, int> inputMap;
-        if (options.count("columns") > 0) {
-            std::istringstream iss(options.at("columns"));
+
+        if (!columnString.empty()) {
+            std::istringstream iss(columnString);
             std::string mapping;
             int index = 0;
             while (std::getline(iss, mapping, ':')) {
                 // TODO (mmcgr): handle ranges like 4-7
                 inputMap[stoi(mapping)] = index++;
             }
-            if (inputMap.size() < symbolMask.getArity()) {
-                throw std::invalid_argument("Invalid column set was given: <" + options.at("columns") + ">");
+            if (inputMap.size() < arity) {
+                throw std::invalid_argument("Invalid column set was given: <" + columnString + ">");
             }
         } else {
-            while (inputMap.size() < symbolMask.getArity()) {
+            while (inputMap.size() < arity) {
                 int size = inputMap.size();
                 inputMap[size] = size;
             }
         }
-        return std::unique_ptr<ReadFileCSV>(new ReadFileCSV(
-                options.at("name"), symbolMask, symbolTable, inputMap, getDelimiter(options)));
+        return inputMap;
     }
-    virtual ~ReadFileCSVFactory() {}
+};
+
+class ReadCinCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
+public:
+    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
+            const IODirectives& ioDirectives) override {
+        std::map<int, int> inputMap = getInputColumnMap(ioDirectives, symbolMask.getArity());
+        char delimiter = getDelimiter(ioDirectives);
+        return std::unique_ptr<ReadStreamCSV>(
+                new ReadStreamCSV(std::cin, symbolMask, symbolTable, inputMap, delimiter));
+    }
+    const std::string& getName() const override {
+        static const std::string name = "stdin";
+        return name;
+    }
+    ~ReadCinCSVFactory() override = default;
+};
+
+class ReadFileCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
+public:
+    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
+            const IODirectives& ioDirectives) override {
+        std::map<int, int> inputMap = getInputColumnMap(ioDirectives, symbolMask.getArity());
+        char delimiter = getDelimiter(ioDirectives);
+        std::string filename = ioDirectives.has("filename") ? ioDirectives.get("filename")
+                                                            : (ioDirectives.getRelationName() + ".facts");
+        return std::unique_ptr<ReadFileCSV>(
+                new ReadFileCSV(filename, symbolMask, symbolTable, inputMap, delimiter));
+    }
+    const std::string& getName() const override {
+        static const std::string name = "file";
+        return name;
+    }
+
+    ~ReadFileCSVFactory() override = default;
 };
 
 } /* namespace souffle */

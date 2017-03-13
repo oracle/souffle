@@ -17,22 +17,22 @@
 #pragma once
 
 #include <map>
+#include <ostream>
+#include <set>
 
 namespace souffle {
 
 /**
  * A simple graph structure for graph-based operations.
  */
-template<typename Node>
+template <typename Node, typename Compare = std::less<Node>>
 class Graph {
-
     // not a very efficient but simple graph representation
-    std::set<Node> nodes;                       // all the nodes in the graph
-    std::map<Node,std::set<Node>> forward;      // all edges forward directed
-    std::map<Node,std::set<Node>> backward;     // all edges backward
+    std::set<Node, Compare> nodes;                     // all the nodes in the graph
+    std::map<Node, std::set<Node, Compare>> forward;   // all edges forward directed
+    std::map<Node, std::set<Node, Compare>> backward;  // all edges backward
 
 public:
-
     /**
      * Adds a new edge from the given node to the target node.
      */
@@ -49,18 +49,18 @@ public:
     void addNode(const Node& node) {
         auto iter = nodes.insert(node);
         if (iter.second) {
-            forward.insert(std::make_pair(node, std::set<Node>()));
-            backward.insert(std::make_pair(node, std::set<Node>()));
+            forward.insert(std::make_pair(node, std::set<Node, Compare>()));
+            backward.insert(std::make_pair(node, std::set<Node, Compare>()));
         }
     }
 
     /** Obtains a reference to the set of all nodes */
-    const std::set<Node>& getNodes() const {
+    const std::set<Node, Compare>& getNodes() const {
         return nodes;
     }
 
     /** Returns the set of nodes the given node has edges to */
-    const std::set<Node>& getEdges(const Node& from) {
+    const std::set<Node, Compare>& getEdges(const Node& from) {
         assert(contains(from));
         return forward.find(from)->second;
     }
@@ -73,7 +73,9 @@ public:
     /** Determines whether the given edge is present */
     bool contains(const Node& from, const Node& to) const {
         auto pos = forward.find(from);
-        if (pos == forward.end()) return false;
+        if (pos == forward.end()) {
+            return false;
+        }
         auto p2 = pos->second.find(to);
         return p2 != pos->second.end();
     }
@@ -81,7 +83,9 @@ public:
     /** Determines whether there is a directed path between the two nodes */
     bool reaches(const Node& from, const Node& to) const {
         // quick check
-        if (!contains(from) || !contains(to)) return false;
+        if (!contains(from) || !contains(to)) {
+            return false;
+        }
 
         // conduct a depth-first search starting at from
         bool found = false;
@@ -94,19 +98,21 @@ public:
     }
 
     /** Obtains the set of all nodes in the same clique than the given node */
-    std::set<Node> getClique(const Node& node) const {
-        std::set<Node> res;
+    std::set<Node, Compare> getClique(const Node& node) const {
+        std::set<Node, Compare> res;
         res.insert(node);
-        for(const auto& cur : getNodes()) {
-            if (reaches(node,cur) && reaches(cur,node)) res.insert(cur);
+        for (const auto& cur : getNodes()) {
+            if (reaches(node, cur) && reaches(cur, node)) {
+                res.insert(cur);
+            }
         }
         return res;
     }
 
     /** A generic utility for depth-first visits */
-    template<typename Lambda>
+    template <typename Lambda>
     void visitDepthFirst(const Node& node, const Lambda& lambda) const {
-        std::set<Node> visited;
+        std::set<Node, Compare> visited;
         visitDepthFirst(node, lambda, visited);
     }
 
@@ -114,9 +120,11 @@ public:
     void print(std::ostream& out) const {
         bool first = true;
         out << "{";
-        for(const auto& cur : forward) {
-            for(const auto& trg : cur.second) {
-                if (!first) out << ",";
+        for (const auto& cur : forward) {
+            for (const auto& trg : cur.second) {
+                if (!first) {
+                    out << ",";
+                }
                 out << cur.first << "->" << trg;
                 first = false;
             }
@@ -130,21 +138,20 @@ public:
     }
 
 private:
-
     /** The internal implementation of depth-first visits */
-    template<typename Lambda>
-    void visitDepthFirst(const Node& node, const Lambda& lambda, std::set<Node>& visited) const {
+    template <typename Lambda>
+    void visitDepthFirst(const Node& node, const Lambda& lambda, std::set<Node, Compare>& visited) const {
         lambda(node);
         auto pos = forward.find(node);
-        if (pos == forward.end()) return;
-        for(const auto& cur : pos->second) {
+        if (pos == forward.end()) {
+            return;
+        }
+        for (const auto& cur : pos->second) {
             if (visited.insert(cur).second) {
                 visitDepthFirst(cur, lambda, visited);
             }
         }
     }
-
 };
 
-} // end of namespace souffle
-
+}  // end of namespace souffle
