@@ -1,4 +1,3 @@
-
 // test two disjoint set closures
 .decl two_set(x : number, y : number) eqrel
 .output two_set()
@@ -10,7 +9,7 @@ two_set(8, 10).
 two_set(10, 8).
 
 // overload transitivity on eqrel
-.decl overload_trans(x : number, y : number) output
+.decl overload_trans(x : number, y : number)
 .output overload_trans()
 overload_trans(x, z) :- two_set(x, z).
 overload_trans(x, z) :- two_set(x, y), overload_trans(y, z).
