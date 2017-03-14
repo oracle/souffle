@@ -21,11 +21,13 @@
 #include "AstAttribute.h"
 #include "AstClause.h"
 #include "AstLiteral.h"
+#include "AstNode.h"
 #include "AstProgram.h"
 #include "AstRelation.h"
 #include "AstType.h"
 
 #include <functional>
+#include <memory>
 #include <vector>
 
 namespace souffle {

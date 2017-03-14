@@ -16,15 +16,16 @@
 
 #pragma once
 
-#include "Global.h"
 #include "RamData.h"
 #include "RamRelation.h"
+#include "SymbolTable.h"
+#include "Util.h"
 
 #include <functional>
-#include <map>
+//#include <map>
+#include <ostream>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
+#include <vector>
 
 namespace souffle {
 
