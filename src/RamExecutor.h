@@ -41,7 +41,6 @@ protected:
     std::ostream* report;
 
 public:
-    using SymbolTable = souffle::SymbolTable;  // XXX pending namespace cleanup
     RamExecutor() : report(nullptr) {}
 
     /** A virtual destructor to support safe inheritance */
