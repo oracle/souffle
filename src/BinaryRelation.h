@@ -21,16 +21,23 @@ class BinaryRelation {
     
     //lock for modifying the std::map pairs for the trie
     mutable std::mutex genTrieSetsMutex;
+    // whether we have fresh values in the trie (a.k.a that on insert, they should be purged)
+    mutable std::atomic<bool> genT;
 
     // the ordering of states per disjoint set (mapping from representative to trie)
     mutable std::unordered_map<DomainInt, std::shared_ptr<souffle::Trie<1>>> orderedStates;
 
 public:
 
+    BinaryRelation() {
+        genT.store(true);
+    }
+
     BinaryRelation& operator=(const BinaryRelation& old) {
         if (this == &old) return *this;
 
         sds = old.sds;
+        genT.store(old.genT.load());
         //don't copy mutex or generated Tries
         return *this;
     }
@@ -65,12 +72,43 @@ public:
      */
     bool insert(DomainInt x, DomainInt y, operation_hints z) {
         //TODO: use the op hints to speed up insertion
-    
-        //remove these djSets from the ordering tries, as they have become stale
-        orderedStates.erase(sds.findNode(x));
-        orderedStates.erase(sds.findNode(y));
 
-        sds.unionNodes(x, y);
+        // obv this isn't the solution, but this will teach me 
+        // if (genT) {
+        // DomainInt xp = 0;
+        // DomainInt yp = 0;
+        // {
+
+        std::atomic_thread_fence(std::memory_order_acquire);        
+        if (orderedStates.size() != 0) {
+            std::lock_guard<std::mutex> lock(genTrieSetsMutex); 
+
+            if (orderedStates.size() != 0) {
+                orderedStates.clear();
+            }
+        }
+
+
+            // xp = sds.findNode(x);
+            // yp = sds.findNode(y);
+        // }
+        // if (orderedStates.find(xp) != orderedStates.end()) orderedStates.erase(xp);
+        // if (orderedStates.find(yp) != orderedStates.end()) orderedStates.erase(yp);
+
+        //     
+        //     // if (genT) {
+        //         // genT.store(false);
+        //         //temp erase all fix, this does ruin the lazy eval, in the sense that if we insert, it invalidates ALL tries
+        //         // orderedStates.clear();
+        //         //remove these djSets from the ordering tries, as they have become stale
+        //         orderedStates.erase(sds.findNode(x));
+        //         orderedStates.erase(sds.findNode(y));
+        //     // }
+        // // }
+        {
+            // std::lock_guard<std::mutex> lock(genTrieSetsMutex); 
+            sds.unionNodes(x, y);
+        }
         
         return false;
     }
@@ -140,6 +178,8 @@ private:
         
         //double checked locking pattern (with aq/rel fences)
         std::lock_guard<std::mutex> guard(genTrieSetsMutex);
+        // store that we've got fresh values in our map
+        // this->genT.store(true);
         if (this->orderedStates.find(rep) != this->orderedStates.end()) return this->orderedStates.at(rep);
 
         std::atomic_thread_fence(std::memory_order_release);
@@ -572,6 +612,11 @@ public:
         }
         
         if (!std::is_sorted(start.begin(), start.end())) {
+            for (auto x : start) {
+                std::cout << x << '\t';
+            }
+            std::cout << std::endl;
+
             throw "elements are not sorted";
         }
         // the trie that contains every value in start
@@ -609,13 +654,10 @@ public:
         const size_t sz = this->size();
         
         // 0 or 1 chunks
-        if (chunks <= 1) return { souffle::make_range(begin(), end()) };
-        if (sz == 0) return { souffle::make_range(begin(), end()) };
-        
+        if (chunks <= 1 || sz == 0) return { souffle::make_range(begin(), end()) };
         
         // how many pairs can we fit within each iterator? (integer ceil division)
         const size_t chunkSize = (sz + (chunks-1)) / chunks;
-        
         
         for (auto djSet = sds.beginReps(); djSet != sds.endReps(); ++djSet) {
             const DomainInt rep = *djSet;
@@ -640,6 +682,8 @@ public:
                     
                     // iterator is full now? push this iterator set onto the return val
                     if (cSize >= chunkSize) {
+
+                        fronts.sort();
 
                         ret.push_back(souffle::make_range(frontProduct(fronts), end()));
                         

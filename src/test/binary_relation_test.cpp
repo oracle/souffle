@@ -25,6 +25,10 @@
 #include <utility>
 #include <thread>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "BinaryRelation.h"
 
 namespace souffle {
@@ -185,7 +189,7 @@ namespace test {
 
         BinRel br;
 
-        int N = 1000;
+        int N = 100;
         // test inserting data "out of order" keeps isolation
         std::vector<int> data;
         for(int i=0; i<N; i++) {
@@ -216,7 +220,7 @@ namespace test {
         // test =assign keeps copy independence
         BinRel br;
         
-        int N = 1000;
+        int N = 100;
 
         std::vector<int> data;
         for(int i=0; i<N; i++) {
@@ -263,6 +267,21 @@ namespace test {
         EXPECT_FALSE(br.find(t) != br.end());
         EXPECT_TRUE(br2.find(t) != br2.end());
     }
+
+    // TEST(BinRelTest, CopyScope) {
+    //     //simply test whether scope is fine in scope changes
+    //     BinRel br1;
+    //     {
+    //         BinRel br2;
+    //         for (int i = 0; i < 5000; ++i) {
+    //             br2.insert(i,i);
+    //         }
+
+    //         br1 = br2;
+    //     }
+
+    //     EXPECT_EQ(5000, br1.size());
+    // }
 
     TEST(BinRelTest, Merge) {
         // test insertAll isolates data
@@ -466,7 +485,7 @@ namespace test {
         BinRel br;
         std::vector<std::thread> starts;
         // number of inserts per thread
-        int N = 10000;
+        int N = 1000;
 
         starts.push_back( std::thread([&](){
             for (RamDomain i = 0; i < N*4; i+=4) br.insert(i, i+4);
@@ -487,6 +506,13 @@ namespace test {
         for (auto& r : starts) r.join();
 
         EXPECT_EQ((size_t)(N+1)*(N+1)*4, br.size());
+
+        size_t count = 0;
+        for (auto x : br) {
+            ++count;
+        }
+
+        EXPECT_EQ(count, br.size());
     }
 
 #ifdef _OPENMP
@@ -524,7 +550,7 @@ namespace test {
 
             std::cout << "Number of threads: " << i << "[" << (end-start) << "ms]\n";
 
-            EXPECT_EQ(N*N,br.size());
+            EXPECT_EQ(N,br.size());
         } 
     }
 #endif

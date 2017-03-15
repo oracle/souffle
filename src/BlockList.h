@@ -33,7 +33,8 @@ public:
     }
 
     /** copy constructor */
-    BlockList(const BlockList& other) {
+    BlockList(const BlockList& other){
+
         size_t othblocks = other.listData.size();
         for (size_t i = 0; i < othblocks; ++i) {
             listData.push_back(new T[BLOCKSIZE]);
@@ -51,6 +52,7 @@ public:
             listData.push_back(other.listData.at(i));
             other.listData.at(i) = nullptr;
         }
+        other.listData.clear();
         this->m_size = other.size();
     }
 

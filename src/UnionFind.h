@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <mutex>
 #include <vector>
 #include <list>
 #include <unordered_map>
@@ -49,7 +50,7 @@ public:
 
         if (this == &old) return *this;
 
-        std::lock_guard<std::mutex> lock(old.insertMutex);
+        // std::lock_guard<std::mutex> lock(old.insertMutex);
 
         a_blocks = old.a_blocks;
         repToSubords = old.repToSubords;
@@ -107,8 +108,10 @@ public:
      * @return the representative that is found
      */
     parent_t readOnlyFindNode(parent_t x) const {
-        if (x == b2p(get(x))) return x;
-        return readOnlyFindNode(b2p(get(x)));
+        block_t ii = get(x);
+        parent_t p = b2p(ii);
+        if (x == p) return x;
+        return readOnlyFindNode(p);
     }
 
 private:
@@ -416,16 +419,16 @@ private:
      * @return the corresponding dense value
      */
     parent_t toDense(const SparseDomain in) {
+        // ah fek, rehashin can break this
+        std::lock_guard<std::mutex> lock(modLock);
+        // std::atomic_thread_fence(std::memory_order_acquire);
         auto it = sparseToDenseMap.find(in);
-        std::atomic_thread_fence(std::memory_order_acquire);
         if (it != sparseToDenseMap.end()) {
             return it->second;
         } else {
-            std::lock_guard<std::mutex> lock(modLock);
-            auto it = sparseToDenseMap.find(in);
+            // auto it = sparseToDenseMap.find(in);
 
-            if (it != sparseToDenseMap.end()) return it->second;
-            std::atomic_thread_fence(std::memory_order_release);
+            // if (it != sparseToDenseMap.end()) return it->second;
             
             size_t j = denseToSparseMap.size();
             //check if we create a dense value outside of the bounds that can be stored
@@ -436,6 +439,8 @@ private:
             ds.makeNode();
             denseToSparseMap.push_back(in);
             sparseToDenseMap[in] = jClipped;
+
+            // std::atomic_thread_fence(std::memory_order_release);
             
             return jClipped;
         }
@@ -526,7 +531,7 @@ public:
      * @param in the supplied dense value
      * @return the sparse value from the denseToSparseMap
      */
-    inline const SparseDomain toSparse(const parent_t in) const { return denseToSparseMap[in]; };
+    inline const SparseDomain toSparse(const parent_t in) const { return denseToSparseMap.at(in); };
     
     /* a wrapper to enable checking in the sparse set - however also adds them if not already existing */
     inline bool sameSet(SparseDomain x, SparseDomain y) { return ds.sameSet(toDense(x), toDense(y)); };
