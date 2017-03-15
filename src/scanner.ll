@@ -152,7 +152,7 @@
                                           token = std::strtok(NULL, ".");
                                           ++i;
                                         }
-                                        int ipnumber = (vals[0]*2^24) + (vals[1]*2^16) + (vals[2]*2^8) + vals[3];
+                                        int ipnumber = (vals[0]<<24) + (vals[1]<<16) + (vals[2]<<8) + vals[3];
                                         return yy::parser::make_NUMBER(ipnumber, yylloc);
                                         } catch(...) {
                                           driver.error(yylloc, "IP out of range");
