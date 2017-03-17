@@ -41,6 +41,7 @@ class TypeEnvironment;
 class TypeAnalysis;
 class ComponentLookup;
 class PrecedenceGraph;
+class RecursiveClauses;
 
 class AstSemanticChecker : public AstTransformer {
 private:
@@ -48,7 +49,7 @@ private:
 
     static void checkProgram(ErrorReport& report, const AstProgram& program, const TypeEnvironment& typeEnv,
             const TypeAnalysis& typeAnalysis, const ComponentLookup& componentLookup,
-            const PrecedenceGraph& precedenceGraph);
+            const PrecedenceGraph& precedenceGraph, const RecursiveClauses& recursiveClauses);
 
     static void checkAtom(ErrorReport& report, const AstProgram& program, const AstAtom& atom);
     static void checkLiteral(ErrorReport& report, const AstProgram& program, const AstLiteral& literal);
@@ -57,12 +58,14 @@ private:
     static void checkArgument(ErrorReport& report, const AstProgram& program, const AstArgument& arg);
     static void checkConstant(ErrorReport& report, const AstArgument& argument);
     static void checkFact(ErrorReport& report, const AstProgram& program, const AstClause& fact);
-    static void checkClause(ErrorReport& report, const AstProgram& program, const AstClause& clause);
+    static void checkClause(ErrorReport& report, const AstProgram& program, const AstClause& clause,
+            const RecursiveClauses& recursiveClauses);
     static void checkRelationDeclaration(ErrorReport& report, const TypeEnvironment& typeEnv,
             const AstProgram& program, const AstRelation& relation);
     static void checkRelation(ErrorReport& report, const TypeEnvironment& typeEnv, const AstProgram& program,
-            const AstRelation& relation);
-    static void checkRules(ErrorReport& report, const TypeEnvironment& typeEnv, const AstProgram& program);
+            const AstRelation& relation, const RecursiveClauses& recursiveClauses);
+    static void checkRules(ErrorReport& report, const TypeEnvironment& typeEnv, const AstProgram& program,
+            const RecursiveClauses& recursiveClauses);
 
     static const AstComponent* checkComponentNameReference(ErrorReport& report,
             const AstComponent* enclosingComponent, const ComponentLookup& componentLookup,
