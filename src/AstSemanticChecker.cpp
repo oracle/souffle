@@ -41,18 +41,20 @@ bool AstSemanticChecker::transform(AstTranslationUnit& translationUnit) {
     TypeAnalysis* typeAnalysis = translationUnit.getAnalysis<TypeAnalysis>();
     ComponentLookup* componentLookup = translationUnit.getAnalysis<ComponentLookup>();
     PrecedenceGraph* precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>();
+    RecursiveClauses* recursiveClauses = translationUnit.getAnalysis<RecursiveClauses>();
     checkProgram(translationUnit.getErrorReport(), *translationUnit.getProgram(), typeEnv, *typeAnalysis,
-            *componentLookup, *precedenceGraph);
+            *componentLookup, *precedenceGraph, *recursiveClauses);
     return false;
 }
 
 void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& program,
         const TypeEnvironment& typeEnv, const TypeAnalysis& typeAnalysis,
-        const ComponentLookup& componentLookup, const PrecedenceGraph& precedenceGraph) {
+        const ComponentLookup& componentLookup, const PrecedenceGraph& precedenceGraph,
+        const RecursiveClauses& recursiveClauses) {
     // -- conduct checks --
     // TODO: re-write to use visitors
     checkTypes(report, program);
-    checkRules(report, typeEnv, program);
+    checkRules(report, typeEnv, program, recursiveClauses);
     checkComponents(report, program, componentLookup);
     checkNamespaces(report, program);
 
@@ -481,8 +483,8 @@ void AstSemanticChecker::checkFact(ErrorReport& report, const AstProgram& progra
     }
 }
 
-void AstSemanticChecker::checkClause(
-        ErrorReport& report, const AstProgram& program, const AstClause& clause) {
+void AstSemanticChecker::checkClause(ErrorReport& report, const AstProgram& program, const AstClause& clause,
+        const RecursiveClauses& recursiveClauses) {
     // check head atom
     checkAtom(report, program, *clause.getHead());
 
@@ -534,6 +536,12 @@ void AstSemanticChecker::checkClause(
             }
         }
     }
+    // check auto-increment
+    if (recursiveClauses.isRecursive(&clause)) {
+        visitDepthFirst(clause, [&](const AstCounter& ctr) {
+            report.addError("Auto-increment functor in a recursive rule", ctr.getSrcLoc());
+        });
+    }
 }
 
 void AstSemanticChecker::checkRelationDeclaration(ErrorReport& report, const TypeEnvironment& typeEnv,
@@ -583,7 +591,7 @@ void AstSemanticChecker::checkRelationDeclaration(ErrorReport& report, const Typ
 }
 
 void AstSemanticChecker::checkRelation(ErrorReport& report, const TypeEnvironment& typeEnv,
-        const AstProgram& program, const AstRelation& relation) {
+        const AstProgram& program, const AstRelation& relation, const RecursiveClauses& recursiveClauses) {
     if (relation.isEqRel()) {
         if (relation.getArity() == 2) {
             if (relation.getAttribute(0)->getTypeName() != relation.getAttribute(1)->getTypeName()) {
@@ -602,7 +610,7 @@ void AstSemanticChecker::checkRelation(ErrorReport& report, const TypeEnvironmen
 
     // check clauses
     for (AstClause* c : relation.getClauses()) {
-        checkClause(report, program, *c);
+        checkClause(report, program, *c, recursiveClauses);
     }
 
     // check whether this relation is empty
@@ -612,14 +620,14 @@ void AstSemanticChecker::checkRelation(ErrorReport& report, const TypeEnvironmen
     }
 }
 
-void AstSemanticChecker::checkRules(
-        ErrorReport& report, const TypeEnvironment& typeEnv, const AstProgram& program) {
+void AstSemanticChecker::checkRules(ErrorReport& report, const TypeEnvironment& typeEnv,
+        const AstProgram& program, const RecursiveClauses& recursiveClauses) {
     for (AstRelation* cur : program.getRelations()) {
-        checkRelation(report, typeEnv, program, *cur);
+        checkRelation(report, typeEnv, program, *cur, recursiveClauses);
     }
 
     for (AstClause* cur : program.getOrphanClauses()) {
-        checkClause(report, program, *cur);
+        checkClause(report, program, *cur, recursiveClauses);
     }
 }
 
