@@ -14,6 +14,7 @@
 #include <exception>
 
 #include "BlockList.h"
+#include "Util.h"
 
 namespace souffle {
 
@@ -33,7 +34,8 @@ class DisjointSet {
     /* store blocks of atomics */
     BlockList<std::atomic<block_t>> a_blocks;
 
-    mutable std::mutex insertMutex;
+    // read/write mutex for inserting new nodes
+    mutable souffle::shared_mutex nodeLock;
 
     /* whether the generated iterator needs to be updated */
     std::atomic<bool> isStale;
@@ -45,12 +47,10 @@ class DisjointSet {
 public:
     DisjointSet() : isStale(true), mapStale(true) {};
 
-    // WARNING! not quite threadsafe, but probably close enough, not dangerous enough to warrant possible deadlock scenario
+    // WARNING! not threadsafe, but probably is fine without, not dangerous enough to warrant possible deadlock scenario
     DisjointSet& operator=(const DisjointSet& old) {
 
         if (this == &old) return *this;
-
-        // std::lock_guard<std::mutex> lock(old.insertMutex);
 
         a_blocks = old.a_blocks;
         repToSubords = old.repToSubords;
@@ -61,7 +61,12 @@ public:
 
     }
 
-    inline size_t size() const { return a_blocks.size(); };
+    inline size_t size() const { 
+        nodeLock.lock_shared();
+        auto sz = a_blocks.size();
+        nodeLock.unlock_shared();
+        return sz; 
+    };
 
     inline bool staleList() const { return isStale; };
     inline bool staleMap() const { return mapStale; };
@@ -72,7 +77,10 @@ public:
      * @return the parent block of the specified node
      */
     inline std::atomic<block_t>& get(parent_t node) const {
-        return a_blocks.get(node);
+        nodeLock.lock_shared();
+        auto& ret = a_blocks.get(node);
+        nodeLock.unlock_shared();
+        return ret;
     };
 
     /**
@@ -253,13 +261,15 @@ public:
      * Invalidates all iterators
      */
     void clear() {
-        std::lock_guard<std::mutex> lock(insertMutex);
+        nodeLock.lock();
+
         isStale = true;
         mapStale = true;
         
         repToSubords.clear();
-        
         a_blocks.clear();
+
+        nodeLock.unlock();
     }
     
     /**
@@ -330,18 +340,20 @@ public:
      */
     inline block_t makeNode(){
 
-        std::lock_guard<std::mutex> lock(insertMutex);
+        nodeLock.lock();
 
         isStale.store(true);
         mapStale.store(true);
 
         //its parent is itself (size indicates the position in the listData structure)
-        parent_t xpar = (parent_t) size();
+        parent_t xpar = (parent_t) a_blocks.size();
         rank_t xrank = 0;
 
         block_t x = pr2b(xpar, xrank);
         
         a_blocks.add(x);
+
+        nodeLock.unlock();
 
         return x;
     };
@@ -356,20 +368,28 @@ public:
             
             findAll();
             
-            repToSubords.clear();
             mapStale.store(false);
+            // mapLock.lock();
+
+            repToSubords.clear();
+            
             
             for (parent_t i = 0; i < size(); ++i) {
                 repToSubords[b2p(this->get(i))].add(i);
             }
+            // mapLock.unlock();
         }
     }
 
     size_t numInSet(parent_t rep) {
         //we may not have an up to date map underneath
         genMap();
+
+        // mapLock.lock_shared();
+        auto sz = repToSubords.at(rep).size();
+        // mapLock.unlock_shared();
         
-        return repToSubords.at(rep).size();
+        return sz;
     };
 
     /**Ï
@@ -405,9 +425,12 @@ public:
 template<typename SparseDomain>
 class SparseDisjointSet {
     // lock on write operations - STL containers only support 1 writer at all times
-    mutable std::mutex modLock;
+    // mutable std::mutex modLock;
+    // read/write lock on sparseToDenseMap & denseToSparseMap
+    mutable souffle::shared_mutex mapsLock;
     
     DisjointSet ds;
+
     //values stored in here to those in the dense disjoint set
     std::unordered_map<SparseDomain, parent_t> sparseToDenseMap;
     std::vector<SparseDomain> denseToSparseMap;
@@ -419,46 +442,50 @@ private:
      * @return the corresponding dense value
      */
     parent_t toDense(const SparseDomain in) {
-        // ah fek, rehashin can break this
-        std::lock_guard<std::mutex> lock(modLock);
-        // std::atomic_thread_fence(std::memory_order_acquire);
+        
+        mapsLock.lock_shared();
         auto it = sparseToDenseMap.find(in);
+
+        // use the pre-existing value
         if (it != sparseToDenseMap.end()) {
-            return it->second;
-        } else {
-            // auto it = sparseToDenseMap.find(in);
+            auto ret = it->second;
+            mapsLock.unlock_shared();
+            return ret;
+        } 
+        mapsLock.unlock_shared();
 
-            // if (it != sparseToDenseMap.end()) return it->second;
-            
-            size_t j = denseToSparseMap.size();
-            //check if we create a dense value outside of the bounds that can be stored
-            if (j > std::numeric_limits<parent_t>::max()) throw std::runtime_error("out of bounds dense value");
-            parent_t jClipped = static_cast<parent_t>(j);
-            
-            //we create the node
-            ds.makeNode();
-            denseToSparseMap.push_back(in);
-            sparseToDenseMap[in] = jClipped;
 
-            // std::atomic_thread_fence(std::memory_order_release);
-            
-            return jClipped;
-        }
+        // create node in conversion
+        mapsLock.lock();
+
+        it = sparseToDenseMap.find(in);
+        // use the pre-existing value (as perhaps, it may have been written twice)
+        if (it != sparseToDenseMap.end()) {
+            auto ret = it->second;
+            mapsLock.unlock();
+            return ret;
+        } 
+
+        size_t j = denseToSparseMap.size();
+        //check if we create a dense value outside of the bounds that can be stored
+        if (j > std::numeric_limits<parent_t>::max()) throw std::runtime_error("out of bounds dense value");
+        parent_t jClipped = static_cast<parent_t>(j);
+        
+        //we create the node
+        ds.makeNode();
+        denseToSparseMap.push_back(in);
+        sparseToDenseMap[in] = jClipped;
+
+        mapsLock.unlock();
+        
+        return jClipped;
     }
     
 public:
 
-    // SparseDisjointSet() = default;
-
-    // //copy op
-    // SparseDisjointSet(const SparseDisjointSet& old) : ds(old.ds), sparseToDenseMap(old.sparseToDenseMap), denseToSparseMap(old.denseToSparseMap) {
-
-    // }
-
+    // warning! not thread safe, do not perform copy operations 
     SparseDisjointSet& operator=(const SparseDisjointSet& old)  {
         if (&old == this) return *this;
-
-        std::lock_guard<std::mutex> lock(old.modLock);
 
         ds = old.ds;
         sparseToDenseMap = old.sparseToDenseMap;
@@ -467,7 +494,9 @@ public:
         return *this;        
     }
     
-    /** iterator stuff */
+    /** iterator for the class - is assumed not to be thread safe 
+     * (as modifications to the underlying class will invalidate anyway)
+     */
     class iterator : public std::iterator<std::forward_iterator_tag, SparseDomain> {
         
         SparseDisjointSet* sds;
@@ -531,7 +560,13 @@ public:
      * @param in the supplied dense value
      * @return the sparse value from the denseToSparseMap
      */
-    inline const SparseDomain toSparse(const parent_t in) const { return denseToSparseMap.at(in); };
+    inline const SparseDomain toSparse(const parent_t in) const { 
+        mapsLock.lock_shared();
+        auto ret = denseToSparseMap.at(in);
+        mapsLock.unlock_shared();
+
+        return ret;
+    };
     
     /* a wrapper to enable checking in the sparse set - however also adds them if not already existing */
     inline bool sameSet(SparseDomain x, SparseDomain y) { return ds.sameSet(toDense(x), toDense(y)); };
@@ -540,10 +575,7 @@ public:
     /* finds the node in the underlying disjoint set, adding the node if non-existent */
     inline SparseDomain findNode(SparseDomain x) { return toSparse(ds.findNode(toDense(x))); };
     /* union the nodes, add if not existing */
-    inline void unionNodes(SparseDomain x, SparseDomain y) { 
-
-        ds.unionNodes(toDense(x), toDense(y)); 
-    };
+    inline void unionNodes(SparseDomain x, SparseDomain y) { ds.unionNodes(toDense(x), toDense(y)); };
     
     inline std::size_t size() { return ds.size(); };
     
@@ -553,10 +585,10 @@ public:
         //we should clear this first, as we want to reduce how many locks are blocking at one given moment
         ds.clear();
         
-        std::lock_guard<std::mutex> lg(modLock);
-        
+        mapsLock.lock();
         sparseToDenseMap.clear();
         denseToSparseMap.clear();
+        mapsLock.unlock();
     }
     
     /**
@@ -573,7 +605,14 @@ public:
     inline void makeNode(SparseDomain val) { toDense(val); };
     
     /* whether we the supplied node exists */
-    inline bool nodeExists(const SparseDomain val) const { return sparseToDenseMap.find(val) != sparseToDenseMap.end(); };
+    inline bool nodeExists(const SparseDomain val) const { 
+
+        mapsLock.lock_shared();
+        bool result = sparseToDenseMap.find(val) != sparseToDenseMap.end();
+        mapsLock.unlock_shared();
+
+        return result; 
+    };
 
     inline bool contains(SparseDomain v1, SparseDomain v2) {
         if (nodeExists(v1) && nodeExists(v2)) {
@@ -581,7 +620,5 @@ public:
         }
         return false;
     }
-    
-    // void genMap() { ds.genMap(); }
 };
 }

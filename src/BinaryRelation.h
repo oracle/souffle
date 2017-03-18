@@ -19,26 +19,20 @@ class BinaryRelation {
     // XXX: mutable hack fixme please - added just to satisfy const-ness of parent fns
     mutable SparseDisjointSet<DomainInt> sds;
     
-    //lock for modifying the std::map pairs for the trie
-    mutable std::mutex genTrieSetsMutex;
-    // whether we have fresh values in the trie (a.k.a that on insert, they should be purged)
-    mutable std::atomic<bool> genT;
+    // read/write lock on orderedStates
+    mutable souffle::shared_mutex statesLock;
 
     // the ordering of states per disjoint set (mapping from representative to trie)
     mutable std::unordered_map<DomainInt, std::shared_ptr<souffle::Trie<1>>> orderedStates;
 
 public:
 
-    BinaryRelation() {
-        genT.store(true);
-    }
-
     BinaryRelation& operator=(const BinaryRelation& old) {
         if (this == &old) return *this;
 
         sds = old.sds;
-        genT.store(old.genT.load());
-        //don't copy mutex or generated Tries
+        orderedStates.clear();
+
         return *this;
     }
 
@@ -71,45 +65,22 @@ public:
      * @return true if the pair is new to the data structure
      */
     bool insert(DomainInt x, DomainInt y, operation_hints z) {
-        //TODO: use the op hints to speed up insertion
-
-        // obv this isn't the solution, but this will teach me 
-        // if (genT) {
-        // DomainInt xp = 0;
-        // DomainInt yp = 0;
-        // {
-
-        std::atomic_thread_fence(std::memory_order_acquire);        
-        if (orderedStates.size() != 0) {
-            std::lock_guard<std::mutex> lock(genTrieSetsMutex); 
-
-            if (orderedStates.size() != 0) {
-                orderedStates.clear();
-            }
-        }
-
-
-            // xp = sds.findNode(x);
-            // yp = sds.findNode(y);
-        // }
-        // if (orderedStates.find(xp) != orderedStates.end()) orderedStates.erase(xp);
-        // if (orderedStates.find(yp) != orderedStates.end()) orderedStates.erase(yp);
-
-        //     
-        //     // if (genT) {
-        //         // genT.store(false);
-        //         //temp erase all fix, this does ruin the lazy eval, in the sense that if we insert, it invalidates ALL tries
-        //         // orderedStates.clear();
-        //         //remove these djSets from the ordering tries, as they have become stale
-        //         orderedStates.erase(sds.findNode(x));
-        //         orderedStates.erase(sds.findNode(y));
-        //     // }
-        // // }
-        {
-            // std::lock_guard<std::mutex> lock(genTrieSetsMutex); 
-            sds.unionNodes(x, y);
-        }
         
+        // TODO: there should be a better way than to check map existence _EVERY_ insert
+
+        // marked as a read operation 
+        // this may seem counter intuitive, but the erase will only modify that bucket
+        // which is fine for souffle's use, as we will not 
+
+        // well, lemme test this thing first..
+
+        // statesLock.lock_shared();
+        orderedStates.erase(x);
+        orderedStates.erase(y);
+        // statesLock.unlock_shared();
+        sds.unionNodes(x, y);
+
+        // TODO: return value        
         return false;
     }
     
@@ -137,12 +108,13 @@ public:
     }
     
     void clear() {
+        statesLock.lock();
         
         // we should be able to clear this prior, as it requires a lock on its own
-        sds.clear();
-        
-        std::lock_guard<std::mutex> guard(genTrieSetsMutex);
+        sds.clear();        
         orderedStates.clear();
+
+        statesLock.unlock();
     }
     
     /**
@@ -150,13 +122,17 @@ public:
      * @return the sum of the number of pairs per disjoint set
      */
     size_t size() const {
+
+        statesLock.lock_shared();
+
         size_t retval = 0;
-//        sds.genMap();
         // sum (n^2)
         for (auto x = sds.beginReps(); x != sds.endReps(); ++x) {
             const size_t sz = sds.sizeOfRepresentativeSet(*x);
             retval +=  sz*sz;
         }
+
+        statesLock.unlock_shared();
         
         return retval;
     }
@@ -170,19 +146,27 @@ private:
     std::shared_ptr<souffle::Trie<1>> generateTrieIfNone(DomainInt val) const {
         
         if (!sds.nodeExists(val)) throw "cannot generate trie for non-existent node";
+
+        statesLock.lock_shared();
         DomainInt rep = sds.readOnlyFindNode(val);
-        std::atomic_thread_fence(std::memory_order_acquire);
 
         //return if already created
-        if (this->orderedStates.find(rep) != this->orderedStates.end()) return this->orderedStates.at(rep);
-        
-        //double checked locking pattern (with aq/rel fences)
-        std::lock_guard<std::mutex> guard(genTrieSetsMutex);
-        // store that we've got fresh values in our map
-        // this->genT.store(true);
-        if (this->orderedStates.find(rep) != this->orderedStates.end()) return this->orderedStates.at(rep);
+        if (this->orderedStates.find(rep) != this->orderedStates.end()) {
+            auto retptr = this->orderedStates.at(rep);
+            statesLock.unlock_shared();
+            return retptr;
+        }
 
-        std::atomic_thread_fence(std::memory_order_release);
+        statesLock.unlock_shared();
+        statesLock.lock();
+
+        //return if already created (other write thread may have been called simultaneously)
+        if (this->orderedStates.find(rep) != this->orderedStates.end()) {
+            auto retptr = this->orderedStates.at(rep);
+            statesLock.unlock();
+            return retptr;
+        }        
+
         this->orderedStates[rep] = std::shared_ptr<souffle::Trie<1>>(new souffle::Trie<1>);
         
         // populate the trie
@@ -190,8 +174,12 @@ private:
             // add the current value of the iterator to the trie
             this->orderedStates.at(rep)->insert(*it);
         }
+
+        auto retptr = this->orderedStates.at(rep);
+
+        statesLock.unlock();
         
-        return this->orderedStates.at(rep);
+        return retptr;
     }
     
 public:
@@ -494,7 +482,7 @@ public:
                     ++x.second;
                     
                     if (x.second ==  x.first->end()) {
-//                        iterList.remove(x);
+                        // iterList.remove(x);
                         // TODO: erase this trie from list - we should use .erase instead of remove(), as we shouldn't iterate over the trie again!
                         //prematurely continue the outerLoop, because we shouldn't consider this value
                         goto breakLoop;
