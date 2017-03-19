@@ -3,46 +3,56 @@
 
     The Universal Permissive License (UPL), Version 1.0
 
-    Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
-    associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
-    Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
-    Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
+    Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of
+   this software,
+    associated documentation and/or data (collectively the "Software"), free of charge and under any and all
+   copyright rights in the
+    Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering
+   either (i) the unmodified
+    Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to
+   deal in both
 
     (a) the Software, and
-    (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
+    (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the
+   Software (each a “Larger
     Work” to which the Software is contributed by such licensors),
 
-    without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
-    distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
+    without restriction, including without limitation the rights to copy, create derivative works of, display,
+   perform, and
+    distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the
+   Software and the
     Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
 
     This license is subject to the following condition:
-    The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
+    The above copyright notice and either this complete permission notice or at a minimum a reference to the
+   UPL must be included in
     all copies or substantial portions of the Software.
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+   LIMITED TO THE WARRANTIES
+    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+   COPYRIGHT HOLDERS BE
+    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+   ARISING FROM, OUT OF OR
     IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #pragma once
 
-#include "UnionFind.h"
 #include "Trie.h"
-#include <utility>
+#include "UnionFind.h"
 #include <unordered_map>
+#include <utility>
 
 namespace souffle {
-template<typename TupleType>
+template <typename TupleType>
 class BinaryRelation {
-    
     typedef typename TupleType::value_type DomainInt;
     enum { arity = TupleType::arity };
-    
+
     // XXX: mutable hack fixme please - added just to satisfy const-ness of parent fns
     mutable SparseDisjointSet<DomainInt> sds;
-    
+
     // read/write lock on orderedStates
     mutable souffle::shared_mutex statesLock;
 
@@ -50,7 +60,6 @@ class BinaryRelation {
     mutable std::unordered_map<DomainInt, std::shared_ptr<souffle::Trie<1>>> orderedStates;
 
 public:
-
     BinaryRelation& operator=(const BinaryRelation& old) {
         if (this == &old) return *this;
 
@@ -78,9 +87,9 @@ public:
      */
     bool insert(DomainInt x, DomainInt y) {
         operation_hints z;
-        return insert(x,y,z);
+        return insert(x, y, z);
     };
-    
+
     /**
      * Insert the two values symbolically as a binary relation
      * @param x node to be added/paired
@@ -89,12 +98,11 @@ public:
      * @return true if the pair is new to the data structure
      */
     bool insert(DomainInt x, DomainInt y, operation_hints z) {
-        
         // TODO: there should be a better way than to check map existence _EVERY_ insert
 
-        // marked as a read operation 
+        // marked as a read operation
         // this may seem counter intuitive, but the erase will only modify that bucket
-        // which is fine for souffle's use, as we will not 
+        // which is fine for souffle's use, as we will not
 
         // well, lemme test this thing first..
 
@@ -104,10 +112,10 @@ public:
         // statesLock.unlock_shared();
         sds.unionNodes(x, y);
 
-        // TODO: return value        
+        // TODO: return value
         return false;
     }
-    
+
     /**
      * inserts all nodes from the other relation into this one
      * @param other the binary relation from which to add nodes from
@@ -121,7 +129,7 @@ public:
             }
         }
     }
-    
+
     /**
      * Returns whether there exists a pair with these two nodes
      * @param x front of pair
@@ -130,51 +138,49 @@ public:
     bool contains(DomainInt x, DomainInt y) const {
         return sds.contains(x, y);
     }
-    
+
     void clear() {
         statesLock.lock();
-        
+
         // we should be able to clear this prior, as it requires a lock on its own
-        sds.clear();        
+        sds.clear();
         orderedStates.clear();
 
         statesLock.unlock();
     }
-    
+
     /**
      * Size of relation
      * @return the sum of the number of pairs per disjoint set
      */
     size_t size() const {
-
         statesLock.lock_shared();
 
         size_t retval = 0;
         // sum (n^2)
         for (auto x = sds.beginReps(); x != sds.endReps(); ++x) {
             const size_t sz = sds.sizeOfRepresentativeSet(*x);
-            retval +=  sz*sz;
+            retval += sz * sz;
         }
 
         statesLock.unlock_shared();
-        
+
         return retval;
     }
+
 private:
-    
     /**
      * Create a trie which contains the disjoint set which contains this value
      * @param val the value whose disjoint set will be constructed into a trie
      * @return a reference to the newly created trie
      */
     std::shared_ptr<souffle::Trie<1>> generateTrieIfNone(DomainInt val) const {
-        
         if (!sds.nodeExists(val)) throw "cannot generate trie for non-existent node";
 
         statesLock.lock_shared();
         DomainInt rep = sds.readOnlyFindNode(val);
 
-        //return if already created
+        // return if already created
         if (this->orderedStates.find(rep) != this->orderedStates.end()) {
             auto retptr = this->orderedStates.at(rep);
             statesLock.unlock_shared();
@@ -184,15 +190,15 @@ private:
         statesLock.unlock_shared();
         statesLock.lock();
 
-        //return if already created (other write thread may have been called simultaneously)
+        // return if already created (other write thread may have been called simultaneously)
         if (this->orderedStates.find(rep) != this->orderedStates.end()) {
             auto retptr = this->orderedStates.at(rep);
             statesLock.unlock();
             return retptr;
-        }        
+        }
 
         this->orderedStates[rep] = std::shared_ptr<souffle::Trie<1>>(new souffle::Trie<1>);
-        
+
         // populate the trie
         for (auto it = sds.begin(rep); it != sds.end(rep); ++it) {
             // add the current value of the iterator to the trie
@@ -202,98 +208,105 @@ private:
         auto retptr = this->orderedStates.at(rep);
 
         statesLock.unlock();
-        
+
         return retptr;
     }
-    
+
 public:
-    
     class iterator : public std::iterator<std::forward_iterator_tag, TupleType> {
-        
         // special tombstone value to notify that this iter represents the end
         bool isEndVal = false;
-        
+
         TupleType value;
         const BinaryRelation* br = nullptr;
-        // iterate over all pairs, iterate over all starting at, iterate over all starting at & ending at, iterate over all in dj set, iterate over all (x,_) s.t. x in djset
-        enum IterType {BASIC, STARTAT, BETWEEN, CLOSURE, FRONTPROD};
+        // iterate over all pairs, iterate over all starting at, iterate over all starting at & ending at,
+        // iterate over all in dj set, iterate over all (x,_) s.t. x in djset
+        enum IterType { BASIC, STARTAT, BETWEEN, CLOSURE, FRONTPROD };
         IterType ityp;
-        
+
         // the tries for each iterator to belong to
         // these are used for iterating through in order
         std::list<std::pair<std::shared_ptr<souffle::Trie<1>>, souffle::Trie<1>::iterator>> iterList;
-        
+
         souffle::Trie<1>::iterator frontIter;
         souffle::Trie<1>::iterator backIter;
         std::shared_ptr<souffle::Trie<1>> cTrie;
-        //cache the values for cTrie->end(), as it is called... a lot.
+        // cache the values for cTrie->end(), as it is called... a lot.
         std::unordered_map<std::shared_ptr<souffle::Trie<1>>, souffle::Trie<1>::iterator> cTrieEnds;
-        
-        //for iterating between two points
+
+        // for iterating between two points
         TupleType endPoint;
-        
-        //for the closure
+
+        // for the closure
         DomainInt rep;
-        //for the front product iter
+        // for the front product iter
         std::list<DomainInt> fronts;
-        
+
     public:
         // ctor for end()
-        iterator(bool truthy, const BinaryRelation* br) : isEndVal(true), br(br) {};
-        
-        //ctor for begin(...)
+        iterator(bool truthy, const BinaryRelation* br) : isEndVal(true), br(br){};
+
+        // ctor for begin(...)
         iterator(const BinaryRelation* br) : br(br) {
             ityp = BASIC;
             initIterators();
             initCheckEnd();
             setValue();
         }
-        
-        //ctor for find(..)
+
+        // ctor for find(..)
         iterator(const BinaryRelation* br, TupleType& start) : br(br) {
             ityp = STARTAT;
 
             if (!br->sds.nodeExists(start[0]) || !br->sds.nodeExists(start[1])) {
                 isEndVal = true;
                 return;
-            }            
+            }
 
             initIterators();
             ffIterators(start);
             initCheckEnd();
             setValue();
         };
-        
+
         // ctor for findBetween(..)
         iterator(const BinaryRelation* br, TupleType& start, TupleType& end) : br(br), endPoint(end) {
             ityp = BETWEEN;
 
-            if (!br->sds.nodeExists(start[0]) || !br->sds.nodeExists(start[1]) ) {
+            if (!br->sds.nodeExists(start[0]) || !br->sds.nodeExists(start[1])) {
                 isEndVal = true;
                 return;
             }
-            
+
             initIterators();
             ffIterators(start);
             initCheckEnd();
             setValue();
         }
-        
+
         // ctor for closure
-        iterator(const BinaryRelation* br, DomainInt rep, std::shared_ptr<souffle::Trie<1>> trie) : br(br), rep(rep) {
+        iterator(const BinaryRelation* br, DomainInt rep, std::shared_ptr<souffle::Trie<1>> trie)
+                : br(br), rep(rep) {
             ityp = CLOSURE;
-            if (!br->sds.nodeExists(rep)) { isEndVal = true; return; }
+            if (!br->sds.nodeExists(rep)) {
+                isEndVal = true;
+                return;
+            }
 
             initIterator(trie);
             setValue();
         }
-        
+
         // ctor for front product aka R(x, _) for all x in fronts
-        iterator(const BinaryRelation* br, std::list<DomainInt> fronts, std::shared_ptr<souffle::Trie<1>> trie) : br(br), fronts(fronts){
-            if (std::any_of(fronts.begin(), fronts.end(), [&](DomainInt n) { return !br->sds.nodeExists(n); })) throw "non-existent nodes provided";
+        iterator(
+                const BinaryRelation* br, std::list<DomainInt> fronts, std::shared_ptr<souffle::Trie<1>> trie)
+                : br(br), fronts(fronts) {
+            if (std::any_of(
+                        fronts.begin(), fronts.end(), [&](DomainInt n) { return !br->sds.nodeExists(n); }))
+                throw "non-existent nodes provided";
             ityp = FRONTPROD;
             initIterator(trie);
-            //fast forward iter to the first requirement
+            // fast forward iter to the first requirement
             auto f = this->fronts.front();
             this->fronts.pop_front();
             while ((*frontIter)[0] != f) ++frontIter;
@@ -307,63 +320,62 @@ public:
         void initCheckEnd() {
             if (frontIter == cTrie->end() && backIter == cTrie->end()) isEndVal = true;
         }
-        
-        //copy ctor
+
+        // copy ctor
         iterator(const iterator& other) = default;
-        //move ctor
+        // move ctor
         iterator(iterator&& other) = default;
-        //assign iter
+        // assign iter
         iterator& operator=(const iterator& other) = default;
-        
+
         bool operator==(const iterator& other) const {
             // return true if we're both end tombstones and of the same br
             if (isEndVal && other.isEndVal) return br == other.br;
-            
+
             return isEndVal == other.isEndVal && value == other.value;
         }
-        
+
         bool operator!=(const iterator& other) const {
             return !((*this) == other);
         }
-        
+
         const TupleType& operator*() const {
             return value;
         }
-        
+
         const TupleType* operator->() const {
             return &value;
         }
-        
+
         iterator& operator++() {
-            
             if (isEndVal) throw "error: incrementing an out of range iterator";
 
             // if we're at the end of our iter, we must jump ahead
             if (backIter == cTrie->end() || ++souffle::Trie<1>::iterator(backIter) == cTrie->end()) {
                 // if we cannot do anything more, we quit prematurely, and mark that we've reached the end
                 if (advanceFrontIter()) return *this;
-                
+
                 // ^^ the above function also sets backIter to point to the correct point
             } else {
                 // we can just step backIter along one
                 ++backIter;
             }
-            
+
             // if its a iterate_until iterator, we should check if the current "value" is > end point
             // if so, mark it as end
-            if ( ityp == BETWEEN && ((*frontIter)[0] > endPoint[0] || ((*frontIter)[0] == endPoint[0] && (*backIter)[0] > endPoint[1]))) {
+            if (ityp == BETWEEN && ((*frontIter)[0] > endPoint[0] || ((*frontIter)[0] == endPoint[0] &&
+                                                                             (*backIter)[0] > endPoint[1]))) {
                 isEndVal = true;
             } else {
                 setValue();
             }
-            
+
             return *this;
         }
-        
-        //TODO: debugging print statements perhaps?
-        
-    private:
 
+        // TODO: debugging print statements perhaps?
+
+    private:
         /**
          * Returns whether iter has reached the end of cTrie
          */
@@ -376,7 +388,6 @@ public:
          * @return whether we've reached end() or not
          */
         bool advanceFrontIter() {
-            
             // if we're at the end of this current Trie
             if (frontIter == cTrie->end() || ++souffle::Trie<1>::iterator(frontIter) == cTrie->end()) {
                 // reaching the end of this trie means that the closure has completed
@@ -384,21 +395,24 @@ public:
                     isEndVal = true;
                     return true;
                 }
-                
+
                 // XXX: if upgrading to c++14, replace with auto type
                 // remove this trie from iterList as it means we've exhausted it
-                iterList.remove_if([&](std::pair<std::shared_ptr<souffle::Trie<1>>, souffle::Trie<1>::iterator> x){ return x.first == cTrie; });
-                
+                iterList.remove_if(
+                        [&](std::pair<std::shared_ptr<souffle::Trie<1>>, souffle::Trie<1>::iterator> x) {
+                            return x.first == cTrie;
+                        });
+
                 // have we exhausted all other tries?
                 if (iterList.empty()) {
                     isEndVal = true;
                     return true;
                 }
-                
-                //find the next smallest Trie
+
+                // find the next smallest Trie
                 bool isStart = true;
                 std::pair<std::shared_ptr<souffle::Trie<1>>, souffle::Trie<1>::iterator>* ref = nullptr;
-                
+
                 for (auto& x : iterList) {
                     if (isStart || (*x.second)[0] < (*frontIter)[0]) {
                         ref = &x;
@@ -410,27 +424,26 @@ public:
                 // as we've made frontIter point to this, we move our iter to the next one in the Trie
                 ++ref->second;
                 backIter = cTrie->begin();
-                
+
             } else {
-            
                 if (ityp == FRONTPROD) {
                     // no more front closure?
                     if (fronts.empty()) {
                         isEndVal = true;
                         return true;
                     }
-                    
+
                     // step frontIter until we hit the next valid fronts
                     auto newFront = fronts.front();
                     fronts.pop_front();
                     do {
                         ++frontIter;
                     } while ((*frontIter)[0] != newFront);
-                    
+
                 } else {
                     // we can just step frontIter along one, because it will not step past the end of a trie
                     ++frontIter;
-                    //step the front reference pointer one along
+                    // step the front reference pointer one along
                     for (auto& x : iterList) {
                         if (x.first == cTrie) {
                             ++x.second;
@@ -438,35 +451,34 @@ public:
                         }
                     }
                 }
-                
+
                 backIter = cTrie->begin();
             }
-            
+
             // we live to yield another time
             return false;
         }
-        
+
         /** yield the current iterator value to update to what the iterator is currently pointing at */
         void setValue() {
             if (!isEndVal) {
                 TupleType tmp;
                 tmp[0] = (*frontIter)[0];
                 tmp[1] = (*backIter)[0];
-                
+
                 value = tmp;
             }
         }
-        
+
         /**
          * Adjust the iterators to point to the beginning of each trie
          */
-        void initIterators() {            
+        void initIterators() {
             bool start = true;
-            
+
             for (auto& x : br->orderedStates) {
-                
                 auto iterBeg = x.second->begin();
-                
+
                 // find the smallest front element of the Tries to set the frontIter to
                 if (start) {
                     frontIter = souffle::Trie<1>::iterator(x.second->begin());
@@ -484,14 +496,13 @@ public:
                 cTrieEnds[x.second] = x.second->end();
             }
         }
-        
+
         /**
          * Single Trie Version of initIterators
          * Only initialise one trie iterator
          * @param trie the trie that we point everything towards
          */
         void initIterator(std::shared_ptr<souffle::Trie<1>> trie) {
-            
             frontIter = trie->begin();
             backIter = trie->begin();
             cTrie = trie;
@@ -503,59 +514,62 @@ public:
          * @param startVal the first pair that the iterators should be fast forwarded to
          */
         void ffIterators(TupleType& startVal) {
-            
             souffle::Trie<1>::iterator smallestFirst;
             bool start = true;
-            
+
             for (auto& x : iterList) {
                 auto checkIter = x.first->begin();
                 auto tmpIter = checkIter;
                 auto endTrieIter = x.first->end();
-                
+
                 // keep moving iterators forward until we hit something valid
-                //this is based off the assumption that all elements in iterList do not begin at .end()
+                // this is based off the assumption that all elements in iterList do not begin at .end()
                 while ((*x.second)[0] < startVal[0]) {
                     ++x.second;
-                    
-                    if (x.second ==  x.first->end()) {
+
+                    if (x.second == x.first->end()) {
                         // iterList.remove(x);
-                        // TODO: erase this trie from list - we should use .erase instead of remove(), as we shouldn't iterate over the trie again!
-                        //prematurely continue the outerLoop, because we shouldn't consider this value
+                        // TODO: erase this trie from list - we should use .erase instead of remove(), as we
+                        // shouldn't iterate over the trie again!
+                        // prematurely continue the outerLoop, because we shouldn't consider this value
                         goto breakLoop;
                     }
                 }
-                
+
                 // check if we have to discard this trie -
-                // this happens when the trie that contains startVal[0], does not have a value larger than startVal[1]
-                // xxx: we are finding the last element inefficiently, should be a faster way to find it faster
+                // this happens when the trie that contains startVal[0], does not have a value larger than
+                // startVal[1]
+                // xxx: we are finding the last element inefficiently, should be a faster way to find it
+                // faster
                 if ((*x.second)[0] == startVal[0]) {
                     while (checkIter != endTrieIter) {
-                        //lag the iterator one behind to capture the last element
+                        // lag the iterator one behind to capture the last element
                         tmpIter = checkIter;
                         ++checkIter;
                     };
                     if ((*tmpIter)[0] < startVal[1]) {
                         ++x.second;
-                        
-                        if (x.second ==  x.first->end()) {
-                            //iterList.erase(x);
-                            // TODO: erase this trie from list - we should use .erase instead of remove(), as we shouldn't iterate over the trie again!
-                            //prematurely continue the outerLoop, because we shouldn't consider this value
+
+                        if (x.second == x.first->end()) {
+                            // iterList.erase(x);
+                            // TODO: erase this trie from list - we should use .erase instead of remove(), as
+                            // we shouldn't iterate over the trie again!
+                            // prematurely continue the outerLoop, because we shouldn't consider this value
                             goto breakLoop;
                         }
                     }
                 }
 
-                //update the frontIter to point to the front most trie now
-                if ( start || ((*x.second) < *smallestFirst)) {
+                // update the frontIter to point to the front most trie now
+                if (start || ((*x.second) < *smallestFirst)) {
                     smallestFirst = souffle::Trie<1>::iterator(x.second);
                     cTrie = x.first;
                     start = false;
                 }
-                
-                breakLoop:;
+
+            breakLoop:;
             }
-            
+
             frontIter = smallestFirst;
             backIter = cTrie->begin();
             // fast forward the back iterator to point to its starting element
@@ -564,9 +578,8 @@ public:
             }
         }
     };
-    
+
 public:
-    
     /**
      * iterator pointing to the beginning of the tuples, with no restrictions
      * @return the iterator that corresponds to the beginning of the binary relation
@@ -576,10 +589,10 @@ public:
         for (auto rep = sds.beginReps(); rep != sds.endReps(); ++rep) {
             generateTrieIfNone(*rep);
         }
-        
+
         return iterator(this);
     }
-    
+
     /**
      * iterator pointing to the end of the tuples
      * @return the iterator which represents the end of the binary rel
@@ -587,7 +600,7 @@ public:
     iterator end() const {
         return iterator(true, this);
     }
-    
+
     /**
      * Begin an iterator at the requested point
      * @param start where the returned iterator should start from
@@ -596,45 +609,47 @@ public:
     iterator find(TupleType& start) const {
         // generate tries for all disjoint sets
         // std::for_each(sds.beginReps(), sds.endReps(), [&](DomainInt r) { generateTrieIfNone(r); });
-        
+
         for (auto rep = sds.beginReps(); rep != sds.endReps(); ++rep) {
             generateTrieIfNone(*rep);
         }
-        
+
         return iterator(this, start);
     }
-    
+
     /**
      * Begin an iterator at/after the requested point, and mark it to finish at/before the specified one
-     * @param start the requested beginning to iterate from 
+     * @param start the requested beginning to iterate from
      * @param end the requested end to iterate until
      * @return the resulting iterator that satisfies this
      */
     iterator findBetween(TupleType& start, TupleType& end) const {
         // generate tries for all disjoint sets
         std::for_each(sds.beginReps(), sds.endReps(), [&](DomainInt r) { generateTrieIfNone(r); });
-        
+
         return iterator(this, start, end);
     }
-    
+
     /**
      * Begin an iterator which generates all pairs (X, Y) s.t. X in start & Y in DjSet(X)
      *      If that wasn't clear, so let's say there's an element e in start
-     *      The iterator will generate the pairs (e, a), (e, b), ... (e, n) - assuming the elements a,b...n are in e's disjoint set
+     *      The iterator will generate the pairs (e, a), (e, b), ... (e, n) - assuming the elements a,b...n
+     * are in e's disjoint set
      * Requires that all elements in start are within the same disjoint set (and in order)
-     *      Changing this requires extensive changes to the underlying iterator(BinaryRelation*, std::vector<>) ctor
+     *      Changing this requires extensive changes to the underlying iterator(BinaryRelation*,
+     * std::vector<>) ctor
      * @param start a list of front elements that must exist at the front pairing generated
      * @return the resulting iterator that satisfies this
      */
     iterator frontProduct(std::list<DomainInt> start) const {
-        
         if (start.size() == 0) throw "invalid sized vector for front product";
-        
+
         auto rep = sds.readOnlyFindNode(start.front());
-        if (std::any_of(start.begin(), start.end(), [&](DomainInt i) { return sds.readOnlyFindNode(i) != rep; })) {
+        if (std::any_of(start.begin(), start.end(),
+                    [&](DomainInt i) { return sds.readOnlyFindNode(i) != rep; })) {
             throw "elements not within same disjoint set";
         }
-        
+
         if (!std::is_sorted(start.begin(), start.end())) {
             for (auto x : start) {
                 std::cout << x << '\t';
@@ -645,74 +660,72 @@ public:
         }
         // the trie that contains every value in start
         auto trie = generateTrieIfNone(rep);
-        
+
         return iterator(this, start, trie);
     }
-    
+
     /**
      * Begin an iterator over all pairs within a single disjoint set
      * @param rep the representative of (or element within) a disjoint set of which to generate all pairs
      * @return an iterator that will generate all pairs within the disjoint set
      */
     iterator closure(DomainInt rep) const {
-        //the trie that contains this rep
+        // the trie that contains this rep
         auto trie = generateTrieIfNone(rep);
-        
+
         return iterator(this, rep, trie);
     }
-    
+
     /**
      * Generate an approximate number of iterators for parallel iteration
-     * The iterators returned are not necessarily equal in size, but in practise are approximately similarly sized
+     * The iterators returned are not necessarily equal in size, but in practise are approximately similarly
+     * sized
      * Depending on the structure of the data, there can be more or less partitions returned than requested.
      * @param chunks the number of requested partitions
      * @return a list of the iterators as ranges
      */
     std::vector<souffle::range<iterator>> partition(size_t chunks) const {
         std::vector<souffle::range<iterator>> ret;
-        
+
         for (auto rep = sds.beginReps(); rep != sds.endReps(); ++rep) {
             generateTrieIfNone(*rep);
         }
         // num pairs
         const size_t sz = this->size();
-        
+
         // 0 or 1 chunks
-        if (chunks <= 1 || sz == 0) return { souffle::make_range(begin(), end()) };
-        
+        if (chunks <= 1 || sz == 0) return {souffle::make_range(begin(), end())};
+
         // how many pairs can we fit within each iterator? (integer ceil division)
-        const size_t chunkSize = (sz + (chunks-1)) / chunks;
-        
+        const size_t chunkSize = (sz + (chunks - 1)) / chunks;
+
         for (auto djSet = sds.beginReps(); djSet != sds.endReps(); ++djSet) {
             const DomainInt rep = *djSet;
-            
+
             const size_t djSetSize = sds.sizeOfRepresentativeSet(rep);
             size_t cSize = 0;
-            
+
             // will the entire djSet's pairs fit within a single iterator?
-            if (djSetSize*djSetSize <= chunkSize) {
-                
+            if (djSetSize * djSetSize <= chunkSize) {
                 // fit all pairs within this disjoint set into a single iterator
                 ret.push_back(souffle::make_range(closure(rep), end()));
-    
+
             } else {
                 // add as many of this djSet closures into each iterator
                 std::list<DomainInt> fronts;
-                
+
                 for (auto el = sds.begin(rep); el != sds.end(rep); ++el) {
-                    
                     fronts.push_back(*el);
                     cSize += djSetSize;
-                    
+
                     // iterator is full now? push this iterator set onto the return val
                     if (cSize >= chunkSize) {
-
                         fronts.sort();
 
                         ret.push_back(souffle::make_range(frontProduct(fronts), end()));
-                        
+
                         fronts.clear();
-                        
+
                         cSize = 0;
                     }
                 }

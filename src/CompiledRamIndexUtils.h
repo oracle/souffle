@@ -18,8 +18,8 @@
 #pragma once
 
 #include "BTree.h"
-#include "CompiledRamTuple.h"
 #include "BinaryRelation.h"
+#include "CompiledRamTuple.h"
 #include "IterUtils.h"
 #include "ParallelUtils.h"
 #include "SymbolTable.h"
@@ -343,7 +343,7 @@ template <unsigned i, unsigned arity, typename Index>
 struct extend_to_full_index_aux {
     typedef typename extend_to_full_index_aux<i + 1, arity,
             typename std::conditional<(Index::template covers<i>::value), Index,
-                                                      typename extend<Index, i>::type>::type>::type type;
+                    typename extend<Index, i>::type>::type>::type type;
 };
 
 template <unsigned arity, typename Index>
@@ -739,10 +739,11 @@ public:
         index.clear();
     }
 
-    /** 
-     * Return a list of iterators, s.t. we can process in parallel. 
+    /**
+     * Return a list of iterators, s.t. we can process in parallel.
      * "an approximation of the number of sub-ranges to be included in the resulting partition."
-     * "The numbers there [400] are not very important, as long as they are large enough (~10x the number of maximum expected cores) 
+     * "The numbers there [400] are not very important, as long as they are large enough (~10x the number of
+     * maximum expected cores)
      * and not too large, such that processing a fragment lasts less than e.g. 1ms."
      * @param np the number of iterators to attempt to return, which represents slices of the data structure
      * @return a vector of these iterator ranges
@@ -952,24 +953,23 @@ private:
  *
  * @tparam Index .. the index to be internally utilized.
  */
-template<typename Index>
+template <typename Index>
 class DisjointSetIndex {
-
-    typedef typename ram::Tuple<RamDomain,2> tuple_type;
+    typedef typename ram::Tuple<RamDomain, 2> tuple_type;
 
     typedef BinaryRelation<tuple_type> data_type;
 
     data_type data;
 
 public:
-
     typedef typename data_type::operation_hints operation_hints;
 
     bool empty() const {
         return data.size() == 0;
     }
 
-    /* returns the number of pairs (NOT the number of elements in the domain, but the number of possibly enumerated pairs!) */
+    /* returns the number of pairs (NOT the number of elements in the domain, but the number of possibly
+     * enumerated pairs!) */
     std::size_t size() const {
         return data.size();
     }
@@ -982,11 +982,12 @@ public:
      */
     bool contains(const tuple_type& tuple, operation_hints& ctxt) const {
         // ctxt?
-        // TODO pnappa: optimisations would include ctxt for a more knowledgable search? doesn't really make much sense with djSet
+        // TODO pnappa: optimisations would include ctxt for a more knowledgable search? doesn't really make
+        // much sense with djSet
         return data.contains(tuple[0], tuple[1]);
     }
 
-    /** 
+    /**
      * Inserts the pair into the equivalence relation
      * @param tuple the tuple that contains the value to insert into the data structure
      * @param ctxt a context hint which when provided, provides hints to the insertion process
@@ -998,7 +999,7 @@ public:
     }
 
     /**
-     * Inserts all pairs from the other disjoint set into this one 
+     * Inserts all pairs from the other disjoint set into this one
      * @param other the supplied disjoint set to copy pairs from
      */
     void insertAll(const DisjointSetIndex& other) {
@@ -1014,8 +1015,7 @@ public:
     //                Iterators
     // ---------------------------------------------
 
-    class iterator : public std::iterator<std::forward_iterator_tag,tuple_type> {
-
+    class iterator : public std::iterator<std::forward_iterator_tag, tuple_type> {
         typedef typename data_type::iterator nested_iterator;
 
         // the wrapped iterator
@@ -1025,11 +1025,10 @@ public:
         tuple_type value;
 
     public:
-
         // default constructor -- creating an end-iterator
-        iterator() {};
+        iterator(){};
 
-        iterator(const nested_iterator& iter) : nested(iter), value(orderOut(*iter)) {};
+        iterator(const nested_iterator& iter) : nested(iter), value(orderOut(*iter)){};
 
         // a copy constructor
         iterator(const iterator& other) = default;
@@ -1064,7 +1063,6 @@ public:
             value = orderOut(*nested);
             return *this;
         }
-
     };
 
     /** non-const due to binrel find fns */
@@ -1099,16 +1097,17 @@ public:
      * Find the requested tuple in the data structure, and generate an iterator that begins at that point
      * @param key the tuple to search for
      * @param ctxt the context hint to provide help in finding this position
-     * @return an iterator that begins at that position.. and I'm pretty sure if the tuple does not exist, then an iterator == this->end()
+     * @return an iterator that begins at that position.. and I'm pretty sure if the tuple does not exist,
+     * then an iterator == this->end()
      */
     iterator find(const tuple_type& key, operation_hints& ctxt) const {
-        //TODO: utilise the ctxt for this
+        // TODO: utilise the ctxt for this
         return iterator(data.find(orderIn(key)));
     }
 
-    template<typename SubIndex>
+    template <typename SubIndex>
     range<iterator> equalRange(const tuple_type& tuple, operation_hints& ctxt) const {
-        //TODO: this is invalid
+        // TODO: this is invalid
         // static_assert(is_compatible_with<SubIndex,Index>::value, "Invalid sub-index query!");
         // auto r = data.template getBoundaries<SubIndex::size>(orderIn(tuple), ctxt);
         std::cout << "poor call\n";
@@ -1122,7 +1121,6 @@ public:
     }
 
 private:
-
     static tuple_type orderIn(const tuple_type& tuple) {
         tuple_type res;
         order<Index>().order_in(res, tuple);
@@ -1172,9 +1170,9 @@ struct index_factory<T, Index, true> {
     // pick direct or indirect indexing based on size of tuple
     typedef typename std::conditional<sizeof(T) <= 2 * sizeof(void*),  // if tuple is not bigger than a bound
             typename direct_index_factory<T, Index,
-                                              true>::type,  // use a direct index
+                    true>::type,  // use a direct index
             IndirectIndex<T,
-                                              Index>  // otherwise use an indirect, pointer based index
+                    Index>  // otherwise use an indirect, pointer based index
             >::type type;
 };
 

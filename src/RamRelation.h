@@ -23,9 +23,9 @@
 
 #include <pthread.h>
 
+#include <list>
 #include <map>
 #include <string>
-#include <list>
 
 #include "IODirectives.h"
 #include "RamIndex.h"
@@ -239,7 +239,7 @@ public:
         allocatedBlocks.swap(other.allocatedBlocks);
     }
 
-    ~RamRelation() { 
+    ~RamRelation() {
         for (auto x : allocatedBlocks) delete[] x;
     }
 
@@ -286,7 +286,7 @@ public:
     }
 
     /** only insert exactly one tuple, maintaining order **/
-    void quickInsert(const RamDomain *tuple) {
+    void quickInsert(const RamDomain* tuple) {
         // check for null-arity
         auto arity = getArity();
         if (arity == 0) {
@@ -323,25 +323,25 @@ public:
     }
 
     /** insert a new tuple to table, possibly more than one tuple depending on relation type */
-    void insert(const RamDomain *tuple) {
-
+    void insert(const RamDomain* tuple) {
         // TODO: (pnappa) an eqrel check here is all that appears to be needed for implicit additions
         if (id.isEqRel()) {
             // TODO: future optimisation would require this as a member datatype
             // brave soul required to pass this quest
             // // specialisation for eqrel defs
             // std::unique_ptr<binaryrelation> eqreltuples;
-            // in addition, it requires insert functions to insert into that, and functions 
+            // in addition, it requires insert functions to insert into that, and functions
             // which allow reading of stored values must be changed to accommodate.
             // e.g. insert =>  eqRelTuples->insert(tuple[0], tuple[1]);
 
-            // for now, we just have a naive & extremely slow version, otherwise known as a O(n^2) insertion ): 
+            // for now, we just have a naive & extremely slow version, otherwise known as a O(n^2) insertion
+            // ):
 
             // store all values that will be implicitly relevant to the two that we will insert
             std::list<const RamDomain*> relevantStored;
             for (const RamDomain* vals : *this) {
-                if (vals[0] == tuple[0] || vals[0] == tuple[1] || 
-                    vals[1] == tuple[0] || vals[1] == tuple[1]) {
+                if (vals[0] == tuple[0] || vals[0] == tuple[1] || vals[1] == tuple[0] ||
+                        vals[1] == tuple[1]) {
                     relevantStored.push_back(vals);
                 }
             }
@@ -350,7 +350,7 @@ public:
             std::list<RamDomain*> dtorLooks;
 
             for (const auto vals : relevantStored) {
-                //insert all possible pairings between these and existing elements
+                // insert all possible pairings between these and existing elements
 
                 // ew, temp code
                 dtorLooks.push_back(new RamDomain[2]);

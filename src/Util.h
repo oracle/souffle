@@ -607,8 +607,8 @@ ostream& operator<<(ostream& out, const set<K, C, A>& s) {
 template <typename K, typename T, typename C, typename A>
 ostream& operator<<(ostream& out, const map<K, T, C, A>& m) {
     return out << "{" << souffle::join(m, ",", [](ostream& out, const pair<K, T>& cur) {
-               out << cur.first << "->" << cur.second;
-           }) << "}";
+        out << cur.first << "->" << cur.second;
+    }) << "}";
 }
 
 }  // end namespace std
@@ -1034,25 +1034,25 @@ inline std::string stringify(const std::string& input) {
     return str;
 }
 
-
-/* begin reference implementation http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2406.html#shared_mutex */
+/* begin reference implementation
+ * http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2406.html#shared_mutex */
 // This simply exists as we do not compile using C++17. If we change standard >=C++17,
 // souffle::shared_mutex should be exchanged with std::shared_mutex
 // Slight cosmetic adjustments have been made
 class shared_mutex {
-    std::mutex    mut_;
+    std::mutex mut_;
     std::condition_variable gate1_;
     std::condition_variable gate2_;
     unsigned state_;
 
-    static const unsigned write_entered_ = 1U << (sizeof(unsigned)*CHAR_BIT - 1);
+    static const unsigned write_entered_ = 1U << (sizeof(unsigned) * CHAR_BIT - 1);
     static const unsigned n_readers_ = ~write_entered_;
 
 public:
     shared_mutex() : state_(0) {}
 
     // Exclusive ownership
-    void lock(){
+    void lock() {
         std::unique_lock<std::mutex> lk(mut_);
         while (state_ & write_entered_) gate1_.wait(lk);
         state_ |= write_entered_;
@@ -1065,7 +1065,7 @@ public:
             state_ = write_entered_;
             return true;
         }
-        return false;    
+        return false;
     }
 
     void unlock() {
@@ -1113,6 +1113,5 @@ public:
 };
 
 /* end http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2406.html#shared_mutex */
-
 
 }  // end namespace souffle

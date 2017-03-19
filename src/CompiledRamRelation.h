@@ -156,15 +156,14 @@ struct Brie {
  * A setup utilizing disjoint sets for binary relations exclusively
  */
 struct EqRel {
-    
-    template<typename Tuple, typename Index, bool>
+    template <typename Tuple, typename Index, bool>
     struct eqrel_index_factory {
         using type = typename index_utils::DisjointSetIndex<Index>;
     };
-    
+
     // determines the relation implementation for a given use case
-    template<unsigned arity, typename ... Indices>
-    using relation = detail::SingleIndexTypeRelation<eqrel_index_factory,arity,Indices...>;
+    template <unsigned arity, typename... Indices>
+    using relation = detail::SingleIndexTypeRelation<eqrel_index_factory, arity, Indices...>;
 };
 
 namespace detail {
