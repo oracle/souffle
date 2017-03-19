@@ -1035,7 +1035,7 @@ inline std::string stringify(const std::string& input) {
 }
 
 
-/* begin http://stackoverflow.com/a/28140784 */
+/* begin reference implementation http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2406.html#shared_mutex */
 // This simply exists as we do not compile using C++17. If we change standard >=C++17,
 // souffle::shared_mutex should be exchanged with std::shared_mutex
 // Slight cosmetic adjustments have been made
@@ -1112,7 +1112,7 @@ public:
     }
 };
 
-/* end http://stackoverflow.com/a/28140784 */
+/* end http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2406.html#shared_mutex */
 
 
 }  // end namespace souffle
