@@ -202,6 +202,8 @@ public:
         souffle::Trie<1>::iterator frontIter;
         souffle::Trie<1>::iterator backIter;
         std::shared_ptr<souffle::Trie<1>> cTrie;
+        //cache the values for cTrie->end(), as it is called... a lot.
+        std::unordered_map<std::shared_ptr<souffle::Trie<1>>, souffle::Trie<1>::iterator> cTrieEnds;
         
         //for iterating between two points
         TupleType endPoint;
@@ -337,6 +339,14 @@ public:
         //TODO: debugging print statements perhaps?
         
     private:
+
+        /**
+         * Returns whether iter has reached the end of cTrie
+         */
+        bool isTrieEnd(souffle::Trie<1>::iterator iter) {
+            return iter == cTrieEnds[cTrie];
+        }
+
         /**
          * Helper function to make the frontIter jump to the next valid Trie & update the current one
          * @return whether we've reached end() or not
@@ -446,6 +456,8 @@ public:
                     cTrie = x.second;
                 }
                 iterList.push_back(std::make_pair(x.second, iterBeg));
+                // add to hash map
+                cTrieEnds[x.second] = x.second->end();
             }
         }
         

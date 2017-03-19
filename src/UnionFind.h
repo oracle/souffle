@@ -16,6 +16,22 @@
 #include "BlockList.h"
 #include "Util.h"
 
+//  IMPORTANT:
+//  * [0] The TBB data structures actually exist in the BlockList, however, optimisations can be made here
+//  *      as we must guarantee size on disjointset->insert
+//  * [1] read locks for non-TBB data structures are necessary, as std::vector.push_back
+//  *      can break concurrent reads. This is not the case for tbb:vec.push_back
+//  * [2] Read locks are _very_ expensive operations, even when there is no writer, or if we confine to just one
+//  *      This is due to unique_mutex being necessary for a c++11 implementation for the condition var
+ 
+
+// #if defined(TBB_USE_DEBUG) || defined(TBB_USE_RELEASE)
+//     #ifndef TBB
+//     #define TBB
+//     #endif
+//     // #include <tbb/concurrent_vector.h>
+// #endif
+
 namespace souffle {
 
 typedef uint32_t rank_t;
@@ -42,12 +58,13 @@ class DisjointSet {
     std::atomic<bool> mapStale;
     
     /* a map which keeps representatives and their nodes in the disjoint set */
+    mutable souffle::shared_mutex mapLock;
     std::unordered_map<parent_t, BlockList<parent_t>> repToSubords;
 
 public:
     DisjointSet() : isStale(true), mapStale(true) {};
 
-    // WARNING! not threadsafe, but probably is fine without, not dangerous enough to warrant possible deadlock scenario
+    // Not a thread safe operation
     DisjointSet& operator=(const DisjointSet& old) {
 
         if (this == &old) return *this;
@@ -62,9 +79,16 @@ public:
     }
 
     inline size_t size() const { 
-        nodeLock.lock_shared();
+        // // refer to [1]
+        // #ifndef TBB
+        // nodeLock.lock_shared();
+        // #endif
+
         auto sz = a_blocks.size();
-        nodeLock.unlock_shared();
+
+        // #ifndef TBB
+        // nodeLock.unlock_shared();
+        // #endif
         return sz; 
     };
 
@@ -77,9 +101,18 @@ public:
      * @return the parent block of the specified node
      */
     inline std::atomic<block_t>& get(parent_t node) const {
-        nodeLock.lock_shared();
+        
+        // // refer to [1]
+        // #ifndef TBB
+        // nodeLock.lock_shared();
+        // #endif
+        
         auto& ret = a_blocks.get(node);
-        nodeLock.unlock_shared();
+
+        // #ifndef TBB
+        // nodeLock.unlock_shared();
+        // #endif
+        
         return ret;
     };
 
@@ -197,11 +230,6 @@ public:
         /* iterator over all representatives */
         iterator(DisjointSet* ds, bool isRepIter) : ds(ds), repIter(ds->repToSubords.begin()), cType(iterReps) {};
         iterator(DisjointSet* ds, bool isRepIter, bool) : ds(ds), repIter(ds->repToSubords.end()), cType(iterReps) {};
-//        /* iterator over all nodes */
-//        iterator(DisjointSet* ds) : repIter(ds->repToSubords.begin()) {
-//            // TODO do we need this?
-//            // create an iterator to point to the current member children
-//        }
         
         iterator& operator++(int) {
             advance();
@@ -261,7 +289,12 @@ public:
      * Invalidates all iterators
      */
     void clear() {
+
+        // Warning! Not threadsafe..
+
+        // #ifndef TBB
         nodeLock.lock();
+        // #endif
 
         isStale = true;
         mapStale = true;
@@ -269,7 +302,9 @@ public:
         repToSubords.clear();
         a_blocks.clear();
 
+        // #ifndef TBB
         nodeLock.unlock();
+        // #endif
     }
     
     /**
@@ -353,6 +388,9 @@ public:
         
         a_blocks.add(x);
 
+        isStale.store(true);
+        mapStale.store(true);
+
         nodeLock.unlock();
 
         return x;
@@ -365,19 +403,24 @@ public:
      */
     void genMap() {
         if (mapStale) {
+
+            mapLock.lock();
+
+            if (!mapStale) {
+                mapLock.unlock();
+                return;
+            }
             
             findAll();
             
             mapStale.store(false);
-            // mapLock.lock();
-
             repToSubords.clear();
-            
             
             for (parent_t i = 0; i < size(); ++i) {
                 repToSubords[b2p(this->get(i))].add(i);
             }
-            // mapLock.unlock();
+
+            mapLock.unlock();
         }
     }
 
@@ -385,9 +428,9 @@ public:
         //we may not have an up to date map underneath
         genMap();
 
-        // mapLock.lock_shared();
+        mapLock.lock_shared();
         auto sz = repToSubords.at(rep).size();
-        // mapLock.unlock_shared();
+        mapLock.unlock_shared();
         
         return sz;
     };

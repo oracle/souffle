@@ -485,7 +485,9 @@ namespace test {
         BinRel br;
         std::vector<std::thread> starts;
         // number of inserts per thread
-        int N = 1000;
+        // int N = 1000;
+        int N = 1000000;
+
 
         starts.push_back( std::thread([&](){
             for (RamDomain i = 0; i < N*4; i+=4) br.insert(i, i+4);
@@ -507,12 +509,12 @@ namespace test {
 
         EXPECT_EQ((size_t)(N+1)*(N+1)*4, br.size());
 
-        size_t count = 0;
-        for (auto x : br) {
-            ++count;
-        }
+        // size_t count = 0;
+        // for (auto x : br) {
+        //     ++count;
+        // }
 
-        EXPECT_EQ(count, br.size());
+        // EXPECT_EQ(count, br.size());
     }
 
 #ifdef _OPENMP

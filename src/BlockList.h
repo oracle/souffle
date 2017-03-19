@@ -8,7 +8,186 @@
 #include <exception>
 #include <iostream>
 
+
+// #if defined(TBB_USE_DEBUG) || defined(TBB_USE_RELEASE)
+//     #ifndef TBB
+//     #define TBB
+//     #endif
+//     #include <tbb/concurrent_vector.h>
+// #endif
+
+
+
 namespace souffle {
+
+/**
+ * A concurrent list data structure, which is implemented through a chunked linked-list.
+ * On their own, get/push_back are threadsafe, however clearing/destructing is undefined 
+ * behaviour if get/push_backs are in progress.
+ */
+template<class T>
+class concurrent_list {
+
+    // how large each cv_data->m_data array is
+    const size_t chunk_size = 1000;
+
+    struct cv_data {
+        // how many elements are currently in m_data
+        std::atomic<size_t> m_size;
+        T* m_data;     
+        // ptr to the next cv_data
+        std::atomic<cv_data*> next;   
+    };
+
+    // number of elements in total
+    std::atomic<size_t> container_size;
+
+    // only necessary for those that change vectors
+    mutable std::mutex writeMutex;
+
+    std::atomic<cv_data*> cData;
+
+public:
+    concurrent_list() {
+        cv_data* curr = new cv_data;
+        curr->m_size = 0;
+        curr->m_data = new T[chunk_size];
+        // let's just fill with empty for test
+        // for (int  i = 0; i < chunk_size; ++i) curr->m_data[i] = nullptr;
+        curr->next = nullptr;
+        cData = curr;
+        container_size = 0;
+    }
+
+    concurrent_list(concurrent_list&& other) : concurrent_list() { 
+        std::unique_lock<std::mutex> lk1(other.writeMutex);
+        std::unique_lock<std::mutex> lk2(writeMutex);
+
+        size_t tmp = this->container_size.load();
+        this->container_size.store(other.container_size);
+        other.container_size.store(tmp);
+
+        cv_data* tmpPtr = this->cData.load();
+        this->cData.store(other.cData);
+        other.cData.store(tmpPtr);
+
+        // std::swap(old.container_size, container_size);
+        // std::swap(old.cData, cData);
+    }
+
+    concurrent_list& operator=(concurrent_list other) {
+
+        size_t tmp = this->container_size.load();
+        this->container_size.store(other.container_size);
+        other.container_size.store(tmp);
+
+        cv_data* tmpPtr = this->cData.load();
+        this->cData.store(other.cData);
+        other.cData.store(tmpPtr);
+
+        return *this;
+    }    
+
+
+
+    /* it goes without saying this is not threadsafe */
+    ~concurrent_list() {
+        // lock just to let writes finish
+        std::unique_lock<std::mutex> lk(writeMutex);
+
+        auto curr = cData.load();
+        while (curr != nullptr) {
+            cv_data* tmpnext = curr->next;
+            delete[] curr->m_data;
+            delete curr;
+
+            curr = tmpnext;
+        }
+    }
+
+    /** 
+     * the concept of size() in a threaded environment is peculiar
+     * However, it is guaranteed that the size returned is a valid index+1
+     * if the data structure has not been concurrently reduced.
+     */
+    size_t size() const {
+        return container_size;
+    }
+
+    /* thread safe for many writers, although in practise, it is sequential through mutex */
+    void push_back(T val) {
+        std::unique_lock<std::mutex> lk(writeMutex);
+        
+        cv_data* curr = cData.load();
+        // fast forward curr until non-null
+        while (curr->next.load() != nullptr) curr = curr->next.load();
+
+        cv_data* shadow = nullptr;
+        cv_data* front = curr;
+
+        // do we need to expand?
+        if (curr->m_size == chunk_size) {
+            shadow = new cv_data;
+            shadow->m_size = 0;
+            shadow->m_data = new T[chunk_size];
+
+            // let's just fill with empty for test
+            // for (int  i = 0; i < chunk_size; ++i) shadow->m_data[i] = nullptr;
+
+            shadow->next = nullptr;
+
+            front = shadow;
+        }
+
+        front->m_data[front->m_size] = val;
+        front->m_size += 1;
+        if (shadow != nullptr) curr->next = shadow;
+        container_size += 1; 
+    }
+
+    /* thread safe for many readers */
+    T& at(size_t index) const {
+        return this->operator[](index);
+    }
+
+    /* thread safe, if you treat T& as */
+    T& operator[](size_t index) const {
+        if (index >= container_size) throw "invalid index";
+
+        auto curr = cData.load();
+        while (index >= chunk_size) {
+            curr = curr->next.load();
+            index -= chunk_size;
+        }
+
+        return curr->m_data[index];    
+    }
+
+    /* this is not thread safe if there are reads during clear! */
+    void clear() {
+        std::unique_lock<std::mutex> lk(writeMutex);
+
+        cv_data* curr = cData;
+        while (curr != nullptr) {
+            cv_data* tmpnext = curr->next;
+            delete[] curr->m_data;
+            delete curr;
+
+            curr = tmpnext;
+        }
+
+        curr = new cv_data;
+        curr->m_size = 0;
+        curr->m_data = new T[chunk_size];
+        // let's just fill with empty for test
+        // for (int  i = 0; i < chunk_size; ++i) curr->m_data[i] = nullptr;
+        curr->next = nullptr;
+
+        container_size = 0;
+
+        cData = curr;
+    }
+};
 
 //number of elements in each array of the vector
 static constexpr uint8_t BLOCKBITS = 10u;
@@ -19,18 +198,26 @@ typedef uint64_t block_t;
 /**
  * A class that is designed to mimic std::list, but with better destructor speed
  * It achieves this by allocating comparatively large chunks of memory as it needs
+ * This is not thread safe, except, when there is guarantee of at most one writer AND
+ *      the TBB data structure is in use.
+ * 
  */
 template<class T>
 class BlockList {
 
     /** stores T in BLOCKSIZE sized arrays */
-    std::vector<T*> listData;
+    // #ifdef TBB
+    // tbb::concurrent_vector<T*> listData
+    // #else
+    // std::vector<T*> listData;
+    souffle::concurrent_list<T*> listData;
+    // #endif
+
     mutable size_t m_size = 0;
 
 public:
-    BlockList() : listData() {
 
-    }
+    BlockList() : listData() {}
 
     /** copy constructor */
     BlockList(const BlockList& other){
@@ -64,7 +251,8 @@ public:
 
     ~BlockList() {
         for (size_t i = 0 ; i < listData.size(); ++i) {
-            delete[] listData.at(i);
+            T* r = listData.at(i);
+            delete[] r;
         }
     }
 
