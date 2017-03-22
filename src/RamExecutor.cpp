@@ -717,6 +717,7 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
         }
 
         bool visitLoad(const RamLoad& load) override {
+#ifdef USE_JAVAI
             if (load.getRelation().isData()) {
                 // Load from mem
                 std::string name = load.getRelation().getName();
@@ -734,7 +735,7 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
                                    .load(pd->data, env.getSymbolTable(), load.getRelation().getSymbolMask());
                 return !err;
             }
-
+#endif
             try {
                 RamRelation& relation = env.getRelation(load.getRelation());
                 std::unique_ptr<ReadStream> reader =
@@ -749,10 +750,11 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
         }
 
         bool visitStore(const RamStore& store) override {
+#ifdef USE_JAVAI
             if (store.getRelation().isData()) {
                 return true;
             }
-
+#endif
             auto& rel = env.getRelation(store.getRelation());
             for (IODirectives ioDirectives : store.getRelation().getOutputDirectives()) {
                 try {
