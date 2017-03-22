@@ -337,7 +337,7 @@ public:
             // ):
 
             // store all values that will be implicitly relevant to the two that we will insert
-            std::list<const RamDomain*> relevantStored;
+            std::vector<const RamDomain*> relevantStored;
             for (const RamDomain* vals : *this) {
                 if (vals[0] == tuple[0] || vals[0] == tuple[1] || vals[1] == tuple[0] ||
                         vals[1] == tuple[1]) {
