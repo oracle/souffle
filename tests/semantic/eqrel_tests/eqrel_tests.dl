@@ -81,7 +81,7 @@ gen2(1).
 gen2(x+1) :- gen2(x), !lim(x).
 
 .decl lim(x: number)
-lim(100).
+lim(10).
 
 .decl transform_eqrel(x : number, y : number) eqrel
 .output transform_eqrel()

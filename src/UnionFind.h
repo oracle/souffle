@@ -39,6 +39,9 @@
 
 #pragma once
 
+#include "BlockList.h"
+#include "Util.h"
+
 #include <atomic>
 #include <exception>
 #include <iterator>
@@ -47,9 +50,6 @@
 #include <mutex>
 #include <unordered_map>
 #include <vector>
-
-#include "BlockList.h"
-#include "Util.h"
 
 namespace souffle {
 

@@ -50,7 +50,10 @@ class BinaryRelation {
     typedef typename TupleType::value_type DomainInt;
     enum { arity = TupleType::arity };
 
-    // XXX: mutable hack fixme please - added just to satisfy const-ness of parent fns
+    // Although breaking styleguide - this is marked mutable in order to ensure const-ness fits the other data
+    // types
+    // It is necessary as "read-only" operations such as iterator generation collapses the disjoint set tree
+    // implicitly (causing writes)
     mutable SparseDisjointSet<DomainInt> sds;
 
     // read/write lock on orderedStates
@@ -98,22 +101,20 @@ public:
      * @return true if the pair is new to the data structure
      */
     bool insert(DomainInt x, DomainInt y, operation_hints z) {
-        // TODO: there should be a better way than to check map existence _EVERY_ insert
-
-        // marked as a read operation
-        // this may seem counter intuitive, but the erase will only modify that bucket
-        // which is fine for souffle's use, as we will not
-
-        // well, lemme test this thing first..
-
+        // uncomment if race conditions ever present themselves
+        // this should only be the case if the tries are generated during insertion
+        // and this is not normal souffle behaviour
         // statesLock.lock_shared();
+
         orderedStates.erase(x);
         orderedStates.erase(y);
-        // statesLock.unlock_shared();
         sds.unionNodes(x, y);
 
-        // TODO: return value
-        return false;
+        bool retval = contains(x, y);
+
+        // statesLock.unlock_shared();
+
+        return retval;
     }
 
     /**
@@ -373,7 +374,7 @@ public:
             return *this;
         }
 
-        // TODO: debugging print statements perhaps?
+        // TODO: add debugging print statements to match the other souffle data structure abilities
 
     private:
         /**
@@ -396,7 +397,6 @@ public:
                     return true;
                 }
 
-                // XXX: if upgrading to c++14, replace with auto type
                 // remove this trie from iterList as it means we've exhausted it
                 iterList.remove_if(
                         [&](std::pair<std::shared_ptr<souffle::Trie<1>>, souffle::Trie<1>::iterator> x) {
@@ -539,7 +539,7 @@ public:
                 // check if we have to discard this trie -
                 // this happens when the trie that contains startVal[0], does not have a value larger than
                 // startVal[1]
-                // xxx: we are finding the last element inefficiently, should be a faster way to find it
+                // todo: we are finding the last element inefficiently, should be a faster way to find it
                 // faster
                 if ((*x.second)[0] == startVal[0]) {
                     while (checkIter != endTrieIter) {

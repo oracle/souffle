@@ -101,8 +101,6 @@ public:
         cv_data* curr = new cv_data;
         curr->m_size = 0;
         curr->m_data = new T[chunk_size];
-        // let's just fill with empty for test
-        // for (int  i = 0; i < chunk_size; ++i) curr->m_data[i] = nullptr;
         curr->next = nullptr;
         cData = curr;
         container_size = 0;
@@ -112,16 +110,15 @@ public:
         std::unique_lock<std::mutex> lk1(other.writeMutex);
         std::unique_lock<std::mutex> lk2(writeMutex);
 
+        // no std::swap as atomics are unmoveable
         size_t tmp = this->container_size.load();
         this->container_size.store(other.container_size);
         other.container_size.store(tmp);
 
+        // no std::swap as atomics are unmoveable
         cv_data* tmpPtr = this->cData.load();
         this->cData.store(other.cData);
         other.cData.store(tmpPtr);
-
-        // std::swap(old.container_size, container_size);
-        // std::swap(old.cData, cData);
     }
 
     concurrent_list& operator=(concurrent_list other) {
@@ -160,7 +157,11 @@ public:
         return container_size;
     }
 
-    /* thread safe for many writers, although in practise, it is sequential through mutex */
+    /*
+     * Append the value onto the end of the list, allocating more space if required.
+     * @param val the value to insert
+     * thread safe for many writers
+     */
     void push_back(T val) {
         std::unique_lock<std::mutex> lk(writeMutex);
 
@@ -176,10 +177,6 @@ public:
             shadow = new cv_data;
             shadow->m_size = 0;
             shadow->m_data = new T[chunk_size];
-
-            // let's just fill with empty for test
-            // for (int  i = 0; i < chunk_size; ++i) shadow->m_data[i] = nullptr;
-
             shadow->next = nullptr;
 
             front = shadow;
@@ -191,7 +188,11 @@ public:
         container_size += 1;
     }
 
-    /* thread safe for many readers */
+    /*
+     * Retrieve reference of the locally stored element
+     * @param index the index of the element to be returned
+     * Is thread safe for many readers
+     */
     T& at(size_t index) const {
         return this->operator[](index);
     }
@@ -209,7 +210,10 @@ public:
         return curr->m_data[index];
     }
 
-    /* this is not thread safe if there are reads during clear! */
+    /*
+     * Delete all elements from the data structure
+     * Warning! This is not thread-safe in the event of reads occuring during call of this operation
+     */
     void clear() {
         std::unique_lock<std::mutex> lk(writeMutex);
 
@@ -225,8 +229,6 @@ public:
         curr = new cv_data;
         curr->m_size = 0;
         curr->m_data = new T[chunk_size];
-        // let's just fill with empty for test
-        // for (int  i = 0; i < chunk_size; ++i) curr->m_data[i] = nullptr;
         curr->next = nullptr;
 
         container_size = 0;
@@ -269,16 +271,9 @@ public:
     }
 
     /** move constructor */
-    BlockList(BlockList&& other) noexcept : BlockList() {
-        for (size_t i = 0; i < listData.size(); ++i) delete[] listData.at(i);
-        this->listData.clear();
-        size_t othblocks = other.listData.size();
-        for (size_t i = 0; i < othblocks; ++i) {
-            listData.push_back(other.listData.at(i));
-            other.listData.at(i) = nullptr;
-        }
-        other.listData.clear();
-        this->m_size = other.size();
+    BlockList(BlockList&& other) : BlockList() {
+        std::swap(listData, other.listData);
+        std::swap(m_size, other.m_size);
     }
 
     BlockList& operator=(BlockList other) {

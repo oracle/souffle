@@ -981,9 +981,8 @@ public:
      * @return true if the data structure contains this tuple
      */
     bool contains(const tuple_type& tuple, operation_hints& ctxt) const {
-        // ctxt?
-        // TODO pnappa: optimisations would include ctxt for a more knowledgable search? doesn't really make
-        // much sense with djSet
+        // TODO pnappa: optimisations would include ctxt for .contains()
+        // doesn't appear to make much sense for BinaryRelation, but future optmisations may be made here
         return data.contains(tuple[0], tuple[1]);
     }
 
@@ -1107,9 +1106,7 @@ public:
 
     template <typename SubIndex>
     range<iterator> equalRange(const tuple_type& tuple, operation_hints& ctxt) const {
-        // TODO: this is invalid
-        // static_assert(is_compatible_with<SubIndex,Index>::value, "Invalid sub-index query!");
-        // auto r = data.template getBoundaries<SubIndex::size>(orderIn(tuple), ctxt);
+        // TODO: unimplemented
         std::cout << "poor call\n";
         std::cerr << "poor call\n";
         throw "unimplemented";

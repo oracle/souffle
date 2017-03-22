@@ -21,12 +21,6 @@
 
 #pragma once
 
-#include <pthread.h>
-
-#include <list>
-#include <map>
-#include <string>
-
 #include "IODirectives.h"
 #include "RamIndex.h"
 #include "RamTypes.h"
@@ -34,6 +28,11 @@
 #include "SymbolTable.h"
 #include "Table.h"
 #include "Util.h"
+
+#include <list>
+#include <map>
+#include <string>
+#include <pthread.h>
 
 namespace souffle {
 

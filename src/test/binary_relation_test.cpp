@@ -507,6 +507,7 @@ TEST(BinRelTest, ParallelTest) {
     size_t count = 0;
     for (auto x : br) {
         ++count;
+        binreltest::ignore(x);
     }
 
     EXPECT_EQ(count, br.size());
