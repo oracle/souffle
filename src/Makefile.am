@@ -159,6 +159,9 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
                         ParallelUtils.h         \
                         BTree.h                 \
                         Trie.h                  \
+                        UnionFind.h             \
+                        BinaryRelation.h        \
+                        BlockList.h             \
                         Table.h                 \
                         Util.h                  \
                         Macro.h                 \
@@ -234,11 +237,23 @@ test_btree_multiset_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/
 test_btree_multiset_test_SOURCES = test/btree_multiset_test.cpp
 test_btree_multiset_test_LDADD = libsouffle.la
 
+# binary relation tests
+check_PROGRAMS += test/binary_relation_test
+test_binary_relation_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
+test_binary_relation_test_SOURCES = test/binary_relation_test.cpp
+test_binary_relation_test_LDADD = libsouffle.la
+
 # compiled ram tuple test
 check_PROGRAMS += test/compiled_ram_tuple_test
 test_compiled_ram_tuple_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_compiled_ram_tuple_test_SOURCES = test/compiled_ram_tuple_test.cpp
 test_compiled_ram_tuple_test_LDADD = libsouffle.la
+
+# compiled ram index utils test
+check_PROGRAMS += test/compiled_ram_index_utils_test
+test_compiled_ram_index_utils_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
+test_compiled_ram_index_utils_test_SOURCES = test/compiled_ram_index_utils_test.cpp
+test_compiled_ram_index_utils_test_LDADD = libsouffle.la
 
 # compiled ram relation test
 check_PROGRAMS += test/compiled_ram_relation_test
