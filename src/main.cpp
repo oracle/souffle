@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
                     footer << "Version: " << PACKAGE_VERSION << "" << std::endl;
                     footer << "----------------------------------------------------------------------------"
                            << std::endl;
-                    footer << "Copyright (c) 2013, 2015, Oracle and/or its affiliates." << std::endl;
+                    footer << "Copyright (c) 2016 Oracle and/or its affiliates." << std::endl;
                     footer << "All rights reserved." << std::endl;
                     footer << "============================================================================"
                            << std::endl;
