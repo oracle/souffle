@@ -19,6 +19,7 @@
 #include "AstVisitor.h"
 #include "BinaryConstraintOps.h"
 #include "BinaryFunctorOps.h"
+#include "Global.h"
 #include "IOSystem.h"
 #include "RamAutoIndex.h"
 #include "RamData.h"

@@ -599,8 +599,6 @@ public:
  * processing a RAM program.
  */
 class RamEnvironment {
-    using SymbolTable = souffle::SymbolTable;
-
     /** The type utilized for storing relations */
     typedef std::map<std::string, RamRelation> relation_map;
 

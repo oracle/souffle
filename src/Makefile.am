@@ -9,8 +9,6 @@ SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 
 bin_PROGRAMS = souffle souffle-mcpp souffle-profile
 
-BUILT_SOURCES = parser.hh stack.hh
-
 nodist_souffle_profile_SOURCES = $(BUILT_SOURCES)
 
 souffle_profile_SOURCES = souffle_prof.cpp profilerlib/Cell.hpp \
@@ -186,17 +184,16 @@ souffle_CPPFLAGS = -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\""
 CLEANFILES = $(BUILT_SOURCES)  parser.cc scanner.cc parser.hh stack.hh
 
 # run Bison
-$(builddir)/parser.hh: $(srcdir)/parser.yy
+$(builddir)/parser.cc $(builddir)/parser.hh $(builddir)/stack.hh: $(srcdir)/parser.yy
 	$(BISON) -Wall -Werror -v -d -o parser.cc $(srcdir)/parser.yy
-
-$(builddir)/parser.cc $(builddir)/stack.hh: $(builddir)/parser.hh
 
 # and FLEX
 $(builddir)/scanner.cc: $(srcdir)/scanner.ll
 	$(FLEX) -o scanner.cc $(srcdir)/scanner.ll
 
 # driver depends on the generated header
-$(builddir)/ParserDriver.cpp: $(builddir)/parser.hh
+$(builddir)/parser.cc $(builddir)/scanner.cc $(builddir)/main.cpp $(builddir)/ParserDriver.cpp: \
+	$(builddir)/parser.hh
 
 ########## Unit Tests
 
