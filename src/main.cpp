@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
                 // the empty string if they take none
                 []() {
                     MainOption opts[] = {
-                            {"", 0, "", "-unknown-", false,
+                            {"", 0, "", "", false,
                                     ""},  // main option, the datalog program itself, key is always empty
                             {"fact-dir", 'F', "DIR", ".", false, "Specify directory for fact files."},
                             {"include-dir", 'I', "DIR", ".", true, "Specify directory for include files."},
@@ -126,13 +126,13 @@ int main(int argc, char** argv) {
         // ------ command line arguments -------------
 
         /* for the help option, if given simply print the help text then exit */
-        if (Global::config().has("help")) {
+        if (!Global::config().has("") || Global::config().has("help")) {
             std::cerr << Global::config().help();
             return 0;
         }
 
         /* check that datalog program exists */
-        if (!Global::config().has("") || !existFile(Global::config().get(""))) {
+        if (!existFile(Global::config().get(""))) {
             ERROR("cannot open file " + std::string(Global::config().get("")));
         }
 
