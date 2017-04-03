@@ -27,6 +27,7 @@
 #include "RamTranslator.h"
 #include "RamVisitor.h"
 #include "RuleScheduler.h"
+#include "SignalHandler.h"
 #include "TypeSystem.h"
 #include "UnaryFunctorOps.h"
 
@@ -170,7 +171,6 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
                 }
                 case BinaryOp::DIV: {
                     RamDomain rhs = visit(op.getRHS());
-                    assert(rhs != 0 && "Unsupported Operand! (division by zero)");
                     return visit(op.getLHS()) / rhs;
                 }
                 case BinaryOp::EXP: {
@@ -178,7 +178,6 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
                 }
                 case BinaryOp::MOD: {
                     RamDomain rhs = visit(op.getRHS());
-                    assert(rhs != 0 && "Unsupported Operand! (modulo by zero)");
                     return visit(op.getLHS()) % rhs;
                 }
                 case BinaryOp::BAND: {
@@ -690,6 +689,11 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
         bool visitLogTimer(const RamLogTimer& timer) override {
             RamLogger logger(timer.getLabel().c_str(), *profile);
             return visit(timer.getNested());
+        }
+
+        bool visitDebugInfo(const RamDebugInfo& dbg) override {
+            SignalHandler::instance()->setMsg(dbg.getLabel().c_str());
+            return visit(dbg.getNested());
         }
 
         bool visitCreate(const RamCreate& create) override {
@@ -1317,6 +1321,15 @@ public:
 
         // done
         out << "}\n";
+    }
+
+    void visitDebugInfo(const RamDebugInfo& dbg, std::ostream& out) override {
+        out << "SignalHandler::instance()->setMsg(R\"_(";
+        out << dbg.getLabel();
+        out << ")_\");\n";
+
+        // insert statements of the rule
+        visit(dbg.getNested(), out);
     }
 
     // -- operations --
