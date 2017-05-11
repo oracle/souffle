@@ -1,0 +1,16 @@
+.decl Element(value:number)
+
+Element(1).
+Element(2).
+Element(7).
+Element(25).
+Element(104).
+
+
+.decl Maximum(value:number)
+
+Maximum(MaxValue) :-	
+	MaxValue = max ElementValue : Element(ElementValue).
+
+.output Maximum()
+				
