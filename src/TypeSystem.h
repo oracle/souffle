@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -36,15 +16,18 @@
 
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <set>
-#include <map>
-#include <vector>
-#include <initializer_list>
-
-#include "Util.h"
+#include "AstType.h"
 #include "IterUtils.h"
+#include "Util.h"
+
+#include <initializer_list>
+#include <iostream>
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
+
+namespace souffle {
 
 // forward declaration
 class TypeEnvironment;
@@ -53,27 +36,23 @@ class TypeEnvironment;
  * An abstract base class for types to be covered within a type environment.
  */
 class Type {
-
 protected:
-
     /** A reference to the type environment this type is associated to. */
     const TypeEnvironment& environment;
 
 private:
-
     /** The name of this type. */
-    std::string name;
+    AstTypeIdentifier name;
 
 public:
-
-    Type(const TypeEnvironment& environment, const std::string& name)
-        : environment(environment), name(name) {}
+    Type(const TypeEnvironment& environment, const AstTypeIdentifier& name)
+            : environment(environment), name(name) {}
 
     Type(const Type& other) = delete;
 
-    virtual ~Type() {}
+    virtual ~Type() = default;
 
-    const std::string& getName() const {
+    const AstTypeIdentifier& getName() const {
         return name;
     }
 
@@ -102,7 +81,9 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& out, const Type* t) {
-        if (!t) return out << "-null-";
+        if (!t) {
+            return out << "-null-";
+        }
         return t->print(out), out;
     }
 };
@@ -111,19 +92,17 @@ public:
  * A primitive type. The basic type construct to build new types.
  */
 class PrimitiveType : public Type {
-
     // only allow type environments to create instances
     friend class TypeEnvironment;
 
     /** The base type -- may be symbol or numerical */
     const Type& baseType;
 
-    PrimitiveType(const TypeEnvironment& environment, const std::string& name, const Type& base)
-        : Type(environment, name), baseType(base) {}
+    PrimitiveType(const TypeEnvironment& environment, const AstTypeIdentifier& name, const Type& base)
+            : Type(environment, name), baseType(base) {}
 
 public:
-
-    void print(std::ostream& out) const;
+    void print(std::ostream& out) const override;
 
     const Type& getBaseType() const {
         return baseType;
@@ -134,56 +113,52 @@ public:
  * A union type combining a list of types into a new, aggregated type.
  */
 class UnionType : public Type {
-
     // only allow type environments to create instances
     friend class TypeEnvironment;
 
     /** The contained element types */
     std::vector<const Type*> elementTypes;
 
-    UnionType(const TypeEnvironment& environment, const std::string& name) : Type(environment, name) {}
+    UnionType(const TypeEnvironment& environment, const AstTypeIdentifier& name) : Type(environment, name) {}
 
 public:
-
     void add(const Type& type);
 
     const std::vector<const Type*>& getElementTypes() const {
         return elementTypes;
     }
 
-    void print(std::ostream& out) const;
+    void print(std::ostream& out) const override;
 };
 
 /**
  * A record type combining a list of fields into a new, aggregated type.
  */
 struct RecordType : public Type {
-
     // only allow type environments to create instances
     friend class TypeEnvironment;
 
     /** The type to model fields */
     struct Field {
-        std::string name;   // < the name of the field
-        const Type& type;   // < the type of the field
+        std::string name;  // < the name of the field
+        const Type& type;  // < the type of the field
     };
 
 private:
-
     /** The list of contained fields */
     std::vector<Field> fields;
 
-    RecordType(const TypeEnvironment& environment, const std::string& name) : Type(environment, name) {}
+    RecordType(const TypeEnvironment& environment, const AstTypeIdentifier& name) : Type(environment, name) {}
 
 public:
-
     void add(const std::string& name, const Type& type);
 
-    const std::vector<Field>& getFields() const { return fields; }
+    const std::vector<Field>& getFields() const {
+        return fields;
+    }
 
-    void print(std::ostream& out) const;
+    void print(std::ostream& out) const override;
 };
-
 
 /**
  * A collection to represent sets of types. In addition to ordinary set capabilities
@@ -192,11 +167,9 @@ public:
  * It is the basic entity to conduct sub- and super-type computations.
  */
 struct TypeSet {
-
     typedef IterDerefWrapper<typename std::set<const Type*>::const_iterator> const_iterator;
 
 private:
-
     /** True if it is the all-types set, false otherwise */
     bool all;
 
@@ -204,26 +177,24 @@ private:
     std::set<const Type*, deref_less<Type>> types;
 
 public:
-
     // -- constructors, destructors and assignment operations --
 
     TypeSet(bool all = false) : all(all) {}
 
     TypeSet(const TypeSet& other) = default;
 
-    TypeSet(TypeSet&& other) : all(other.all), types() {
+    TypeSet(TypeSet&& other) noexcept : all(other.all), types() {
         types.swap(other.types);
     }
 
-    template<typename ... Types>
-    TypeSet(const Types& ... types) : all(false) {
-        for(const Type* cur : toVector<const Type*>(&types... )) {
+    template <typename... Types>
+    TypeSet(const Types&... types) : all(false) {
+        for (const Type* cur : toVector<const Type*>(&types...)) {
             this->types.insert(cur);
         }
     }
 
-    TypeSet& operator=(const TypeSet& other) =default;
-
+    TypeSet& operator=(const TypeSet& other) = default;
 
     /** A factory function for the all-types set */
     static TypeSet getAllTypes() {
@@ -253,13 +224,17 @@ public:
 
     /** Adds the given type to this set */
     void insert(const Type& type) {
-        if (all) return;
+        if (all) {
+            return;
+        }
         types.insert(&type);
     }
 
     /** Inserts all the types of the given set into this set */
     void insert(const TypeSet& set) {
-        if (all) return;
+        if (all) {
+            return;
+        }
 
         // if the other set is universal => make this one universal
         if (set.isAll()) {
@@ -269,7 +244,9 @@ public:
         }
 
         // add types one by one
-        for(const auto& t : set) insert(t);
+        for (const auto& t : set) {
+            insert(t);
+        }
     }
 
     /** Allows to iterate over the types contained in this set (only if not universal) */
@@ -286,7 +263,9 @@ public:
 
     /** Determines whether this set is a subset of the given set */
     bool isSubsetOf(const TypeSet& b) const {
-        if (all) return b.isAll();
+        if (all) {
+            return b.isAll();
+        }
         return all_of(*this, [&](const Type& cur) { return b.contains(cur); });
     }
 
@@ -305,10 +284,9 @@ public:
         if (all) {
             out << "{ - all types - }";
         } else {
-
-            out << "{" << join(types,",",[](std::ostream& out, const Type* type) {
-                out << type->getName();
-            }) << "}";
+            out << "{"
+                << join(types, ",", [](std::ostream& out, const Type* type) { out << type->getName(); })
+                << "}";
         }
     }
 
@@ -318,36 +296,31 @@ public:
     }
 };
 
-
 /**
  * A type environment is a set of types. It's main purpose is to provide an enumeration
  * of all all types within a given program. Additionally, it manages the life cycle of
  * type instances.
  */
 class TypeEnvironment {
-
     /** The type utilized for identifying types */
-    typedef std::string identifier;
+    typedef AstTypeIdentifier identifier;
 
 private:
-
     /** The list of covered types */
-    std::map<identifier,Type*> types;
+    std::map<identifier, Type*> types;
 
 public:
-
     // -- constructors / destructores --
     TypeEnvironment();
 
-    TypeEnvironment(const TypeEnvironment&) =delete;
+    TypeEnvironment(const TypeEnvironment&) = delete;
 
     ~TypeEnvironment();
 
-
     // -- create types in this environment --
 
-    template<typename T, typename ... Args>
-    T& createType(const identifier& name, const Args& ... args) {
+    template <typename T, typename... Args>
+    T& createType(const identifier& name, const Args&... args) {
         T* res = new T(*this, name, args...);
         addType(*res);
         return *res;
@@ -371,15 +344,19 @@ public:
 
     // -- query type information --
 
-    bool isType(const identifier& name) const;
+    bool isType(const identifier& ident) const;
 
     bool isType(const Type& type) const;
 
-    const Type& getType(const identifier& name) const;
+    const Type& getType(const identifier& ident) const;
 
-    const Type& getNumberType() const { return getType("number"); }
+    const Type& getNumberType() const {
+        return getType("number");
+    }
 
-    const Type& getSymbolType() const { return getType("symbol"); }
+    const Type& getSymbolType() const {
+        return getType("symbol");
+    }
 
     TypeSet getAllTypes() const;
 
@@ -399,13 +376,9 @@ public:
     }
 
 private:
-
     /** Register types created by one of the factory functions */
     void addType(Type& type);
-
 };
-
-
 
 // ---------------------------------------------------------------
 //                          Type Utilities
@@ -414,7 +387,7 @@ private:
 /**
  * Returns full type qualifier for a given type
  */
-const std::string getTypeQualifier(const Type& type);
+std::string getTypeQualifier(const Type& type);
 
 /**
  * Determines whether the given type is a number type.
@@ -461,8 +434,6 @@ bool isSubtypeOf(const Type& a, const Type& b);
  */
 bool areSubtypesOf(const TypeSet& s, const Type& b);
 
-
-
 // -- Least Common Super Types ----------------------------------------
 
 /**
@@ -483,8 +454,8 @@ TypeSet getLeastCommonSupertypes(const TypeSet& a, const TypeSet& b);
 /**
  * Computes the least common super types of the given types.
  */
-template<typename ... Types>
-TypeSet getLeastCommonSupertypes(const Types& ... types) {
+template <typename... Types>
+TypeSet getLeastCommonSupertypes(const Types&... types) {
     return getLeastCommonSupertypes(TypeSet(types...));
 }
 
@@ -508,7 +479,9 @@ TypeSet getGreatestCommonSubtypes(const TypeSet& a, const TypeSet& b);
 /**
  * Computes the greatest common sub types of the given types.
  */
-template<typename ... Types>
-TypeSet getGreatestCommonSubtypes(const Types& ... types) {
+template <typename... Types>
+TypeSet getGreatestCommonSubtypes(const Types&... types) {
     return getGreatestCommonSubtypes(TypeSet(types...));
 }
+
+}  // end namespace souffle

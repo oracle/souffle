@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -34,74 +14,137 @@
  *
  ***********************************************************************/
 
+#include "AstProgram.h"
 #include "test.h"
 
-#include "AstProgram.h"
+#include <functional>
 
 using namespace souffle;
 
 namespace test {
 
-	TEST(SymbolTable, Basics) {
+TEST(SymbolTable, Basics) {
+    SymbolTable table;
 
-	    SymbolTable a;
+    table.insert("Hello");
 
-	    a.insert("Hello");
+    EXPECT_STREQ("Hello", table.resolve(table.lookup(table.resolve(table.lookup("Hello")))));
 
-	    EXPECT_EQ(0, a.lookup("Hello"));
-	    EXPECT_EQ(1, a.lookup("World"));
+    EXPECT_EQ(table.lookup("Hello"), table.lookup(table.resolve(table.lookup("Hello"))));
 
-        EXPECT_STREQ("Hello", a.resolve((size_t)0));
-        EXPECT_STREQ("World", a.resolve((size_t)1));
+    EXPECT_STREQ("Hello", table.resolve(table.lookup(table.resolve(table.lookup("Hello")))));
 
-	}
+    EXPECT_EQ(table.lookup("Hello"),
+            table.lookup(table.resolve(table.lookup(table.resolve(table.lookup("Hello"))))));
+}
 
+TEST(SymbolTable, Copy) {
+    SymbolTable* a = new SymbolTable();
+    a->insert("Hello");
 
-    TEST(SymbolTable, Copy) {
+    SymbolTable* b = new SymbolTable(*a);
 
-        SymbolTable* a = new SymbolTable();
-        a->insert("Hello");
+    size_t a_idx = a->lookup("Hello");
+    size_t b_idx = b->lookup("Hello");
 
-        SymbolTable* b = new SymbolTable(*a);
+    // hash should be the same
+    EXPECT_EQ(a_idx, b_idx);
 
-        EXPECT_STREQ("Hello", a->resolve((size_t)0));
-        EXPECT_STREQ("Hello", b->resolve((size_t)0));
+    EXPECT_STREQ("Hello", a->resolve(a_idx));
+    EXPECT_STREQ("Hello", b->resolve(b_idx));
 
-        // should be different strings
-        EXPECT_NE(a->resolve((size_t)0),b->resolve((size_t)0));
+    // should be different string references but the same actual string
+    EXPECT_STREQ(a->resolve(a_idx), b->resolve(b_idx));
+    EXPECT_NE(a->resolve(a_idx), b->resolve(b_idx));
 
-        // b should survive
-        delete a;
-        EXPECT_STREQ("Hello", b->resolve((size_t)0));
+    // b should survive
+    delete a;
+    EXPECT_STREQ("Hello", b->resolve(b_idx));
 
-        delete b;
+    delete b;
+}
+
+TEST(SymbolTable, Assign) {
+    SymbolTable* a = new SymbolTable();
+    a->insert("Hello");
+
+    SymbolTable b = *a;
+    SymbolTable c;
+
+    c = *a;
+
+    size_t a_idx = a->lookup("Hello");
+    size_t b_idx = b.lookup("Hello");
+    size_t c_idx = c.lookup("Hello");
+
+    // hash should be the same
+    EXPECT_EQ(a_idx, b_idx);
+    EXPECT_EQ(b_idx, c_idx);
+
+    EXPECT_STREQ("Hello", a->resolve(a_idx));
+    EXPECT_STREQ("Hello", b.resolve(b_idx));
+    EXPECT_STREQ("Hello", c.resolve(c_idx));
+
+    // should be different strings
+    EXPECT_NE(a->resolve(a_idx), b.resolve(b_idx));
+    EXPECT_NE(a->resolve(a_idx), c.resolve(c_idx));
+    EXPECT_NE(b.resolve(b_idx), c.resolve(c_idx));
+
+    // b and c should survive
+    delete a;
+    EXPECT_STREQ("Hello", b.resolve(b_idx));
+    EXPECT_STREQ("Hello", c.resolve(c_idx));
+}
+
+TEST(SymbolTable, Inserts) {
+    // whether to print the recorded times to stdout
+    // should be false unless developing
+    const bool ECHO_TIME = false;
+
+    // type for very big number
+    typedef unsigned long long T;
+    time_point start, end;
+
+    T n = 0;         // counter
+    T N = 10000000;  // number of symbols to insert
+
+    SymbolTable X;
+    char* x;
+
+    char** A = new char*[N];  // create an array of symbols
+
+    for (T i = 0; i < N; ++i) {
+        x = reinterpret_cast<char*>(&i);
+        start = now();
+        X.insert(x);  // insert one at a time
+        end = now();
+        n += duration_in_ns(start, end);  // record the time
+        A[i] = x;                         // also put in the array
     }
 
-    TEST(SymbolTable, Assign) {
+    if (ECHO_TIME)
+        std::cout << "Time to insert single element: " << n / N << " ns"
+                  << std::endl;  // average the times for the single elements
 
-        SymbolTable* a = new SymbolTable();
-        a->insert("Hello");
+    // try inserting all the elements that were just inserted
+    start = now();
+    X.insert((const char**)A, N);
+    end = now();
+    n = duration_in_ns(start, end);
 
-        SymbolTable b = *a;
-        SymbolTable c;
+    if (ECHO_TIME) std::cout << "Time to insert " << N << " existing elements: " << n << " ns" << std::endl;
 
-        c = *a;
+    SymbolTable Y;
 
-        EXPECT_STREQ("Hello", a->resolve((size_t)0));
-        EXPECT_STREQ("Hello", b.resolve((size_t)0));
-        EXPECT_STREQ("Hello", c.resolve((size_t)0));
+    // test insert for elements that don't exist yet
+    start = now();
+    Y.insert((const char**)A, N);
+    end = now();
+    n = duration_in_ns(start, end);
 
-        // should be different strings
-        EXPECT_NE(a->resolve((size_t)0),b.resolve((size_t)0));
-        EXPECT_NE(a->resolve((size_t)0),c.resolve((size_t)0));
-        EXPECT_NE(b.resolve((size_t)0),c.resolve((size_t)0));
+    if (ECHO_TIME) std::cout << "Time to insert " << N << " new elements: " << n << " ns" << std::endl;
 
-        // b and c should survive
-        delete a;
-        EXPECT_STREQ("Hello", b.resolve((size_t)0));
-        EXPECT_STREQ("Hello", c.resolve((size_t)0));
+    delete[] A;
+}
 
-    }
-
-} // end namespace test
-
+}  // end namespace test

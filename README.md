@@ -1,5 +1,7 @@
 
-# Soufflé
+# [Soufflé](https://souffle-lang.gitio.com)
+
+[![Build Status](https://travis-ci.org/souffle-lang/souffle.svg?branch=master)](https://travis-ci.org/souffle-lang/souffle)
 
 [![Build Status](https://travis-ci.org/oracle/souffle.svg?branch=master)](https://travis-ci.org/oracle/souffle)
 
@@ -8,24 +10,33 @@ Soufflé is a translator of declarative Datalog programs into the C++ language. 
 ## Features of Soufflé
 
 *   Efficient translation to parallel C++ of Datalog programs
-*   Extended semantics of Safe Datalog, e.g., permitting unbounded recursions with numbers 
+*   Extended semantics of Pure Datalog, e.g., permitting unbounded recursions with numbers 
 *   Simple component model for Datalog specifications 
 *   Recursively defined record types for tuples 
-*   Static type system for attributes
 
-## Documentation 
+This is the development repository of Soufflé. Oracle Lab's official repository can be found here:
 
-https://github.com/oracle/souffle/wiki
-
-## Contributors
-
-https://github.com/oracle/souffle/wiki/Contributors
+http://github.com/oracle/souffle
 
 ## How to get Soufflé
  
 Use git to obtain the source code of Soufflé. 
 
-    $ git clone git://github.com/oracle/souffle.git
+    $ git clone git://github.com/souffle-lang/souffle.git
+
+## Soufflé home page
+
+The URL of the Soufflé home page is:
+
+http://souffle-lang.github.io
+
+## Documentation
+
+http://github.com/souffle-lang/souffle/wiki
+
+## Contributors
+
+http://github.com/souffle-lang/souffle/wiki/contributors
 
 ## Mailing list
 
@@ -35,17 +46,24 @@ There is no mailing list to talk about Soufflé at the moment. It will be establ
 
 Follow the steps below to compile and install Soufflé on a UNIX system:
 
+1.  Install the needed dependencies. G++ 4.8 or greater is recommended to compile Soufflé. openjdk-7 can be used if openjdk-8 is not available on your platform.
 
-1.  G++ 4.8 or newer is recommended to compile Soufflé. 
+```
+sudo apt-get install autoconf automake bison build-essential doxygen flex g++ git libsqlite3-dev libtool make openjdk-8-jdk pkg-config python zlib1g-dev
+```
 
 2.  Run `sh ./bootstrap` to generate configure files 
 
-3.  For Linux users, skip this step. MAC OS X does not have C++/OpenMP nor a bison version 3.0.2 installed.
+3.  For Linux users, skip this point. MAC OS X does not have OpenMP nor a bison version 3.0.2 or higher installed.
     We recommend [brew](http://brew.sh) to install the required tools to build Soufflé. Run the following commands prior to executing `./configure`:
+
 ```
      brew update                
      brew reinstall gcc --without-multilib                
-     brew install bison                
+     brew install bison  
+     brew install boost
+     brew link bison --force
+     brew install libtool automake
      export CXX=/usr/local/bin/g++-5                
      export CXXFLAGS=-fopenmp                
      export SOUFFLECPP=/usr/local/bin/cpp-5
@@ -64,4 +82,77 @@ Follow the steps below to compile and install Soufflé on a UNIX system:
 
 ## License
 
-See [LICENSE](https://github.com/souffle-lang/souffle/blob/master/LICENSE).
+See [LICENSE](https://github.com/souffle-lang/souffle/blob/master/licenses/SOUFFLE-UPL.txt).
+
+## For souffle developers
+
+### Multiple builds
+
+Souffle supports out-of-source builds, to enable multipe builds using e.g. different compilers or debug options based on the same source base. 
+
+The configure script uses the compiler specified by an `CXX` environment variable as the compiler to be used. Furthermore, the environment variable `BUILD_TYPE` may be set to "Debug" to create a debug build, instead of the default release build.
+
+The following commands create a gcc 5 debug, a gcc 5 release, and a clang build:
+
+```
+# basic setup
+git clone git://github.com/souffle-lang/souffle.git souffle
+cd souffle
+sh ./bootstrap
+
+# create gcc debug build directory
+mkdir build_gcc_debug
+cd build_gcc_debug
+CXX=g++-5 BUILD_TYPE=Debug ../configure
+make -j4
+cd ..
+
+# create gcc release build directory
+mkdir build_gcc_release
+cd build_gcc_debug
+CXX=g++-5 ../configure
+make -j4
+cd ..
+
+# create clang release build directory
+mkdir build_clang_release
+cd build_clang_release
+CXX=clang++-3.6 ../configure
+make -j4
+cd ..
+```
+
+### Parallel Testing
+
+The unit tests in the source directory can be executed in parallel using the `-j` option of make. For instance,
+
+```
+cd src
+make -j4 check
+```
+
+will run the unit tests of the current build directory using 4 threads.
+
+By exporting the following environment variable
+
+```
+export TESTSUITEFLAGS=-j4
+```
+
+the integration test script will also process tests in parallel.
+
+### Selective Testing
+
+To run an individual integration test, the script `tests/testsuite` can be used. The command
+
+```
+testsuite -l
+```
+
+lists all the test cases, with their associated number. To run an individual test,
+
+```
+testsuite <case_nr>
+```
+
+can be used.

@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -37,17 +17,19 @@
 
 #pragma once
 
-#include <map>
-#include <string>
-#include <list>
-#include <set>
-#include <memory>
-
-#include "Util.h"
-#include "AstRelation.h"
 #include "AstComponent.h"
-#include "TypeSystem.h"
+#include "AstRelation.h"
 #include "ErrorReport.h"
+#include "TypeSystem.h"
+#include "Util.h"
+
+#include <list>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+
+namespace souffle {
 
 class AstClause;
 class AstRelation;
@@ -56,187 +38,226 @@ class AstAtom;
 class AstArgument;
 
 /**
- *  @class Program
- *  @brief Intermediate representation of a datalog program
+ *  Intermediate representation of a datalog program
  *          that consists of relations, clauses and types
  */
 class AstProgram : public AstNode {
-      using SymbolTable = souffle::SymbolTable; // XXX pending namespace cleanup
+    // TODO: Check whether this is needed
+    friend class ParserDriver;
+    friend class ComponentInstantiationTransformer;
+    friend class AstBuilder;
 
-      // TODO: Check whether this is needed
-      friend class ParserDriver;
-      friend class ComponentInstantiationTransformer;
+    /** Program types  */
+    std::map<AstTypeIdentifier, std::unique_ptr<AstType>> types;
 
-      /** Program types  */
-      std::map<std::string, std::unique_ptr<AstType>> types;
+    /** Program relations */
+    std::map<AstRelationIdentifier, std::unique_ptr<AstRelation>> relations;
 
-      /** Program relations */
-      std::map<AstRelationIdentifier, std::unique_ptr<AstRelation>> relations;
+    /** The list of clauses provided by the user */
+    std::vector<std::unique_ptr<AstClause>> clauses;
 
-      /** The list of clauses provided by the user */
-      std::vector<std::unique_ptr<AstClause>> clauses;
+    /** The list of IO directives provided by the user */
+    std::vector<std::unique_ptr<AstIODirective>> ioDirectives;
 
-      /** Program components */
-      std::vector<std::unique_ptr<AstComponent>> components;
+    /** Program components */
+    std::vector<std::unique_ptr<AstComponent>> components;
 
-      /** Component instantiations */
-      std::vector<std::unique_ptr<AstComponentInit>> instantiations;
+    /** Component instantiations */
+    std::vector<std::unique_ptr<AstComponentInit>> instantiations;
 
-      /** a private constructor to restrict creation */
-      AstProgram() { }
+    /** a private constructor to restrict creation */
+    AstProgram() = default;
 
-   public:
+public:
+    /** Deleted copy constructor since instances can not be copied */
+    AstProgram(const AstProgram&) = delete;
 
-      /** Deleted copy constructor since instances can not be copied */
-      AstProgram(const AstProgram&) = delete;
+    /** A move constructor */
+    AstProgram(AstProgram&& other) noexcept;
 
-      /** A move constructor */
-      AstProgram(AstProgram&&);
+    /** A programs destructor */
+    ~AstProgram() override = default;
 
-      /** A programs destructor */
-      ~AstProgram() { }
+    // -- Types ----------------------------------------------------------------
 
-      // -- Types ----------------------------------------------------------------
+private:
+    /** Add the given type to the program. Asserts if a type with the
+      same name has already been added.  */
+    void addType(std::unique_ptr<AstType> type);
 
-   private:
+public:
+    /** Obtains the type with the given name */
+    const AstType* getType(const AstTypeIdentifier& name) const;
 
-      /** Add the given type to the program. Asserts if a type with the
-        same name has already been added.  */
-      void addType(std::unique_ptr<AstType> type);
+    /** Gets a list of all types in this program */
+    std::vector<const AstType*> getTypes() const;
 
-   public:
+    // -- Relations ------------------------------------------------------------
 
-      /** Obtains the type with the given name */
-      const AstType* getType(const std::string& name) const;
+private:
+    /** Add the given relation to the program. Asserts if a relation with the
+     * same name has already been added. */
+    void addRelation(std::unique_ptr<AstRelation> r);
 
-      /** Gets a list of all types in this program */
-      std::vector<const AstType*> getTypes() const;
+    /** Add a clause to the program */
+    void addClause(std::unique_ptr<AstClause> clause);
 
+    /** Add an IO directive to the program */
+    void addIODirective(std::unique_ptr<AstIODirective> directive);
 
-      // -- Relations ------------------------------------------------------------
+public:
+    /** Find and return the relation in the program given its name */
+    AstRelation* getRelation(const AstRelationIdentifier& name) const;
 
-   private:
+    /** Get all relations in the program */
+    std::vector<AstRelation*> getRelations() const;
 
-      /** Add the given relation to the program. Asserts if a relation with the
-       * same name has already been added. */
-      void addRelation(std::unique_ptr<AstRelation> r);
+    /** Get all io directives in the program */
+    const std::vector<std::unique_ptr<AstIODirective>>& getIODirectives() const;
 
-      /** Add a clause to the program */
-      void addClause(std::unique_ptr<AstClause> r);
+    /** Return the number of relations in the program */
+    size_t relationSize() const {
+        return relations.size();
+    }
 
-   public:
+    /** appends a new relation to this program -- after parsing */
+    void appendRelation(std::unique_ptr<AstRelation> r);
 
-      /** Find and return the relation in the program given its name */
-      AstRelation* getRelation(const AstRelationIdentifier& name) const;
+    /** Remove a relation from the program. */
+    void removeRelation(const AstRelationIdentifier& name);
 
-      /** Get all relations in the program */
-      std::vector<AstRelation *> getRelations() const;
+    /** append a new clause to this program -- after parsing */
+    void appendClause(std::unique_ptr<AstClause> clause);
 
-      /** Return the number of relations in the program */
-      size_t relationSize() const { return relations.size(); }
+    /** Removes a clause from this program */
+    void removeClause(const AstClause* clause);
 
-      /** appends a new relation to this program -- after parsing */
-      void appendRelation(std::unique_ptr<AstRelation> r);
+    /**
+     * Obtains a list of clauses not associated to any relations. In
+     * a valid program this list is always empty
+     */
+    std::vector<AstClause*> getOrphanClauses() const {
+        return toPtrVector(clauses);
+    }
 
-      /** Remove a relation from the program. */
-      void removeRelation(const AstRelationIdentifier &r);
+    // -- Components -----------------------------------------------------------
 
-      /** append a new clause to this program -- after parsing */
-      void appendClause(std::unique_ptr<AstClause> clause);
+private:
+    /** Adds the given component to this program */
+    void addComponent(std::unique_ptr<AstComponent> c) {
+        components.push_back(std::move(c));
+    }
 
-      /** Removes a clause from this program */
-      void removeClause(const AstClause* clause);
+    /** Adds a component instantiation */
+    void addInstantiation(std::unique_ptr<AstComponentInit> i) {
+        instantiations.push_back(std::move(i));
+    }
 
-      /**
-       * Obtains a list of clauses not associated to any relations. In
-       * a valid program this list is always empty
-       */
-      std::vector<AstClause *> getOrphanClauses() const {
-          return toPtrVector(clauses);
-      }
+public:
+    /** Obtains a list of all comprised components */
+    std::vector<AstComponent*> getComponents() const {
+        return toPtrVector(components);
+    }
 
-      // -- Components ------------------------------------------------------------
+    /** Obtains a list of all component instantiations */
+    std::vector<AstComponentInit*> getComponentInstantiations() const {
+        return toPtrVector(instantiations);
+    }
 
-   private:
+    // -- I/O ------------------------------------------------------------------
 
-      /** Adds the given component to this program */
-      void addComponent(std::unique_ptr<AstComponent> c) { components.push_back(std::move(c)); }
+    /** Output the program to a given output stream */
+    void print(std::ostream& os) const override;
 
-      /** Adds a component instantiation */
-      void addInstantiation(std::unique_ptr<AstComponentInit> i) { instantiations.push_back(std::move(i)); }
+    // -- Manipulation ---------------------------------------------------------
 
-   public:
+    /** Creates a clone if this AST sub-structure */
+    AstProgram* clone() const override;
 
-      /** Obtains a list of all comprised components */
-      std::vector<AstComponent *> getComponents() const { return toPtrVector(components); }
+    /** Mutates this node */
+    void apply(const AstNodeMapper& map) override;
 
-      /** Obtains a list of all component instantiations */
-      std::vector<AstComponentInit *> getComponentInstantiations() const { return toPtrVector(instantiations); }
+public:
+    /** Obtains a list of all embedded child nodes */
+    std::vector<const AstNode*> getChildNodes() const override {
+        std::vector<const AstNode*> res;
+        for (const auto& cur : types) {
+            res.push_back(cur.second.get());
+        }
+        for (const auto& cur : relations) {
+            res.push_back(cur.second.get());
+        }
+        for (const auto& cur : components) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : instantiations) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : clauses) {
+            res.push_back(cur.get());
+        }
+        for (const auto& cur : ioDirectives) {
+            res.push_back(cur.get());
+        }
+        return res;
+    }
 
-      // -- I/O ------------------------------------------------------------------
+private:
+    void finishParsing();
 
-      /** Output the program to a given output stream */
-      void print(std::ostream &os) const;
+protected:
+    /** Implements the node comparison for this node type */
+    bool equal(const AstNode& node) const override {
+        assert(dynamic_cast<const AstProgram*>(&node));
+        const AstProgram& other = static_cast<const AstProgram&>(node);
 
+        // check list sizes
+        if (types.size() != other.types.size()) {
+            return false;
+        }
+        if (relations.size() != other.relations.size()) {
+            return false;
+        }
 
-      // -- Manipulation ---------------------------------------------------------
+        // check types
+        for (const auto& cur : types) {
+            auto pos = other.types.find(cur.first);
+            if (pos == other.types.end()) {
+                return false;
+            }
+            if (*cur.second != *pos->second) {
+                return false;
+            }
+        }
 
-      /** Creates a clone if this AST sub-structure */
-      virtual AstProgram* clone() const;
+        // check relations
+        for (const auto& cur : relations) {
+            auto pos = other.relations.find(cur.first);
+            if (pos == other.relations.end()) {
+                return false;
+            }
+            if (*cur.second != *pos->second) {
+                return false;
+            }
+        }
 
-      /** Mutates this node */
-      virtual void apply(const AstNodeMapper& map);
+        // check components
+        if (!equal_targets(components, other.components)) {
+            return false;
+        }
+        if (!equal_targets(instantiations, other.instantiations)) {
+            return false;
+        }
+        if (!equal_targets(clauses, other.clauses)) {
+            return false;
+        }
+        if (!equal_targets(ioDirectives, other.ioDirectives)) {
+            return false;
+        }
 
-   public:
-
-      /** Obtains a list of all embedded child nodes */
-      virtual std::vector<const AstNode*> getChildNodes() const {
-          std::vector<const AstNode*> res;
-          for(const auto& cur : types) res.push_back(cur.second.get());
-          for(const auto& cur : relations) res.push_back(cur.second.get());
-          for(const auto& cur : components) res.push_back(cur.get());
-          for(const auto& cur : instantiations) res.push_back(cur.get());
-          for(const auto& cur : clauses) res.push_back(cur.get());
-          return res;
-      }
-
-   private:
-
-      void finishParsing();
-
-
-   protected:
-
-       /** Implements the node comparison for this node type */
-       virtual bool equal(const AstNode& node) const {
-           assert(dynamic_cast<const AstProgram*>(&node));
-           const AstProgram& other = static_cast<const AstProgram&>(node);
-
-           // check list sizes
-           if (types.size() != other.types.size()) return false;
-           if (relations.size() != other.relations.size()) return false;
-
-           // check types
-           for(const auto& cur : types) {
-               auto pos = other.types.find(cur.first);
-               if (pos == other.types.end()) return false;
-               if (*cur.second != *pos->second) return false;
-           }
-
-           // check relations
-           for(const auto& cur : relations) {
-              auto pos = other.relations.find(cur.first);
-              if (pos == other.relations.end()) return false;
-              if (*cur.second != *pos->second) return false;
-           }
-
-           // check components
-           if (!equal_targets(components, other.components)) return false;
-           if (!equal_targets(instantiations, other.instantiations)) return false;
-           if (!equal_targets(clauses, other.clauses)) return false;
-
-           // no different found => programs are equal
-           return true;
-       }
-
+        // no different found => programs are equal
+        return true;
+    }
 };
+
+}  // end of namespace souffle

@@ -1,7 +1,22 @@
-Error: integer constant must be in range [0, 2147483647] in file number_constants.dl at line 6
+Error: Number constant not in range [-2^31, 2^31-1] in file number_constants.dl at line 13
 R(2147483648). // error: out of range
 --^-----------------------------------
-Error: integer constant must be in range [0, 2147483647] in file number_constants.dl at line 8
-R(-2147483648). // error: out of range
+Error: Number constant not in range [-2^31, 2^31-1] in file number_constants.dl at line 18
+R(-2147483649). // error: out of range
 ---^-----------------------------------
-2 errors generated, evaluation aborted
+Error: Number constant not in range [-2^31, 2^31-1] in file number_constants.dl at line 19
+R(- 2147483649). // error: out of range
+----^-----------------------------------
+Error: Number constant not in range [-2^31, 2^31-1] in file number_constants.dl at line 30
+R(2147483647-2147483648). // error: out of range
+-------------^-----------------------------------
+Error: Number constant not in range [-2^31, 2^31-1] in file number_constants.dl at line 31
+R(2147483647- 2147483648). // error: out of range
+--------------^-----------------------------------
+Error: Number constant not in range [-2^31, 2^31-1] in file number_constants.dl at line 32
+R(2147483647 -2147483648). // error: out of range
+--------------^-----------------------------------
+Error: Number constant not in range [-2^31, 2^31-1] in file number_constants.dl at line 33
+R(2147483647 - 2147483648). // error: out of range
+---------------^-----------------------------------
+7 errors generated, evaluation aborted

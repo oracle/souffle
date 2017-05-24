@@ -1,29 +1,9 @@
 /*
- * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
@@ -36,78 +16,77 @@
 
 #pragma once
 
-#include <ctype.h>
-
-#include <iostream>
-#include <string>
-#include <vector>
-#include <set>
-
 #include "AstNode.h"
 #include "AstType.h"
+
+#include <iostream>
+#include <set>
+#include <string>
+#include <vector>
+
+#include <ctype.h>
+
+namespace souffle {
 
 // forward declaration
 class Type;
 
 /**
- *  @class Attribute
- *  @brief Intermediate representation of an attribute which stores the name and the type of an attribute
+ *  Intermediate representation of an attribute which stores the name and the type of an attribute
  *
  *  Attribute has the only name attribute
  */
 class AstAttribute : public AstNode {
-
     /** Attribute name */
     std::string name;
 
-    /** Type name */ 
-    std::string typeName; 
+    /** Type name */
+    AstTypeIdentifier typeName;
 
 public:
-
-    AstAttribute(const std::string& n, const std::string& t, const Type* type = NULL)
-        : name(n), typeName(t) {}
+    AstAttribute(const std::string& n, const AstTypeIdentifier& t, const Type* /*type*/ = nullptr)
+            : name(n), typeName(t) {}
 
     const std::string& getAttributeName() const {
-        return name; 
+        return name;
     }
 
-    const std::string& getTypeName() const {
-        return typeName; 
+    const AstTypeIdentifier& getTypeName() const {
+        return typeName;
     }
 
-    void setTypeName(const std::string& name) {
+    void setTypeName(const AstTypeIdentifier& name) {
         typeName = name;
     }
 
-    virtual void print(std::ostream &os) const {
+    void print(std::ostream& os) const override {
         os << name << ":" << typeName;
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstAttribute* clone() const {
+    AstAttribute* clone() const override {
         AstAttribute* res = new AstAttribute(name, typeName);
         res->setSrcLoc(getSrcLoc());
         return res;
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& map) {
+    void apply(const AstNodeMapper& /*map*/) override {
         // no nested AST nodes
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         return std::vector<const AstNode*>();
     }
 
 protected:
-
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstAttribute*>(&node));
         const AstAttribute& other = static_cast<const AstAttribute&>(node);
         return name == other.name && typeName == other.typeName;
     }
-
 };
+
+}  // end of namespace souffle

@@ -1,79 +1,63 @@
 /*
- * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All Rights reserved
- * 
- * The Universal Permissive License (UPL), Version 1.0
- * 
- * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
- * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
- * (a) the Software, and
- * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
- * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
- * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
- * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All rights reserved
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
 /************************************************************************
  *
  * @file RamOperation.h
  *
- * Defines the Operation of a relational algebra query. 
+ * Defines the Operation of a relational algebra query.
  *
  ***********************************************************************/
 
 #pragma once
 
-#include <set>
-
-#include "RamNode.h"
-#include "RamRelation.h"
 #include "RamCondition.h"
 #include "RamIndex.h"
+#include "RamNode.h"
+#include "RamRelation.h"
 
-/** Abstract class for a relational algebra operation */ 
+#include <memory>
+#include <set>
+
+namespace souffle {
+
+/** Abstract class for a relational algebra operation */
 class RamOperation : public RamNode {
 protected:
-
     /** the nesting level of this operation */
-    size_t level; 
+    size_t level;
 
     /** conditions that is checked for each obtained tuple */
     std::unique_ptr<RamCondition> condition;
 
 public:
+    RamOperation(RamNodeType type, size_t l) : RamNode(type), level(l), condition(nullptr) {}
 
-    RamOperation(RamNodeType type, size_t l)
-        : RamNode(type), level(l), condition(nullptr) {}
-
-    virtual ~RamOperation() { }
+    ~RamOperation() override = default;
 
     /** obtains the level of this operation */
-    size_t getLevel() const { return level; }
+    size_t getLevel() const {
+        return level;
+    }
 
-    /** get depth of query */ 
+    /** get depth of query */
     virtual size_t getDepth() const = 0;
 
     /** Pretty print output to a given output stream */
-    virtual void print(std::ostream &os, int tabpos) const = 0;
+    virtual void print(std::ostream& os, int tabpos) const = 0;
 
     /** Pretty print node */
-    virtual void print(std::ostream& os) const { print(os, 0); }
+    void print(std::ostream& os) const override {
+        print(os, 0);
+    }
 
     /** Add condition */
-    virtual void addCondition(std::unique_ptr<RamCondition> c, RamOperation *root);
+    virtual void addCondition(std::unique_ptr<RamCondition> c, RamOperation* root);
 
     /** Add condition */
     void addCondition(std::unique_ptr<RamCondition> c) {
@@ -86,24 +70,24 @@ public:
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
-        if (!condition) return toVector<const RamNode*>();
-        return { condition.get() };
+    std::vector<const RamNode*> getChildNodes() const override {
+        if (!condition) {
+            return toVector<const RamNode*>();
+        }
+        return {condition.get()};
     }
 };
 
 /** Generic super type for scans and lookups */
 class RamSearch : public RamOperation {
-
     /** nested operation */
     std::unique_ptr<RamOperation> nestedOperation;
 
 public:
-
     RamSearch(RamNodeType type, std::unique_ptr<RamOperation> nested)
-        : RamOperation(type, nested->getLevel() - 1), nestedOperation(std::move(nested)) {}
+            : RamOperation(type, nested->getLevel() - 1), nestedOperation(std::move(nested)) {}
 
-    ~RamSearch() { }
+    ~RamSearch() override = default;
 
     /** get nested operation */
     RamOperation* getNestedOperation() const {
@@ -116,30 +100,28 @@ public:
     }
 
     /** Add condition */
-    void addCondition(std::unique_ptr<RamCondition> c, RamOperation *root);
+    void addCondition(std::unique_ptr<RamCondition> c, RamOperation* root) override;
 
     /** get depth of query */
-    virtual size_t getDepth() const {
-        return 1+nestedOperation->getDepth();
+    size_t getDepth() const override {
+        return 1 + nestedOperation->getDepth();
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         auto res = RamOperation::getChildNodes();
         res.push_back(nestedOperation.get());
         return res;
     }
 };
 
-
-/** iterates of a table and checks conditions */ 
+/** iterates of a table and checks conditions */
 class RamScan : public RamSearch {
-protected: 
-
+protected:
     /** the targeted relation */
     RamRelationIdentifier relation;
 
-    /** Values of index per column of table (if indexable) */ 
+    /** Values of index per column of table (if indexable) */
     std::vector<std::unique_ptr<RamValue>> queryPattern;
 
     /** the columns to be matched when using a range query */
@@ -158,13 +140,12 @@ protected:
     mutable RamIndex* index;
 
 public:
-
     /** constructs a scan operation on the given relation with the given nested operation */
     RamScan(const RamRelationIdentifier& r, std::unique_ptr<RamOperation> nested, bool pureExistenceCheck)
-        : RamSearch(RN_Scan, std::move(nested)), relation(r), queryPattern(r.getArity()),
-          keys(0), pureExistenceCheck(pureExistenceCheck), index(nullptr) {}
+            : RamSearch(RN_Scan, std::move(nested)), relation(r), queryPattern(r.getArity()), keys(0),
+              pureExistenceCheck(pureExistenceCheck), index(nullptr) {}
 
-    ~RamScan() { }
+    ~RamScan() override = default;
 
     /** Obtains the id of the relation scanned by this operation */
     const RamRelationIdentifier& getRelation() const {
@@ -175,7 +156,7 @@ public:
      * Obtains a mask indicating the keys to be matched when realizing this scan
      * via a range query.
      */
-    SearchColumns getRangeQueryColumns() const {
+    const SearchColumns& getRangeQueryColumns() const {
         return keys;
     }
 
@@ -207,27 +188,26 @@ public:
         this->index = index;
     }
 
-    /** print search */ 
-    void print(std::ostream &os, int tabpos) const;
+    /** print search */
+    void print(std::ostream& os, int tabpos) const override;
 
     /** add condition */
-    virtual void addCondition(std::unique_ptr<RamCondition> c, RamOperation *root);
+    void addCondition(std::unique_ptr<RamCondition> c, RamOperation* root) override;
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         auto res = RamSearch::getChildNodes();
-        for(auto &cur : queryPattern) {
-            if (cur) res.push_back(cur.get());
+        for (auto& cur : queryPattern) {
+            if (cur) {
+                res.push_back(cur.get());
+            }
         }
         return res;
     }
-
 };
-
 
 /** Lookup of records */
 class RamLookup : public RamSearch {
-
     /** The level of the tuple containing the reference to resolve */
     std::size_t refLevel;
 
@@ -238,9 +218,9 @@ class RamLookup : public RamSearch {
     std::size_t arity;
 
 public:
-
-    RamLookup(std::unique_ptr<RamOperation> nested, std::size_t ref_level, std::size_t ref_pos, std::size_t arity)
-        : RamSearch(RN_Lookup, std::move(nested)), refLevel(ref_level), refPos(ref_pos), arity(arity) {}
+    RamLookup(std::unique_ptr<RamOperation> nested, std::size_t ref_level, std::size_t ref_pos,
+            std::size_t arity)
+            : RamSearch(RN_Lookup, std::move(nested)), refLevel(ref_level), refPos(ref_pos), arity(arity) {}
 
     std::size_t getReferenceLevel() const {
         return refLevel;
@@ -255,25 +235,16 @@ public:
     }
 
     /** print search */
-    void print(std::ostream &os, int tabpos) const;
-
+    void print(std::ostream& os, int tabpos) const override;
 };
-
 
 /** A ram aggregation is computing an aggregated value over a given relation */
 class RamAggregate : public RamSearch {
-
 public:
-
     /** An enumeration of supported aggregation functions */
-    enum Function {
-        MAX,
-        MIN,
-        COUNT
-    };
+    enum Function { MAX, MIN, COUNT, SUM };
 
 private:
-
     /** A aggregation function performed */
     Function fun;
 
@@ -293,13 +264,13 @@ private:
     mutable RamIndex* index;
 
 public:
-
     /** Creates a new instance based on the given parameters */
-    RamAggregate(std::unique_ptr<RamOperation> nested, Function fun, std::unique_ptr<RamValue> value, const RamRelationIdentifier& relation)
-        : RamSearch(RN_Aggregate, std::move(nested)), fun(fun), value(std::move(value)), relation(relation), pattern(relation.getArity()), keys(0), index(nullptr) {
-    }
+    RamAggregate(std::unique_ptr<RamOperation> nested, Function fun, std::unique_ptr<RamValue> value,
+            const RamRelationIdentifier& relation)
+            : RamSearch(RN_Aggregate, std::move(nested)), fun(fun), value(std::move(value)),
+              relation(relation), pattern(relation.getArity()), keys(0), index(nullptr) {}
 
-    ~RamAggregate() { }
+    ~RamAggregate() override = default;
 
     Function getFunction() const {
         return fun;
@@ -318,7 +289,7 @@ public:
     }
 
     /** add condition */
-    virtual void addCondition(std::unique_ptr<RamCondition> c, RamOperation *root);
+    void addCondition(std::unique_ptr<RamCondition> c, RamOperation* root) override;
 
     /**
      * Obtains a mask indicating the keys to be matched when realizing this scan
@@ -339,35 +310,32 @@ public:
     }
 
     /** print search */
-    void print(std::ostream &os, int tabpos) const;
-
+    void print(std::ostream& os, int tabpos) const override;
 };
 
-
-/** Projection */ 
-class RamProject: public RamOperation {
-protected: 
-
-    /** relation */ 
+/** Projection */
+class RamProject : public RamOperation {
+protected:
+    /** relation */
     RamRelationIdentifier relation;
 
     /** a relation to check that the projected value is not present */
     std::unique_ptr<RamRelationIdentifier> filter;
 
-    /* values for projection */ 
+    /* values for projection */
     std::vector<std::unique_ptr<RamValue>> values;
 
 public:
-
     RamProject(const RamRelationIdentifier& relation, size_t level)
-        : RamOperation(RN_Project, level), relation(relation), filter(nullptr) {}
+            : RamOperation(RN_Project, level), relation(relation), filter(nullptr) {}
 
     RamProject(const RamRelationIdentifier& relation, const RamRelationIdentifier& filter, size_t level)
-        : RamOperation(RN_Project, level), relation(relation), filter(std::unique_ptr<RamRelationIdentifier>(new RamRelationIdentifier(filter))) {}
+            : RamOperation(RN_Project, level), relation(relation),
+              filter(std::unique_ptr<RamRelationIdentifier>(new RamRelationIdentifier(filter))) {}
 
-    ~RamProject() { }
+    ~RamProject() override = default;
 
-    /** add value for a column */ 
+    /** add value for a column */
     void addArg(std::unique_ptr<RamValue> v) {
         values.push_back(std::move(v));
     }
@@ -377,7 +345,7 @@ public:
     }
 
     bool hasFilter() const {
-        return (bool) filter;
+        return (bool)filter;
     }
 
     const RamRelationIdentifier& getFilter() const {
@@ -389,18 +357,22 @@ public:
         return toPtrVector(values);
     }
 
-    /** get depth of projection */ 
-    virtual size_t getDepth() const {
+    /** get depth of projection */
+    size_t getDepth() const override {
         return 1;
     }
 
-    /** execute print */ 
-    virtual void print(std::ostream &os, int tabpos) const;
+    /** execute print */
+    void print(std::ostream& os, int tabpos) const override;
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         auto res = RamOperation::getChildNodes();
-        for(const auto& cur : values) res.push_back(cur.get());
+        for (const auto& cur : values) {
+            res.push_back(cur.get());
+        }
         return res;
     }
 };
+
+}  // namespace souffle
