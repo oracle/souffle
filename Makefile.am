@@ -24,4 +24,21 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 # IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-SUBDIRS = src tests prof 
+SUBDIRS = src tests prof
+
+# Debian packaging
+dpkg_dir = packaging
+dist_src = $(distdir).tar.gz
+deb_src  = $(PACKAGE)_$(VERSION).orig.tar.gz
+
+deb-package: dist
+	@which "$(DEBUILD)" 2>&1 > /dev/null || { echo "No debuild executable found" 1>&2 && exit 1; }
+	rm -rf $(dpkg_dir)
+	$(MKDIR_P) $(dpkg_dir)
+	tar -xzvf $(dist_src) -C $(dpkg_dir)
+	cp -r debian $(dpkg_dir)/$(distdir)
+	mv $(dist_src) $(dpkg_dir)/$(deb_src)
+	cd $(dpkg_dir)/$(distdir) && DEB_BUILD_OPTIONS=nocheck $(DEBUILD) -us -uc
+
+clean-local:
+	-rm -rf $(dpkg_dir)

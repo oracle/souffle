@@ -1,7 +1,7 @@
 sudo: required
 dist: trusty
 language: cpp
-before_install: 
+before_install:
   - sudo apt-get -qq update
-  - sudo apt-get -y install bison
+  - sudo apt-get -y install bison flex build-essential
 script: ./bootstrap && ./configure && make && make check

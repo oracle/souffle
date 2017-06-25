@@ -1,0 +1,5 @@
+souffle (@VERSION@-1) UNRELEASED; urgency=low
+
+  * Initial release
+
+ -- Nathan Keynes <nathan.keynes@oracle.com>  Fri, 23 Jun 2017 17:25:32 +0000
