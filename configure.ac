@@ -57,15 +57,14 @@ AC_CHECK_PROG(SOUFFLECPP, cpp, cpp)
 AS_IF([test -z "$SOUFFLECPP"], [AC_MSG_ERROR([cpp not found.])])
 
 # Check for flex
-AC_CHECK_PROG(FLEX, flex, flex)
-AS_IF([test -z "$FLEX"], [AC_MSG_ERROR([flex not found.])])
+AX_PROG_FLEX([],[AC_MSG_ERROR([flex not found])])
 
 # Check for debuild
 AC_CHECK_PROG(DEBUILD, debuild, debuild)
 
 # Check for bison
-AC_CHECK_PROG(BISON, bison, bison)
-AS_IF([test -z "$BISON"], [AC_MSG_ERROR([bison not found.])])
+AX_PROG_BISON([],[AC_MSG_ERROR([bison not found])])
+AX_PROG_BISON_VERSION(["3.0.0"], [], [AC_MSG_ERROR([require bison 3.x.x.])])
 
 dnl Enable pthread library
 AC_CHECK_LIB(pthread, pthread_create,,
