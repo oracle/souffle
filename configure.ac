@@ -60,6 +60,9 @@ AS_IF([test -z "$SOUFFLECPP"], [AC_MSG_ERROR([cpp not found.])])
 AC_CHECK_PROG(FLEX, flex, flex)
 AS_IF([test -z "$FLEX"], [AC_MSG_ERROR([flex not found.])])
 
+# Check for debuild
+AC_CHECK_PROG(DEBUILD, debuild, debuild)
+
 # Check for bison
 AC_CHECK_PROG(BISON, bison, bison)
 AS_IF([test -z "$BISON"], [AC_MSG_ERROR([bison not found.])])
@@ -131,4 +134,4 @@ AC_FUNC_MMAP
 AC_FUNC_REALLOC
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([dup2 fchdir getcwd getpagesize gettimeofday isascii memset mkdir munmap pow regcomp rmdir setenv socket strcasecmp strchr strdup strerror strrchr strstr strtol strtoull])
-AC_OUTPUT
+AC_OUTPUT([debian/changelog])
