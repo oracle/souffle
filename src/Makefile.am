@@ -103,7 +103,7 @@ $(builddir)/parser.hh $(builddir)/parser.cc $(builddir)/stack.hh: $(srcdir)/pars
 
 # and FLEX
 $(builddir)/scanner.cc: $(srcdir)/scanner.ll
-	$(FLEX) -o scanner.cc $(srcdir)/scanner.ll
+	$(LEX) -o scanner.cc $(srcdir)/scanner.ll
 
 # driver depends on the generated header
 $(builddir)/ParserDriver.cpp: $(builddir)/parser.hh
