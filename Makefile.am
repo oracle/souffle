@@ -42,3 +42,13 @@ deb-package: dist
 
 clean-local:
 	-rm -rf $(dpkg_dir)
+
+dist-hook:
+	if test -d $(srcdir)/debian; then \
+	  mkdir $(distdir)/debian; \
+	  for f in $(srcdir)/debian/*; do \
+	    if test -f $$f; then \
+	      cp -p $$f $(distdir)/debian; \
+	    fi \
+	  done \
+	fi
